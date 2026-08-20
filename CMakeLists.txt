@@ -17,6 +17,8 @@ qt_add_executable(appYaMusic
     main.cpp
     src/Core/AppController.h
     src/Core/AppController.cpp
+    src/Models/Track.h
+    src/Models/Track.cpp
 )
 
 qt_add_qml_module(appYaMusic
