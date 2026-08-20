@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QString>
 
+class YandexAuth;
 class YandexClient;
 
 class AppController : public QObject
@@ -19,5 +20,6 @@ signals:
     void statusChanged(const QString &message);
 
 private:
+    YandexAuth *m_yandexAuth = nullptr;
     YandexClient *m_yandexClient = nullptr;
 };

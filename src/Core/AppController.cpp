@@ -1,13 +1,14 @@
 #include "AppController.h"
 
 #include "../Models/Account.h"
+#include "../Yandex/Auth/YandexAuth.h"
 #include "../Yandex/YandexClient.h"
 
 #include <QDebug>
-#include <QProcessEnvironment>
 
 AppController::AppController(QObject *parent)
     : QObject(parent)
+    , m_yandexAuth(new YandexAuth(this))
     , m_yandexClient(new YandexClient(this))
 {
     connect(
@@ -32,6 +33,8 @@ AppController::AppController(QObject *parent)
             qDebug() << message;
             emit statusChanged(message);
         });
+
+    m_yandexAuth->loadFromEnvironment();
 }
 
 void AppController::testConnection()
@@ -44,18 +47,12 @@ void AppController::testYandexApi()
 {
     qDebug() << "testYandexApi() called";
 
-    const QString token =
-        QProcessEnvironment::systemEnvironment()
-            .value("YANDEX_MUSIC_TOKEN");
-
-    qDebug() << "Token available:" << !token.isEmpty();
-
-    if (token.isEmpty()) {
-        emit statusChanged("YANDEX_MUSIC_TOKEN is not set");
+    if (!m_yandexAuth->isAuthenticated()) {
+        emit statusChanged("Yandex Music token is not set");
         return;
     }
 
-    m_yandexClient->setToken(token);
+    m_yandexClient->setToken(m_yandexAuth->token());
 
     qDebug() << "Requesting Yandex account status...";
 
