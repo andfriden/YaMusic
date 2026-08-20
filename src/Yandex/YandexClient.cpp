@@ -2,6 +2,11 @@
 
 #include <QDebug>
 #include <QNetworkRequest>
+#include "AccountParser.h"
+
+#include <QJsonDocument>
+#include <QJsonObject>
+
 
 namespace
 {
@@ -60,11 +65,26 @@ void YandexClient::getAccountStatus()
 
         if (reply->error() != QNetworkReply::NoError) {
             emit requestError(reply->errorString());
-            qDebug() << "Yandex API error:" << reply->errorString();
-            qDebug() << "Response:" << data;
-        } else {
-            qDebug() << "Yandex API response:" << data;
+            reply->deleteLater();
+            return;
         }
+
+        QJsonParseError parseError;
+        const QJsonDocument document =
+            QJsonDocument::fromJson(data, &parseError);
+
+        if (parseError.error != QJsonParseError::NoError ||
+            !document.isObject()) {
+            emit requestError(
+                "Invalid JSON response from Yandex Music");
+            reply->deleteLater();
+            return;
+        }
+
+        const Account account =
+            AccountParser::parse(document.object());
+
+        emit accountReceived(account);
 
         reply->deleteLater();
     });

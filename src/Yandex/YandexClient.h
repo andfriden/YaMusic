@@ -4,6 +4,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QString>
+#include "../Models/Account.h"
 
 class YandexClient : public QObject
 {
@@ -23,6 +24,7 @@ public:
 
 signals:
     void requestError(const QString &message);
+    void accountReceived(const Account &account); 
 
 private:
     QNetworkRequest createRequest(const QString &path) const;
