@@ -4,7 +4,7 @@ project(YaMusic VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick)
+find_package(Qt6 REQUIRED COMPONENTS Quick Network)
 
 qt_standard_project_setup(REQUIRES 6.10)
 
@@ -19,6 +19,8 @@ qt_add_executable(appYaMusic
     src/Core/AppController.cpp
     src/Models/Track.h
     src/Models/Track.cpp
+    src/Yandex/YandexClient.h
+    src/Yandex/YandexClient.cpp
 )
 
 qt_add_qml_module(appYaMusic
@@ -39,7 +41,9 @@ set_target_properties(appYaMusic PROPERTIES
 )
 
 target_link_libraries(appYaMusic
-    PRIVATE Qt6::Quick
+    PRIVATE
+        Qt6::Quick
+        Qt6::Network
 )
 
 install(TARGETS appYaMusic

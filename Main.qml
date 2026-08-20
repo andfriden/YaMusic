@@ -36,6 +36,14 @@ ApplicationWindow {
             onClicked: appController.testConnection()
         }
 
+        Button {
+             text: "Test Yandex API"
+             anchors.horizontalCenter: parent.horizontalCenter
+
+             onClicked: appController.testYandexApi()
+          }
+        
+
         Label {
             id: statusLabel
             text: "Ready"
