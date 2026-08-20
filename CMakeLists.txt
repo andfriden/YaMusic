@@ -27,6 +27,8 @@ qt_add_executable(appYaMusic
     src/Yandex/AccountParser.cpp
     src/Yandex/Auth/YandexAuth.h
     src/Yandex/Auth/YandexAuth.cpp
+    src/Yandex/Account/AccountService.h
+    src/Yandex/Account/AccountService.cpp
 )
 
 qt_add_qml_module(appYaMusic
