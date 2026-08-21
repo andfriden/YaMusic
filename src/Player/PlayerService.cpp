@@ -2,12 +2,14 @@
 
 #include <QDebug>
 
-PlayerService::PlayerService(QObject *parent)
+PlayerService::PlayerService(
+    QObject *parent)
     : QObject(parent)
     , m_player(this)
     , m_audioOutput(this)
 {
-    m_audioOutput.setVolume(1.0);
+    m_audioOutput.setVolume(
+        1.0);
 
     m_player.setAudioOutput(
         &m_audioOutput);
@@ -16,7 +18,8 @@ PlayerService::PlayerService(QObject *parent)
         &m_player,
         &QMediaPlayer::playbackStateChanged,
         this,
-        [this](QMediaPlayer::PlaybackState state)
+        [this](
+            QMediaPlayer::PlaybackState state)
         {
             qDebug()
                 << "Playback state:"
@@ -27,24 +30,30 @@ PlayerService::PlayerService(QObject *parent)
             switch (state) {
 
             case QMediaPlayer::PlayingState:
+
                 qDebug()
                     << "Playback started";
 
                 emit playbackStarted();
+
                 break;
 
             case QMediaPlayer::PausedState:
+
                 qDebug()
                     << "Playback paused";
 
                 emit playbackPaused();
+
                 break;
 
             case QMediaPlayer::StoppedState:
+
                 qDebug()
                     << "Playback stopped";
 
                 emit playbackStopped();
+
                 break;
 
             default:
@@ -56,11 +65,41 @@ PlayerService::PlayerService(QObject *parent)
         &m_player,
         &QMediaPlayer::mediaStatusChanged,
         this,
-        [this](QMediaPlayer::MediaStatus status)
+        [this](
+            QMediaPlayer::MediaStatus status)
         {
             qDebug()
                 << "Media status:"
                 << status;
+
+            if (status ==
+                QMediaPlayer::EndOfMedia) {
+
+                qDebug()
+                    << "Playback finished";
+
+                emit playbackFinished();
+            }
+        });
+
+    connect(
+        &m_player,
+        &QMediaPlayer::positionChanged,
+        this,
+        [this](qint64 position)
+        {
+            emit positionChanged(
+                position);
+        });
+
+    connect(
+        &m_player,
+        &QMediaPlayer::durationChanged,
+        this,
+        [this](qint64 duration)
+        {
+            emit durationChanged(
+                duration);
         });
 
     connect(
@@ -90,6 +129,16 @@ bool PlayerService::isPlaying() const
 QString PlayerService::currentUrl() const
 {
     return m_currentUrl;
+}
+
+qint64 PlayerService::position() const
+{
+    return m_player.position();
+}
+
+qint64 PlayerService::duration() const
+{
+    return m_player.duration();
 }
 
 void PlayerService::play()
@@ -163,4 +212,24 @@ void PlayerService::togglePlayback()
     } else {
         resume();
     }
+}
+
+void PlayerService::seek(
+    qint64 position)
+{
+    const qint64 playerDuration =
+        m_player.duration();
+
+    if (playerDuration <= 0) {
+        return;
+    }
+
+    const qint64 clampedPosition =
+        qBound(
+            qint64(0),
+            position,
+            playerDuration);
+
+    m_player.setPosition(
+        clampedPosition);
 }

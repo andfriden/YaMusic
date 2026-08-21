@@ -75,6 +75,8 @@ qt_add_executable(appYaMusic
 
         src/Yandex/Catalog/TrackService.h
         src/Yandex/Catalog/TrackService.cpp
+        src/Playback/PlaybackController.cpp
+        src/Playback/PlaybackController.h
 )
 
 qt_add_qml_module(appYaMusic

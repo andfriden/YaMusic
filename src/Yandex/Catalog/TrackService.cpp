@@ -16,7 +16,6 @@ constexpr auto DownloadInfoSalt =
     "XGRlBW9FXlekgbPrRHuSiA";
 }
 
-// Creates the track streaming service.
 TrackService::TrackService(
     YandexAuth *auth,
     QObject *parent)
@@ -26,7 +25,6 @@ TrackService::TrackService(
 {
 }
 
-// Loads available streaming variants for a track.
 void TrackService::loadStreamInfo(
     const QString &trackId)
 {
@@ -65,7 +63,7 @@ void TrackService::loadStreamInfo(
         reply,
         &QNetworkReply::finished,
         this,
-        [this, reply]() {
+        [this, reply, trimmedTrackId]() {
 
             const QByteArray data =
                 reply->readAll();
@@ -160,7 +158,8 @@ void TrackService::loadStreamInfo(
                 return;
             }
 
-            emit streamInfoReceived(streams);
+            emit streamInfoReceived(
+                streams);
 
             const TrackStreamInfo bestStream =
                 selectBestStream(streams);
@@ -174,13 +173,14 @@ void TrackService::loadStreamInfo(
                 return;
             }
 
-            resolveStream(bestStream);
+            resolveStream(
+                trimmedTrackId,
+                bestStream);
 
             reply->deleteLater();
         });
 }
 
-// Selects the best available streaming variant.
 TrackStreamInfo TrackService::selectBestStream(
     const QList<TrackStreamInfo> &streams) const
 {
@@ -218,8 +218,8 @@ TrackStreamInfo TrackService::selectBestStream(
     return bestStream;
 }
 
-// Resolves download-info into a playable stream URL.
 void TrackService::resolveStream(
+    const QString &trackId,
     const TrackStreamInfo &stream)
 {
     if (stream.downloadInfoUrl.isEmpty()) {
@@ -238,7 +238,7 @@ void TrackService::resolveStream(
         reply,
         &QNetworkReply::finished,
         this,
-        [this, reply]() {
+        [this, reply, trackId]() {
 
             const QByteArray data =
                 reply->readAll();
@@ -357,6 +357,7 @@ void TrackService::resolveStream(
                     .arg(path);
 
             emit streamUrlReceived(
+                trackId,
                 streamUrl);
 
             reply->deleteLater();

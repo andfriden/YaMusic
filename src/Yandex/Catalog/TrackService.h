@@ -36,6 +36,7 @@ public:
             const QList<TrackStreamInfo> &streams);
 
     void streamUrlReceived(
+        const QString &trackId,
         const QString &url);
 
     void errorOccurred(
@@ -46,6 +47,7 @@ private:
         const QList<TrackStreamInfo> &streams) const;
 
     void resolveStream(
+        const QString &trackId,
         const TrackStreamInfo &stream);
 
     YandexAuth *m_auth = nullptr;

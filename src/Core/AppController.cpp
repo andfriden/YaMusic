@@ -1,5 +1,7 @@
 #include "AppController.h"
 
+#include "../Playback/PlaybackController.h"
+#include "../Player/PlayerService.h"
 #include "../Yandex/Account/AccountService.h"
 #include "../Yandex/Auth/YandexAuth.h"
 #include "../Yandex/Catalog/SearchService.h"
@@ -27,6 +29,11 @@ AppController::AppController(
           new SearchModel(this))
     , m_playerService(
           new PlayerService(this))
+    , m_playbackController(
+          new PlaybackController(
+              m_trackService,
+              m_playerService,
+              this))
 {
     connect(
         m_accountService,
@@ -41,7 +48,8 @@ AppController::AppController(
 
             qDebug() << message;
 
-            emit statusChanged(message);
+            emit statusChanged(
+                message);
         });
 
     connect(
@@ -54,7 +62,8 @@ AppController::AppController(
                 << "Account service error:"
                 << message;
 
-            emit statusChanged(message);
+            emit statusChanged(
+                message);
         });
 
     connect(
@@ -115,64 +124,67 @@ AppController::AppController(
 
             m_searchModel->clear();
 
-            emit statusChanged(message);
+            emit statusChanged(
+                message);
         });
 
     connect(
-        m_trackService,
-        &TrackService::streamInfoReceived,
+        m_playbackController,
+        &PlaybackController::currentTrackChanged,
         this,
-        [this](
-            const QList<TrackStreamInfo> &streams) {
+        [this]() {
 
-            qDebug()
-                << "Stream variants:"
-                << streams.size();
+            const Track track =
+                m_playbackController->currentTrack();
 
-            for (const TrackStreamInfo &stream :
-                 streams) {
-
-                qDebug()
-                    << "codec:"
-                    << stream.codec
-                    << "bitrate:"
-                    << stream.bitrateInKbps
-                    << "preview:"
-                    << stream.preview
-                    << "direct:"
-                    << stream.direct
-                    << "url:"
-                    << stream.downloadInfoUrl;
+            if (track.id.isEmpty()) {
+                return;
             }
-        });
 
-    connect(
-        m_trackService,
-        &TrackService::streamUrlReceived,
-        this,
-        [this](const QString &url) {
+            QString artistName;
 
-            qDebug()
-                << "Stream URL:"
-                << url;
+            if (!track.artists.isEmpty()) {
+                artistName =
+                    track.artists.first().name;
+            }
+
+            const QString message =
+                artistName.isEmpty()
+                    ? QString("Selected: %1")
+                          .arg(track.title)
+                    : QString("Selected: %1 — %2")
+                          .arg(track.title)
+                          .arg(artistName);
+
+            qDebug() << message;
+
+            emit currentTrackChanged();
 
             emit statusChanged(
-                "Stream URL resolved");
-
-            m_playerService->playUrl(url);
+                message);
         });
 
     connect(
-        m_trackService,
-        &TrackService::errorOccurred,
+        m_playbackController,
+        &PlaybackController::stateChanged,
+        this,
+        [this]() {
+
+            emit playbackStateChanged();
+        });
+
+    connect(
+        m_playbackController,
+        &PlaybackController::playbackError,
         this,
         [this](const QString &message) {
 
             qDebug()
-                << "Track service error:"
+                << "Playback error:"
                 << message;
 
-            emit statusChanged(message);
+            emit statusChanged(
+                message);
         });
 
     connect(
@@ -188,6 +200,24 @@ AppController::AppController(
                 emit statusChanged(
                     "Playing");
             }
+        });
+
+    connect(
+        m_playerService,
+        &PlayerService::positionChanged,
+        this,
+        [this](qint64) {
+
+            emit positionChanged();
+        });
+
+    connect(
+        m_playerService,
+        &PlayerService::durationChanged,
+        this,
+        [this](qint64) {
+
+            emit durationChanged();
         });
 
     connect(
@@ -224,30 +254,6 @@ AppController::AppController(
                 QString("Player error: %1")
                     .arg(message));
         });
-    connect(
-m_trackService,
-&TrackService::streamUrlReceived,
-this,
-[this](const QString &url) {
-
-   if (url.isEmpty()) {
-
-       emit statusChanged(
-           "Received empty stream URL");
-
-       return;
-   }
-
-   qDebug()
-       << "Stream URL received:"
-       << url;
-
-   emit statusChanged(
-       "Starting playback...");
-
-   m_playerService->playUrl(
-       url);
-});
 }
 
 void AppController::testConnection()
@@ -270,14 +276,15 @@ void AppController::testYandexApi()
 void AppController::testSearch(
     const QString &query)
 {
-    m_searchService->search(query);
+    m_searchService->search(
+        query);
 }
 
 void AppController::selectSearchResult(
     int index)
 {
     const Track track =
-    m_searchModel->trackAt(index);
+        m_searchModel->trackAt(index);
 
     if (track.id.isEmpty()) {
 
@@ -287,20 +294,8 @@ void AppController::selectSearchResult(
         return;
     }
 
-    const QString message =
-        QString("Selected: %1 — %2")
-            .arg(track.title)
-            .arg(
-                track.artists.isEmpty()
-                    ? QString()
-                    : track.artists.first().name);
-
-    qDebug() << message;
-
-    emit statusChanged(message);
-
-    m_trackService->loadStreamInfo(
-        track.id);
+    m_playbackController->playTrack(
+        track);
 }
 
 void AppController::play()
@@ -318,6 +313,13 @@ void AppController::stop()
     m_playerService->stop();
 }
 
+void AppController::seek(
+    qint64 position)
+{
+    m_playerService->seek(
+        position);
+}
+
 SearchModel *AppController::searchModel() const
 {
     return m_searchModel;
@@ -331,4 +333,71 @@ bool AppController::isSearching() const
 bool AppController::isPlaying() const
 {
     return m_playerService->isPlaying();
+}
+
+QString AppController::currentTrackTitle() const
+{
+    if (m_playbackController == nullptr) {
+        return {};
+    }
+
+    return m_playbackController
+        ->currentTrack()
+        .title;
+}
+
+QString AppController::currentTrackArtist() const
+{
+    if (m_playbackController == nullptr) {
+        return {};
+    }
+
+    const Track track =
+        m_playbackController
+            ->currentTrack();
+
+    if (track.artists.isEmpty()) {
+        return {};
+    }
+
+    return track.artists.first().name;
+}
+
+QString AppController::currentTrackCoverUri() const
+{
+    if (m_playbackController == nullptr) {
+        return {};
+    }
+
+    return m_playbackController
+        ->currentTrack()
+        .coverUri;
+}
+
+qint64 AppController::position() const
+{
+    if (m_playerService == nullptr) {
+        return 0;
+    }
+
+    return m_playerService->position();
+}
+
+qint64 AppController::duration() const
+{
+    if (m_playerService == nullptr) {
+        return 0;
+    }
+
+    return m_playerService->duration();
+}
+
+PlaybackController::PlaybackState
+AppController::playbackState() const
+{
+    if (m_playbackController == nullptr) {
+        return PlaybackController::Idle;
+    }
+
+    return m_playbackController->state();
 }
