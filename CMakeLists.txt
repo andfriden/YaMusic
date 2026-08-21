@@ -4,7 +4,14 @@ project(YaMusic VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick Network)
+find_package(
+        Qt6
+        REQUIRED
+        COMPONENTS
+        Quick
+        Network
+        Multimedia
+)
 
 qt_standard_project_setup(REQUIRES 6.10)
 
@@ -14,76 +21,112 @@ if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/importedcontent/CMakeLists.txt")
 endif()
 
 qt_add_executable(appYaMusic
-    main.cpp
 
-    src/Core/AppController.h
-    src/Core/AppController.cpp
+        main.cpp
 
-    src/Models/Track.h
-    src/Models/Track.cpp
+        # Core
+        src/Core/AppController.h
+        src/Core/AppController.cpp
 
-    src/Models/Account.h
-    src/Models/Account.cpp
+        # Player
+        src/Player/PlayerService.h
+        src/Player/PlayerService.cpp
 
-    src/Yandex/YandexClient.h
-    src/Yandex/YandexClient.cpp
+        # Models
+        src/Models/Track.h
+        src/Models/Track.cpp
 
-    src/Yandex/AccountParser.h
-    src/Yandex/AccountParser.cpp
+        src/Models/Account.h
+        src/Models/Account.cpp
 
-    src/Yandex/Auth/YandexAuth.h
-    src/Yandex/Auth/YandexAuth.cpp
+        # Yandex
+        src/Yandex/YandexClient.h
+        src/Yandex/YandexClient.cpp
 
-    src/Yandex/Account/AccountService.h
-    src/Yandex/Account/AccountService.cpp
+        src/Yandex/AccountParser.h
+        src/Yandex/AccountParser.cpp
 
-    src/Yandex/Catalog/SearchResult.h
-    src/Yandex/Catalog/SearchResult.cpp
+        # Auth
+        src/Yandex/Auth/YandexAuth.h
+        src/Yandex/Auth/YandexAuth.cpp
 
-    src/Yandex/Catalog/SearchParser.h
-    src/Yandex/Catalog/SearchParser.cpp
+        src/Yandex/Auth/YandexTokenStorage.h
+        src/Yandex/Auth/YandexTokenStorage.cpp
 
-    src/Yandex/Catalog/SearchService.h
-    src/Yandex/Catalog/SearchService.cpp
+        # Account
+        src/Yandex/Account/AccountService.h
+        src/Yandex/Account/AccountService.cpp
 
-    src/Yandex/Catalog/SearchModel.h
-    src/Yandex/Catalog/SearchModel.cpp
+        # Catalog
+        src/Yandex/Catalog/SearchResult.h
+        src/Yandex/Catalog/SearchResult.cpp
 
-    src/Yandex/Catalog/CoverImageProvider.h
-    src/Yandex/Catalog/CoverImageProvider.cpp
+        src/Yandex/Catalog/SearchParser.h
+        src/Yandex/Catalog/SearchParser.cpp
 
-    src/Yandex/Auth/YandexTokenStorage.h
-    src/Yandex/Auth/YandexTokenStorage.cpp
+        src/Yandex/Catalog/SearchService.h
+        src/Yandex/Catalog/SearchService.cpp
 
+        src/Yandex/Catalog/SearchModel.h
+        src/Yandex/Catalog/SearchModel.cpp
+
+        src/Yandex/Catalog/CoverImageProvider.h
+        src/Yandex/Catalog/CoverImageProvider.cpp
+
+        src/Yandex/Catalog/TrackService.h
+        src/Yandex/Catalog/TrackService.cpp
 )
 
 qt_add_qml_module(appYaMusic
-    URI YaMusic
-    QML_FILES
+        URI YaMusic
+
+        QML_FILES
         Main.qml
 )
 
-# Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
-# If you are developing for iOS or macOS you should consider setting an
-# explicit, fixed bundle identifier manually though.
+# macOS application bundle
 set_target_properties(appYaMusic PROPERTIES
-    # MACOSX_BUNDLE_GUI_IDENTIFIER com.example.appYaMusic
-    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
-    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-    MACOSX_BUNDLE TRUE
-    WIN32_EXECUTABLE TRUE
+
+        MACOSX_BUNDLE TRUE
+
+        MACOSX_BUNDLE_BUNDLE_VERSION
+        ${PROJECT_VERSION}
+
+        MACOSX_BUNDLE_SHORT_VERSION_STRING
+        ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+
+        WIN32_EXECUTABLE TRUE
 )
 
 target_link_libraries(appYaMusic
-    PRIVATE
+        PRIVATE
+
         Qt6::Quick
         Qt6::Network
+        Qt6::Multimedia
 )
 
-install(TARGETS appYaMusic
-    BUNDLE DESTINATION .
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+# macOS Security framework
+if (APPLE)
+
+    find_library(
+            SECURITY_FRAMEWORK
+            Security
+    )
+
+    target_link_libraries(
+            appYaMusic
+            PRIVATE
+            ${SECURITY_FRAMEWORK}
+    )
+
+endif()
+
+install(
+        TARGETS appYaMusic
+        BUNDLE DESTINATION .
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 qt_generate_deploy_qml_app_script(
@@ -92,14 +135,6 @@ qt_generate_deploy_qml_app_script(
         NO_UNSUPPORTED_PLATFORM_ERROR
 )
 
-install(SCRIPT ${deploy_script})
-
-
-if (APPLE)
-    find_library(SECURITY_FRAMEWORK Security)
-
-    target_link_libraries(appYaMusic
-            PRIVATE
-            ${SECURITY_FRAMEWORK}
-    )
-endif()
+install(
+        SCRIPT ${deploy_script}
+)

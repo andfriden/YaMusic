@@ -22,6 +22,9 @@ public:
     void search(const QString &query);
 
 signals:
+
+    void searchStarted();
+
     // Emitted when search results have been loaded successfully.
     void searchReceived(const SearchResults &results);
 

@@ -56,6 +56,8 @@ void SearchService::search(const QString &query)
     m_yandexClient->setToken(
         m_auth->token());
 
+    emit searchStarted();
+
     m_yandexClient->search(
         trimmedQuery);
 }

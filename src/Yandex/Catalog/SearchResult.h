@@ -25,7 +25,6 @@ struct SearchTrack
     QString id;
     QString title;
     QString coverUri;
-    QString albumTitle;
     int durationMs = 0;
     QList<SearchArtist> artists;
     QList<SearchAlbum> albums;

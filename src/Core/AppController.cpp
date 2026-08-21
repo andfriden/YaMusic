@@ -2,32 +2,38 @@
 
 #include "../Yandex/Account/AccountService.h"
 #include "../Yandex/Auth/YandexAuth.h"
-#include "../Yandex/Catalog/SearchModel.h"
 #include "../Yandex/Catalog/SearchService.h"
+#include "../Yandex/Catalog/TrackService.h"
 
 #include <QDebug>
 
-// Creates the application controller and initializes Yandex services.
-AppController::AppController(QObject *parent)
+AppController::AppController(
+    QObject *parent)
     : QObject(parent)
     , m_auth(new YandexAuth(this))
-    , m_accountService(new AccountService(m_auth, this))
-    , m_searchService(new SearchService(m_auth, this))
-    , m_searchModel(new SearchModel(this))
+    , m_accountService(
+          new AccountService(
+              m_auth,
+              this))
+    , m_searchService(
+          new SearchService(
+              m_auth,
+              this))
+    , m_trackService(
+          new TrackService(
+              m_auth,
+              this))
+    , m_searchModel(
+          new SearchModel(this))
+    , m_playerService(
+          new PlayerService(this))
 {
-    connect(
-        m_auth,
-        &YandexAuth::authenticationChanged,
-        this,
-        [this]() {
-            emit authenticationChanged();
-        });
-
     connect(
         m_accountService,
         &AccountService::accountReceived,
         this,
         [this](const Account &account) {
+
             const QString message =
                 QString("Logged in as %1 (uid: %2)")
                     .arg(account.displayName)
@@ -43,6 +49,7 @@ AppController::AppController(QObject *parent)
         &AccountService::errorOccurred,
         this,
         [this](const QString &message) {
+
             qDebug()
                 << "Account service error:"
                 << message;
@@ -52,10 +59,34 @@ AppController::AppController(QObject *parent)
 
     connect(
         m_searchService,
+        &SearchService::searchStarted,
+        this,
+        [this]() {
+
+            if (m_searching) {
+                return;
+            }
+
+            m_searching = true;
+
+            emit searchingChanged();
+
+            emit statusChanged(
+                "Searching...");
+        });
+
+    connect(
+        m_searchService,
         &SearchService::searchReceived,
         this,
         [this](const SearchResults &results) {
-            m_searchModel->setResults(results);
+
+            m_searching = false;
+
+            emit searchingChanged();
+
+            m_searchModel->setResults(
+                results);
 
             qDebug()
                 << "Search results:"
@@ -73,6 +104,11 @@ AppController::AppController(QObject *parent)
         &SearchService::errorOccurred,
         this,
         [this](const QString &message) {
+
+            m_searching = false;
+
+            emit searchingChanged();
+
             qDebug()
                 << "Search service error:"
                 << message;
@@ -81,9 +117,139 @@ AppController::AppController(QObject *parent)
 
             emit statusChanged(message);
         });
+
+    connect(
+        m_trackService,
+        &TrackService::streamInfoReceived,
+        this,
+        [this](
+            const QList<TrackStreamInfo> &streams) {
+
+            qDebug()
+                << "Stream variants:"
+                << streams.size();
+
+            for (const TrackStreamInfo &stream :
+                 streams) {
+
+                qDebug()
+                    << "codec:"
+                    << stream.codec
+                    << "bitrate:"
+                    << stream.bitrateInKbps
+                    << "preview:"
+                    << stream.preview
+                    << "direct:"
+                    << stream.direct
+                    << "url:"
+                    << stream.downloadInfoUrl;
+            }
+        });
+
+    connect(
+        m_trackService,
+        &TrackService::streamUrlReceived,
+        this,
+        [this](const QString &url) {
+
+            qDebug()
+                << "Stream URL:"
+                << url;
+
+            emit statusChanged(
+                "Stream URL resolved");
+
+            m_playerService->playUrl(url);
+        });
+
+    connect(
+        m_trackService,
+        &TrackService::errorOccurred,
+        this,
+        [this](const QString &message) {
+
+            qDebug()
+                << "Track service error:"
+                << message;
+
+            emit statusChanged(message);
+        });
+
+    connect(
+        m_playerService,
+        &PlayerService::playingChanged,
+        this,
+        [this]() {
+
+            emit playingChanged();
+
+            if (m_playerService->isPlaying()) {
+
+                emit statusChanged(
+                    "Playing");
+            }
+        });
+
+    connect(
+        m_playerService,
+        &PlayerService::playbackPaused,
+        this,
+        [this]() {
+
+            emit statusChanged(
+                "Paused");
+        });
+
+    connect(
+        m_playerService,
+        &PlayerService::playbackStopped,
+        this,
+        [this]() {
+
+            emit statusChanged(
+                "Stopped");
+        });
+
+    connect(
+        m_playerService,
+        &PlayerService::errorOccurred,
+        this,
+        [this](const QString &message) {
+
+            qDebug()
+                << "Player error:"
+                << message;
+
+            emit statusChanged(
+                QString("Player error: %1")
+                    .arg(message));
+        });
+    connect(
+m_trackService,
+&TrackService::streamUrlReceived,
+this,
+[this](const QString &url) {
+
+   if (url.isEmpty()) {
+
+       emit statusChanged(
+           "Received empty stream URL");
+
+       return;
+   }
+
+   qDebug()
+       << "Stream URL received:"
+       << url;
+
+   emit statusChanged(
+       "Starting playback...");
+
+   m_playerService->playUrl(
+       url);
+});
 }
 
-// Tests that AppController is functioning.
 void AppController::testConnection()
 {
     qDebug()
@@ -93,73 +259,76 @@ void AppController::testConnection()
         "AppController is working");
 }
 
-// Tests the authenticated Yandex Music account.
 void AppController::testYandexApi()
 {
-    if (!m_auth->isAuthenticated()) {
-        emit statusChanged(
-            "Yandex Music token is not configured");
-
-        return;
-    }
-
     m_accountService->loadAccount();
 
     emit statusChanged(
         "Requesting Yandex account status...");
 }
 
-// Searches Yandex Music for the specified query.
 void AppController::testSearch(
     const QString &query)
 {
     m_searchService->search(query);
-
-    emit statusChanged(
-        "Searching...");
 }
 
-// Imports and stores a Yandex Music OAuth token.
-bool AppController::setToken(
-    const QString &token)
+void AppController::selectSearchResult(
+    int index)
 {
-    if (!m_auth->setToken(token)) {
-        emit statusChanged(
-            "Failed to save Yandex Music token");
+    const SearchTrack track =
+        m_searchModel->trackAt(index);
 
-        return false;
+    if (track.id.isEmpty()) {
+
+        emit statusChanged(
+            "Invalid search result");
+
+        return;
     }
 
-    emit statusChanged(
-        "Yandex Music token saved");
+    const QString message =
+        QString("Selected: %1 — %2")
+            .arg(track.title)
+            .arg(
+                track.artists.isEmpty()
+                    ? QString()
+                    : track.artists.first().name);
 
-    return true;
+    qDebug() << message;
+
+    emit statusChanged(message);
+
+    m_trackService->loadStreamInfo(
+        track.id);
 }
 
-// Removes the stored Yandex Music OAuth token.
-bool AppController::clearToken()
+void AppController::play()
 {
-    if (!m_auth->clearToken()) {
-        emit statusChanged(
-            "Failed to clear Yandex Music token");
-
-        return false;
-    }
-
-    emit statusChanged(
-        "Yandex Music token cleared");
-
-    return true;
+    m_playerService->play();
 }
 
-// Returns true when a Yandex Music token is available.
-bool AppController::isAuthenticated() const
+void AppController::pause()
 {
-    return m_auth->isAuthenticated();
+    m_playerService->pause();
 }
 
-// Returns the search model used by QML.
+void AppController::stop()
+{
+    m_playerService->stop();
+}
+
 SearchModel *AppController::searchModel() const
 {
     return m_searchModel;
+}
+
+bool AppController::isSearching() const
+{
+    return m_searching;
+}
+
+bool AppController::isPlaying() const
+{
+    return m_playerService->isPlaying();
 }

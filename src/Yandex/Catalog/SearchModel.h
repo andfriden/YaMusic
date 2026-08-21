@@ -44,6 +44,9 @@ public:
     // Removes all search results.
     void clear();
 
+    // Returns a search track by index.
+    SearchTrack trackAt(int index) const;
+
 private:
     QList<SearchTrack> m_tracks;
 };

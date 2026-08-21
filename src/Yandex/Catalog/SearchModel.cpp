@@ -1,6 +1,7 @@
 #include "SearchModel.h"
 
 #include <QHash>
+#include <QStringList>
 
 // Creates an empty search model.
 SearchModel::SearchModel(QObject *parent)
@@ -41,15 +42,23 @@ QVariant SearchModel::data(
         return track.title;
 
     case ArtistRole:
-        if (!track.artists.isEmpty()) {
-            return track.artists.first().name;
+    {
+        QStringList artistNames;
+
+        for (const SearchArtist &artist : track.artists) {
+            if (!artist.name.isEmpty()) {
+                artistNames.append(artist.name);
+            }
         }
-        return QString();
+
+        return artistNames.join(", ");
+    }
 
     case AlbumRole:
         if (!track.albums.isEmpty()) {
             return track.albums.first().title;
         }
+
         return QString();
 
     case CoverUriRole:
@@ -95,4 +104,15 @@ void SearchModel::clear()
     m_tracks.clear();
 
     endResetModel();
+}
+
+// Returns a search track by index.
+SearchTrack SearchModel::trackAt(int index) const
+{
+    if (index < 0 ||
+        index >= m_tracks.size()) {
+        return {};
+    }
+
+    return m_tracks.at(index);
 }

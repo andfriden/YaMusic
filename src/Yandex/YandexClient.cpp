@@ -11,7 +11,8 @@
 
 namespace
 {
-constexpr auto YandexApiBaseUrl = "https://api.music.yandex.net";
+constexpr auto YandexApiBaseUrl =
+    "https://api.music.yandex.net";
 }
 
 // Creates the Yandex Music API client.
@@ -21,7 +22,8 @@ YandexClient::YandexClient(QObject *parent)
 }
 
 // Sets the OAuth token used for API requests.
-void YandexClient::setToken(const QString &token)
+void YandexClient::setToken(
+    const QString &token)
 {
     m_token = token.trimmed();
 }
@@ -32,11 +34,22 @@ bool YandexClient::hasToken() const
     return !m_token.isEmpty();
 }
 
-// Creates an authenticated request for the specified API path.
-QNetworkRequest YandexClient::createRequest(const QString &path) const
+// Creates an authenticated request.
+QNetworkRequest YandexClient::createRequest(
+    const QString &path) const
 {
-    QNetworkRequest request(
-        QUrl(QString(YandexApiBaseUrl) + path));
+    QUrl url;
+
+    if (path.startsWith("http://") ||
+        path.startsWith("https://")) {
+
+        url = QUrl(path);
+    } else {
+        url = QUrl(
+            QString(YandexApiBaseUrl) + path);
+    }
+
+    QNetworkRequest request{url};
 
     request.setHeader(
         QNetworkRequest::ContentTypeHeader,
@@ -49,32 +62,42 @@ QNetworkRequest YandexClient::createRequest(const QString &path) const
     if (hasToken()) {
         request.setRawHeader(
             "Authorization",
-            QByteArray("OAuth ") + m_token.toUtf8());
+            QByteArray("OAuth ") +
+                m_token.toUtf8());
     }
 
     return request;
 }
 
-// Performs an authenticated GET request.
-QNetworkReply *YandexClient::get(const QString &path)
+// Performs a GET request.
+QNetworkReply *YandexClient::get(
+    const QString &path)
 {
-    return m_networkManager.get(createRequest(path));
+    return m_networkManager.get(
+        createRequest(path));
 }
 
 // Requests the current Yandex Music account status.
 void YandexClient::getAccountStatus()
 {
-    auto *reply = get("/account/status");
+    auto *reply =
+        get("/account/status");
 
     connect(
         reply,
         &QNetworkReply::finished,
         this,
         [this, reply]() {
-            const QByteArray data = reply->readAll();
 
-            if (reply->error() != QNetworkReply::NoError) {
-                emit requestError(reply->errorString());
+            const QByteArray data =
+                reply->readAll();
+
+            if (reply->error() !=
+                QNetworkReply::NoError) {
+
+                emit requestError(
+                    reply->errorString());
+
                 reply->deleteLater();
                 return;
             }
@@ -82,18 +105,24 @@ void YandexClient::getAccountStatus()
             QJsonParseError parseError;
 
             const QJsonDocument document =
-                QJsonDocument::fromJson(data, &parseError);
+                QJsonDocument::fromJson(
+                    data,
+                    &parseError);
 
-            if (parseError.error != QJsonParseError::NoError ||
+            if (parseError.error !=
+                    QJsonParseError::NoError ||
                 !document.isObject()) {
+
                 emit requestError(
                     "Invalid JSON response from Yandex Music");
+
                 reply->deleteLater();
                 return;
             }
 
             const Account account =
-                AccountParser::parse(document.object());
+                AccountParser::parse(
+                    document.object());
 
             emit accountReceived(account);
 
@@ -102,8 +131,15 @@ void YandexClient::getAccountStatus()
 }
 
 // Performs a Yandex Music search request.
-void YandexClient::search(const QString &query)
+void YandexClient::search(
+    const QString &query)
 {
+    if (m_searchReply) {
+        m_searchReply->abort();
+        m_searchReply->deleteLater();
+        m_searchReply.clear();
+    }
+
     QUrlQuery queryParameters;
 
     queryParameters.addQueryItem(
@@ -119,19 +155,36 @@ void YandexClient::search(const QString &query)
         "all");
 
     const QString path =
-        "/search?" + queryParameters.toString(QUrl::FullyEncoded);
+        "/search?" +
+        queryParameters.toString(
+            QUrl::FullyEncoded);
 
     auto *reply = get(path);
+
+    m_searchReply = reply;
 
     connect(
         reply,
         &QNetworkReply::finished,
         this,
         [this, reply]() {
-            const QByteArray data = reply->readAll();
 
-            if (reply->error() != QNetworkReply::NoError) {
-                emit requestError(reply->errorString());
+            if (reply != m_searchReply) {
+                reply->deleteLater();
+                return;
+            }
+
+            m_searchReply.clear();
+
+            const QByteArray data =
+                reply->readAll();
+
+            if (reply->error() !=
+                QNetworkReply::NoError) {
+
+                emit requestError(
+                    reply->errorString());
+
                 reply->deleteLater();
                 return;
             }
@@ -139,18 +192,24 @@ void YandexClient::search(const QString &query)
             QJsonParseError parseError;
 
             const QJsonDocument document =
-                QJsonDocument::fromJson(data, &parseError);
+                QJsonDocument::fromJson(
+                    data,
+                    &parseError);
 
-            if (parseError.error != QJsonParseError::NoError ||
+            if (parseError.error !=
+                    QJsonParseError::NoError ||
                 !document.isObject()) {
+
                 emit requestError(
                     "Invalid search response from Yandex Music");
+
                 reply->deleteLater();
                 return;
             }
 
             const SearchResults results =
-                SearchParser::parse(document.object());
+                SearchParser::parse(
+                    document.object());
 
             emit searchReceived(results);
 
