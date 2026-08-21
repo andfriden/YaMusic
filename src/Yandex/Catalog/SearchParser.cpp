@@ -4,7 +4,8 @@
 #include <QJsonObject>
 
 // Parses the Yandex Music search response.
-SearchResults SearchParser::parse(const QJsonObject &object)
+SearchResults SearchParser::parse(
+    const QJsonObject &object)
 {
     SearchResults searchResults;
 
@@ -38,10 +39,11 @@ SearchResults SearchParser::parse(const QJsonObject &object)
         tracksObject.value("results").toArray();
 
     for (const QJsonValue &trackValue : trackArray) {
+
         const QJsonObject trackObject =
             trackValue.toObject();
 
-        SearchTrack track;
+        Track track;
 
         track.id =
             QString::number(
@@ -60,10 +62,11 @@ SearchResults SearchParser::parse(const QJsonObject &object)
             trackObject.value("artists").toArray();
 
         for (const QJsonValue &artistValue : artistArray) {
+
             const QJsonObject artistObject =
                 artistValue.toObject();
 
-            SearchArtist artist;
+            Artist artist;
 
             artist.id =
                 QString::number(
@@ -72,17 +75,19 @@ SearchResults SearchParser::parse(const QJsonObject &object)
             artist.name =
                 artistObject.value("name").toString();
 
-            track.artists.append(artist);
+            track.artists.append(
+                artist);
         }
 
         const QJsonArray albumArray =
             trackObject.value("albums").toArray();
 
         for (const QJsonValue &albumValue : albumArray) {
+
             const QJsonObject albumObject =
                 albumValue.toObject();
 
-            SearchAlbum album;
+            Album album;
 
             album.id =
                 QString::number(
@@ -97,10 +102,12 @@ SearchResults SearchParser::parse(const QJsonObject &object)
             album.year =
                 albumObject.value("year").toInt();
 
-            track.albums.append(album);
+            track.albums.append(
+                album);
         }
 
-        searchResults.tracks.append(track);
+        searchResults.tracks.append(
+            track);
     }
 
     return searchResults;

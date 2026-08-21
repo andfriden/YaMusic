@@ -8,7 +8,6 @@
 class YandexAuth;
 class YandexClient;
 
-// Provides search functionality for Yandex Music.
 class SearchService : public QObject
 {
     Q_OBJECT
@@ -18,18 +17,17 @@ public:
         YandexAuth *auth,
         QObject *parent = nullptr);
 
-    // Searches Yandex Music for the specified query.
-    void search(const QString &query);
+    void search(
+        const QString &query);
 
-signals:
+    signals:
+        void searchStarted();
 
-    void searchStarted();
+    void searchReceived(
+        const SearchResults &results);
 
-    // Emitted when search results have been loaded successfully.
-    void searchReceived(const SearchResults &results);
-
-    // Emitted when a search request fails.
-    void errorOccurred(const QString &message);
+    void errorOccurred(
+        const QString &message);
 
 private:
     YandexAuth *m_auth = nullptr;

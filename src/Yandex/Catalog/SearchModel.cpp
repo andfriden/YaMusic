@@ -1,15 +1,12 @@
 #include "SearchModel.h"
 
-#include <QHash>
 #include <QStringList>
 
-// Creates an empty search model.
 SearchModel::SearchModel(QObject *parent)
     : QAbstractListModel(parent)
 {
 }
 
-// Returns the number of search results.
 int SearchModel::rowCount(
     const QModelIndex &parent) const
 {
@@ -20,7 +17,6 @@ int SearchModel::rowCount(
     return m_tracks.size();
 }
 
-// Returns data for a specific search result.
 QVariant SearchModel::data(
     const QModelIndex &index,
     int role) const
@@ -29,51 +25,54 @@ QVariant SearchModel::data(
         index.row() < 0 ||
         index.row() >= m_tracks.size()) {
         return {};
-    }
+        }
 
-    const SearchTrack &track =
+    const Track &track =
         m_tracks.at(index.row());
 
     switch (role) {
-    case IdRole:
-        return track.id;
 
-    case TitleRole:
-        return track.title;
+        case IdRole:
+            return track.id;
 
-    case ArtistRole:
-    {
-        QStringList artistNames;
+        case TitleRole:
+            return track.title;
 
-        for (const SearchArtist &artist : track.artists) {
-            if (!artist.name.isEmpty()) {
-                artistNames.append(artist.name);
+        case ArtistRole:
+        {
+            QStringList artistNames;
+
+            for (const Artist &artist : track.artists) {
+
+                if (!artist.name.isEmpty()) {
+                    artistNames.append(
+                        artist.name);
+                }
             }
+
+            return artistNames.join(", ");
         }
 
-        return artistNames.join(", ");
-    }
+        case AlbumRole:
+            if (!track.albums.isEmpty()) {
+                return track.albums.first().title;
+            }
 
-    case AlbumRole:
-        if (!track.albums.isEmpty()) {
-            return track.albums.first().title;
-        }
+            return QString();
 
-        return QString();
+        case CoverUriRole:
+            return track.coverUri;
 
-    case CoverUriRole:
-        return track.coverUri;
+        case DurationMsRole:
+            return track.durationMs;
 
-    case DurationMsRole:
-        return track.durationMs;
-
-    default:
-        return {};
+        default:
+            return {};
     }
 }
 
-// Returns names for the model roles exposed to QML.
-QHash<int, QByteArray> SearchModel::roleNames() const
+QHash<int, QByteArray>
+SearchModel::roleNames() const
 {
     return {
         {IdRole, "trackId"},
@@ -85,18 +84,17 @@ QHash<int, QByteArray> SearchModel::roleNames() const
     };
 }
 
-// Replaces the current results with new search results.
 void SearchModel::setResults(
     const SearchResults &results)
 {
     beginResetModel();
 
-    m_tracks = results.tracks;
+    m_tracks =
+        results.tracks;
 
     endResetModel();
 }
 
-// Removes all search results.
 void SearchModel::clear()
 {
     beginResetModel();
@@ -106,13 +104,13 @@ void SearchModel::clear()
     endResetModel();
 }
 
-// Returns a search track by index.
-SearchTrack SearchModel::trackAt(int index) const
+Track SearchModel::trackAt(
+    int index) const
 {
     if (index < 0 ||
         index >= m_tracks.size()) {
         return {};
-    }
+        }
 
     return m_tracks.at(index);
 }

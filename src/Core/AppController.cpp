@@ -276,8 +276,8 @@ void AppController::testSearch(
 void AppController::selectSearchResult(
     int index)
 {
-    const SearchTrack track =
-        m_searchModel->trackAt(index);
+    const Track track =
+    m_searchModel->trackAt(index);
 
     if (track.id.isEmpty()) {
 

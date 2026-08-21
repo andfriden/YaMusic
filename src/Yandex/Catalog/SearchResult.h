@@ -3,15 +3,13 @@
 #include <QList>
 #include <QString>
 
-// Represents an artist returned by Yandex Music.
-struct SearchArtist
+struct Artist
 {
     QString id;
     QString name;
 };
 
-// Represents an album returned by Yandex Music.
-struct SearchAlbum
+struct Album
 {
     QString id;
     QString title;
@@ -19,23 +17,24 @@ struct SearchAlbum
     int year = 0;
 };
 
-// Represents a track returned by Yandex Music search.
-struct SearchTrack
+struct Track
 {
     QString id;
     QString title;
     QString coverUri;
     int durationMs = 0;
-    QList<SearchArtist> artists;
-    QList<SearchAlbum> albums;
+
+    QList<Artist> artists;
+    QList<Album> albums;
 };
 
-// Contains the track results returned by a search request.
 struct SearchResults
 {
     QString query;
+
     int total = 0;
     int page = 0;
     int perPage = 0;
-    QList<SearchTrack> tracks;
+
+    QList<Track> tracks;
 };
