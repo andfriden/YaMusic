@@ -9,7 +9,6 @@ class AccountService;
 class SearchService;
 class YandexAuth;
 
-// Coordinates authentication and Yandex Music application services.
 class AppController : public QObject
 {
     Q_OBJECT
@@ -20,24 +19,29 @@ class AppController : public QObject
         CONSTANT
     )
 
+    Q_PROPERTY(
+        bool authenticated
+        READ isAuthenticated
+        NOTIFY authenticationChanged
+    )
+
 public:
     explicit AppController(QObject *parent = nullptr);
 
-    // Tests that the application controller is available.
     Q_INVOKABLE void testConnection();
-
-    // Tests loading the authenticated Yandex Music account.
     Q_INVOKABLE void testYandexApi();
-
-    // Searches Yandex Music for the specified query.
     Q_INVOKABLE void testSearch(const QString &query);
 
-    // Returns the search model used by QML.
+    Q_INVOKABLE bool setToken(const QString &token);
+    Q_INVOKABLE bool clearToken();
+
+    bool isAuthenticated() const;
+
     SearchModel *searchModel() const;
 
-signals:
-    // Emitted when the application status changes.
-    void statusChanged(const QString &message);
+    signals:
+        void statusChanged(const QString &message);
+    void authenticationChanged();
 
 private:
     YandexAuth *m_auth = nullptr;

@@ -6,10 +6,12 @@ import YaMusic.Core
 ApplicationWindow {
     id: window
 
-    width: 700
-    height: 650
-    minimumWidth: 450
-    minimumHeight: 450
+    width: 760
+    height: 720
+
+    minimumWidth: 520
+    minimumHeight: 520
+
     visible: true
     title: "YaMusic"
 
@@ -29,30 +31,113 @@ ApplicationWindow {
         Label {
             text: "YaMusic"
             font.pixelSize: 32
+            font.bold: true
+
             anchors.horizontalCenter: parent.horizontalCenter
         }
 
+        Rectangle {
+            width: parent.width
+            height: 150
+
+            color: "#f3f3f3"
+            radius: 10
+
+            Column {
+                anchors.fill: parent
+                anchors.margins: 20
+                spacing: 12
+
+                Label {
+                    text: "Yandex Music"
+                    font.pixelSize: 18
+                    font.bold: true
+                }
+
+                Row {
+                    width: parent.width
+                    spacing: 10
+
+                    TextField {
+                        id: tokenField
+
+                        width: parent.width - saveButton.width - 10
+                        placeholderText: "OAuth token"
+                        echoMode: TextInput.Password
+
+                        onAccepted: {
+                            saveToken()
+                        }
+                    }
+
+                    Button {
+                        id: saveButton
+
+                        text: "Save"
+
+                        onClicked: {
+                            saveToken()
+                        }
+                    }
+                }
+
+                Row {
+                    spacing: 10
+
+                    Label {
+                        text: appController.authenticated
+                            ? "Authenticated"
+                            : "Not authenticated"
+
+                        font.pixelSize: 13
+                        opacity: 0.7
+                    }
+
+                    Button {
+                        text: "Clear"
+
+                        enabled: appController.authenticated
+
+                        onClicked: {
+                            appController.clearToken()
+                        }
+                    }
+
+                    Button {
+                        text: "Test Account"
+
+                        enabled: appController.authenticated
+
+                        onClicked: {
+                            appController.testYandexApi()
+                        }
+                    }
+                }
+            }
+        }
+
         Row {
+            width: parent.width
             spacing: 10
-            anchors.horizontalCenter: parent.horizontalCenter
 
             TextField {
                 id: searchField
 
-                width: 320
+                width: parent.width - searchButton.width - 10
                 placeholderText: "Search Yandex Music..."
 
                 onAccepted: {
-                    appController.testSearch(text)
+                    search()
                 }
             }
 
             Button {
+                id: searchButton
+
                 text: "Search"
 
                 onClicked: {
-                    appController.testSearch(
-                        searchField.text)
+                    search()
                 }
             }
         }
@@ -60,27 +145,38 @@ ApplicationWindow {
         Label {
             id: statusLabel
 
+            width: parent.width
+
             text: "Ready"
-            anchors.horizontalCenter: parent.horizontalCenter
+
+            horizontalAlignment: Text.AlignHCenter
+            elide: Text.ElideRight
+
+            opacity: 0.7
         }
 
         ListView {
             id: resultsView
 
             width: parent.width
-            height: parent.height - 170
+            height: parent.height -
+                150 -
+                20 -
+                50 -
+                20 -
+                40
 
             model: appController.searchModel
 
             clip: true
-            spacing: 6
+            spacing: 8
 
             delegate: Rectangle {
                 width: resultsView.width
                 height: 80
 
                 color: "#eeeeee"
-                radius: 6
+                radius: 8
 
                 Image {
                     id: coverImage
@@ -95,6 +191,7 @@ ApplicationWindow {
                     source: "image://yandex/" + coverUri
 
                     fillMode: Image.PreserveAspectCrop
+
                     asynchronous: true
                     cache: true
 
@@ -119,8 +216,10 @@ ApplicationWindow {
                 Column {
                     anchors.left: coverImage.right
                     anchors.leftMargin: 12
+
                     anchors.right: durationLabel.left
                     anchors.rightMargin: 12
+
                     anchors.verticalCenter: parent.verticalCenter
 
                     spacing: 4
@@ -129,6 +228,7 @@ ApplicationWindow {
                         width: parent.width
 
                         text: title
+
                         font.pixelSize: 16
                         font.bold: true
 
@@ -139,6 +239,7 @@ ApplicationWindow {
                         width: parent.width
 
                         text: artist
+
                         font.pixelSize: 14
                         opacity: 0.7
 
@@ -149,6 +250,7 @@ ApplicationWindow {
                         width: parent.width
 
                         text: album
+
                         font.pixelSize: 12
                         opacity: 0.5
 
@@ -172,6 +274,26 @@ ApplicationWindow {
         }
     }
 
+    function saveToken() {
+        if (tokenField.text.trim().length === 0) {
+            statusLabel.text = "Enter Yandex Music token"
+            return
+        }
+
+        if (appController.setToken(tokenField.text)) {
+            tokenField.clear()
+        }
+    }
+
+    function search() {
+        var query = searchField.text.trim()
+
+        if (query.length === 0) {
+            return
+        }
+
+        appController.testSearch(query)
+    }
 
     // Converts milliseconds into a minutes:seconds string.
     function formatDuration(milliseconds) {
@@ -180,7 +302,7 @@ ApplicationWindow {
         var seconds = totalSeconds % 60
 
         return minutes + ":" +
-               (seconds < 10 ? "0" : "") +
-               seconds
+            (seconds < 10 ? "0" : "") +
+            seconds
     }
 }

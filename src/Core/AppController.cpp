@@ -16,6 +16,14 @@ AppController::AppController(QObject *parent)
     , m_searchModel(new SearchModel(this))
 {
     connect(
+        m_auth,
+        &YandexAuth::authenticationChanged,
+        this,
+        [this]() {
+            emit authenticationChanged();
+        });
+
+    connect(
         m_accountService,
         &AccountService::accountReceived,
         this,
@@ -88,6 +96,13 @@ void AppController::testConnection()
 // Tests the authenticated Yandex Music account.
 void AppController::testYandexApi()
 {
+    if (!m_auth->isAuthenticated()) {
+        emit statusChanged(
+            "Yandex Music token is not configured");
+
+        return;
+    }
+
     m_accountService->loadAccount();
 
     emit statusChanged(
@@ -102,6 +117,45 @@ void AppController::testSearch(
 
     emit statusChanged(
         "Searching...");
+}
+
+// Imports and stores a Yandex Music OAuth token.
+bool AppController::setToken(
+    const QString &token)
+{
+    if (!m_auth->setToken(token)) {
+        emit statusChanged(
+            "Failed to save Yandex Music token");
+
+        return false;
+    }
+
+    emit statusChanged(
+        "Yandex Music token saved");
+
+    return true;
+}
+
+// Removes the stored Yandex Music OAuth token.
+bool AppController::clearToken()
+{
+    if (!m_auth->clearToken()) {
+        emit statusChanged(
+            "Failed to clear Yandex Music token");
+
+        return false;
+    }
+
+    emit statusChanged(
+        "Yandex Music token cleared");
+
+    return true;
+}
+
+// Returns true when a Yandex Music token is available.
+bool AppController::isAuthenticated() const
+{
+    return m_auth->isAuthenticated();
 }
 
 // Returns the search model used by QML.

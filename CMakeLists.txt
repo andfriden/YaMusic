@@ -51,6 +51,10 @@ qt_add_executable(appYaMusic
 
     src/Yandex/Catalog/CoverImageProvider.h
     src/Yandex/Catalog/CoverImageProvider.cpp
+
+    src/Yandex/Auth/YandexTokenStorage.h
+    src/Yandex/Auth/YandexTokenStorage.cpp
+
 )
 
 qt_add_qml_module(appYaMusic
@@ -89,3 +93,13 @@ qt_generate_deploy_qml_app_script(
 )
 
 install(SCRIPT ${deploy_script})
+
+
+if (APPLE)
+    find_library(SECURITY_FRAMEWORK Security)
+
+    target_link_libraries(appYaMusic
+            PRIVATE
+            ${SECURITY_FRAMEWORK}
+    )
+endif()

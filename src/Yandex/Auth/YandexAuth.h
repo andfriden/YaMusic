@@ -10,13 +10,17 @@ class YandexAuth : public QObject
 public:
     explicit YandexAuth(QObject *parent = nullptr);
 
+    bool load();
     bool loadFromEnvironment();
+
+    bool setToken(const QString &token);
+    bool clearToken();
 
     bool isAuthenticated() const;
     QString token() const;
 
-signals:
-    void authenticationChanged();
+    signals:
+        void authenticationChanged();
 
 private:
     QString m_token;
