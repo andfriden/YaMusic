@@ -15,20 +15,42 @@ endif()
 
 qt_add_executable(appYaMusic
     main.cpp
+
     src/Core/AppController.h
     src/Core/AppController.cpp
+
     src/Models/Track.h
     src/Models/Track.cpp
-    src/Yandex/YandexClient.h
-    src/Yandex/YandexClient.cpp
+
     src/Models/Account.h
     src/Models/Account.cpp
+
+    src/Yandex/YandexClient.h
+    src/Yandex/YandexClient.cpp
+
     src/Yandex/AccountParser.h
     src/Yandex/AccountParser.cpp
+
     src/Yandex/Auth/YandexAuth.h
     src/Yandex/Auth/YandexAuth.cpp
+
     src/Yandex/Account/AccountService.h
     src/Yandex/Account/AccountService.cpp
+
+    src/Yandex/Catalog/SearchResult.h
+    src/Yandex/Catalog/SearchResult.cpp
+
+    src/Yandex/Catalog/SearchParser.h
+    src/Yandex/Catalog/SearchParser.cpp
+
+    src/Yandex/Catalog/SearchService.h
+    src/Yandex/Catalog/SearchService.cpp
+
+    src/Yandex/Catalog/SearchModel.h
+    src/Yandex/Catalog/SearchModel.cpp
+
+    src/Yandex/Catalog/CoverImageProvider.h
+    src/Yandex/Catalog/CoverImageProvider.cpp
 )
 
 qt_add_qml_module(appYaMusic
@@ -41,7 +63,7 @@ qt_add_qml_module(appYaMusic
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
 set_target_properties(appYaMusic PROPERTIES
-#    MACOSX_BUNDLE_GUI_IDENTIFIER com.example.appYaMusic
+    # MACOSX_BUNDLE_GUI_IDENTIFIER com.example.appYaMusic
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE

@@ -26,7 +26,10 @@ AccountService::AccountService(
         &YandexClient::requestError,
         this,
         [this](const QString &message) {
-            qDebug() << "AccountService error:" << message;
+            qDebug()
+                << "AccountService error:"
+                << message;
+
             emit errorOccurred(message);
         });
 }
@@ -34,12 +37,15 @@ AccountService::AccountService(
 // Loads the authenticated Yandex Music account.
 void AccountService::loadAccount()
 {
-    if (m_auth == nullptr || !m_auth->isAuthenticated()) {
+    if (m_auth == nullptr ||
+        !m_auth->isAuthenticated()) {
         emit errorOccurred(
             "Yandex Music token is not set");
         return;
     }
 
-    m_yandexClient->setToken(m_auth->token());
+    m_yandexClient->setToken(
+        m_auth->token());
+
     m_yandexClient->getAccountStatus();
 }

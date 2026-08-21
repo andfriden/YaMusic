@@ -3,14 +3,25 @@
 #include <QtQml>
 
 #include "src/Core/AppController.h"
+#include "src/Yandex/Catalog/CoverImageProvider.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    qmlRegisterType<AppController>("YaMusic.Core", 1, 0, "AppController");
+    // Registers the application controller for use from QML.
+    qmlRegisterType<AppController>(
+        "YaMusic.Core",
+        1,
+        0,
+        "AppController");
 
     QQmlApplicationEngine engine;
+
+    // Registers the Yandex Music artwork provider.
+    engine.addImageProvider(
+        "yandex",
+        new CoverImageProvider());
 
     QObject::connect(
         &engine,
@@ -21,7 +32,9 @@ int main(int argc, char *argv[])
         },
         Qt::QueuedConnection);
 
-    engine.loadFromModule("YaMusic", "Main");
+    engine.loadFromModule(
+        "YaMusic",
+        "Main");
 
     return QGuiApplication::exec();
 }
