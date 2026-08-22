@@ -38,8 +38,7 @@ Item {
                     id: titleLabel
 
                     text:
-                        root.controller
-                            .currentArtistName ||
+                        root.controller.currentArtistName ||
                         "Исполнитель"
 
                     color: "#202020"
@@ -54,10 +53,8 @@ Item {
 
                 Label {
                     text:
-                            root.controller
-                                .currentArtistTrackCount > 0
-                        ? root.controller
-                            .currentArtistTrackCount +
+                            root.controller.currentArtistTrackCount > 0
+                        ? root.controller.currentArtistTrackCount +
                         " треков"
                         : ""
 
@@ -85,8 +82,7 @@ Item {
                     text: "Закрыть"
 
                     enabled:
-                        !root.controller
-                            .loadingArtist
+                        !root.controller.loadingArtist
 
                     onClicked: {
                         root.visible = false
@@ -102,20 +98,17 @@ Item {
                 spacing: 12
 
                 visible:
-                    root.controller
-                        .currentArtistCoverUri
-                        .length > 0
+                    root.controller.currentArtistCoverUri.length > 0
 
                 Image {
                     width: 96
+
                     height: 96
 
                     source:
-                        root.controller
-                            .currentArtistCoverUri
+                        root.controller.currentArtistCoverUri
                             ? "image://yandex/" +
-                            root.controller
-                                .currentArtistCoverUri
+                            root.controller.currentArtistCoverUri
                             : ""
 
                     fillMode:
@@ -126,15 +119,15 @@ Item {
                     cache: true
 
                     Rectangle {
-                        anchors.fill: parent
+                        anchors.fill:
+                            parent
 
                         radius: 48
 
                         color: "#d0d0d0"
 
                         visible:
-                            parent.status !==
-                            Image.Ready
+                            parent.status !== Image.Ready
 
                         Label {
                             anchors.centerIn:
@@ -157,8 +150,7 @@ Item {
 
                     Label {
                         text:
-                            root.controller
-                                .currentArtistGenres
+                            root.controller.currentArtistGenres
 
                         color: "#555555"
 
@@ -178,9 +170,7 @@ Item {
                 height:
                     parent.height -
                     (
-                            root.controller
-                                .currentArtistCoverUri
-                                .length > 0
+                            root.controller.currentArtistCoverUri.length > 0
                             ? 151
                             : 45
                     )
@@ -204,10 +194,7 @@ Item {
                     width:
                         tracksView.width -
                         (
-                            tracksView
-                                .ScrollBar
-                                .vertical
-                                .visible
+                            tracksView.ScrollBar.vertical.visible
                                 ? 10
                                 : 0
                         )
@@ -217,14 +204,14 @@ Item {
                     radius: 8
 
                     color:
-                        trackMouseArea.containsMouse
+                        rowMouseArea.containsMouse
                             ? "#dcdcdc"
                             : "#f2f2f2"
 
                     border.width: 1
 
                     border.color:
-                        trackMouseArea.containsMouse
+                        rowMouseArea.containsMouse
                             ? "#c4c4c4"
                             : "#e0e0e0"
 
@@ -240,12 +227,12 @@ Item {
                             parent.verticalCenter
 
                         width: 52
+
                         height: 52
 
                         source:
                             coverUri
-                                ? "image://yandex/" +
-                                coverUri
+                                ? "image://yandex/" + coverUri
                                 : ""
 
                         fillMode:
@@ -256,15 +243,15 @@ Item {
                         cache: true
 
                         Rectangle {
-                            anchors.fill: parent
+                            anchors.fill:
+                                parent
 
                             radius: 4
 
                             color: "#d0d0d0"
 
                             visible:
-                                cover.status !==
-                                Image.Ready
+                                cover.status !== Image.Ready
 
                             Label {
                                 anchors.centerIn:
@@ -312,46 +299,12 @@ Item {
                                 Text.ElideRight
                         }
 
-                        MouseArea {
-                            id: artistMouseArea
+                        Item {
+                            id: artistArea
 
-                            width:
-                                parent.width
+                            width: parent.width
 
                             height: 18
-
-                            enabled:
-                                artistId &&
-                                artistId.length > 0
-
-                            hoverEnabled: true
-
-                            onClicked: {
-                                root.controller
-                                    .loadArtist(
-                                    artistId)
-                            }
-
-                            cursorShape:
-                                enabled
-                                    ? Qt.PointingHandCursor
-                                    : Qt.ArrowCursor
-
-                            Label {
-                                anchors.fill: parent
-
-                                text: artist
-
-                                color:
-                                    artistMouseArea.containsMouse
-                                        ? "#2468d7"
-                                        : "#555555"
-
-                                font.pixelSize: 12
-
-                                elide:
-                                    Text.ElideRight
-                            }
                         }
 
                         Label {
@@ -380,8 +333,7 @@ Item {
                             parent.verticalCenter
 
                         text:
-                            formatDuration(
-                                durationMs)
+                            formatDuration(durationMs)
 
                         color: "#555555"
 
@@ -389,22 +341,69 @@ Item {
                     }
 
                     MouseArea {
-                        id: trackMouseArea
+                        id: rowMouseArea
 
-                        anchors.fill: parent
+                        anchors.fill:
+                            parent
 
                         hoverEnabled: true
 
-                        onClicked: {
-                            if (
-                                artistMouseArea.containsMouse
-                            ) {
-                                return
-                            }
+                        z: 0
 
+                        onClicked: {
                             root.controller
-                                .selectArtistTrack(
-                                index)
+                                .selectArtistTrack(index)
+                        }
+                    }
+
+                    MouseArea {
+                        id: artistMouseArea
+
+                        x:
+                            trackInfo.x
+
+                        y:
+                            trackInfo.y +
+                            artistArea.y
+
+                        width:
+                            trackInfo.width
+
+                        height: 18
+
+                        z: 10
+
+                        enabled:
+                            artistId &&
+                            artistId.length > 0
+
+                        hoverEnabled: true
+
+                        cursorShape:
+                            enabled
+                                ? Qt.PointingHandCursor
+                                : Qt.ArrowCursor
+
+                        onClicked: {
+                            root.controller
+                                .loadArtist(artistId)
+                        }
+
+                        Label {
+                            anchors.fill:
+                                parent
+
+                            text: artist
+
+                            color:
+                                artistMouseArea.containsMouse
+                                    ? "#2468d7"
+                                    : "#555555"
+
+                            font.pixelSize: 12
+
+                            elide:
+                                Text.ElideRight
                         }
                     }
                 }
@@ -414,8 +413,7 @@ Item {
                         parent
 
                     text:
-                        root.controller
-                            .loadingArtist
+                        root.controller.loadingArtist
                             ? "Загрузка исполнителя..."
                             : "У исполнителя нет треков"
 
@@ -438,12 +436,10 @@ Item {
         }
 
         var totalSeconds =
-            Math.floor(
-                milliseconds / 1000)
+            Math.floor(milliseconds / 1000)
 
         var minutes =
-            Math.floor(
-                totalSeconds / 60)
+            Math.floor(totalSeconds / 60)
 
         var seconds =
             totalSeconds % 60

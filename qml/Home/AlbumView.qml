@@ -197,7 +197,8 @@ Item {
                     Image {
                         id: cover
 
-                        anchors.left: parent.left
+                        anchors.left:
+                            parent.left
 
                         anchors.leftMargin: 8
 
@@ -205,7 +206,6 @@ Item {
                             parent.verticalCenter
 
                         width: 52
-
                         height: 52
 
                         source:
@@ -275,23 +275,12 @@ Item {
                                 Text.ElideRight
                         }
 
-                        Label {
-                            id: artistLabel
+                        Item {
+                            id: artistArea
 
                             width: parent.width
 
-                            text: artist
-
-                            color:
-                                    artistId &&
-                                artistId.length > 0
-                                ? "#555555"
-                                : "#777777"
-
-                            font.pixelSize: 12
-
-                            elide:
-                                Text.ElideRight
+                            height: 18
                         }
                     }
 
@@ -314,10 +303,6 @@ Item {
                         font.pixelSize: 11
                     }
 
-                    /*
-                     * Обычный клик по строке.
-                     */
-
                     MouseArea {
                         id: rowMouseArea
 
@@ -333,11 +318,6 @@ Item {
                         }
                     }
 
-                    /*
-                     * Имя артиста находится поверх
-                     * основной зоны строки.
-                     */
-
                     MouseArea {
                         id: artistMouseArea
 
@@ -345,7 +325,8 @@ Item {
                             trackInfo.x
 
                         y:
-                            trackInfo.y + 20
+                            trackInfo.y +
+                            trackInfo.children[1].y
 
                         width:
                             trackInfo.width
