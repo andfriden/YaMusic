@@ -15,26 +15,23 @@ constexpr auto YandexApiBaseUrl =
     "https://api.music.yandex.net";
 }
 
-// Creates the Yandex Music API client.
-YandexClient::YandexClient(QObject *parent)
+YandexClient::YandexClient(
+    QObject *parent)
     : QObject(parent)
 {
 }
 
-// Sets the OAuth token used for API requests.
 void YandexClient::setToken(
     const QString &token)
 {
     m_token = token.trimmed();
 }
 
-// Returns true when an OAuth token is available.
 bool YandexClient::hasToken() const
 {
     return !m_token.isEmpty();
 }
 
-// Creates an authenticated request.
 QNetworkRequest YandexClient::createRequest(
     const QString &path) const
 {
@@ -44,12 +41,17 @@ QNetworkRequest YandexClient::createRequest(
         path.startsWith("https://")) {
 
         url = QUrl(path);
+
     } else {
+
         url = QUrl(
-            QString(YandexApiBaseUrl) + path);
+            QString(YandexApiBaseUrl) +
+            path);
     }
 
-    QNetworkRequest request{url};
+    QNetworkRequest request{
+        url
+    };
 
     request.setHeader(
         QNetworkRequest::ContentTypeHeader,
@@ -60,6 +62,7 @@ QNetworkRequest YandexClient::createRequest(
         false);
 
     if (hasToken()) {
+
         request.setRawHeader(
             "Authorization",
             QByteArray("OAuth ") +
@@ -69,7 +72,6 @@ QNetworkRequest YandexClient::createRequest(
     return request;
 }
 
-// Performs a GET request.
 QNetworkReply *YandexClient::get(
     const QString &path)
 {
@@ -77,7 +79,19 @@ QNetworkReply *YandexClient::get(
         createRequest(path));
 }
 
-// Requests the current Yandex Music account status.
+QNetworkReply *YandexClient::post(
+    const QString &path,
+    const QJsonObject &body)
+{
+    const QJsonDocument document(
+        body);
+
+    return m_networkManager.post(
+        createRequest(path),
+        document.toJson(
+            QJsonDocument::Compact));
+}
+
 void YandexClient::getAccountStatus()
 {
     auto *reply =
@@ -99,6 +113,7 @@ void YandexClient::getAccountStatus()
                     reply->errorString());
 
                 reply->deleteLater();
+
                 return;
             }
 
@@ -114,9 +129,10 @@ void YandexClient::getAccountStatus()
                 !document.isObject()) {
 
                 emit requestError(
-                    "Invalid JSON response from Yandex Music");
+                    "Некорректный ответ от Яндекс Музыки");
 
                 reply->deleteLater();
+
                 return;
             }
 
@@ -124,19 +140,22 @@ void YandexClient::getAccountStatus()
                 AccountParser::parse(
                     document.object());
 
-            emit accountReceived(account);
+            emit accountReceived(
+                account);
 
             reply->deleteLater();
         });
 }
 
-// Performs a Yandex Music search request.
 void YandexClient::search(
     const QString &query)
 {
     if (m_searchReply) {
+
         m_searchReply->abort();
+
         m_searchReply->deleteLater();
+
         m_searchReply.clear();
     }
 
@@ -159,7 +178,8 @@ void YandexClient::search(
         queryParameters.toString(
             QUrl::FullyEncoded);
 
-    auto *reply = get(path);
+    auto *reply =
+        get(path);
 
     m_searchReply = reply;
 
@@ -170,7 +190,9 @@ void YandexClient::search(
         [this, reply]() {
 
             if (reply != m_searchReply) {
+
                 reply->deleteLater();
+
                 return;
             }
 
@@ -186,6 +208,7 @@ void YandexClient::search(
                     reply->errorString());
 
                 reply->deleteLater();
+
                 return;
             }
 
@@ -201,9 +224,10 @@ void YandexClient::search(
                 !document.isObject()) {
 
                 emit requestError(
-                    "Invalid search response from Yandex Music");
+                    "Некорректный ответ поиска");
 
                 reply->deleteLater();
+
                 return;
             }
 
@@ -211,7 +235,8 @@ void YandexClient::search(
                 SearchParser::parse(
                     document.object());
 
-            emit searchReceived(results);
+            emit searchReceived(
+                results);
 
             reply->deleteLater();
         });

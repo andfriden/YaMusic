@@ -72,13 +72,75 @@ PlayerService::PlayerService(
                 << "Media status:"
                 << status;
 
-            if (status ==
-                QMediaPlayer::EndOfMedia) {
+            switch (status) {
+
+            case QMediaPlayer::NoMedia:
+
+                qDebug()
+                    << "Media status: NoMedia";
+
+                break;
+
+            case QMediaPlayer::LoadingMedia:
+
+                qDebug()
+                    << "Media status: LoadingMedia";
+
+                break;
+
+            case QMediaPlayer::LoadedMedia:
+
+                qDebug()
+                    << "Media status: LoadedMedia";
+
+                break;
+
+            case QMediaPlayer::BufferingMedia:
+
+                qDebug()
+                    << "Media status: BufferingMedia";
+
+                break;
+
+            case QMediaPlayer::BufferedMedia:
+
+                qDebug()
+                    << "Media status: BufferedMedia";
+
+                break;
+
+            case QMediaPlayer::StalledMedia:
+
+                qDebug()
+                    << "Media status: StalledMedia";
+
+                break;
+
+            case QMediaPlayer::EndOfMedia:
+
+                qDebug()
+                    << "Media status: EndOfMedia";
 
                 qDebug()
                     << "Playback finished";
 
                 emit playbackFinished();
+
+                break;
+
+            case QMediaPlayer::InvalidMedia:
+
+                qDebug()
+                    << "Media status: InvalidMedia";
+
+                break;
+
+            default:
+
+                qDebug()
+                    << "Media status: Unknown";
+
+                break;
             }
         });
 

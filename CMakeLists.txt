@@ -77,13 +77,56 @@ qt_add_executable(appYaMusic
         src/Yandex/Catalog/TrackService.cpp
         src/Playback/PlaybackController.cpp
         src/Playback/PlaybackController.h
+        src/Yandex/Personal/YandexPersonal.cpp
+        src/Yandex/Personal/YandexPersonal.h
+        src/Yandex/Personal/MyWaveModel.cpp
+        src/Yandex/Personal/MyWaveModel.h
+        src/Yandex/Personal/PersonalLanding.cpp
+        src/Yandex/Personal/PersonalLanding.h
+        src/Models/Playlist.cpp
+        src/Models/Playlist.h
+        src/Yandex/Personal/PlaylistService.cpp
+        src/Yandex/Personal/PlaylistService.h
+        src/Models/PersonalPlaylist.cpp
+        src/Models/PersonalPlaylist.h
+        src/Yandex/Personal/PersonalPlaylistsModel.cpp
+        src/Yandex/Personal/PersonalPlaylistsModel.h
+        src/Yandex/Personal/PlaylistModel.cpp
+        src/Yandex/Personal/PlaylistModel.h
+        src/Models/RecentListeningItem.cpp
+        src/Models/RecentListeningItem.h
+        src/Yandex/Personal/RecentListeningModel.cpp
+        src/Yandex/Personal/RecentListeningModel.h
+        src/Yandex/Catalog/AlbumService.cpp
+        src/Yandex/Catalog/AlbumService.h
+        src/Yandex/Catalog/AlbumModel.cpp
+        src/Yandex/Catalog/AlbumModel.h
+        src/Yandex/Catalog/ArtistService.cpp
+        src/Yandex/Catalog/ArtistService.h
+        src/Yandex/Catalog/ArtistModel.cpp
+        src/Yandex/Catalog/ArtistModel.h
 )
 
 qt_add_qml_module(appYaMusic
         URI YaMusic
+        VERSION 1.0
 
         QML_FILES
         Main.qml
+
+        qml/Components/SearchBar.qml
+        qml/Components/StatusBar.qml
+        qml/Components/NowPlayingBar.qml
+
+        qml/Home/PersonalPlaylistsSection.qml
+        qml/Home/PlaylistView.qml
+        qml/Home/RecentListeningSection.qml
+        qml/Home/AlbumView.qml
+        qml/Home/ArtistView.qml
+
+        qml/MyWave/MyWaveSection.qml
+
+        qml/Search/SearchResultsSection.qml
 )
 
 # macOS application bundle
