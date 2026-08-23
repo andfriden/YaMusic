@@ -20,6 +20,7 @@ public:
         ArtistRole,
         ArtistIdRole,
         AlbumRole,
+        AlbumIdRole,
         CoverUriRole,
         DurationMsRole
     };

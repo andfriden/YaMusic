@@ -66,6 +66,8 @@ Item {
                         ? "#c4c4c4"
                         : "#dedede"
 
+                // Основной клик по результату:
+                // воспроизведение трека.
                 MouseArea {
                     id: rowMouseArea
 
@@ -111,8 +113,7 @@ Item {
                     cache: true
 
                     Rectangle {
-                        anchors.fill:
-                            parent
+                        anchors.fill: parent
 
                         radius: 4
 
@@ -189,32 +190,58 @@ Item {
 
                             hoverEnabled: true
 
+                            enabled:
+                                artistId &&
+                                artistId.length > 0
+
                             cursorShape:
                                 Qt.PointingHandCursor
 
                             onClicked: {
-                                if (
-                                    artistId
-                                ) {
-                                    root.controller
-                                        .loadArtist(
-                                        artistId)
-                                }
+                                root.controller
+                                    .loadArtist(
+                                    artistId)
                             }
                         }
                     }
 
                     Label {
+                        id: albumLabel
+
                         width: parent.width
 
                         text: album
 
-                        color: "#777777"
+                        color:
+                            albumMouseArea.containsMouse
+                                ? "#202020"
+                                : "#777777"
 
                         font.pixelSize: 10
 
                         elide:
                             Text.ElideRight
+
+                        MouseArea {
+                            id: albumMouseArea
+
+                            anchors.fill: parent
+
+                            hoverEnabled: true
+
+                            enabled:
+                                albumId &&
+                                albumId.length > 0
+
+                            cursorShape:
+                                Qt.PointingHandCursor
+
+                            onClicked: {
+                                root.controller
+                                    .loadAlbum(
+                                    albumId)
+                            }
+                        }
                     }
                 }
 

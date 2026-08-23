@@ -74,6 +74,15 @@ QVariant SearchModel::data(
 
             return QString();
 
+        case AlbumIdRole:
+            if (!track.albums.isEmpty()) {
+                return track.albums
+                    .first()
+                    .id;
+            }
+
+            return QString();
+
         case CoverUriRole:
             return track.coverUri;
 
@@ -94,6 +103,7 @@ SearchModel::roleNames() const
         {ArtistRole, "artist"},
         {ArtistIdRole, "artistId"},
         {AlbumRole, "album"},
+        {AlbumIdRole, "albumId"},
         {CoverUriRole, "coverUri"},
         {DurationMsRole, "durationMs"}
     };

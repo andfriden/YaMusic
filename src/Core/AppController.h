@@ -204,6 +204,9 @@ public:
     Q_INVOKABLE void loadArtist(
         const QString &id);
 
+    Q_INVOKABLE void loadAlbum(
+    const QString &id);
+
     Q_INVOKABLE void loadMyWave();
 
     Q_INVOKABLE void loadMoreMyWave();

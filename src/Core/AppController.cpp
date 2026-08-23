@@ -411,6 +411,14 @@ void AppController::loadArtist(
             id);
 }
 
+void AppController::loadAlbum(
+    const QString &id)
+{
+    m_libraryController
+        ->loadAlbum(
+            id);
+}
+
 void AppController::loadMyWave()
 {
     m_personalController
