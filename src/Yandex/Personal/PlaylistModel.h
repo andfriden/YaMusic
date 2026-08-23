@@ -33,7 +33,8 @@ public:
 
     QVariant data(
         const QModelIndex &index,
-        int role = Qt::DisplayRole) const override;
+        int role =
+            Qt::DisplayRole) const override;
 
     QHash<int, QByteArray>
     roleNames() const override;
@@ -45,6 +46,8 @@ public:
 
     Track trackAt(
         int index) const;
+
+    QList<Track> tracks() const;
 
     int count() const;
 

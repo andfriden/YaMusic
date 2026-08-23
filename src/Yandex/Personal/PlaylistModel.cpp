@@ -22,10 +22,11 @@ QVariant PlaylistModel::data(
     const QModelIndex &index,
     int role) const
 {
-    if (!index.isValid() ||
+    if (
+        !index.isValid() ||
         index.row() < 0 ||
-        index.row() >= m_tracks.size()) {
-
+        index.row() >= m_tracks.size()
+    ) {
         return {};
     }
 
@@ -43,19 +44,19 @@ QVariant PlaylistModel::data(
 
     case ArtistRole:
     {
-        QStringList artistNames;
+        QStringList names;
 
-        for (const Artist &artist :
-             track.artists) {
-
+        for (
+            const Artist &artist :
+            track.artists
+        ) {
             if (!artist.name.isEmpty()) {
-                artistNames.append(
+                names.append(
                     artist.name);
             }
         }
 
-        return artistNames.join(
-            ", ");
+        return names.join(", ");
     }
 
     case ArtistIdRole:
@@ -131,14 +132,20 @@ void PlaylistModel::clear()
 Track PlaylistModel::trackAt(
     int index) const
 {
-    if (index < 0 ||
-        index >= m_tracks.size()) {
-
+    if (
+        index < 0 ||
+        index >= m_tracks.size()
+    ) {
         return {};
     }
 
     return m_tracks.at(
         index);
+}
+
+QList<Track> PlaylistModel::tracks() const
+{
+    return m_tracks;
 }
 
 int PlaylistModel::count() const

@@ -5,6 +5,7 @@
   </component>
   <component name="BackendCodeEditorMiscSettings">
     <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexedValue" value="true" type="bool" />
+    <option name="/Default/Housekeeping/OptionsDialog/SelectedPageId/@EntryValue" value="CppFormatterOtherPage" type="string" />
   </component>
   <component name="CMakePresetLoader">{
   &quot;useNewFormat&quot;: true
@@ -43,9 +44,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="865a5beb-1541-4cbd-9e87-230c24ce324d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/qml/Home/AlbumView.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/Home/AlbumView.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qml/Home/ArtistView.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/Home/ArtistView.qml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qml/Home/PlaylistView.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/Home/PlaylistView.qml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/qml/Components/NowPlayingBar.qml" beforeDir="false" afterPath="$PROJECT_DIR$/qml/Components/NowPlayingBar.qml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Core/AppController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Core/AppController.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Core/AppController.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/Core/AppController.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Playback/PlaybackController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Playback/PlaybackController.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Playback/PlaybackController.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/Playback/PlaybackController.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Yandex/Catalog/AlbumModel.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Yandex/Catalog/AlbumModel.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Yandex/Catalog/AlbumModel.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/Yandex/Catalog/AlbumModel.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Yandex/Catalog/ArtistModel.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Yandex/Catalog/ArtistModel.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Yandex/Catalog/ArtistModel.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/Yandex/Catalog/ArtistModel.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Yandex/Personal/PersonalPlaylistsModel.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Yandex/Personal/PersonalPlaylistsModel.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Yandex/Personal/PersonalPlaylistsModel.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/Yandex/Personal/PersonalPlaylistsModel.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Yandex/Personal/PlaylistModel.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Yandex/Personal/PlaylistModel.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Yandex/Personal/PlaylistModel.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/Yandex/Personal/PlaylistModel.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,6 +77,10 @@
   </component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="f0GYHQht" />
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
   </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
@@ -94,7 +111,9 @@
     &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;CMake Application.appYaMusic.executor&quot;: &quot;Run&quot;,
     &quot;CidrDebugProfileConversion&quot;: &quot;true&quot;,
+    &quot;KEY_CHAT_IN_TOOLWINDOW&quot;: &quot;false&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.RadMigrateCodeStyle&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
@@ -106,10 +125,14 @@
     &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;last_opened_file_path&quot;: &quot;/Users/amders/YaMusic&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+    &quot;settings.editor.selected.configurable&quot;: &quot;ml.llm.AcpAgentsConfigurable&quot;
   }
 }</component>
   <component name="RecentsManager">
@@ -118,9 +141,9 @@
     </key>
   </component>
   <component name="RunManager" selected="CMake Application.appYaMusic">
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
       </method>
     </configuration>
     <configuration name="all_aotstats" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="YaMusic" TARGET_NAME="all_aotstats" CONFIG_NAME="Debug">
@@ -238,7 +261,7 @@
       &quot;second&quot;: &quot;36c6ae3a-5832-495c-a2cc-aa119deaf13e&quot;
     }
   ],
-  &quot;modificationCount&quot;: 3
+  &quot;modificationCount&quot;: 21
 }</component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">

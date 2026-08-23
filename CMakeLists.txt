@@ -105,6 +105,18 @@ qt_add_executable(appYaMusic
         src/Yandex/Catalog/ArtistService.h
         src/Yandex/Catalog/ArtistModel.cpp
         src/Yandex/Catalog/ArtistModel.h
+        src/Queue/QueueService.cpp
+        src/Queue/QueueService.h
+        src/Core/LibraryController.cpp
+        src/Core/LibraryController.h
+        src/Core/PlaybackController.cpp
+        src/Core/PlaybackController.h
+        src/Core/PersonalController.cpp
+        src/Core/PersonalController.h
+        src/Core/SearchController.cpp
+        src/Core/SearchController.h
+
+
 )
 
 qt_add_qml_module(appYaMusic

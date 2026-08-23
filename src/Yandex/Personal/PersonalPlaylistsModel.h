@@ -15,15 +15,12 @@ class PersonalPlaylistsModel : public QAbstractListModel
 
 public:
     enum Roles {
-        IdRole = Qt::UserRole + 1,
-        UidRole,
+        UidRole = Qt::UserRole + 1,
         KindRole,
         TitleRole,
         DescriptionRole,
-        PreviewDescriptionRole,
         CoverUriRole,
-        TrackCountRole,
-        GeneratedPlaylistTypeRole
+        TrackCountRole
     };
 
     explicit PersonalPlaylistsModel(
@@ -35,7 +32,8 @@ public:
 
     QVariant data(
         const QModelIndex &index,
-        int role = Qt::DisplayRole) const override;
+        int role =
+            Qt::DisplayRole) const override;
 
     QHash<int, QByteArray>
     roleNames() const override;

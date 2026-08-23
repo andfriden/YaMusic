@@ -22,10 +22,11 @@ QVariant ArtistModel::data(
     const QModelIndex &index,
     int role) const
 {
-    if (!index.isValid() ||
+    if (
+        !index.isValid() ||
         index.row() < 0 ||
-        index.row() >= m_tracks.size()) {
-
+        index.row() >= m_tracks.size()
+    ) {
         return {};
     }
 
@@ -45,8 +46,10 @@ QVariant ArtistModel::data(
     {
         QStringList artistNames;
 
-        for (const Artist &artist :
-             track.artists) {
+        for (
+            const Artist &artist :
+            track.artists
+        ) {
 
             if (!artist.name.isEmpty()) {
                 artistNames.append(
@@ -131,14 +134,20 @@ void ArtistModel::clear()
 Track ArtistModel::trackAt(
     int index) const
 {
-    if (index < 0 ||
-        index >= m_tracks.size()) {
-
+    if (
+        index < 0 ||
+        index >= m_tracks.size()
+    ) {
         return {};
     }
 
     return m_tracks.at(
         index);
+}
+
+QList<Track> ArtistModel::tracks() const
+{
+    return m_tracks;
 }
 
 int ArtistModel::count() const

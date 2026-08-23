@@ -1,17 +1,13 @@
 #pragma once
 
-#include <QHash>
 #include <QObject>
 #include <QString>
 
+#include "LibraryController.h"
+#include "PersonalController.h"
+#include "SearchController.h"
+
 #include "../Playback/PlaybackController.h"
-#include "../Yandex/Catalog/AlbumModel.h"
-#include "../Yandex/Catalog/ArtistModel.h"
-#include "../Yandex/Catalog/SearchModel.h"
-#include "../Yandex/Personal/MyWaveModel.h"
-#include "../Yandex/Personal/PersonalPlaylistsModel.h"
-#include "../Yandex/Personal/PlaylistModel.h"
-#include "../Yandex/Personal/RecentListeningModel.h"
 
 class AccountService;
 class AlbumService;
@@ -19,6 +15,7 @@ class ArtistService;
 class PersonalLanding;
 class PlayerService;
 class PlaylistService;
+class QueueService;
 class SearchService;
 class TrackService;
 class YandexAuth;
@@ -178,6 +175,16 @@ class AppController : public QObject
         READ playbackState
         NOTIFY playbackStateChanged)
 
+    Q_PROPERTY(
+        int repeatMode
+        READ repeatMode
+        NOTIFY repeatModeChanged)
+
+    Q_PROPERTY(
+        bool shuffleEnabled
+        READ shuffleEnabled
+        NOTIFY shuffleChanged)
+
 public:
     explicit AppController(
         QObject *parent = nullptr);
@@ -224,6 +231,20 @@ public:
     Q_INVOKABLE void pause();
 
     Q_INVOKABLE void stop();
+
+    Q_INVOKABLE void next();
+
+    Q_INVOKABLE void previous();
+
+    Q_INVOKABLE void cycleRepeat();
+
+    Q_INVOKABLE void setRepeatMode(
+        int mode);
+
+    Q_INVOKABLE void toggleShuffle();
+
+    Q_INVOKABLE void setShuffle(
+        bool enabled);
 
     Q_INVOKABLE void seek(
         qint64 position);
@@ -291,6 +312,10 @@ public:
     PlaybackController::PlaybackState
     playbackState() const;
 
+    int repeatMode() const;
+
+    bool shuffleEnabled() const;
+
 signals:
     void statusChanged(
         const QString &message);
@@ -327,14 +352,9 @@ signals:
 
     void playbackStateChanged();
 
-private:
-    void sendMyWaveFeedback(
-        const QString &event,
-        const QString &trackId,
-        qint64 totalPlayedSeconds = 0);
+    void repeatModeChanged();
 
-    QString batchIdForTrack(
-        const QString &trackId) const;
+    void shuffleChanged();
 
 private:
     YandexAuth *m_auth = nullptr;
@@ -355,66 +375,19 @@ private:
 
     ArtistService *m_artistService = nullptr;
 
-    SearchModel *m_searchModel = nullptr;
-
-    MyWaveModel *m_myWaveModel = nullptr;
-
-    PersonalPlaylistsModel *
-        m_personalPlaylistsModel = nullptr;
-
-    PlaylistModel *
-        m_playlistModel = nullptr;
-
-    AlbumModel *
-        m_albumModel = nullptr;
-
-    ArtistModel *
-        m_artistModel = nullptr;
-
-    RecentListeningModel *
-        m_recentListeningModel = nullptr;
-
     PlayerService *m_playerService = nullptr;
+
+    QueueService *m_queueService = nullptr;
 
     PlaybackController *
         m_playbackController = nullptr;
 
-    bool m_searching = false;
+    LibraryController *
+        m_libraryController = nullptr;
 
-    bool m_loadingMyWave = false;
+    PersonalController *
+        m_personalController = nullptr;
 
-    bool m_loadingMoreMyWave = false;
-
-    bool m_loadingRecommendations = false;
-
-    bool m_loadingPlaylist = false;
-
-    bool m_loadingAlbum = false;
-
-    bool m_loadingArtist = false;
-
-    QHash<QString, QString>
-        m_myWaveTrackBatches;
-
-    QString m_currentMyWaveTrackId;
-
-    bool m_myWaveTrackStarted = false;
-
-    QString m_currentPlaylistTitle;
-
-    int m_currentPlaylistTrackCount = 0;
-
-    QString m_currentAlbumTitle;
-
-    int m_currentAlbumTrackCount = 0;
-
-    QString m_currentAlbumCoverUri;
-
-    QString m_currentArtistName;
-
-    QString m_currentArtistCoverUri;
-
-    QString m_currentArtistGenres;
-
-    int m_currentArtistTrackCount = 0;
+    SearchController *
+        m_searchController = nullptr;
 };

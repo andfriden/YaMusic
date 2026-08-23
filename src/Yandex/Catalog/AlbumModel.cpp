@@ -22,10 +22,11 @@ QVariant AlbumModel::data(
     const QModelIndex &index,
     int role) const
 {
-    if (!index.isValid() ||
+    if (
+        !index.isValid() ||
         index.row() < 0 ||
-        index.row() >= m_tracks.size()) {
-
+        index.row() >= m_tracks.size()
+    ) {
         return {};
     }
 
@@ -45,8 +46,10 @@ QVariant AlbumModel::data(
     {
         QStringList artistNames;
 
-        for (const Artist &artist :
-             track.artists) {
+        for (
+            const Artist &artist :
+            track.artists
+        ) {
 
             if (!artist.name.isEmpty()) {
                 artistNames.append(
@@ -120,14 +123,20 @@ void AlbumModel::clear()
 Track AlbumModel::trackAt(
     int index) const
 {
-    if (index < 0 ||
-        index >= m_tracks.size()) {
-
+    if (
+        index < 0 ||
+        index >= m_tracks.size()
+    ) {
         return {};
     }
 
     return m_tracks.at(
         index);
+}
+
+QList<Track> AlbumModel::tracks() const
+{
+    return m_tracks;
 }
 
 int AlbumModel::count() const

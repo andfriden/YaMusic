@@ -9,292 +9,274 @@ Item {
     Rectangle {
         anchors.fill: parent
 
-        radius: 10
+        radius: 12
 
-        color: "#dedede"
+        color: "#e9e9e9"
 
         border.width: 1
+        border.color: "#d4d4d4"
 
-        border.color: "#c8c8c8"
+        Row {
+            id: contentRow
 
-        Column {
             anchors.fill: parent
-
             anchors.margins: 12
 
-            spacing: 8
+            spacing: 12
 
-            Row {
-                width: parent.width
+            Image {
+                id: cover
 
-                height: 72
+                width: 82
+                height: 82
 
-                spacing: 14
+                anchors.verticalCenter:
+                    parent.verticalCenter
+
+                source:
+                    root.controller.currentTrackCoverUri
+                        ? "image://yandex/" +
+                        root.controller.currentTrackCoverUri
+                        : ""
+
+                fillMode:
+                    Image.PreserveAspectCrop
+
+                asynchronous: true
+                cache: true
 
                 Rectangle {
-                    id: artworkContainer
+                    anchors.fill: parent
 
-                    width: 72
-                    height: 72
+                    radius: 8
+                    color: "#d0d0d0"
 
-                    radius: 6
-
-                    color: "#cccccc"
-
-                    clip: true
-
-                    Image {
-                        id: artwork
-
-                        anchors.fill: parent
-
-                        source:
-                            root.controller
-                                .currentTrackCoverUri
-                                ? "image://yandex/" +
-                                root.controller
-                                    .currentTrackCoverUri
-                                : ""
-
-                        fillMode:
-                            Image.PreserveAspectCrop
-
-                        asynchronous: true
-
-                        cache: true
-
-                        visible:
-                            status === Image.Ready
-                    }
+                    visible:
+                        cover.status !== Image.Ready
 
                     Label {
-                        anchors.centerIn:
-                            parent
+                        anchors.centerIn: parent
 
                         text: "♪"
 
                         color: "#666666"
 
                         font.pixelSize: 28
-
-                        visible:
-                            artwork.status !==
-                            Image.Ready
                     }
                 }
+            }
 
-                Column {
-                    id: trackInfo
+            Column {
+                id: trackInfo
 
-                    width:
-                        parent.width -
+                width:
+                    Math.max(
+                        180,
+                        contentRow.width -
+                        cover.width -
                         controls.width -
-                        artworkContainer.width -
-                        28
+                        48)
 
-                    anchors.verticalCenter:
-                        parent.verticalCenter
+                anchors.verticalCenter:
+                    parent.verticalCenter
 
-                    spacing: 5
+                spacing: 4
 
-                    Label {
-                        width: parent.width
+                Label {
+                    width: parent.width
 
-                        text:
-                            root.controller
-                                .currentTrackTitle ||
-                            "Ничего не играет"
+                    text:
+                        root.controller.currentTrackTitle ||
+                        "Ничего не играет"
 
-                        color: "#181818"
+                    color: "#202020"
 
-                        font.pixelSize: 16
+                    font.pixelSize: 15
+                    font.bold: true
 
-                        font.bold: true
+                    elide:
+                        Text.ElideRight
+                }
 
-                        elide:
-                            Text.ElideRight
-                    }
+                Label {
+                    width: parent.width
 
-                    Label {
-                        width: parent.width
+                    text:
+                        root.controller.currentTrackArtist
 
-                        text:
-                            root.controller
-                                .currentTrackArtist ||
-                            "Выберите трек"
+                    color: "#666666"
 
-                        color: "#4f4f4f"
+                    font.pixelSize: 12
 
-                        font.pixelSize: 13
-
-                        elide:
-                            Text.ElideRight
-                    }
-
-                    Label {
-                        width: parent.width
-
-                        text:
-                            playbackStateText(
-                                root.controller
-                                    .playbackState)
-
-                        color: "#666666"
-
-                        font.pixelSize: 11
-                    }
+                    elide:
+                        Text.ElideRight
                 }
 
                 Row {
-                    id: controls
-
-                    anchors.verticalCenter:
-                        parent.verticalCenter
+                    width: parent.width
 
                     spacing: 6
 
-                    Button {
-                        width: 42
-                        height: 42
+                    Label {
+                        width: 32
 
                         text:
-                            root.controller.playing
-                                ? "❚❚"
-                                : "▶"
+                            formatTime(
+                                root.controller.position)
 
-                        enabled:
-                            root.controller
-                                .playbackState !== 1
+                        color: "#777777"
 
-                        onClicked: {
-                            if (
-                                root.controller.playing
-                            ) {
-                                root.controller.pause()
-                            } else {
-                                root.controller.play()
-                            }
-                        }
+                        font.pixelSize: 10
+
+                        horizontalAlignment:
+                            Text.AlignLeft
                     }
 
-                    Button {
-                        width: 42
-                        height: 42
+                    Slider {
+                        id: progressSlider
 
-                        text: "■"
+                        width:
+                            Math.max(
+                                80,
+                                parent.width - 82)
+
+                        from: 0
+
+                        to:
+                            Math.max(
+                                1,
+                                root.controller.duration)
+
+                        value:
+                            Math.min(
+                                root.controller.position,
+                                to)
 
                         enabled:
-                            root.controller
-                                .playbackState !== 0
+                            root.controller.duration > 0
 
-                        onClicked: {
-                            root.controller.stop()
+                        onMoved: {
+                            root.controller.seek(
+                                value)
                         }
                     }
                 }
             }
 
             Row {
-                width: parent.width
+                id: controls
 
-                height: 28
+                width: 282
+
+                anchors.verticalCenter:
+                    parent.verticalCenter
 
                 spacing: 8
 
-                Label {
-                    id: currentTimeLabel
+                Button {
+                    width: 40
+                    height: 40
 
-                    width: 42
-
-                    anchors.verticalCenter:
-                        parent.verticalCenter
-
-                    text:
-                        formatDuration(
-                            root.controller.position)
-
-                    color: "#555555"
-
-                    font.pixelSize: 11
-                }
-
-                Slider {
-                    id: positionSlider
-
-                    width:
-                        parent.width -
-                        currentTimeLabel.width -
-                        totalTimeLabel.width -
-                        16
-
-                    anchors.verticalCenter:
-                        parent.verticalCenter
-
-                    from: 0
-
-                    to:
-                        Math.max(
-                            0,
-                            root.controller.duration)
-
-                    value:
-                        root.controller.position
+                    text: "‹"
 
                     enabled:
-                        root.controller.duration > 0
+                        root.controller.currentTrackTitle.length > 0
 
-                    onMoved: {
-                        root.controller.seek(
-                            value)
+                    onClicked:
+                        root.controller.previous()
+                }
+
+                Button {
+                    width: 48
+                    height: 40
+
+                    text:
+                        root.controller.playing
+                            ? "Ⅱ"
+                            : "▶"
+
+                    enabled:
+                        root.controller.currentTrackTitle.length > 0
+
+                    onClicked: {
+
+                        if (
+                            root.controller.playing
+                        ) {
+
+                            root.controller.pause()
+
+                        } else {
+
+                            root.controller.play()
+                        }
                     }
                 }
 
-                Label {
-                    id: totalTimeLabel
+                Button {
+                    width: 40
+                    height: 40
 
-                    width: 42
+                    text: "›"
 
-                    anchors.verticalCenter:
-                        parent.verticalCenter
+                    enabled:
+                        root.controller.currentTrackTitle.length > 0
+
+                    onClicked:
+                        root.controller.next()
+                }
+
+                Button {
+                    width: 40
+                    height: 40
 
                     text:
-                        formatDuration(
-                            root.controller.duration)
+                            root.controller.repeatMode === 0
+                        ? "↻"
+                        : root.controller.repeatMode === 1
+                            ? "↻A"
+                            : "↻1"
 
-                    color: "#555555"
+                    enabled:
+                        root.controller.currentTrackTitle.length > 0
 
-                    font.pixelSize: 11
+                    onClicked:
+                        root.controller.cycleRepeat()
+                }
 
-                    horizontalAlignment:
-                        Text.AlignRight
+                Button {
+                    width: 40
+                    height: 40
+
+                    text:
+                        root.controller.shuffleEnabled
+                            ? "🔀"
+                            : "⇄"
+
+                    enabled:
+                        root.controller.currentTrackTitle.length > 0
+
+                    onClicked:
+                        root.controller.toggleShuffle()
+                }
+
+                Button {
+                    width: 40
+                    height: 40
+
+                    text: "■"
+
+                    enabled:
+                        root.controller.currentTrackTitle.length > 0
+
+                    onClicked:
+                        root.controller.stop()
                 }
             }
         }
     }
 
-    function playbackStateText(state) {
-        switch (state) {
-            case 0:
-                return "Готово"
-
-            case 1:
-                return "Загрузка..."
-
-            case 2:
-                return "Воспроизведение"
-
-            case 3:
-                return "Пауза"
-
-            case 4:
-                return "Ошибка"
-
-            default:
-                return "Готово"
-        }
-    }
-
-    function formatDuration(milliseconds) {
+    function formatTime(milliseconds) {
         if (
             !milliseconds ||
             milliseconds <= 0

@@ -46,6 +46,8 @@ public:
     Track trackAt(
         int index) const;
 
+    QList<Track> tracks() const;
+
     int count() const;
 
     QString title() const;
