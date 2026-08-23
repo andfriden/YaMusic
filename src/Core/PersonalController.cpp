@@ -9,14 +9,21 @@
 PersonalController::PersonalController(
     YandexPersonal *yandexPersonal,
     PersonalLanding *personalLanding,
+    RecentListeningService *recentListeningService,
     PlaybackController *playbackController,
     PlayerService *playerService,
     QObject *parent)
     : QObject(parent)
-    , m_yandexPersonal(yandexPersonal)
-    , m_personalLanding(personalLanding)
-    , m_playbackController(playbackController)
-    , m_playerService(playerService)
+    , m_yandexPersonal(
+          yandexPersonal)
+    , m_personalLanding(
+          personalLanding)
+    , m_recentListeningService(
+          recentListeningService)
+    , m_playbackController(
+          playbackController)
+    , m_playerService(
+          playerService)
     , m_myWaveModel(
           new MyWaveModel(this))
     , m_personalPlaylistsModel(
@@ -28,7 +35,9 @@ PersonalController::PersonalController(
      * My Wave
      */
 
-    if (m_yandexPersonal != nullptr) {
+    if (
+        m_yandexPersonal != nullptr
+    ) {
 
         connect(
             m_yandexPersonal,
@@ -60,7 +69,9 @@ PersonalController::PersonalController(
                 const bool firstLoad =
                     !m_loadingMoreMyWave;
 
-                if (m_loadingMoreMyWave) {
+                if (
+                    m_loadingMoreMyWave
+                ) {
 
                     m_loadingMoreMyWave =
                         false;
@@ -119,7 +130,9 @@ PersonalController::PersonalController(
             [this](
                 const QString &message) {
 
-                if (m_loadingMyWave) {
+                if (
+                    m_loadingMyWave
+                ) {
 
                     m_loadingMyWave =
                         false;
@@ -127,7 +140,9 @@ PersonalController::PersonalController(
                     emit loadingMyWaveChanged();
                 }
 
-                if (m_loadingMoreMyWave) {
+                if (
+                    m_loadingMoreMyWave
+                ) {
 
                     m_loadingMoreMyWave =
                         false;
@@ -135,7 +150,9 @@ PersonalController::PersonalController(
                     emit loadingMoreMyWaveChanged();
                 }
 
-                if (m_loadingRecommendations) {
+                if (
+                    m_loadingRecommendations
+                ) {
 
                     m_loadingRecommendations =
                         false;
@@ -180,7 +197,9 @@ PersonalController::PersonalController(
      * Personal Landing
      */
 
-    if (m_personalLanding != nullptr) {
+    if (
+        m_personalLanding != nullptr
+    ) {
 
         connect(
             m_personalLanding,
@@ -212,45 +231,6 @@ PersonalController::PersonalController(
                         << playlist.kind
                         << "| tracks:"
                         << playlist.trackCount;
-                }
-            });
-
-        connect(
-            m_personalLanding,
-            &PersonalLanding::recentListeningReceived,
-            this,
-            [this](
-                const QList<RecentListeningItem>
-                    &items) {
-
-                m_recentListeningModel
-                    ->setItems(
-                        items);
-
-                qDebug()
-                    << "Недавно слушали:"
-                    << items.size();
-
-                for (
-                    const RecentListeningItem &item :
-                    items
-                ) {
-
-                    qDebug()
-                        << "Недавно:"
-                        << item.title
-                        << "| type:"
-                        << item.type
-                        << "| context:"
-                        << item.context
-                        << "| contextItem:"
-                        << item.contextItem
-                        << "| uid:"
-                        << item.uid
-                        << "| kind:"
-                        << item.kind
-                        << "| cover:"
-                        << item.coverUri;
                 }
             });
 
@@ -319,10 +299,101 @@ PersonalController::PersonalController(
     }
 
     /*
+     * Recently Played
+     */
+
+    if (
+        m_recentListeningService != nullptr
+    ) {
+
+        connect(
+            m_recentListeningService,
+            &RecentListeningService::loadingChanged,
+            this,
+            [this](
+                bool loading) {
+
+                Q_UNUSED(this)
+
+                qDebug()
+                    << "Recent listening loading:"
+                    << loading;
+            });
+
+        connect(
+            m_recentListeningService,
+            &RecentListeningService::tracksReceived,
+            this,
+            [this](
+                const QList<Track> &tracks) {
+
+                m_recentListeningModel
+                    ->setTracks(
+                        tracks);
+
+                qDebug()
+                    << "Recently listened tracks:"
+                    << tracks.size();
+
+                for (
+                    const Track &track :
+                    tracks
+                ) {
+
+                    QString artistName;
+
+                    if (
+                        !track.artists.isEmpty()
+                    ) {
+
+                        artistName =
+                            track.artists
+                                .first()
+                                .name;
+                    }
+
+                    qDebug()
+                        << "Recently:"
+                        << track.title
+                        << "| artist:"
+                        << artistName
+                        << "| id:"
+                        << track.id;
+                }
+
+                emit statusChanged(
+                    QString(
+                        "Недавно слушали: %1 треков")
+                        .arg(
+                            tracks.size()));
+            });
+
+        connect(
+            m_recentListeningService,
+            &RecentListeningService::errorOccurred,
+            this,
+            [this](
+                const QString &message) {
+
+                qDebug()
+                    << "Recent listening error:"
+                    << message;
+
+                emit statusChanged(
+                    QString(
+                        "Ошибка истории прослушивания: %1")
+                        .arg(
+                            message));
+            });
+    }
+
+    /*
      * My Wave feedback
      */
 
-    if (m_playerService != nullptr) {
+    if (
+        m_playerService != nullptr
+    ) {
 
         connect(
             m_playerService,
@@ -337,7 +408,9 @@ PersonalController::PersonalController(
                     return;
                 }
 
-                if (m_myWaveTrackStarted) {
+                if (
+                    m_myWaveTrackStarted
+                ) {
                     return;
                 }
 
@@ -399,7 +472,9 @@ void PersonalController::loadMyWave()
         return;
     }
 
-    if (m_yandexPersonal == nullptr) {
+    if (
+        m_yandexPersonal == nullptr
+    ) {
         return;
     }
 
@@ -426,7 +501,9 @@ void PersonalController::loadMoreMyWave()
         return;
     }
 
-    if (m_yandexPersonal == nullptr) {
+    if (
+        m_yandexPersonal == nullptr
+    ) {
         return;
     }
 
@@ -434,7 +511,9 @@ void PersonalController::loadMoreMyWave()
         m_myWaveModel
             ->lastTrack();
 
-    if (lastTrack.id.isEmpty()) {
+    if (
+        lastTrack.id.isEmpty()
+    ) {
         return;
     }
 
@@ -453,11 +532,15 @@ void PersonalController::loadMoreMyWave()
 
 void PersonalController::loadRecommendations()
 {
-    if (m_loadingRecommendations) {
+    if (
+        m_loadingRecommendations
+    ) {
         return;
     }
 
-    if (m_personalLanding == nullptr) {
+    if (
+        m_personalLanding == nullptr
+    ) {
         return;
     }
 
@@ -469,8 +552,10 @@ void PersonalController::loadRecommendations()
     m_personalPlaylistsModel
         ->clear();
 
-    m_recentListeningModel
-        ->clear();
+    /*
+     * История грузится отдельно через
+     * RecentListeningService после получения UID.
+     */
 
     emit statusChanged(
         "Загрузка рекомендаций...");
@@ -482,7 +567,9 @@ void PersonalController::loadRecommendations()
 void PersonalController::selectMyWaveTrack(
     int index)
 {
-    if (m_playbackController == nullptr) {
+    if (
+        m_playbackController == nullptr
+    ) {
         return;
     }
 
@@ -491,7 +578,9 @@ void PersonalController::selectMyWaveTrack(
             ->trackAt(
                 index);
 
-    if (track.id.isEmpty()) {
+    if (
+        track.id.isEmpty()
+    ) {
 
         emit statusChanged(
             "Некорректный трек моей волны");
@@ -557,21 +646,36 @@ void PersonalController::selectPersonalPlaylist(
 void PersonalController::selectRecentListening(
     int index)
 {
-    const RecentListeningItem item =
+    if (
+        m_playbackController == nullptr
+    ) {
+        return;
+    }
+
+    const Track track =
         m_recentListeningModel
-            ->itemAt(
+            ->trackAt(
                 index);
 
-    if (item.id.isEmpty()) {
+    if (
+        track.id.isEmpty()
+    ) {
 
         emit statusChanged(
-            "Некорректный элемент истории");
+            "Некорректный трек истории");
 
         return;
     }
 
-    emit recentListeningSelected(
-        item);
+    emit statusChanged(
+        QString(
+            "Выбран трек: %1")
+            .arg(
+                track.title));
+
+    m_playbackController
+        ->playTrack(
+            track);
 }
 
 MyWaveModel *
@@ -620,7 +724,9 @@ void PersonalController::sendMyWaveFeedback(
     const QString &trackId,
     qint64 totalPlayedSeconds)
 {
-    if (m_yandexPersonal == nullptr) {
+    if (
+        m_yandexPersonal == nullptr
+    ) {
         return;
     }
 
@@ -628,7 +734,9 @@ void PersonalController::sendMyWaveFeedback(
         batchIdForTrack(
             trackId);
 
-    if (batchId.isEmpty()) {
+    if (
+        batchId.isEmpty()
+    ) {
 
         qDebug()
             << "No batch ID for Wave track:"

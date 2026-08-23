@@ -6,11 +6,6 @@ Item {
 
     property var controller
 
-    visible:
-        controller.loadingAlbum ||
-        controller.currentAlbumTitle.length > 0 ||
-        controller.albumModel.count > 0
-
     Rectangle {
         anchors.fill: parent
 
@@ -19,7 +14,6 @@ Item {
         color: "#e9e9e9"
 
         border.width: 1
-
         border.color: "#d4d4d4"
 
         Column {
@@ -44,7 +38,6 @@ Item {
                     color: "#202020"
 
                     font.pixelSize: 18
-
                     font.bold: true
 
                     anchors.verticalCenter:
@@ -63,31 +56,6 @@ Item {
                     anchors.verticalCenter:
                         parent.verticalCenter
                 }
-
-                Item {
-                    width:
-                        Math.max(
-                            0,
-                            parent.width -
-                            titleLabel.width -
-                            100 -
-                            30)
-
-                    height: 1
-                }
-
-                Button {
-                    width: 80
-
-                    text: "Закрыть"
-
-                    enabled:
-                        !root.controller.loadingAlbum
-
-                    onClicked: {
-                        root.visible = false
-                    }
-                }
             }
 
             Row {
@@ -102,7 +70,6 @@ Item {
 
                 Image {
                     width: 96
-
                     height: 96
 
                     source:
@@ -115,7 +82,6 @@ Item {
                         Image.PreserveAspectCrop
 
                     asynchronous: true
-
                     cache: true
 
                     Rectangle {
@@ -161,11 +127,9 @@ Item {
 
                 spacing: 6
 
-                ScrollBar.vertical:
-                    ScrollBar {
-                        policy:
-                            ScrollBar.AsNeeded
-                    }
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                }
 
                 delegate: Rectangle {
                     id: trackDelegate
@@ -173,7 +137,10 @@ Item {
                     width:
                         tracksView.width -
                         (
-                            tracksView.ScrollBar.vertical.visible
+                            tracksView
+                                .ScrollBar
+                                .vertical
+                                .visible
                                 ? 10
                                 : 0
                         )
@@ -217,7 +184,6 @@ Item {
                             Image.PreserveAspectCrop
 
                         asynchronous: true
-
                         cache: true
 
                         Rectangle {
@@ -268,7 +234,6 @@ Item {
                             color: "#202020"
 
                             font.pixelSize: 14
-
                             font.bold: true
 
                             elide:
@@ -279,8 +244,20 @@ Item {
                             id: artistArea
 
                             width: parent.width
-
                             height: 18
+                        }
+
+                        Label {
+                            width: parent.width
+
+                            text: album
+
+                            color: "#777777"
+
+                            font.pixelSize: 10
+
+                            elide:
+                                Text.ElideRight
                         }
                     }
 
@@ -296,7 +273,8 @@ Item {
                             parent.verticalCenter
 
                         text:
-                            formatDuration(durationMs)
+                            formatDuration(
+                                durationMs)
 
                         color: "#555555"
 
@@ -314,7 +292,8 @@ Item {
 
                         onClicked: {
                             root.controller
-                                .selectAlbumTrack(index)
+                                .selectAlbumTrack(
+                                index)
                         }
                     }
 
@@ -326,7 +305,7 @@ Item {
 
                         y:
                             trackInfo.y +
-                            trackInfo.children[1].y
+                            artistArea.y
 
                         width:
                             trackInfo.width
@@ -348,7 +327,8 @@ Item {
 
                         onClicked: {
                             root.controller
-                                .loadArtist(artistId)
+                                .loadArtist(
+                                artistId)
                         }
 
                         Label {
@@ -387,7 +367,8 @@ Item {
         }
     }
 
-    function formatDuration(milliseconds) {
+    function formatDuration(milliseconds)
+    {
         if (
             !milliseconds ||
             milliseconds <= 0
@@ -396,10 +377,12 @@ Item {
         }
 
         var totalSeconds =
-            Math.floor(milliseconds / 1000)
+            Math.floor(
+                milliseconds / 1000)
 
         var minutes =
-            Math.floor(totalSeconds / 60)
+            Math.floor(
+                totalSeconds / 60)
 
         var seconds =
             totalSeconds % 60

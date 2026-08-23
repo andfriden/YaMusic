@@ -4,14 +4,15 @@
 #include <QString>
 
 #include "../Playback/PlaybackController.h"
+
 #include "../Yandex/Catalog/AlbumModel.h"
-#include "../Yandex/Catalog/ArtistModel.h"
-#include "../Yandex/Personal/PlaylistModel.h"
-#include "../Yandex/Personal/PlaylistService.h"
 #include "../Yandex/Catalog/AlbumService.h"
+
+#include "../Yandex/Catalog/ArtistModel.h"
 #include "../Yandex/Catalog/ArtistService.h"
 
-#include "../Models/RecentListeningItem.h"
+#include "../Yandex/Personal/PlaylistModel.h"
+#include "../Yandex/Personal/PlaylistService.h"
 
 class LibraryController : public QObject
 {
@@ -118,9 +119,6 @@ public:
 
     void selectArtistTrack(
         int index);
-
-    void selectRecentListening(
-        const RecentListeningItem &item);
 
     PlaylistModel *playlistModel() const;
 

@@ -7,7 +7,7 @@
 #include <QModelIndex>
 #include <QVariant>
 
-#include "../../Models/RecentListeningItem.h"
+#include "../../Models/Track.h"
 
 class RecentListeningModel : public QAbstractListModel
 {
@@ -16,14 +16,13 @@ class RecentListeningModel : public QAbstractListModel
 public:
     enum Roles {
         IdRole = Qt::UserRole + 1,
-        TypeRole,
         TitleRole,
-        SubtitleRole,
+        ArtistRole,
+        ArtistIdRole,
+        AlbumRole,
+        AlbumIdRole,
         CoverUriRole,
-        ContextRole,
-        ContextItemRole,
-        UidRole,
-        KindRole
+        DurationMsRole
     };
 
     explicit RecentListeningModel(
@@ -40,16 +39,16 @@ public:
     QHash<int, QByteArray>
     roleNames() const override;
 
-    void setItems(
-        const QList<RecentListeningItem> &items);
+    void setTracks(
+        const QList<Track> &tracks);
 
     void clear();
 
-    RecentListeningItem itemAt(
+    Track trackAt(
         int index) const;
 
     int count() const;
 
 private:
-    QList<RecentListeningItem> m_items;
+    QList<Track> m_tracks;
 };

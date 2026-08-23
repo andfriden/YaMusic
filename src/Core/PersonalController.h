@@ -5,12 +5,13 @@
 #include <QString>
 
 #include "../Models/PersonalPlaylist.h"
-#include "../Models/RecentListeningItem.h"
 #include "../Models/Track.h"
+
 #include "../Yandex/Personal/MyWaveModel.h"
 #include "../Yandex/Personal/PersonalLanding.h"
 #include "../Yandex/Personal/PersonalPlaylistsModel.h"
 #include "../Yandex/Personal/RecentListeningModel.h"
+#include "../Yandex/Personal/RecentListeningService.h"
 
 class PlayerService;
 class PlaybackController;
@@ -54,6 +55,7 @@ public:
     explicit PersonalController(
         YandexPersonal *yandexPersonal,
         PersonalLanding *personalLanding,
+        RecentListeningService *recentListeningService,
         PlaybackController *playbackController,
         PlayerService *playerService,
         QObject *parent = nullptr);
@@ -105,9 +107,6 @@ signals:
     void personalPlaylistSelected(
         const PersonalPlaylist &playlist);
 
-    void recentListeningSelected(
-        const RecentListeningItem &item);
-
 private:
     void sendMyWaveFeedback(
         const QString &event,
@@ -122,12 +121,17 @@ private:
 
     PersonalLanding *m_personalLanding = nullptr;
 
+    RecentListeningService *
+        m_recentListeningService = nullptr;
+
     PlaybackController *
         m_playbackController = nullptr;
 
-    PlayerService *m_playerService = nullptr;
+    PlayerService *
+        m_playerService = nullptr;
 
-    MyWaveModel *m_myWaveModel = nullptr;
+    MyWaveModel *
+        m_myWaveModel = nullptr;
 
     PersonalPlaylistsModel *
         m_personalPlaylistsModel = nullptr;

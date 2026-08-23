@@ -1,13 +1,16 @@
 #pragma once
 
-#include <QObject>
 #include <QJsonObject>
+#include <QList>
+#include <QObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QPointer>
 #include <QString>
+#include <QStringList>
 
 #include "../Models/Account.h"
+#include "../Models/Track.h"
 #include "Catalog/SearchResult.h"
 
 class YandexClient : public QObject
@@ -35,6 +38,9 @@ public:
     void search(
         const QString &query);
 
+    void getTracks(
+        const QStringList &trackIds);
+
     signals:
         void requestError(
             const QString &message);
@@ -45,13 +51,27 @@ public:
     void searchReceived(
         const SearchResults &results);
 
+    void tracksReceived(
+        const QList<Track> &tracks);
+
 private:
     QNetworkRequest createRequest(
         const QString &path) const;
 
-    QNetworkAccessManager m_networkManager;
+    QList<Track> parseTracks(
+        const QJsonObject &object) const;
+
+    Track parseTrack(
+        const QJsonObject &object) const;
+
+    QNetworkAccessManager
+        m_networkManager;
 
     QString m_token;
 
-    QPointer<QNetworkReply> m_searchReply;
+    QPointer<QNetworkReply>
+        m_searchReply;
+
+    QPointer<QNetworkReply>
+        m_tracksReply;
 };

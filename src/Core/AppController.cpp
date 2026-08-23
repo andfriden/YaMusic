@@ -1,14 +1,20 @@
 #include "AppController.h"
 
+#include "../Models/PersonalPlaylist.h"
+
 #include "../Player/PlayerService.h"
 #include "../Queue/QueueService.h"
+
 #include "../Yandex/Account/AccountService.h"
 #include "../Yandex/Auth/YandexAuth.h"
+
 #include "../Yandex/Catalog/AlbumService.h"
 #include "../Yandex/Catalog/ArtistService.h"
 #include "../Yandex/Catalog/SearchService.h"
 #include "../Yandex/Catalog/TrackService.h"
+
 #include "../Yandex/Personal/PersonalLanding.h"
+#include "../Yandex/Personal/RecentListeningService.h"
 #include "../Yandex/Personal/PlaylistService.h"
 #include "../Yandex/Personal/YandexPersonal.h"
 
@@ -18,8 +24,7 @@ AppController::AppController(
     QObject *parent)
     : QObject(parent)
     , m_auth(
-          new YandexAuth(
-              this))
+          new YandexAuth(this))
     , m_accountService(
           new AccountService(
               m_auth,
@@ -38,6 +43,10 @@ AppController::AppController(
               this))
     , m_personalLanding(
           new PersonalLanding(
+              m_auth,
+              this))
+    , m_recentListeningService(
+          new RecentListeningService(
               m_auth,
               this))
     , m_playlistService(
@@ -75,6 +84,7 @@ AppController::AppController(
           new PersonalController(
               m_yandexPersonal,
               m_personalLanding,
+              m_recentListeningService,
               m_playbackController,
               m_playerService,
               this))
@@ -95,6 +105,22 @@ AppController::AppController(
         [this](
             const Account &account) {
 
+            if (
+                m_recentListeningService !=
+                nullptr
+            ) {
+
+                m_recentListeningService
+                    ->setUserId(
+                        QString::number(
+                            account.uid));
+
+                m_recentListeningService
+                    ->load(
+                        50,
+                        10);
+            }
+
             emit statusChanged(
                 QString(
                     "Выполнен вход: %1 (uid: %2)")
@@ -109,6 +135,13 @@ AppController::AppController(
         &AccountService::errorOccurred,
         this,
         &AppController::statusChanged);
+
+    /*
+     * Запрашиваем account один раз при старте.
+     */
+
+    m_accountService
+        ->loadAccount();
 
     /*
      * Search
@@ -219,17 +252,14 @@ AppController::AppController(
                     playlist.kind);
         });
 
-    connect(
-        m_personalController,
-        &PersonalController::recentListeningSelected,
-        this,
-        [this](
-            const RecentListeningItem &item) {
-
-            m_libraryController
-                ->selectRecentListening(
-                    item);
-        });
+    /*
+     * Recently Played
+     *
+     * PersonalController already owns
+     * the model and handles Track playback.
+     * AppController only exposes the
+     * controller facade to QML.
+     */
 
     /*
      * Playback
@@ -247,13 +277,17 @@ AppController::AppController(
                 m_playbackController
                     ->currentTrack();
 
-            if (track.id.isEmpty()) {
+            if (
+                track.id.isEmpty()
+            ) {
                 return;
             }
 
             QString artistName;
 
-            if (!track.artists.isEmpty()) {
+            if (
+                !track.artists.isEmpty()
+            ) {
 
                 artistName =
                     track.artists
@@ -408,14 +442,6 @@ void AppController::loadArtist(
 {
     m_libraryController
         ->loadArtist(
-            id);
-}
-
-void AppController::loadAlbum(
-    const QString &id)
-{
-    m_libraryController
-        ->loadAlbum(
             id);
 }
 
@@ -582,26 +608,12 @@ void AppController::seek(
             position);
 }
 
-/*
- * Search
- */
-
 SearchModel *
 AppController::searchModel() const
 {
     return m_searchController
         ->model();
 }
-
-bool AppController::isSearching() const
-{
-    return m_searchController
-        ->isSearching();
-}
-
-/*
- * Personal models
- */
 
 MyWaveModel *
 AppController::myWaveModel() const
@@ -624,10 +636,6 @@ AppController::recentListeningModel() const
         ->recentListeningModel();
 }
 
-/*
- * Library models
- */
-
 PlaylistModel *
 AppController::playlistModel() const
 {
@@ -649,9 +657,11 @@ AppController::artistModel() const
         ->artistModel();
 }
 
-/*
- * General state
- */
+bool AppController::isSearching() const
+{
+    return m_searchController
+        ->isSearching();
+}
 
 bool AppController::isPlaying() const
 {
@@ -694,10 +704,6 @@ bool AppController::isLoadingArtist() const
     return m_libraryController
         ->isLoadingArtist();
 }
-
-/*
- * Library state
- */
 
 QString AppController::currentPlaylistTitle() const
 {
@@ -753,10 +759,6 @@ int AppController::currentArtistTrackCount() const
         ->currentArtistTrackCount();
 }
 
-/*
- * Playback state
- */
-
 QString AppController::currentTrackTitle() const
 {
     return m_playbackController
@@ -770,7 +772,9 @@ QString AppController::currentTrackArtist() const
         m_playbackController
             ->currentTrack();
 
-    if (track.artists.isEmpty()) {
+    if (
+        track.artists.isEmpty()
+    ) {
         return {};
     }
 
@@ -785,7 +789,9 @@ QString AppController::currentTrackArtistId() const
         m_playbackController
             ->currentTrack();
 
-    if (track.artists.isEmpty()) {
+    if (
+        track.artists.isEmpty()
+    ) {
         return {};
     }
 

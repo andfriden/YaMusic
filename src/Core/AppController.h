@@ -16,6 +16,7 @@ class PersonalLanding;
 class PlayerService;
 class PlaylistService;
 class QueueService;
+class RecentListeningService;
 class SearchService;
 class TrackService;
 class YandexAuth;
@@ -204,9 +205,6 @@ public:
     Q_INVOKABLE void loadArtist(
         const QString &id);
 
-    Q_INVOKABLE void loadAlbum(
-    const QString &id);
-
     Q_INVOKABLE void loadMyWave();
 
     Q_INVOKABLE void loadMoreMyWave();
@@ -257,18 +255,23 @@ public:
     Q_INVOKABLE void seek(
         qint64 position);
 
-    SearchModel *searchModel() const;
+    SearchModel *
+    searchModel() const;
 
-    MyWaveModel *myWaveModel() const;
+    MyWaveModel *
+    myWaveModel() const;
 
     PersonalPlaylistsModel *
     personalPlaylistsModel() const;
 
-    PlaylistModel *playlistModel() const;
+    PlaylistModel *
+    playlistModel() const;
 
-    AlbumModel *albumModel() const;
+    AlbumModel *
+    albumModel() const;
 
-    ArtistModel *artistModel() const;
+    ArtistModel *
+    artistModel() const;
 
     RecentListeningModel *
     recentListeningModel() const;
@@ -367,27 +370,41 @@ signals:
     void shuffleChanged();
 
 private:
-    YandexAuth *m_auth = nullptr;
+    YandexAuth *
+        m_auth = nullptr;
 
-    AccountService *m_accountService = nullptr;
+    AccountService *
+        m_accountService = nullptr;
 
-    SearchService *m_searchService = nullptr;
+    SearchService *
+        m_searchService = nullptr;
 
-    TrackService *m_trackService = nullptr;
+    TrackService *
+        m_trackService = nullptr;
 
-    YandexPersonal *m_yandexPersonal = nullptr;
+    YandexPersonal *
+        m_yandexPersonal = nullptr;
 
-    PersonalLanding *m_personalLanding = nullptr;
+    PersonalLanding *
+        m_personalLanding = nullptr;
 
-    PlaylistService *m_playlistService = nullptr;
+    RecentListeningService *
+        m_recentListeningService = nullptr;
 
-    AlbumService *m_albumService = nullptr;
+    PlaylistService *
+        m_playlistService = nullptr;
 
-    ArtistService *m_artistService = nullptr;
+    AlbumService *
+        m_albumService = nullptr;
 
-    PlayerService *m_playerService = nullptr;
+    ArtistService *
+        m_artistService = nullptr;
 
-    QueueService *m_queueService = nullptr;
+    PlayerService *
+        m_playerService = nullptr;
+
+    QueueService *
+        m_queueService = nullptr;
 
     PlaybackController *
         m_playbackController = nullptr;

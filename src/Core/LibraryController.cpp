@@ -3,7 +3,6 @@
 #include "../Queue/QueueService.h"
 
 #include <QDebug>
-#include <QStringList>
 
 LibraryController::LibraryController(
     PlaylistService *playlistService,
@@ -27,7 +26,9 @@ LibraryController::LibraryController(
      * Playlist
      */
 
-    if (m_playlistService != nullptr) {
+    if (
+        m_playlistService != nullptr
+    ) {
 
         connect(
             m_playlistService,
@@ -94,7 +95,9 @@ LibraryController::LibraryController(
      * Album
      */
 
-    if (m_albumService != nullptr) {
+    if (
+        m_albumService != nullptr
+    ) {
 
         connect(
             m_albumService,
@@ -166,7 +169,9 @@ LibraryController::LibraryController(
      * Artist
      */
 
-    if (m_artistService != nullptr) {
+    if (
+        m_artistService != nullptr
+    ) {
 
         connect(
             m_artistService,
@@ -273,7 +278,8 @@ void LibraryController::loadPlaylistInternal(
 
     emit loadingPlaylistChanged();
 
-    m_playlistModel->clear();
+    m_playlistModel
+        ->clear();
 
     m_currentPlaylistTitle.clear();
 
@@ -290,7 +296,9 @@ void LibraryController::loadPlaylistInternal(
         << "| kind:"
         << kind;
 
-    if (!statusTitle.isEmpty()) {
+    if (
+        !statusTitle.isEmpty()
+    ) {
 
         emit statusChanged(
             QString(
@@ -299,7 +307,9 @@ void LibraryController::loadPlaylistInternal(
                     statusTitle));
     }
 
-    if (m_playlistService != nullptr) {
+    if (
+        m_playlistService != nullptr
+    ) {
 
         m_playlistService
             ->loadPlaylist(
@@ -323,7 +333,9 @@ void LibraryController::loadAlbumInternal(
     const QString albumId =
         id.trimmed();
 
-    if (albumId.isEmpty()) {
+    if (
+        albumId.isEmpty()
+    ) {
 
         emit statusChanged(
             "Некорректный альбом");
@@ -336,7 +348,8 @@ void LibraryController::loadAlbumInternal(
 
     emit loadingAlbumChanged();
 
-    m_albumModel->clear();
+    m_albumModel
+        ->clear();
 
     m_currentAlbumTitle.clear();
 
@@ -353,7 +366,9 @@ void LibraryController::loadAlbumInternal(
         << "| id:"
         << albumId;
 
-    if (!statusTitle.isEmpty()) {
+    if (
+        !statusTitle.isEmpty()
+    ) {
 
         emit statusChanged(
             QString(
@@ -362,7 +377,9 @@ void LibraryController::loadAlbumInternal(
                     statusTitle));
     }
 
-    if (m_albumService != nullptr) {
+    if (
+        m_albumService != nullptr
+    ) {
 
         m_albumService
             ->loadAlbum(
@@ -376,7 +393,9 @@ void LibraryController::loadArtist(
     const QString artistId =
         id.trimmed();
 
-    if (artistId.isEmpty()) {
+    if (
+        artistId.isEmpty()
+    ) {
 
         emit statusChanged(
             "ID исполнителя не указан");
@@ -389,7 +408,8 @@ void LibraryController::loadArtist(
 
     emit loadingArtistChanged();
 
-    m_artistModel->clear();
+    m_artistModel
+        ->clear();
 
     m_currentArtistName.clear();
 
@@ -412,7 +432,9 @@ void LibraryController::loadArtist(
             .arg(
                 artistId));
 
-    if (m_artistService != nullptr) {
+    if (
+        m_artistService != nullptr
+    ) {
 
         m_artistService
             ->loadArtist(
@@ -423,7 +445,9 @@ void LibraryController::loadArtist(
 void LibraryController::selectPlaylistTrack(
     int index)
 {
-    if (m_playbackController == nullptr) {
+    if (
+        m_playbackController == nullptr
+    ) {
         return;
     }
 
@@ -432,7 +456,9 @@ void LibraryController::selectPlaylistTrack(
             ->trackAt(
                 index);
 
-    if (track.id.isEmpty()) {
+    if (
+        track.id.isEmpty()
+    ) {
 
         emit statusChanged(
             "Некорректный трек плейлиста");
@@ -444,7 +470,9 @@ void LibraryController::selectPlaylistTrack(
         m_playbackController
             ->queueService();
 
-    if (queue != nullptr) {
+    if (
+        queue != nullptr
+    ) {
 
         queue->clear();
 
@@ -464,7 +492,9 @@ void LibraryController::selectPlaylistTrack(
 void LibraryController::selectAlbumTrack(
     int index)
 {
-    if (m_playbackController == nullptr) {
+    if (
+        m_playbackController == nullptr
+    ) {
         return;
     }
 
@@ -473,7 +503,9 @@ void LibraryController::selectAlbumTrack(
             ->trackAt(
                 index);
 
-    if (track.id.isEmpty()) {
+    if (
+        track.id.isEmpty()
+    ) {
 
         emit statusChanged(
             "Некорректный трек альбома");
@@ -485,7 +517,9 @@ void LibraryController::selectAlbumTrack(
         m_playbackController
             ->queueService();
 
-    if (queue != nullptr) {
+    if (
+        queue != nullptr
+    ) {
 
         queue->clear();
 
@@ -505,7 +539,9 @@ void LibraryController::selectAlbumTrack(
 void LibraryController::selectArtistTrack(
     int index)
 {
-    if (m_playbackController == nullptr) {
+    if (
+        m_playbackController == nullptr
+    ) {
         return;
     }
 
@@ -514,7 +550,9 @@ void LibraryController::selectArtistTrack(
             ->trackAt(
                 index);
 
-    if (track.id.isEmpty()) {
+    if (
+        track.id.isEmpty()
+    ) {
 
         emit statusChanged(
             "Некорректный трек исполнителя");
@@ -526,7 +564,9 @@ void LibraryController::selectArtistTrack(
         m_playbackController
             ->queueService();
 
-    if (queue != nullptr) {
+    if (
+        queue != nullptr
+    ) {
 
         queue->clear();
 
@@ -541,109 +581,6 @@ void LibraryController::selectArtistTrack(
     m_playbackController
         ->playTrack(
             track);
-}
-
-void LibraryController::selectRecentListening(
-    const RecentListeningItem &item)
-{
-    if (item.id.isEmpty()) {
-
-        emit statusChanged(
-            "Некорректный элемент истории");
-
-        return;
-    }
-
-    qDebug()
-        << "Выбран элемент истории:"
-        << item.title
-        << "| type:"
-        << item.type
-        << "| context:"
-        << item.context
-        << "| contextItem:"
-        << item.contextItem
-        << "| uid:"
-        << item.uid
-        << "| kind:"
-        << item.kind;
-
-    if (item.context ==
-        "playlist") {
-
-        QString uid =
-            item.uid;
-
-        int kind =
-            item.kind;
-
-        if (
-            (uid.isEmpty() ||
-             kind <= 0) &&
-            item.contextItem.contains(":")
-        ) {
-
-            const QStringList parts =
-                item.contextItem.split(
-                    ":");
-
-            if (parts.size() == 2) {
-
-                if (uid.isEmpty()) {
-                    uid =
-                        parts.at(0);
-                }
-
-                if (kind <= 0) {
-                    kind =
-                        parts.at(1)
-                            .toInt();
-                }
-            }
-        }
-
-        loadPlaylistInternal(
-            uid,
-            kind,
-            item.title);
-
-        return;
-    }
-
-    if (item.context ==
-        "album") {
-
-        const QString albumId =
-            item.uid.isEmpty()
-                ? item.contextItem
-                : item.uid;
-
-        loadAlbumInternal(
-            albumId,
-            item.title);
-
-        return;
-    }
-
-    if (item.context ==
-        "artist") {
-
-        const QString artistId =
-            item.uid.isEmpty()
-                ? item.contextItem
-                : item.uid;
-
-        loadArtist(
-            artistId);
-
-        return;
-    }
-
-    emit statusChanged(
-        QString(
-            "Выбран: %1")
-            .arg(
-                item.title));
 }
 
 PlaylistModel *

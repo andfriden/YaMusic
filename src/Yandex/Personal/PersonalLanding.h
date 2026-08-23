@@ -6,13 +6,11 @@
 #include <QString>
 
 #include "../../Models/PersonalPlaylist.h"
-#include "../../Models/RecentListeningItem.h"
 
 struct PersonalLandingItem
 {
     QString id;
     QString type;
-
     QJsonObject data;
 };
 
@@ -48,9 +46,6 @@ public:
     void personalPlaylistsReceived(
         const QList<PersonalPlaylist> &playlists);
 
-    void recentListeningReceived(
-        const QList<RecentListeningItem> &items);
-
     void errorOccurred(
         const QString &message);
 
@@ -62,9 +57,6 @@ private:
         const QJsonObject &object) const;
 
     PersonalPlaylist parsePersonalPlaylist(
-        const PersonalLandingItem &item) const;
-
-    RecentListeningItem parseRecentListeningItem(
         const PersonalLandingItem &item) const;
 
 private:

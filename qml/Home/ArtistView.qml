@@ -6,11 +6,6 @@ Item {
 
     property var controller
 
-    visible:
-        controller.loadingArtist ||
-        controller.currentArtistName.length > 0 ||
-        controller.artistModel.count > 0
-
     Rectangle {
         anchors.fill: parent
 
@@ -19,7 +14,6 @@ Item {
         color: "#e9e9e9"
 
         border.width: 1
-
         border.color: "#d4d4d4"
 
         Column {
@@ -44,7 +38,6 @@ Item {
                     color: "#202020"
 
                     font.pixelSize: 18
-
                     font.bold: true
 
                     anchors.verticalCenter:
@@ -63,31 +56,6 @@ Item {
                     anchors.verticalCenter:
                         parent.verticalCenter
                 }
-
-                Item {
-                    width:
-                        Math.max(
-                            0,
-                            parent.width -
-                            titleLabel.width -
-                            100 -
-                            30)
-
-                    height: 1
-                }
-
-                Button {
-                    width: 80
-
-                    text: "Закрыть"
-
-                    enabled:
-                        !root.controller.loadingArtist
-
-                    onClicked: {
-                        root.visible = false
-                    }
-                }
             }
 
             Row {
@@ -102,7 +70,6 @@ Item {
 
                 Image {
                     width: 96
-
                     height: 96
 
                     source:
@@ -115,12 +82,10 @@ Item {
                         Image.PreserveAspectCrop
 
                     asynchronous: true
-
                     cache: true
 
                     Rectangle {
-                        anchors.fill:
-                            parent
+                        anchors.fill: parent
 
                         radius: 48
 
@@ -130,8 +95,7 @@ Item {
                             parent.status !== Image.Ready
 
                         Label {
-                            anchors.centerIn:
-                                parent
+                            anchors.centerIn: parent
 
                             text: "♪"
 
@@ -182,11 +146,9 @@ Item {
 
                 spacing: 6
 
-                ScrollBar.vertical:
-                    ScrollBar {
-                        policy:
-                            ScrollBar.AsNeeded
-                    }
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                }
 
                 delegate: Rectangle {
                     id: trackDelegate
@@ -194,7 +156,10 @@ Item {
                     width:
                         tracksView.width -
                         (
-                            tracksView.ScrollBar.vertical.visible
+                            tracksView
+                                .ScrollBar
+                                .vertical
+                                .visible
                                 ? 10
                                 : 0
                         )
@@ -227,24 +192,22 @@ Item {
                             parent.verticalCenter
 
                         width: 52
-
                         height: 52
 
                         source:
                             coverUri
-                                ? "image://yandex/" + coverUri
+                                ? "image://yandex/" +
+                                coverUri
                                 : ""
 
                         fillMode:
                             Image.PreserveAspectCrop
 
                         asynchronous: true
-
                         cache: true
 
                         Rectangle {
-                            anchors.fill:
-                                parent
+                            anchors.fill: parent
 
                             radius: 4
 
@@ -254,8 +217,7 @@ Item {
                                 cover.status !== Image.Ready
 
                             Label {
-                                anchors.centerIn:
-                                    parent
+                                anchors.centerIn: parent
 
                                 text: "♪"
 
@@ -292,7 +254,6 @@ Item {
                             color: "#202020"
 
                             font.pixelSize: 14
-
                             font.bold: true
 
                             elide:
@@ -303,7 +264,6 @@ Item {
                             id: artistArea
 
                             width: parent.width
-
                             height: 18
                         }
 
@@ -333,7 +293,8 @@ Item {
                             parent.verticalCenter
 
                         text:
-                            formatDuration(durationMs)
+                            formatDuration(
+                                durationMs)
 
                         color: "#555555"
 
@@ -343,8 +304,7 @@ Item {
                     MouseArea {
                         id: rowMouseArea
 
-                        anchors.fill:
-                            parent
+                        anchors.fill: parent
 
                         hoverEnabled: true
 
@@ -352,7 +312,8 @@ Item {
 
                         onClicked: {
                             root.controller
-                                .selectArtistTrack(index)
+                                .selectArtistTrack(
+                                index)
                         }
                     }
 
@@ -386,12 +347,12 @@ Item {
 
                         onClicked: {
                             root.controller
-                                .loadArtist(artistId)
+                                .loadArtist(
+                                artistId)
                         }
 
                         Label {
-                            anchors.fill:
-                                parent
+                            anchors.fill: parent
 
                             text: artist
 
@@ -409,8 +370,7 @@ Item {
                 }
 
                 Label {
-                    anchors.centerIn:
-                        parent
+                    anchors.centerIn: parent
 
                     text:
                         root.controller.loadingArtist
@@ -427,7 +387,8 @@ Item {
         }
     }
 
-    function formatDuration(milliseconds) {
+    function formatDuration(milliseconds)
+    {
         if (
             !milliseconds ||
             milliseconds <= 0
@@ -436,10 +397,12 @@ Item {
         }
 
         var totalSeconds =
-            Math.floor(milliseconds / 1000)
+            Math.floor(
+                milliseconds / 1000)
 
         var minutes =
-            Math.floor(totalSeconds / 60)
+            Math.floor(
+                totalSeconds / 60)
 
         var seconds =
             totalSeconds % 60

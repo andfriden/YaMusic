@@ -93,8 +93,6 @@ qt_add_executable(appYaMusic
         src/Yandex/Personal/PersonalPlaylistsModel.h
         src/Yandex/Personal/PlaylistModel.cpp
         src/Yandex/Personal/PlaylistModel.h
-        src/Models/RecentListeningItem.cpp
-        src/Models/RecentListeningItem.h
         src/Yandex/Personal/RecentListeningModel.cpp
         src/Yandex/Personal/RecentListeningModel.h
         src/Yandex/Catalog/AlbumService.cpp
@@ -115,6 +113,8 @@ qt_add_executable(appYaMusic
         src/Core/PersonalController.h
         src/Core/SearchController.cpp
         src/Core/SearchController.h
+        src/Yandex/Personal/RecentListeningService.cpp
+        src/Yandex/Personal/RecentListeningService.h
 
 
 )
@@ -139,6 +139,10 @@ qt_add_qml_module(appYaMusic
         qml/MyWave/MyWaveSection.qml
 
         qml/Search/SearchResultsSection.qml
+
+        qml/Layout/ContextPanel.qml
+        qml/Layout/MainLayout.qml
+        qml/Layout/Sidebar.qml
 )
 
 # macOS application bundle

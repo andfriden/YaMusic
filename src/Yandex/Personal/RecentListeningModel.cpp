@@ -1,5 +1,7 @@
 #include "RecentListeningModel.h"
 
+#include <QStringList>
+
 RecentListeningModel::RecentListeningModel(
     QObject *parent)
     : QAbstractListModel(parent)
@@ -13,54 +15,90 @@ int RecentListeningModel::rowCount(
         return 0;
     }
 
-    return m_items.size();
+    return m_tracks.size();
 }
 
 QVariant RecentListeningModel::data(
     const QModelIndex &index,
     int role) const
 {
-    if (!index.isValid() ||
+    if (
+        !index.isValid() ||
         index.row() < 0 ||
-        index.row() >= m_items.size()) {
-
+        index.row() >= m_tracks.size()
+    ) {
         return {};
-        }
+    }
 
-    const RecentListeningItem &item =
-        m_items.at(index.row());
+    const Track &track =
+        m_tracks.at(
+            index.row());
 
     switch (role) {
 
-        case IdRole:
-            return item.id;
+    case IdRole:
+        return track.id;
 
-        case TypeRole:
-            return item.type;
+    case TitleRole:
+        return track.title;
 
-        case TitleRole:
-            return item.title;
+    case ArtistRole:
+    {
+        QStringList artistNames;
 
-        case SubtitleRole:
-            return item.subtitle;
+        for (
+            const Artist &artist :
+            track.artists
+        ) {
 
-        case CoverUriRole:
-            return item.coverUri;
+            if (
+                !artist.name.isEmpty()
+            ) {
 
-        case ContextRole:
-            return item.context;
+                artistNames.append(
+                    artist.name);
+            }
+        }
 
-        case ContextItemRole:
-            return item.contextItem;
+        return artistNames.join(
+            ", ");
+    }
 
-        case UidRole:
-            return item.uid;
+    case ArtistIdRole:
+        if (!track.artists.isEmpty()) {
+            return track.artists
+                .first()
+                .id;
+        }
 
-        case KindRole:
-            return item.kind;
+        return QString();
 
-        default:
-            return {};
+    case AlbumRole:
+        if (!track.albums.isEmpty()) {
+            return track.albums
+                .first()
+                .title;
+        }
+
+        return QString();
+
+    case AlbumIdRole:
+        if (!track.albums.isEmpty()) {
+            return track.albums
+                .first()
+                .id;
+        }
+
+        return QString();
+
+    case CoverUriRole:
+        return track.coverUri;
+
+    case DurationMsRole:
+        return track.durationMs;
+
+    default:
+        return {};
     }
 }
 
@@ -68,24 +106,24 @@ QHash<int, QByteArray>
 RecentListeningModel::roleNames() const
 {
     return {
-        {IdRole, "itemId"},
-        {TypeRole, "itemType"},
+        {IdRole, "trackId"},
         {TitleRole, "title"},
-        {SubtitleRole, "subtitle"},
+        {ArtistRole, "artist"},
+        {ArtistIdRole, "artistId"},
+        {AlbumRole, "album"},
+        {AlbumIdRole, "albumId"},
         {CoverUriRole, "coverUri"},
-        {ContextRole, "context"},
-        {ContextItemRole, "contextItem"},
-        {UidRole, "uid"},
-        {KindRole, "kind"}
+        {DurationMsRole, "durationMs"}
     };
 }
 
-void RecentListeningModel::setItems(
-    const QList<RecentListeningItem> &items)
+void RecentListeningModel::setTracks(
+    const QList<Track> &tracks)
 {
     beginResetModel();
 
-    m_items = items;
+    m_tracks =
+        tracks;
 
     endResetModel();
 }
@@ -94,25 +132,26 @@ void RecentListeningModel::clear()
 {
     beginResetModel();
 
-    m_items.clear();
+    m_tracks.clear();
 
     endResetModel();
 }
 
-RecentListeningItem
-RecentListeningModel::itemAt(
+Track RecentListeningModel::trackAt(
     int index) const
 {
-    if (index < 0 ||
-        index >= m_items.size()) {
-
+    if (
+        index < 0 ||
+        index >= m_tracks.size()
+    ) {
         return {};
-        }
+    }
 
-    return m_items.at(index);
+    return m_tracks.at(
+        index);
 }
 
 int RecentListeningModel::count() const
 {
-    return m_items.size();
+    return m_tracks.size();
 }
