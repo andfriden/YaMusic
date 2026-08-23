@@ -156,6 +156,11 @@ class AppController : public QObject
         NOTIFY currentTrackChanged)
 
     Q_PROPERTY(
+        QString currentTrackArtistId
+        READ currentTrackArtistId
+        NOTIFY currentTrackChanged)
+
+    Q_PROPERTY(
         QString currentTrackCoverUri
         READ currentTrackCoverUri
         NOTIFY currentTrackChanged)
@@ -302,6 +307,8 @@ public:
     QString currentTrackTitle() const;
 
     QString currentTrackArtist() const;
+
+    QString currentTrackArtistId() const;
 
     QString currentTrackCoverUri() const;
 

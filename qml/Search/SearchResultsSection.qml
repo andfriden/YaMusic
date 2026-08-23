@@ -12,13 +12,11 @@ Item {
         spacing: 8
 
         Label {
-            text:
-                "Результаты поиска"
+            text: "Результаты поиска"
 
             color: "#202020"
 
             font.pixelSize: 18
-
             font.bold: true
         }
 
@@ -26,24 +24,21 @@ Item {
             id: resultsView
 
             width: parent.width
+            height: parent.height - 30
 
-            height:
-                parent.height - 30
-
-            model:
-                root.controller.searchModel
+            model: root.controller.searchModel
 
             clip: true
 
             spacing: 6
 
-            ScrollBar.vertical:
-                ScrollBar {
-                    policy:
-                        ScrollBar.AsNeeded
-                }
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+            }
 
             delegate: Rectangle {
+                id: resultItem
+
                 width:
                     resultsView.width -
                     (
@@ -60,16 +55,33 @@ Item {
                 radius: 8
 
                 color:
-                    mouseArea.containsMouse
+                    rowMouseArea.containsMouse
                         ? "#dcdcdc"
                         : "#e8e8e8"
 
                 border.width: 1
 
                 border.color:
-                    mouseArea.containsMouse
+                    rowMouseArea.containsMouse
                         ? "#c4c4c4"
                         : "#dedede"
+
+                MouseArea {
+                    id: rowMouseArea
+
+                    anchors.fill: parent
+
+                    hoverEnabled: true
+
+                    cursorShape:
+                        Qt.PointingHandCursor
+
+                    onClicked: {
+                        root.controller
+                            .selectSearchResult(
+                            index)
+                    }
+                }
 
                 Image {
                     id: cover
@@ -147,7 +159,6 @@ Item {
                         color: "#202020"
 
                         font.pixelSize: 14
-
                         font.bold: true
 
                         elide:
@@ -155,16 +166,42 @@ Item {
                     }
 
                     Label {
+                        id: artistLabel
+
                         width: parent.width
 
                         text: artist
 
-                        color: "#555555"
+                        color:
+                            artistMouseArea.containsMouse
+                                ? "#202020"
+                                : "#555555"
 
                         font.pixelSize: 12
 
                         elide:
                             Text.ElideRight
+
+                        MouseArea {
+                            id: artistMouseArea
+
+                            anchors.fill: parent
+
+                            hoverEnabled: true
+
+                            cursorShape:
+                                Qt.PointingHandCursor
+
+                            onClicked: {
+                                if (
+                                    artistId
+                                ) {
+                                    root.controller
+                                        .loadArtist(
+                                        artistId)
+                                }
+                            }
+                        }
                     }
 
                     Label {
@@ -200,20 +237,6 @@ Item {
 
                     font.pixelSize: 11
                 }
-
-                MouseArea {
-                    id: mouseArea
-
-                    anchors.fill: parent
-
-                    hoverEnabled: true
-
-                    onClicked: {
-                        root.controller
-                            .selectSearchResult(
-                            index)
-                    }
-                }
             }
 
             Label {
@@ -235,7 +258,9 @@ Item {
         }
     }
 
-    function formatDuration(milliseconds) {
+    function formatDuration(
+        milliseconds)
+    {
         if (
             !milliseconds ||
             milliseconds <= 0

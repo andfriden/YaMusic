@@ -34,46 +34,54 @@ QVariant MyWaveModel::data(
 
     switch (role) {
 
-    case IdRole:
-        return track.id;
+        case IdRole:
+            return track.id;
 
-    case TitleRole:
-        return track.title;
+        case TitleRole:
+            return track.title;
 
-    case ArtistRole:
-    {
-        QStringList artistNames;
+        case ArtistRole:
+        {
+            QStringList artistNames;
 
-        for (const Artist &artist :
-             track.artists) {
+            for (const Artist &artist :
+                 track.artists) {
 
-            if (!artist.name.isEmpty()) {
-                artistNames.append(
-                    artist.name);
+                if (!artist.name.isEmpty()) {
+                    artistNames.append(
+                        artist.name);
+                }
             }
+
+            return artistNames.join(", ");
         }
 
-        return artistNames.join(", ");
-    }
+        case ArtistIdRole:
+            if (!track.artists.isEmpty()) {
+                return track.artists
+                    .first()
+                    .id;
+            }
 
-    case AlbumRole:
+            return QString();
 
-        if (!track.albums.isEmpty()) {
-            return track.albums
-                .first()
-                .title;
-        }
+        case AlbumRole:
+            if (!track.albums.isEmpty()) {
+                return track.albums
+                    .first()
+                    .title;
+            }
 
-        return QString();
+            return QString();
 
-    case CoverUriRole:
-        return track.coverUri;
+        case CoverUriRole:
+            return track.coverUri;
 
-    case DurationMsRole:
-        return track.durationMs;
+        case DurationMsRole:
+            return track.durationMs;
 
-    default:
-        return {};
+        default:
+            return {};
     }
 }
 
@@ -84,6 +92,7 @@ MyWaveModel::roleNames() const
         {IdRole, "trackId"},
         {TitleRole, "title"},
         {ArtistRole, "artist"},
+        {ArtistIdRole, "artistId"},
         {AlbumRole, "album"},
         {CoverUriRole, "coverUri"},
         {DurationMsRole, "durationMs"}

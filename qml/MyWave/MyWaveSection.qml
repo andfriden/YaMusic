@@ -14,7 +14,6 @@ Item {
         color: "#e9e9e9"
 
         border.width: 1
-
         border.color: "#d4d4d4"
 
         Column {
@@ -35,7 +34,6 @@ Item {
                     color: "#202020"
 
                     font.pixelSize: 18
-
                     font.bold: true
 
                     anchors.verticalCenter:
@@ -46,8 +44,7 @@ Item {
                     width: 110
 
                     text:
-                        root.controller
-                            .loadingMyWave
+                        root.controller.loadingMyWave
                             ? "Загрузка..."
                             : "Загрузить"
 
@@ -63,9 +60,7 @@ Item {
                 Label {
                     text:
                             root.controller.myWaveModel.count > 0
-                        ? root.controller
-                            .myWaveModel
-                            .count +
+                        ? root.controller.myWaveModel.count +
                         " треков"
                         : ""
 
@@ -83,8 +78,7 @@ Item {
 
                 width: parent.width
 
-                height:
-                    parent.height - 40
+                height: parent.height - 40
 
                 model:
                     root.controller.myWaveModel
@@ -93,20 +87,16 @@ Item {
 
                 spacing: 6
 
-                ScrollBar.vertical:
-                    ScrollBar {
-                        policy:
-                            ScrollBar.AsNeeded
-                    }
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                }
 
                 onContentYChanged: {
                     var distanceToBottom =
                         contentHeight -
                         (contentY + height)
 
-                    if (
-                        distanceToBottom > 450
-                    ) {
+                    if (distanceToBottom > 450) {
                         autoLoadArmed = true
                     }
 
@@ -119,12 +109,13 @@ Item {
                     ) {
                         autoLoadArmed = false
 
-                        root.controller
-                            .loadMoreMyWave()
+                        root.controller.loadMoreMyWave()
                     }
                 }
 
                 delegate: Rectangle {
+                    id: resultItem
+
                     width:
                         waveView.width -
                         (
@@ -141,16 +132,34 @@ Item {
                     radius: 8
 
                     color:
-                        mouseArea.containsMouse
+                        rowMouseArea.containsMouse
                             ? "#dcdcdc"
                             : "#f2f2f2"
 
                     border.width: 1
 
                     border.color:
-                        mouseArea.containsMouse
+                        rowMouseArea.containsMouse
                             ? "#c4c4c4"
                             : "#e0e0e0"
+
+                    // Основной клик по строке — воспроизведение.
+                    MouseArea {
+                        id: rowMouseArea
+
+                        anchors.fill: parent
+
+                        hoverEnabled: true
+
+                        cursorShape:
+                            Qt.PointingHandCursor
+
+                        onClicked: {
+                            root.controller
+                                .selectMyWaveTrack(
+                                index)
+                        }
+                    }
 
                     Image {
                         id: cover
@@ -176,7 +185,6 @@ Item {
                             Image.PreserveAspectCrop
 
                         asynchronous: true
-
                         cache: true
 
                         Rectangle {
@@ -191,8 +199,7 @@ Item {
                                 Image.Ready
 
                             Label {
-                                anchors.centerIn:
-                                    parent
+                                anchors.centerIn: parent
 
                                 text: "♪"
 
@@ -227,7 +234,6 @@ Item {
                             color: "#202020"
 
                             font.pixelSize: 14
-
                             font.bold: true
 
                             elide:
@@ -235,16 +241,42 @@ Item {
                         }
 
                         Label {
+                            id: artistLabel
+
                             width: parent.width
 
                             text: artist
 
-                            color: "#555555"
+                            color:
+                                artistMouseArea.containsMouse
+                                    ? "#202020"
+                                    : "#555555"
 
                             font.pixelSize: 12
 
                             elide:
                                 Text.ElideRight
+
+                            MouseArea {
+                                id: artistMouseArea
+
+                                anchors.fill: parent
+
+                                hoverEnabled: true
+
+                                enabled:
+                                    artistId &&
+                                    artistId.length > 0
+
+                                cursorShape:
+                                    Qt.PointingHandCursor
+
+                                onClicked: {
+                                    root.controller
+                                        .loadArtist(
+                                        artistId)
+                                }
+                            }
                         }
 
                         Label {
@@ -280,25 +312,10 @@ Item {
 
                         font.pixelSize: 11
                     }
-
-                    MouseArea {
-                        id: mouseArea
-
-                        anchors.fill: parent
-
-                        hoverEnabled: true
-
-                        onClicked: {
-                            root.controller
-                                .selectMyWaveTrack(
-                                index)
-                        }
-                    }
                 }
 
                 Label {
-                    anchors.centerIn:
-                        parent
+                    anchors.centerIn: parent
 
                     text:
                         root.controller.loadingMyWave
@@ -312,14 +329,9 @@ Item {
                 }
 
                 Rectangle {
-                    anchors.left:
-                        parent.left
-
-                    anchors.right:
-                        parent.right
-
-                    anchors.bottom:
-                        parent.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
 
                     height: 30
 
@@ -331,8 +343,7 @@ Item {
                         root.controller.loadingMoreMyWave
 
                     Label {
-                        anchors.centerIn:
-                            parent
+                        anchors.centerIn: parent
 
                         text:
                             "Загрузка следующей части..."
@@ -346,7 +357,8 @@ Item {
         }
     }
 
-    function formatDuration(milliseconds) {
+    function formatDuration(milliseconds)
+    {
         if (
             !milliseconds ||
             milliseconds <= 0
@@ -374,4 +386,4 @@ Item {
             ) +
             seconds
     }
-}
+} 

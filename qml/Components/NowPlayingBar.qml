@@ -49,10 +49,12 @@ Item {
                     anchors.fill: parent
 
                     radius: 8
+
                     color: "#d0d0d0"
 
                     visible:
-                        cover.status !== Image.Ready
+                        cover.status !==
+                        Image.Ready
 
                     Label {
                         anchors.centerIn: parent
@@ -99,17 +101,50 @@ Item {
                 }
 
                 Label {
+                    id: artistLabel
+
                     width: parent.width
 
                     text:
                         root.controller.currentTrackArtist
 
-                    color: "#666666"
+                    color:
+                        artistMouseArea.containsMouse
+                            ? "#202020"
+                            : "#666666"
 
                     font.pixelSize: 12
 
                     elide:
                         Text.ElideRight
+
+                    MouseArea {
+                        id: artistMouseArea
+
+                        anchors.fill: parent
+
+                        hoverEnabled: true
+
+                        enabled:
+                            root.controller
+                                .currentTrackArtistId
+                                .length > 0
+
+                        cursorShape:
+                            Qt.PointingHandCursor
+
+                        onClicked: {
+                            var artistId =
+                                root.controller
+                                    .currentTrackArtistId
+
+                            if (artistId.length > 0) {
+                                root.controller
+                                    .loadArtist(
+                                    artistId)
+                            }
+                        }
+                    }
                 }
 
                 Row {
@@ -180,7 +215,9 @@ Item {
                     text: "‹"
 
                     enabled:
-                        root.controller.currentTrackTitle.length > 0
+                        root.controller
+                            .currentTrackTitle
+                            .length > 0
 
                     onClicked:
                         root.controller.previous()
@@ -196,18 +233,16 @@ Item {
                             : "▶"
 
                     enabled:
-                        root.controller.currentTrackTitle.length > 0
+                        root.controller
+                            .currentTrackTitle
+                            .length > 0
 
                     onClicked: {
-
                         if (
                             root.controller.playing
                         ) {
-
                             root.controller.pause()
-
                         } else {
-
                             root.controller.play()
                         }
                     }
@@ -220,7 +255,9 @@ Item {
                     text: "›"
 
                     enabled:
-                        root.controller.currentTrackTitle.length > 0
+                        root.controller
+                            .currentTrackTitle
+                            .length > 0
 
                     onClicked:
                         root.controller.next()
@@ -238,7 +275,9 @@ Item {
                             : "↻1"
 
                     enabled:
-                        root.controller.currentTrackTitle.length > 0
+                        root.controller
+                            .currentTrackTitle
+                            .length > 0
 
                     onClicked:
                         root.controller.cycleRepeat()
@@ -254,7 +293,9 @@ Item {
                             : "⇄"
 
                     enabled:
-                        root.controller.currentTrackTitle.length > 0
+                        root.controller
+                            .currentTrackTitle
+                            .length > 0
 
                     onClicked:
                         root.controller.toggleShuffle()
@@ -267,7 +308,9 @@ Item {
                     text: "■"
 
                     enabled:
-                        root.controller.currentTrackTitle.length > 0
+                        root.controller
+                            .currentTrackTitle
+                            .length > 0
 
                     onClicked:
                         root.controller.stop()
@@ -276,7 +319,9 @@ Item {
         }
     }
 
-    function formatTime(milliseconds) {
+    function formatTime(
+        milliseconds)
+    {
         if (
             !milliseconds ||
             milliseconds <= 0

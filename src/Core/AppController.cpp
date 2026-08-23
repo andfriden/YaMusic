@@ -771,6 +771,21 @@ QString AppController::currentTrackArtist() const
         .name;
 }
 
+QString AppController::currentTrackArtistId() const
+{
+    const Track track =
+        m_playbackController
+            ->currentTrack();
+
+    if (track.artists.isEmpty()) {
+        return {};
+    }
+
+    return track.artists
+        .first()
+        .id;
+}
+
 QString AppController::currentTrackCoverUri() const
 {
     return m_playbackController

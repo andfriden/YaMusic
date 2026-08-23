@@ -2,7 +2,8 @@
 
 #include <QStringList>
 
-SearchModel::SearchModel(QObject *parent)
+SearchModel::SearchModel(
+    QObject *parent)
     : QAbstractListModel(parent)
 {
 }
@@ -24,8 +25,9 @@ QVariant SearchModel::data(
     if (!index.isValid() ||
         index.row() < 0 ||
         index.row() >= m_tracks.size()) {
+
         return {};
-        }
+    }
 
     const Track &track =
         m_tracks.at(index.row());
@@ -42,7 +44,8 @@ QVariant SearchModel::data(
         {
             QStringList artistNames;
 
-            for (const Artist &artist : track.artists) {
+            for (const Artist &artist :
+                 track.artists) {
 
                 if (!artist.name.isEmpty()) {
                     artistNames.append(
@@ -53,9 +56,20 @@ QVariant SearchModel::data(
             return artistNames.join(", ");
         }
 
+        case ArtistIdRole:
+            if (!track.artists.isEmpty()) {
+                return track.artists
+                    .first()
+                    .id;
+            }
+
+            return QString();
+
         case AlbumRole:
             if (!track.albums.isEmpty()) {
-                return track.albums.first().title;
+                return track.albums
+                    .first()
+                    .title;
             }
 
             return QString();
@@ -78,6 +92,7 @@ SearchModel::roleNames() const
         {IdRole, "trackId"},
         {TitleRole, "title"},
         {ArtistRole, "artist"},
+        {ArtistIdRole, "artistId"},
         {AlbumRole, "album"},
         {CoverUriRole, "coverUri"},
         {DurationMsRole, "durationMs"}
@@ -109,8 +124,9 @@ Track SearchModel::trackAt(
 {
     if (index < 0 ||
         index >= m_tracks.size()) {
+
         return {};
-        }
+    }
 
     return m_tracks.at(index);
 }
