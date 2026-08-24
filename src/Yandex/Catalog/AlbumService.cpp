@@ -3,6 +3,7 @@
 #include "../Auth/YandexAuth.h"
 #include "../YandexClient.h"
 
+#include <QDebug>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -16,23 +17,35 @@ Track parseTrack(
 {
     Track track;
 
+    /*
+     * Track ID
+     */
+
     track.id =
         object.value("id")
             .toString();
 
-    if (track.id.isEmpty()) {
+    if (
+        track.id.isEmpty()
+    ) {
 
         const qint64 realId =
             object.value("realId")
                 .toInteger();
 
-        if (realId > 0) {
+        if (
+            realId > 0
+        ) {
 
             track.id =
                 QString::number(
                     realId);
         }
     }
+
+    /*
+     * Basic track information
+     */
 
     track.title =
         object.value("title")
@@ -46,14 +59,22 @@ Track parseTrack(
         object.value("durationMs")
             .toInt();
 
+    /*
+     * Artists
+     */
+
     const QJsonArray artists =
         object.value("artists")
             .toArray();
 
-    for (const QJsonValue &value :
-         artists) {
+    for (
+        const QJsonValue &value :
+        artists
+    ) {
 
-        if (!value.isObject()) {
+        if (
+            !value.isObject()
+        ) {
             continue;
         }
 
@@ -67,7 +88,9 @@ Track parseTrack(
                 .value("id")
                 .toInteger();
 
-        if (artistId > 0) {
+        if (
+            artistId > 0
+        ) {
 
             artist.id =
                 QString::number(
@@ -79,21 +102,51 @@ Track parseTrack(
                 .value("name")
                 .toString();
 
-        if (!artist.name.isEmpty()) {
+        artist.coverUri =
+            artistObject
+                .value("coverUri")
+                .toString();
+
+        if (
+            artist.coverUri.isEmpty()
+        ) {
+
+            const QJsonObject cover =
+                artistObject
+                    .value("cover")
+                    .toObject();
+
+            artist.coverUri =
+                cover
+                    .value("uri")
+                    .toString();
+        }
+
+        if (
+            !artist.name.isEmpty()
+        ) {
 
             track.artists.append(
                 artist);
         }
     }
 
+    /*
+     * Albums
+     */
+
     const QJsonArray albums =
         object.value("albums")
             .toArray();
 
-    for (const QJsonValue &value :
-         albums) {
+    for (
+        const QJsonValue &value :
+        albums
+    ) {
 
-        if (!value.isObject()) {
+        if (
+            !value.isObject()
+        ) {
             continue;
         }
 
@@ -107,7 +160,9 @@ Track parseTrack(
                 .value("id")
                 .toInteger();
 
-        if (albumId > 0) {
+        if (
+            albumId > 0
+        ) {
 
             album.id =
                 QString::number(
@@ -129,7 +184,24 @@ Track parseTrack(
                 .value("year")
                 .toInt();
 
-        if (!album.title.isEmpty()) {
+        if (
+            album.coverUri.isEmpty()
+        ) {
+
+            const QJsonObject cover =
+                albumObject
+                    .value("cover")
+                    .toObject();
+
+            album.coverUri =
+                cover
+                    .value("uri")
+                    .toString();
+        }
+
+        if (
+            !album.title.isEmpty()
+        ) {
 
             track.albums.append(
                 album);
@@ -141,6 +213,7 @@ Track parseTrack(
 
 }
 
+
 AlbumService::AlbumService(
     YandexAuth *auth,
     QObject *parent)
@@ -151,11 +224,18 @@ AlbumService::AlbumService(
 {
 }
 
+
 void AlbumService::loadAlbum(
     const QString &id)
 {
-    if (m_auth == nullptr ||
-        !m_auth->isAuthenticated()) {
+    /*
+     * Authentication
+     */
+
+    if (
+        m_auth == nullptr ||
+        !m_auth->isAuthenticated()
+    ) {
 
         emit errorOccurred(
             "Токен Яндекс Музыки не установлен");
@@ -163,10 +243,16 @@ void AlbumService::loadAlbum(
         return;
     }
 
+    /*
+     * Validate ID
+     */
+
     const QString albumId =
         id.trimmed();
 
-    if (albumId.isEmpty()) {
+    if (
+        albumId.isEmpty()
+    ) {
 
         emit errorOccurred(
             "ID альбома не указан");
@@ -178,7 +264,9 @@ void AlbumService::loadAlbum(
         m_auth->token());
 
     /*
-     * Правильный endpoint:
+     * -------------------------------------------------
+     * Album endpoint
+     * -------------------------------------------------
      *
      * /albums/{id}/with-tracks
      */
@@ -197,13 +285,21 @@ void AlbumService::loadAlbum(
         reply,
         &QNetworkReply::finished,
         this,
-        [this, reply]() {
+        [this,
+         reply,
+         albumId]() {
 
             const QByteArray data =
                 reply->readAll();
 
-            if (reply->error() !=
-                QNetworkReply::NoError) {
+            /*
+             * Network error
+             */
+
+            if (
+                reply->error() !=
+                QNetworkReply::NoError
+            ) {
 
                 emit errorOccurred(
                     reply->errorString());
@@ -212,6 +308,10 @@ void AlbumService::loadAlbum(
 
                 return;
             }
+
+            /*
+             * Parse JSON
+             */
 
             QJsonParseError parseError;
 
@@ -234,12 +334,25 @@ void AlbumService::loadAlbum(
                 return;
             }
 
+            /*
+             * API may return:
+             *
+             * {
+             *     "result": {...}
+             * }
+             *
+             * or the object directly.
+             */
+
             const QJsonObject root =
                 document.object();
 
             QJsonObject albumObject;
 
-            if (root.value("result").isObject()) {
+            if (
+                root.value("result")
+                    .isObject()
+            ) {
 
                 albumObject =
                     root.value("result")
@@ -251,7 +364,9 @@ void AlbumService::loadAlbum(
                     root;
             }
 
-            if (albumObject.isEmpty()) {
+            if (
+                albumObject.isEmpty()
+            ) {
 
                 emit errorOccurred(
                     "Ответ альбома пуст");
@@ -263,16 +378,29 @@ void AlbumService::loadAlbum(
 
             AlbumDetails albumDetails;
 
-            const qint64 albumId =
+            /*
+             * -------------------------------------------------
+             * Album metadata
+             * -------------------------------------------------
+             */
+
+            const qint64 parsedAlbumId =
                 albumObject
                     .value("id")
                     .toInteger();
 
-            if (albumId > 0) {
+            if (
+                parsedAlbumId > 0
+            ) {
 
                 albumDetails.album.id =
                     QString::number(
-                        albumId);
+                        parsedAlbumId);
+
+            } else {
+
+                albumDetails.album.id =
+                    albumId;
             }
 
             albumDetails.album.title =
@@ -290,6 +418,27 @@ void AlbumService::loadAlbum(
                     .value("year")
                     .toInt();
 
+            /*
+             * Some responses use:
+             *
+             * cover.uri
+             */
+
+            if (
+                albumDetails.album.coverUri.isEmpty()
+            ) {
+
+                const QJsonObject cover =
+                    albumObject
+                        .value("cover")
+                        .toObject();
+
+                albumDetails.album.coverUri =
+                    cover
+                        .value("uri")
+                        .toString();
+            }
+
             albumDetails.description =
                 albumObject
                     .value("description")
@@ -301,9 +450,12 @@ void AlbumService::loadAlbum(
                     .toInt();
 
             /*
-             * Основная структура альбома:
+             * -------------------------------------------------
+             * Main track structure
+             * -------------------------------------------------
              *
              * volumes:
+             *
              * [
              *     [
              *         track,
@@ -318,25 +470,38 @@ void AlbumService::loadAlbum(
                     .value("volumes")
                     .toArray();
 
-            for (const QJsonValue &volumeValue :
-                 volumes) {
+            for (
+                const QJsonValue &volumeValue :
+                volumes
+            ) {
 
-                if (!volumeValue.isArray()) {
+                if (
+                    !volumeValue.isArray()
+                ) {
                     continue;
                 }
 
                 const QJsonArray volume =
                     volumeValue.toArray();
 
-                for (const QJsonValue &value :
-                     volume) {
+                for (
+                    const QJsonValue &value :
+                    volume
+                ) {
 
-                    if (!value.isObject()) {
+                    if (
+                        !value.isObject()
+                    ) {
                         continue;
                     }
 
                     QJsonObject trackObject =
                         value.toObject();
+
+                    /*
+                     * Some responses wrap
+                     * the actual track.
+                     */
 
                     if (
                         trackObject
@@ -350,7 +515,9 @@ void AlbumService::loadAlbum(
                                 .toObject();
                     }
 
-                    if (trackObject.isEmpty()) {
+                    if (
+                        trackObject.isEmpty()
+                    ) {
                         continue;
                     }
 
@@ -358,7 +525,9 @@ void AlbumService::loadAlbum(
                         parseTrack(
                             trackObject);
 
-                    if (!track.id.isEmpty()) {
+                    if (
+                        !track.id.isEmpty()
+                    ) {
 
                         albumDetails.tracks.append(
                             track);
@@ -367,22 +536,29 @@ void AlbumService::loadAlbum(
             }
 
             /*
+             * -------------------------------------------------
              * Fallback:
-             * некоторые ответы могут содержать
-             * tracks непосредственно.
+             * tracks directly in album object
+             * -------------------------------------------------
              */
 
-            if (albumDetails.tracks.isEmpty()) {
+            if (
+                albumDetails.tracks.isEmpty()
+            ) {
 
                 const QJsonArray tracks =
                     albumObject
                         .value("tracks")
                         .toArray();
 
-                for (const QJsonValue &value :
-                     tracks) {
+                for (
+                    const QJsonValue &value :
+                    tracks
+                ) {
 
-                    if (!value.isObject()) {
+                    if (
+                        !value.isObject()
+                    ) {
                         continue;
                     }
 
@@ -401,7 +577,9 @@ void AlbumService::loadAlbum(
                                 .toObject();
                     }
 
-                    if (trackObject.isEmpty()) {
+                    if (
+                        trackObject.isEmpty()
+                    ) {
                         continue;
                     }
 
@@ -409,13 +587,32 @@ void AlbumService::loadAlbum(
                         parseTrack(
                             trackObject);
 
-                    if (!track.id.isEmpty()) {
+                    if (
+                        !track.id.isEmpty()
+                    ) {
 
                         albumDetails.tracks.append(
                             track);
                     }
                 }
             }
+
+            /*
+             * If API did not provide
+             * trackCount, use parsed count.
+             */
+
+            if (
+                albumDetails.trackCount <= 0
+            ) {
+
+                albumDetails.trackCount =
+                    albumDetails.tracks.size();
+            }
+
+            /*
+             * Debug
+             */
 
             qDebug()
                 << "Album loaded:"
@@ -424,6 +621,10 @@ void AlbumService::loadAlbum(
                 << albumDetails.album.id
                 << "| tracks:"
                 << albumDetails.tracks.size();
+
+            /*
+             * Notify listeners
+             */
 
             emit albumReceived(
                 albumDetails);

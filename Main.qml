@@ -40,8 +40,7 @@ ApplicationWindow {
                 (appController.currentAlbumTitle || "").length > 0 ||
                 appController.albumModel.count > 0
             ) {
-                mainLayout.currentSection =
-                    "albums"
+                mainLayout.currentSection = "albums"
             }
         }
 
@@ -50,8 +49,7 @@ ApplicationWindow {
                 (appController.currentArtistName || "").length > 0 ||
                 appController.artistModel.count > 0
             ) {
-                mainLayout.currentSection =
-                    "artists"
+                mainLayout.currentSection = "artists"
             }
         }
 
@@ -60,8 +58,7 @@ ApplicationWindow {
                 (appController.currentPlaylistTitle || "").length > 0 ||
                 appController.playlistModel.count > 0
             ) {
-                mainLayout.currentSection =
-                    "playlists"
+                mainLayout.currentSection = "playlists"
             }
         }
     }
@@ -71,29 +68,29 @@ ApplicationWindow {
 
         anchors.fill: parent
 
-        controller:
-            appController
+        controller: appController
 
         Loader {
             id: contentLoader
 
-            anchors.left:
-                parent.left
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
 
-            anchors.right:
-                parent.right
-
-            width:
-                parent.width
+            width: parent.width
 
             height:
-                    mainLayout.currentSection === "wave"
-                ? parent.height
-                : implicitHeight
+                    item !== null
+                ? Math.max(
+                    item.implicitHeight,
+                    1
+                )
+                : 1
 
             sourceComponent:
                 contentComponentForSection(
-                    mainLayout.currentSection)
+                    mainLayout.currentSection
+                )
 
             onLoaded: {
                 if (!item) {
@@ -102,13 +99,6 @@ ApplicationWindow {
 
                 item.width =
                     contentLoader.width
-
-                if (
-                    mainLayout.currentSection === "wave"
-                ) {
-                    item.height =
-                        contentLoader.height
-                }
             }
         }
     }
@@ -124,23 +114,17 @@ ApplicationWindow {
     NowPlayingBar {
         id: nowPlayingBar
 
-        anchors.left:
-            parent.left
-
-        anchors.right:
-            parent.right
-
-        anchors.bottom:
-            parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
 
         anchors.leftMargin: 16
         anchors.rightMargin: 16
-        anchors.bottomMargin: 16
+        anchors.bottomMargin: 12
 
-        height: 142
+        height: 110
 
-        controller:
-            appController
+        controller: appController
     }
 
     Component {
@@ -155,43 +139,31 @@ ApplicationWindow {
             spacing: 16
 
             SearchBar {
-                width:
-                    parent.width
-
-                controller:
-                    appController
+                width: parent.width
+                controller: appController
             }
 
             MyWaveSection {
-                width:
-                    parent.width
-
+                width: parent.width
                 height: 190
 
                 compactMode: true
 
-                controller:
-                    appController
+                controller: appController
             }
 
             PersonalPlaylistsSection {
-                width:
-                    parent.width
-
+                width: parent.width
                 height: 190
 
-                controller:
-                    appController
+                controller: appController
             }
 
             RecentListeningSection {
-                width:
-                    parent.width
-
+                width: parent.width
                 height: 300
 
-                controller:
-                    appController
+                controller: appController
             }
 
             Item {
@@ -213,21 +185,15 @@ ApplicationWindow {
             spacing: 16
 
             SearchBar {
-                width:
-                    parent.width
-
-                controller:
-                    appController
+                width: parent.width
+                controller: appController
             }
 
             SearchResultsSection {
-                width:
-                    parent.width
-
+                width: parent.width
                 height: 620
 
-                controller:
-                    appController
+                controller: appController
             }
         }
     }
@@ -241,15 +207,11 @@ ApplicationWindow {
                     ? parent.width
                     : 0
 
-            height:
-                parent
-                    ? parent.height
-                    : 0
+            height: 620
 
             compactMode: false
 
-            controller:
-                appController
+            controller: appController
 
             Component.onCompleted: {
                 appController.loadMyWave()
@@ -269,23 +231,17 @@ ApplicationWindow {
             spacing: 16
 
             PersonalPlaylistsSection {
-                width:
-                    parent.width
-
+                width: parent.width
                 height: 300
 
-                controller:
-                    appController
+                controller: appController
             }
 
             RecentListeningSection {
-                width:
-                    parent.width
-
+                width: parent.width
                 height: 300
 
-                controller:
-                    appController
+                controller: appController
             }
 
             Item {
@@ -306,21 +262,18 @@ ApplicationWindow {
 
             height: 620
 
-            controller:
-                appController
+            controller: appController
         }
     }
 
     Component {
         id: artistComponent
 
-        ArtistView {
+        ArtistPage {
             width:
                 parent
                     ? parent.width
                     : 0
-
-            height: 620
 
             controller:
                 appController
@@ -338,8 +291,7 @@ ApplicationWindow {
 
             height: 620
 
-            controller:
-                appController
+            controller: appController
         }
     }
 
@@ -354,13 +306,11 @@ ApplicationWindow {
 
             height: 620
 
-            controller:
-                appController
+            controller: appController
         }
     }
 
-    function contentComponentForSection(section)
-    {
+    function contentComponentForSection(section) {
         switch (section) {
             case "search":
                 return searchComponent

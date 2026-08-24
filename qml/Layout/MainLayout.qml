@@ -10,10 +10,12 @@ Item {
 
     property string contextType:
         contextTypeForSection(
-            currentSection)
+            currentSection
+        )
 
     signal sectionSelected(
-        string section)
+        string section
+    )
 
     default property alias content:
         contentHost.data
@@ -38,12 +40,14 @@ Item {
             currentSection:
                 root.currentSection
 
-            onSectionSelected: function(section) {
+            onSectionSelected:
+                    function(section) {
                 root.currentSection =
                     section
 
                 root.sectionSelected(
-                    section)
+                    section
+                )
             }
         }
 
@@ -63,7 +67,8 @@ Item {
                 contextPanel.width -
                 2
 
-            height: parent.height
+            height:
+                parent.height
 
             clip: true
 
@@ -72,10 +77,10 @@ Item {
 
                 anchors.fill: parent
 
-                anchors.topMargin: 18
+                anchors.topMargin: 10
                 anchors.leftMargin: 20
                 anchors.rightMargin: 20
-                anchors.bottomMargin: 158
+                anchors.bottomMargin: 126
 
                 clip: true
 
@@ -92,11 +97,9 @@ Item {
                         contentScrollView.availableWidth
 
                     height:
-                            root.currentSection === "wave"
-                        ? contentScrollView.availableHeight
-                        : Math.max(
-                            implicitHeight,
-                            contentScrollView.availableHeight
+                        Math.max(
+                            contentScrollView.availableHeight,
+                            implicitHeight
                         )
 
                     implicitHeight:
@@ -124,15 +127,17 @@ Item {
             anchors.bottom: parent.bottom
 
             anchors.topMargin: 14
-            anchors.bottomMargin: 158
+            anchors.bottomMargin: 126
 
             contextType:
                 root.contextType
+
+            controller:
+                root.controller
         }
     }
 
-    function contextTypeForSection(section)
-    {
+    function contextTypeForSection(section) {
         switch (section) {
             case "artists":
                 return "artist"

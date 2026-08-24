@@ -11,7 +11,9 @@ AlbumModel::AlbumModel(
 int AlbumModel::rowCount(
     const QModelIndex &parent) const
 {
-    if (parent.isValid()) {
+    if (
+        parent.isValid()
+    ) {
         return 0;
     }
 
@@ -44,32 +46,38 @@ QVariant AlbumModel::data(
 
     case ArtistRole:
     {
-        QStringList artistNames;
+        QStringList names;
 
         for (
             const Artist &artist :
             track.artists
         ) {
 
-            if (!artist.name.isEmpty()) {
-                artistNames.append(
+            if (
+                !artist.name.isEmpty()
+            ) {
+
+                names.append(
                     artist.name);
             }
         }
 
-        return artistNames.join(
+        return names.join(
             ", ");
     }
 
     case ArtistIdRole:
 
-        if (!track.artists.isEmpty()) {
+        if (
+            !track.artists.isEmpty()
+        ) {
+
             return track.artists
                 .first()
                 .id;
         }
 
-        return QString();
+        return {};
 
     case CoverUriRole:
         return track.coverUri;
@@ -134,7 +142,8 @@ Track AlbumModel::trackAt(
         index);
 }
 
-QList<Track> AlbumModel::tracks() const
+QList<Track>
+AlbumModel::tracks() const
 {
     return m_tracks;
 }

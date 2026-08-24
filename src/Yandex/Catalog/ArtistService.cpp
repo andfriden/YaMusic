@@ -8,6 +8,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkReply>
+#include <QUrlQuery>
+
+#include <memory>
 
 namespace
 {
@@ -21,13 +24,17 @@ Track parseTrack(
         object.value("id")
             .toString();
 
-    if (track.id.isEmpty()) {
+    if (
+        track.id.isEmpty()
+    ) {
 
         const qint64 realId =
             object.value("realId")
                 .toInteger();
 
-        if (realId > 0) {
+        if (
+            realId > 0
+        ) {
 
             track.id =
                 QString::number(
@@ -47,14 +54,22 @@ Track parseTrack(
         object.value("durationMs")
             .toInt();
 
+    /*
+     * Artists
+     */
+
     const QJsonArray artists =
         object.value("artists")
             .toArray();
 
-    for (const QJsonValue &value :
-         artists) {
+    for (
+        const QJsonValue &value :
+        artists
+    ) {
 
-        if (!value.isObject()) {
+        if (
+            !value.isObject()
+        ) {
             continue;
         }
 
@@ -68,7 +83,9 @@ Track parseTrack(
                 .value("id")
                 .toInteger();
 
-        if (artistId > 0) {
+        if (
+            artistId > 0
+        ) {
 
             artist.id =
                 QString::number(
@@ -80,21 +97,51 @@ Track parseTrack(
                 .value("name")
                 .toString();
 
-        if (!artist.name.isEmpty()) {
+        artist.coverUri =
+            artistObject
+                .value("coverUri")
+                .toString();
+
+        if (
+            artist.coverUri.isEmpty()
+        ) {
+
+            const QJsonObject cover =
+                artistObject
+                    .value("cover")
+                    .toObject();
+
+            artist.coverUri =
+                cover
+                    .value("uri")
+                    .toString();
+        }
+
+        if (
+            !artist.name.isEmpty()
+        ) {
 
             track.artists.append(
                 artist);
         }
     }
 
+    /*
+     * Albums
+     */
+
     const QJsonArray albums =
         object.value("albums")
             .toArray();
 
-    for (const QJsonValue &value :
-         albums) {
+    for (
+        const QJsonValue &value :
+        albums
+    ) {
 
-        if (!value.isObject()) {
+        if (
+            !value.isObject()
+        ) {
             continue;
         }
 
@@ -108,7 +155,9 @@ Track parseTrack(
                 .value("id")
                 .toInteger();
 
-        if (albumId > 0) {
+        if (
+            albumId > 0
+        ) {
 
             album.id =
                 QString::number(
@@ -130,7 +179,24 @@ Track parseTrack(
                 .value("year")
                 .toInt();
 
-        if (!album.title.isEmpty()) {
+        if (
+            album.coverUri.isEmpty()
+        ) {
+
+            const QJsonObject cover =
+                albumObject
+                    .value("cover")
+                    .toObject();
+
+            album.coverUri =
+                cover
+                    .value("uri")
+                    .toString();
+        }
+
+        if (
+            !album.title.isEmpty()
+        ) {
 
             track.albums.append(
                 album);
@@ -140,19 +206,210 @@ Track parseTrack(
     return track;
 }
 
+
+Album parseAlbum(
+    const QJsonObject &object)
+{
+    QJsonObject albumObject =
+        object;
+
+    if (
+        object.value("album")
+            .isObject()
+    ) {
+
+        albumObject =
+            object.value("album")
+                .toObject();
+    }
+
+    Album album;
+
+    const qint64 albumId =
+        albumObject
+            .value("id")
+            .toInteger();
+
+    if (
+        albumId > 0
+    ) {
+
+        album.id =
+            QString::number(
+                albumId);
+    }
+
+    album.title =
+        albumObject
+            .value("title")
+            .toString();
+
+    album.coverUri =
+        albumObject
+            .value("coverUri")
+            .toString();
+
+    album.year =
+        albumObject
+            .value("year")
+            .toInt();
+
+    if (
+        album.coverUri.isEmpty()
+    ) {
+
+        const QJsonObject cover =
+            albumObject
+                .value("cover")
+                .toObject();
+
+        album.coverUri =
+            cover
+                .value("uri")
+                .toString();
+    }
+
+    return album;
+}
+
+
+Artist parseArtist(
+    const QJsonObject &object)
+{
+    QJsonObject artistObject =
+        object;
+
+    if (
+        object.value("artist")
+            .isObject()
+    ) {
+
+        artistObject =
+            object.value("artist")
+                .toObject();
+    }
+
+    Artist artist;
+
+    const qint64 artistId =
+        artistObject
+            .value("id")
+            .toInteger();
+
+    if (
+        artistId > 0
+    ) {
+
+        artist.id =
+            QString::number(
+                artistId);
+    }
+
+    artist.name =
+        artistObject
+            .value("name")
+            .toString();
+
+    artist.coverUri =
+        artistObject
+            .value("coverUri")
+            .toString();
+
+    if (
+        artist.coverUri.isEmpty()
+    ) {
+
+        const QJsonObject cover =
+            artistObject
+                .value("cover")
+                .toObject();
+
+        artist.coverUri =
+            cover
+                .value("uri")
+                .toString();
+    }
+
+    if (
+        artist.coverUri.isEmpty()
+    ) {
+
+        artist.coverUri =
+            artistObject
+                .value("ogImage")
+                .toString();
+    }
+
+    return artist;
+}
+
+
+QJsonObject resultObject(
+    const QJsonDocument &document)
+{
+    if (
+        !document.isObject()
+    ) {
+        return {};
+    }
+
+    const QJsonObject root =
+        document.object();
+
+    if (
+        root.value("result")
+            .isObject()
+    ) {
+
+        return root.value("result")
+            .toObject();
+    }
+
+    return root;
+}
+
+
+QJsonArray firstArray(
+    const QJsonObject &object,
+    const QStringList &keys)
+{
+    for (
+        const QString &key :
+        keys
+    ) {
+
+        const QJsonValue value =
+            object.value(
+                key);
+
+        if (
+            value.isArray()
+        ) {
+
+            return value.toArray();
+        }
+    }
+
+    return {};
+}
+
+
 void restoreArtistName(
     ArtistDetails &artist)
 {
-    if (!artist.name.isEmpty() ||
-        artist.tracks.isEmpty()) {
-
+    if (
+        !artist.name.isEmpty() ||
+        artist.tracks.isEmpty()
+    ) {
         return;
     }
 
     const Track &firstTrack =
         artist.tracks.first();
 
-    if (firstTrack.artists.isEmpty()) {
+    if (
+        firstTrack.artists.isEmpty()
+    ) {
         return;
     }
 
@@ -164,6 +421,7 @@ void restoreArtistName(
 
 }
 
+
 ArtistService::ArtistService(
     YandexAuth *auth,
     QObject *parent)
@@ -174,11 +432,14 @@ ArtistService::ArtistService(
 {
 }
 
+
 void ArtistService::loadArtist(
     const QString &id)
 {
-    if (m_auth == nullptr ||
-        !m_auth->isAuthenticated()) {
+    if (
+        m_auth == nullptr ||
+        !m_auth->isAuthenticated()
+    ) {
 
         emit errorOccurred(
             "Токен Яндекс Музыки не установлен");
@@ -189,7 +450,9 @@ void ArtistService::loadArtist(
     const QString artistId =
         id.trimmed();
 
-    if (artistId.isEmpty()) {
+    if (
+        artistId.isEmpty()
+    ) {
 
         emit errorOccurred(
             "ID исполнителя не указан");
@@ -199,6 +462,452 @@ void ArtistService::loadArtist(
 
     m_yandexClient->setToken(
         m_auth->token());
+
+    /*
+     * -------------------------------------------------
+     * Helper: load additional artist data
+     * -------------------------------------------------
+     */
+
+    auto loadAdditionalData =
+        [this,
+         artistId](
+            const ArtistDetails &sourceArtist) {
+
+            auto artistData =
+                std::make_shared<
+                    ArtistDetails>(
+                    sourceArtist);
+
+            auto completed =
+                std::make_shared<int>(
+                    0);
+
+            auto finalize =
+                [this,
+                 artistData,
+                 completed]() {
+
+                    ++(*completed);
+
+                    if (
+                        *completed < 3
+                    ) {
+                        return;
+                    }
+
+                    restoreArtistName(
+                        *artistData);
+
+                    qDebug()
+                        << "Artist loaded:"
+                        << artistData->name
+                        << "| id:"
+                        << artistData->id
+                        << "| tracks:"
+                        << artistData->tracks.size()
+                        << "| albums:"
+                        << artistData->popularAlbums.size()
+                        << "| new release:"
+                        << artistData->newRelease.title
+                        << "| similar:"
+                        << artistData->similarArtists.size();
+
+                    emit artistReceived(
+                        *artistData);
+                };
+
+            /*
+             * -------------------------------------------------
+             * Popular albums
+             * -------------------------------------------------
+             */
+
+            QUrlQuery popularQuery;
+
+            popularQuery.addQueryItem(
+                "page",
+                "0");
+
+            popularQuery.addQueryItem(
+                "pageSize",
+                "5");
+
+            popularQuery.addQueryItem(
+                "sortBy",
+                "rating");
+
+            const QString popularAlbumsPath =
+                QString(
+                    "/artists/%1/direct-albums?")
+                    .arg(
+                        artistId) +
+                popularQuery.toString(
+                    QUrl::FullyEncoded);
+
+            QNetworkReply *
+                popularAlbumsReply =
+                    m_yandexClient->get(
+                        popularAlbumsPath);
+
+            connect(
+                popularAlbumsReply,
+                &QNetworkReply::finished,
+                this,
+                [artistData,
+                 popularAlbumsReply,
+                 finalize]() {
+
+                    const QByteArray data =
+                        popularAlbumsReply
+                            ->readAll();
+
+                    if (
+                        popularAlbumsReply->error() ==
+                        QNetworkReply::NoError
+                    ) {
+
+                        QJsonParseError
+                            parseError;
+
+                        const QJsonDocument
+                            document =
+                                QJsonDocument::fromJson(
+                                    data,
+                                    &parseError);
+
+                        if (
+                            parseError.error ==
+                                QJsonParseError::NoError &&
+                            document.isObject()
+                        ) {
+
+                            const QJsonObject
+                                result =
+                                resultObject(
+                                    document);
+
+                            const QJsonArray
+                                albums =
+                                firstArray(
+                                    result,
+                                    {
+                                        "albums",
+                                        "items"
+                                    });
+
+                            for (
+                                const QJsonValue &value :
+                                albums
+                            ) {
+
+                                if (
+                                    !value.isObject()
+                                ) {
+                                    continue;
+                                }
+
+                                const Album album =
+                                    parseAlbum(
+                                        value.toObject());
+
+                                if (
+                                    !album.id.isEmpty()
+                                ) {
+
+                                    artistData
+                                        ->popularAlbums
+                                        .append(
+                                            album);
+                                }
+                            }
+                        }
+                    }
+
+                    popularAlbumsReply
+                        ->deleteLater();
+
+                    finalize();
+                });
+
+            /*
+             * -------------------------------------------------
+             * New release
+             * -------------------------------------------------
+             */
+
+            QUrlQuery newestQuery;
+
+            newestQuery.addQueryItem(
+                "page",
+                "0");
+
+            newestQuery.addQueryItem(
+                "pageSize",
+                "1");
+
+            newestQuery.addQueryItem(
+                "sortBy",
+                "year");
+
+            const QString newestAlbumPath =
+                QString(
+                    "/artists/%1/direct-albums?")
+                    .arg(
+                        artistId) +
+                newestQuery.toString(
+                    QUrl::FullyEncoded);
+
+            QNetworkReply *
+                newestAlbumReply =
+                    m_yandexClient->get(
+                        newestAlbumPath);
+
+            connect(
+                newestAlbumReply,
+                &QNetworkReply::finished,
+                this,
+                [artistData,
+                 newestAlbumReply,
+                 finalize]() {
+
+                    const QByteArray data =
+                        newestAlbumReply
+                            ->readAll();
+
+                    if (
+                        newestAlbumReply->error() ==
+                        QNetworkReply::NoError
+                    ) {
+
+                        QJsonParseError
+                            parseError;
+
+                        const QJsonDocument
+                            document =
+                                QJsonDocument::fromJson(
+                                    data,
+                                    &parseError);
+
+                        if (
+                            parseError.error ==
+                                QJsonParseError::NoError &&
+                            document.isObject()
+                        ) {
+
+                            const QJsonObject
+                                result =
+                                resultObject(
+                                    document);
+
+                            const QJsonArray
+                                albums =
+                                firstArray(
+                                    result,
+                                    {
+                                        "albums",
+                                        "items"
+                                    });
+
+                            if (
+                                !albums.isEmpty()
+                            ) {
+
+                                artistData
+                                    ->newRelease =
+                                    parseAlbum(
+                                        albums.first()
+                                            .toObject());
+                            }
+                        }
+                    }
+
+                    newestAlbumReply
+                        ->deleteLater();
+
+                    finalize();
+                });
+
+            /*
+             * -------------------------------------------------
+             * Similar artists
+             * -------------------------------------------------
+             *
+             * Supported shapes:
+             *
+             * result.similarArtists
+             * result.similar_artists
+             * result.artists
+             * result.similar
+             * result.items
+             *
+             * An item may optionally be wrapped
+             * in { "artist": {...} }.
+             */
+
+            const QString similarPath =
+                QString(
+                    "/artists/%1/similar")
+                    .arg(
+                        artistId);
+
+            QNetworkReply *similarReply =
+                m_yandexClient->get(
+                    similarPath);
+
+            connect(
+                similarReply,
+                &QNetworkReply::finished,
+                this,
+                [artistData,
+                 similarReply,
+                 finalize]() {
+
+                    const QByteArray data =
+                        similarReply
+                            ->readAll();
+
+                    if (
+                        similarReply->error() ==
+                        QNetworkReply::NoError
+                    ) {
+
+                        QJsonParseError
+                            parseError;
+
+                        const QJsonDocument
+                            document =
+                                QJsonDocument::fromJson(
+                                    data,
+                                    &parseError);
+
+                        if (
+                            parseError.error ==
+                                QJsonParseError::NoError &&
+                            document.isObject()
+                        ) {
+
+                            const QJsonObject
+                                result =
+                                resultObject(
+                                    document);
+
+                            QJsonArray artists =
+                                firstArray(
+                                    result,
+                                    {
+                                        "similarArtists",
+                                        "similar_artists",
+                                        "artists",
+                                        "similar",
+                                        "items"
+                                    });
+
+                            /*
+                             * Some API responses can put
+                             * similarArtists under "result"
+                             * as an object wrapper.
+                             */
+
+                            if (
+                                artists.isEmpty() &&
+                                result
+                                    .value(
+                                        "similarArtists")
+                                    .isObject()
+                            ) {
+
+                                const QJsonObject
+                                    similarObject =
+                                    result
+                                        .value(
+                                            "similarArtists")
+                                        .toObject();
+
+                                artists =
+                                    firstArray(
+                                        similarObject,
+                                        {
+                                            "artists",
+                                            "items"
+                                        });
+                            }
+
+                            for (
+                                const QJsonValue &value :
+                                artists
+                            ) {
+
+                                if (
+                                    !value.isObject()
+                                ) {
+                                    continue;
+                                }
+
+                                const Artist
+                                    similarArtist =
+                                    parseArtist(
+                                        value.toObject());
+
+                                if (
+                                    !similarArtist.id.isEmpty() &&
+                                    !similarArtist.name.isEmpty()
+                                ) {
+
+                                    bool duplicate =
+                                        false;
+
+                                    for (
+                                        const Artist &
+                                            existing :
+                                        artistData
+                                            ->similarArtists
+                                    ) {
+
+                                        if (
+                                            existing.id ==
+                                            similarArtist.id
+                                        ) {
+
+                                            duplicate =
+                                                true;
+
+                                            break;
+                                        }
+                                    }
+
+                                    if (
+                                        !duplicate
+                                    ) {
+
+                                        artistData
+                                            ->similarArtists
+                                            .append(
+                                                similarArtist);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    qDebug()
+                        << "Similar artists loaded:"
+                        << artistData
+                               ->similarArtists
+                               .size();
+
+                    similarReply
+                        ->deleteLater();
+
+                    finalize();
+                });
+        };
+
+    /*
+     * -------------------------------------------------
+     * Artist brief-info
+     * -------------------------------------------------
+     */
 
     const QString infoPath =
         QString(
@@ -216,13 +925,17 @@ void ArtistService::loadArtist(
         this,
         [this,
          infoReply,
-         artistId]() {
+         artistId,
+         loadAdditionalData]() {
 
             const QByteArray data =
-                infoReply->readAll();
+                infoReply
+                    ->readAll();
 
-            if (infoReply->error() !=
-                QNetworkReply::NoError) {
+            if (
+                infoReply->error() !=
+                QNetworkReply::NoError
+            ) {
 
                 emit errorOccurred(
                     infoReply->errorString());
@@ -273,7 +986,9 @@ void ArtistService::loadArtist(
                     root;
             }
 
-            if (artistObject.isEmpty()) {
+            if (
+                artistObject.isEmpty()
+            ) {
 
                 emit errorOccurred(
                     "Ответ исполнителя пуст");
@@ -285,12 +1000,18 @@ void ArtistService::loadArtist(
 
             ArtistDetails artist;
 
+            /*
+             * ID
+             */
+
             const qint64 parsedId =
                 artistObject
                     .value("id")
                     .toInteger();
 
-            if (parsedId > 0) {
+            if (
+                parsedId > 0
+            ) {
 
                 artist.id =
                     QString::number(
@@ -302,6 +1023,10 @@ void ArtistService::loadArtist(
                     artistId;
             }
 
+            /*
+             * Basic information
+             */
+
             artist.name =
                 artistObject
                     .value("name")
@@ -311,6 +1036,10 @@ void ArtistService::loadArtist(
                 artistObject
                     .value("description")
                     .toString();
+
+            /*
+             * Cover
+             */
 
             const QJsonObject cover =
                 artistObject
@@ -322,7 +1051,19 @@ void ArtistService::loadArtist(
                     .value("uri")
                     .toString();
 
-            if (artist.coverUri.isEmpty()) {
+            if (
+                artist.coverUri.isEmpty()
+            ) {
+
+                artist.coverUri =
+                    artistObject
+                        .value("coverUri")
+                        .toString();
+            }
+
+            if (
+                artist.coverUri.isEmpty()
+            ) {
 
                 artist.coverUri =
                     artistObject
@@ -330,26 +1071,31 @@ void ArtistService::loadArtist(
                         .toString();
             }
 
+            /*
+             * Genres
+             */
+
             const QJsonArray genres =
                 artistObject
                     .value("genres")
                     .toArray();
 
-            for (const QJsonValue &value :
-                 genres) {
+            for (
+                const QJsonValue &value :
+                genres
+            ) {
 
-                if (!value.isString()) {
-                    continue;
+                if (
+                    value.isString()
+                ) {
+
+                    artist.genres.append(
+                        value.toString());
                 }
-
-                artist.genres.append(
-                    value.toString());
             }
 
             /*
-             * В некоторых ответах
-             * popularTracks уже находятся
-             * внутри brief-info.
+             * Popular tracks
              */
 
             const QJsonArray popularTracks =
@@ -357,10 +1103,14 @@ void ArtistService::loadArtist(
                     .value("popularTracks")
                     .toArray();
 
-            for (const QJsonValue &value :
-                 popularTracks) {
+            for (
+                const QJsonValue &value :
+                popularTracks
+            ) {
 
-                if (!value.isObject()) {
+                if (
+                    !value.isObject()
+                ) {
                     continue;
                 }
 
@@ -379,7 +1129,9 @@ void ArtistService::loadArtist(
                             .toObject();
                 }
 
-                if (trackObject.isEmpty()) {
+                if (
+                    trackObject.isEmpty()
+                ) {
                     continue;
                 }
 
@@ -387,192 +1139,198 @@ void ArtistService::loadArtist(
                     parseTrack(
                         trackObject);
 
-                if (!track.id.isEmpty()) {
+                if (
+                    !track.id.isEmpty()
+                ) {
 
                     artist.tracks.append(
                         track);
                 }
             }
 
-            infoReply->deleteLater();
-
             /*
-             * Если popularTracks уже
-             * присутствуют, завершаем здесь.
+             * We now have basic artist data.
              */
 
-            if (!artist.tracks.isEmpty()) {
+            infoReply
+                ->deleteLater();
 
-                restoreArtistName(
-                    artist);
+            /*
+             * If popular tracks are not
+             * included in brief-info,
+             * load them separately first.
+             */
 
-                qDebug()
-                    << "Artist loaded:"
-                    << artist.name
-                    << "| id:"
-                    << artist.id
-                    << "| tracks:"
-                    << artist.tracks.size();
+            if (
+                artist.tracks.isEmpty()
+            ) {
 
-                emit artistReceived(
-                    artist);
+                const QString tracksPath =
+                    QString(
+                        "/artists/%1/tracks")
+                        .arg(
+                            artistId);
+
+                QNetworkReply *tracksReply =
+                    m_yandexClient->get(
+                        tracksPath);
+
+                connect(
+                    tracksReply,
+                    &QNetworkReply::finished,
+                    this,
+                    [this,
+                     tracksReply,
+                     artist,
+                     loadAdditionalData]() mutable {
+
+                        const QByteArray data =
+                            tracksReply
+                                ->readAll();
+
+                        if (
+                            tracksReply->error() !=
+                            QNetworkReply::NoError
+                        ) {
+
+                            emit errorOccurred(
+                                tracksReply
+                                    ->errorString());
+
+                            tracksReply
+                                ->deleteLater();
+
+                            return;
+                        }
+
+                        QJsonParseError
+                            parseError;
+
+                        const QJsonDocument
+                            document =
+                                QJsonDocument::fromJson(
+                                    data,
+                                    &parseError);
+
+                        if (
+                            parseError.error !=
+                                QJsonParseError::NoError ||
+                            !document.isObject()
+                        ) {
+
+                            emit errorOccurred(
+                                "Некорректный ответ треков исполнителя");
+
+                            tracksReply
+                                ->deleteLater();
+
+                            return;
+                        }
+
+                        const QJsonObject
+                            result =
+                            resultObject(
+                                document);
+
+                        QJsonArray tracks =
+                            firstArray(
+                                result,
+                                {
+                                    "tracks",
+                                    "popularTracks"
+                                });
+
+                        if (
+                            tracks.isEmpty()
+                        ) {
+
+                            const QJsonObject
+                                root =
+                                document.object();
+
+                            if (
+                                root
+                                    .value("tracks")
+                                    .isArray()
+                            ) {
+
+                                tracks =
+                                    root
+                                        .value("tracks")
+                                        .toArray();
+                            }
+                        }
+
+                        for (
+                            const QJsonValue &value :
+                            tracks
+                        ) {
+
+                            if (
+                                !value.isObject()
+                            ) {
+                                continue;
+                            }
+
+                            QJsonObject trackObject =
+                                value.toObject();
+
+                            if (
+                                trackObject
+                                    .value("track")
+                                    .isObject()
+                            ) {
+
+                                trackObject =
+                                    trackObject
+                                        .value("track")
+                                        .toObject();
+                            }
+
+                            if (
+                                trackObject.isEmpty()
+                            ) {
+                                continue;
+                            }
+
+                            const Track track =
+                                parseTrack(
+                                    trackObject);
+
+                            if (
+                                !track.id.isEmpty()
+                            ) {
+
+                                artist.tracks.append(
+                                    track);
+                            }
+                        }
+
+                        restoreArtistName(
+                            artist);
+
+                        qDebug()
+                            << "Artist tracks loaded:"
+                            << artist.name
+                            << "| id:"
+                            << artist.id
+                            << "| tracks:"
+                            << artist.tracks.size();
+
+                        tracksReply
+                            ->deleteLater();
+
+                        loadAdditionalData(
+                            artist);
+                    });
 
                 return;
             }
 
-            /*
-             * Иначе загружаем треки
-             * отдельным запросом.
-             */
+            restoreArtistName(
+                artist);
 
-            const QString tracksPath =
-                QString(
-                    "/artists/%1/tracks")
-                    .arg(
-                        artistId);
-
-            QNetworkReply *tracksReply =
-                m_yandexClient->get(
-                    tracksPath);
-
-            connect(
-                tracksReply,
-                &QNetworkReply::finished,
-                this,
-                [this,
-                 tracksReply,
-                 artist]() mutable {
-
-                    const QByteArray tracksData =
-                        tracksReply->readAll();
-
-                    if (
-                        tracksReply->error() !=
-                        QNetworkReply::NoError
-                    ) {
-
-                        emit errorOccurred(
-                            tracksReply
-                                ->errorString());
-
-                        tracksReply->deleteLater();
-
-                        return;
-                    }
-
-                    QJsonParseError
-                        tracksParseError;
-
-                    const QJsonDocument
-                        tracksDocument =
-                            QJsonDocument::fromJson(
-                                tracksData,
-                                &tracksParseError);
-
-                    if (
-                        tracksParseError.error !=
-                            QJsonParseError::NoError ||
-                        !tracksDocument.isObject()
-                    ) {
-
-                        emit errorOccurred(
-                            "Некорректный ответ треков исполнителя");
-
-                        tracksReply->deleteLater();
-
-                        return;
-                    }
-
-                    const QJsonObject root =
-                        tracksDocument.object();
-
-                    QJsonArray tracksArray;
-
-                    /*
-                     * Основной вариант:
-                     *
-                     * result.tracks
-                     */
-
-                    if (
-                        root.value("result")
-                            .isObject()
-                    ) {
-
-                        const QJsonObject result =
-                            root.value("result")
-                                .toObject();
-
-                        tracksArray =
-                            result.value("tracks")
-                                .toArray();
-
-                    } else {
-
-                        /*
-                         * Fallback:
-                         *
-                         * tracks
-                         */
-
-                        tracksArray =
-                            root.value("tracks")
-                                .toArray();
-                    }
-
-                    for (
-                        const QJsonValue &value :
-                        tracksArray) {
-
-                        if (!value.isObject()) {
-                            continue;
-                        }
-
-                        QJsonObject trackObject =
-                            value.toObject();
-
-                        if (
-                            trackObject
-                                .value("track")
-                                .isObject()
-                        ) {
-
-                            trackObject =
-                                trackObject
-                                    .value("track")
-                                    .toObject();
-                        }
-
-                        if (trackObject.isEmpty()) {
-                            continue;
-                        }
-
-                        const Track track =
-                            parseTrack(
-                                trackObject);
-
-                        if (!track.id.isEmpty()) {
-
-                            artist.tracks.append(
-                                track);
-                        }
-                    }
-
-                    restoreArtistName(
-                        artist);
-
-                    qDebug()
-                        << "Artist loaded:"
-                        << artist.name
-                        << "| id:"
-                        << artist.id
-                        << "| tracks:"
-                        << artist.tracks.size();
-
-                    emit artistReceived(
-                        artist);
-
-                    tracksReply->deleteLater();
-                });
+            loadAdditionalData(
+                artist);
         });
 }

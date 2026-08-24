@@ -93,9 +93,16 @@ AppController::AppController(
               m_searchService,
               m_playbackController,
               this))
+    , m_artistController(
+          new ArtistController(
+              m_artistService,
+              m_playbackController,
+              this))
 {
     /*
+     * -------------------------------------------------
      * Account
+     * -------------------------------------------------
      */
 
     connect(
@@ -137,14 +144,17 @@ AppController::AppController(
         &AppController::statusChanged);
 
     /*
-     * Запрашиваем account один раз при старте.
+     * Account is loaded once
+     * at startup.
      */
 
     m_accountService
         ->loadAccount();
 
     /*
+     * -------------------------------------------------
      * Search
+     * -------------------------------------------------
      */
 
     connect(
@@ -160,7 +170,9 @@ AppController::AppController(
         &AppController::searchingChanged);
 
     /*
+     * -------------------------------------------------
      * Library
+     * -------------------------------------------------
      */
 
     connect(
@@ -199,14 +211,18 @@ AppController::AppController(
         this,
         &AppController::currentAlbumChanged);
 
-    connect(
-        m_libraryController,
-        &LibraryController::currentArtistChanged,
-        this,
-        &AppController::currentArtistChanged);
+    /*
+     * Keep the legacy artist signal available
+     * for the existing QML navigation.
+     *
+     * Actual artist data now comes from
+     * ArtistController.
+     */
 
     /*
+     * -------------------------------------------------
      * Personal
+     * -------------------------------------------------
      */
 
     connect(
@@ -253,16 +269,66 @@ AppController::AppController(
         });
 
     /*
-     * Recently Played
-     *
-     * PersonalController already owns
-     * the model and handles Track playback.
-     * AppController only exposes the
-     * controller facade to QML.
+     * -------------------------------------------------
+     * Artist
+     * -------------------------------------------------
      */
 
+    connect(
+        m_artistController,
+        &ArtistController::statusChanged,
+        this,
+        &AppController::statusChanged);
+
     /*
+     * ArtistController is now the single source
+     * of artist data.
+     *
+     * When artist data arrives:
+     *
+     * ArtistController
+     *      ↓
+     * artistChanged
+     *      ↓
+     * AppController
+     *      ↓
+     * currentArtistChanged
+     *      ↓
+     * QML
+     */
+
+    connect(
+        m_artistController,
+        &ArtistController::artistChanged,
+        this,
+        &AppController::currentArtistChanged);
+
+    /*
+     * Similar artist selection.
+     */
+
+    connect(
+        m_artistController,
+        &ArtistController::similarArtistSelected,
+        this,
+        [this](
+            const QString &artistId) {
+
+            if (
+                m_artistController == nullptr
+            ) {
+                return;
+            }
+
+            m_artistController
+                ->loadArtist(
+                    artistId);
+        });
+
+    /*
+     * -------------------------------------------------
      * Playback
+     * -------------------------------------------------
      */
 
     connect(
@@ -340,7 +406,9 @@ AppController::AppController(
         &AppController::statusChanged);
 
     /*
+     * -------------------------------------------------
      * Player
+     * -------------------------------------------------
      */
 
     connect(
@@ -414,6 +482,13 @@ AppController::AppController(
         });
 }
 
+
+/*
+ * -------------------------------------------------
+ * Tests
+ * -------------------------------------------------
+ */
+
 void AppController::testConnection()
 {
     emit statusChanged(
@@ -437,13 +512,33 @@ void AppController::testSearch(
             query);
 }
 
+
+/*
+ * -------------------------------------------------
+ * Artist
+ * -------------------------------------------------
+ */
+
 void AppController::loadArtist(
     const QString &id)
 {
-    m_libraryController
+    if (
+        m_artistController == nullptr
+    ) {
+        return;
+    }
+
+    m_artistController
         ->loadArtist(
             id);
 }
+
+
+/*
+ * -------------------------------------------------
+ * Personal
+ * -------------------------------------------------
+ */
 
 void AppController::loadMyWave()
 {
@@ -462,6 +557,13 @@ void AppController::loadRecommendations()
     m_personalController
         ->loadRecommendations();
 }
+
+
+/*
+ * -------------------------------------------------
+ * Selection
+ * -------------------------------------------------
+ */
 
 void AppController::selectSearchResult(
     int index)
@@ -514,10 +616,37 @@ void AppController::selectAlbumTrack(
 void AppController::selectArtistTrack(
     int index)
 {
-    m_libraryController
-        ->selectArtistTrack(
+    if (
+        m_artistController == nullptr
+    ) {
+        return;
+    }
+
+    m_artistController
+        ->selectTrack(
             index);
 }
+
+void AppController::selectSimilarArtist(
+    int index)
+{
+    if (
+        m_artistController == nullptr
+    ) {
+        return;
+    }
+
+    m_artistController
+        ->selectSimilarArtist(
+            index);
+}
+
+
+/*
+ * -------------------------------------------------
+ * Playback
+ * -------------------------------------------------
+ */
 
 void AppController::play()
 {
@@ -608,6 +737,13 @@ void AppController::seek(
             position);
 }
 
+
+/*
+ * -------------------------------------------------
+ * Models
+ * -------------------------------------------------
+ */
+
 SearchModel *
 AppController::searchModel() const
 {
@@ -653,9 +789,35 @@ AppController::albumModel() const
 ArtistModel *
 AppController::artistModel() const
 {
-    return m_libraryController
+    /*
+     * Keep the legacy facade available.
+     *
+     * ArtistPage itself uses artistController.
+     */
+
+    if (
+        m_artistController == nullptr
+    ) {
+        return nullptr;
+    }
+
+    return m_artistController
         ->artistModel();
 }
+
+
+ArtistController *
+AppController::artistController() const
+{
+    return m_artistController;
+}
+
+
+/*
+ * -------------------------------------------------
+ * State
+ * -------------------------------------------------
+ */
 
 bool AppController::isSearching() const
 {
@@ -701,9 +863,22 @@ bool AppController::isLoadingAlbum() const
 
 bool AppController::isLoadingArtist() const
 {
-    return m_libraryController
-        ->isLoadingArtist();
+    if (
+        m_artistController == nullptr
+    ) {
+        return false;
+    }
+
+    return m_artistController
+        ->isLoading();
 }
+
+
+/*
+ * -------------------------------------------------
+ * Current playlist
+ * -------------------------------------------------
+ */
 
 QString AppController::currentPlaylistTitle() const
 {
@@ -716,6 +891,13 @@ int AppController::currentPlaylistTrackCount() const
     return m_libraryController
         ->currentPlaylistTrackCount();
 }
+
+
+/*
+ * -------------------------------------------------
+ * Current album
+ * -------------------------------------------------
+ */
 
 QString AppController::currentAlbumTitle() const
 {
@@ -735,29 +917,79 @@ QString AppController::currentAlbumCoverUri() const
         ->currentAlbumCoverUri();
 }
 
+
+/*
+ * -------------------------------------------------
+ * Current artist
+ *
+ * ArtistController is the source of truth.
+ * -------------------------------------------------
+ */
+
 QString AppController::currentArtistName() const
 {
-    return m_libraryController
-        ->currentArtistName();
+    if (
+        m_artistController == nullptr
+    ) {
+        return {};
+    }
+
+    return m_artistController
+        ->artistName();
 }
 
 QString AppController::currentArtistCoverUri() const
 {
-    return m_libraryController
-        ->currentArtistCoverUri();
+    if (
+        m_artistController == nullptr
+    ) {
+        return {};
+    }
+
+    return m_artistController
+        ->artistCoverUri();
 }
 
 QString AppController::currentArtistGenres() const
 {
-    return m_libraryController
-        ->currentArtistGenres();
+    if (
+        m_artistController == nullptr
+    ) {
+        return {};
+    }
+
+    return m_artistController
+        ->artistGenres();
 }
 
 int AppController::currentArtistTrackCount() const
 {
-    return m_libraryController
-        ->currentArtistTrackCount();
+    if (
+        m_artistController == nullptr
+    ) {
+        return 0;
+    }
+
+    ArtistModel *model =
+        m_artistController
+            ->artistModel();
+
+    if (
+        model == nullptr
+    ) {
+        return 0;
+    }
+
+    return model
+        ->count();
 }
+
+
+/*
+ * -------------------------------------------------
+ * Current track
+ * -------------------------------------------------
+ */
 
 QString AppController::currentTrackTitle() const
 {
@@ -806,6 +1038,13 @@ QString AppController::currentTrackCoverUri() const
         ->currentTrack()
         .coverUri;
 }
+
+
+/*
+ * -------------------------------------------------
+ * Playback state
+ * -------------------------------------------------
+ */
 
 qint64 AppController::position() const
 {

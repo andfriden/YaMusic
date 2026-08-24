@@ -6,25 +6,34 @@
 struct Artist
 {
     QString id;
+
     QString name;
+
+    QString coverUri;
 };
 
 struct Album
 {
     QString id;
+
     QString title;
+
     QString coverUri;
+
     int year = 0;
 };
 
 struct Track
 {
     QString id;
+
     QString title;
+
     QString coverUri;
 
     int durationMs = 0;
 
     QList<Artist> artists;
+
     QList<Album> albums;
 };

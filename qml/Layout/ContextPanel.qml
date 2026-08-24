@@ -4,9 +4,16 @@ import QtQuick.Controls.Basic
 Item {
     id: root
 
+    property var controller
+
     property string contextType: "home"
 
-    property string contextTitle:
+    readonly property var artistController:
+            controller !== null
+        ? controller.artistController
+        : null
+
+    readonly property string contextTitle:
         titleForContext(contextType)
 
     Rectangle {
@@ -15,7 +22,6 @@ Item {
         color: "#ededed"
 
         border.width: 1
-
         border.color: "#d7d7d7"
 
         Column {
@@ -34,11 +40,9 @@ Item {
                 color: "#202020"
 
                 font.pixelSize: 17
-
                 font.bold: true
 
-                elide:
-                    Text.ElideRight
+                elide: Text.ElideRight
             }
 
             Label {
@@ -46,105 +50,115 @@ Item {
 
                 text:
                     descriptionForContext(
-                        root.contextType)
+                        root.contextType
+                    )
 
                 color: "#777777"
 
                 font.pixelSize: 11
 
-                wrapMode:
-                    Text.WordWrap
+                wrapMode: Text.WordWrap
 
                 visible:
                     text.length > 0
             }
 
             ListView {
-                id: recommendationList
+                id: artistsView
 
                 width: parent.width
 
                 height:
-                    parent.height -
-                    70
-
-                spacing: 8
+                    parent.height - 70
 
                 clip: true
 
+                spacing: 8
+
                 model:
-                    itemsForContext(
-                        root.contextType)
+                        root.contextType === "artist" &&
+                    root.artistController !== null
+                    ? root.artistController.similarArtistsModel
+                    : null
+
+                boundsBehavior:
+                    Flickable.StopAtBounds
+
+                ScrollBar.vertical: ScrollBar {
+                    policy:
+                            artistsView.contentHeight >
+                        artistsView.height
+                        ? ScrollBar.AsNeeded
+                        : ScrollBar.AlwaysOff
+                }
 
                 delegate: Rectangle {
+                    required property int index
+                    required property string artistId
+                    required property string name
+                    required property string coverUri
+
                     width:
-                        recommendationList.width
+                        artistsView.width
 
                     height: 58
 
                     radius: 8
 
                     color:
-                        rowMouseArea.containsMouse
+                        mouseArea.containsMouse
                             ? "#dedede"
                             : "#f4f4f4"
 
                     border.width: 1
 
                     border.color:
-                        rowMouseArea.containsMouse
+                        mouseArea.containsMouse
                             ? "#c6c6c6"
                             : "#e1e1e1"
 
-                    MouseArea {
-                        id: rowMouseArea
+                    Image {
+                        id: artistImage
 
-                        anchors.fill: parent
-
-                        hoverEnabled: true
-
-                        cursorShape:
-                            Qt.PointingHandCursor
-                    }
-
-                    Rectangle {
                         anchors.left: parent.left
-
                         anchors.leftMargin: 7
 
                         anchors.verticalCenter:
                             parent.verticalCenter
 
                         width: 44
-
                         height: 44
 
-                        radius:
-                                modelData.kind === "artist"
-                            ? 22
-                            : 6
+                        source:
+                                coverUri.length > 0
+                            ? "image://yandex/" +
+                            coverUri
+                            : ""
 
-                        color: "#d3d3d3"
+                        fillMode:
+                            Image.PreserveAspectCrop
 
-                        Label {
-                            anchors.centerIn: parent
+                        asynchronous: true
+                        cache: true
 
-                            text:
-                                    modelData.kind === "artist"
-                                ? "♪"
-                                : "▣"
+                        Rectangle {
+                            anchors.fill: parent
 
-                            color: "#737373"
+                            radius: 22
 
-                            font.pixelSize: 18
+                            color: "#d3d3d3"
+
+                            visible:
+                                artistImage.status !==
+                                Image.Ready
                         }
                     }
 
                     Column {
                         anchors.left:
-                            parent.left
+                            artistImage.right
 
-                        anchors.leftMargin: 62
+                        anchors.leftMargin: 11
 
                         anchors.right:
                             parent.right
@@ -159,48 +173,82 @@ Item {
                         Label {
                             width: parent.width
 
-                            text:
-                                modelData.title
+                            text: name
 
                             color: "#202020"
 
                             font.pixelSize: 13
-
                             font.bold: true
 
-                            elide:
-                                Text.ElideRight
+                            elide: Text.ElideRight
                         }
 
                         Label {
                             width: parent.width
 
-                            text:
-                                modelData.subtitle
+                            text: qsTr("Исполнитель")
 
                             color: "#777777"
 
                             font.pixelSize: 11
 
-                            elide:
-                                Text.ElideRight
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    MouseArea {
+                        id: mouseArea
+
+                        anchors.fill: parent
+
+                        hoverEnabled: true
+
+                        cursorShape:
+                            Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (
+                                root.artistController === null
+                            ) {
+                                return
+                            }
+
+                            console.log(
+                                "ContextPanel: selectSimilarArtist index =",
+                                index
+                            )
+
+                            root.artistController.selectSimilarArtist(
+                                index
+                            )
                         }
                     }
                 }
 
                 Label {
-                    anchors.centerIn:
-                        parent
+                    anchors.centerIn: parent
+
+                    width:
+                        parent.width - 20
 
                     text:
-                        "Здесь будут рекомендации"
+                            root.artistController !== null &&
+                        root.artistController.loading
+                        ? qsTr("Загрузка...")
+                        : qsTr(
+                            "Нет похожих исполнителей"
+                        )
 
                     color: "#999999"
 
                     font.pixelSize: 12
 
+                    horizontalAlignment:
+                        Text.AlignHCenter
+
                     visible:
-                        recommendationList.count === 0
+                        root.contextType === "artist" &&
+                        artistsView.count === 0
                 }
             }
         }
@@ -209,125 +257,48 @@ Item {
     function titleForContext(type) {
         switch (type) {
             case "artist":
-                return "Похожие исполнители"
+                return qsTr("Похожие исполнители")
 
             case "album":
-                return "Другие альбомы"
+                return qsTr("Другие альбомы")
 
             case "playlist":
-                return "Похожие плейлисты"
+                return qsTr("Похожие плейлисты")
 
             case "library":
-                return "Вам может понравиться"
+                return qsTr("Вам может понравиться")
 
             default:
-                return "Вам может понравиться"
+                return qsTr("Вам может понравиться")
         }
     }
 
     function descriptionForContext(type) {
         switch (type) {
             case "artist":
-                return "Исполнители с похожим звучанием"
+                return qsTr(
+                    "Исполнители с похожим звучанием"
+                )
 
             case "album":
-                return "Другие релизы этого исполнителя"
+                return qsTr(
+                    "Другие релизы этого исполнителя"
+                )
 
             case "playlist":
-                return "Подборки в похожем стиле"
+                return qsTr(
+                    "Подборки в похожем стиле"
+                )
+
+            case "library":
+                return qsTr(
+                    "Музыка, которая может вам понравиться"
+                )
 
             default:
-                return "Музыка, которая может вам понравиться"
-        }
-    }
-
-    function itemsForContext(type) {
-        switch (type) {
-            case "artist":
-                return [
-                    {
-                        title: "Sapphyre",
-                        subtitle: "Исполнитель",
-                        kind: "artist"
-                    },
-                    {
-                        title: "Phantaszz",
-                        subtitle: "Исполнитель",
-                        kind: "artist"
-                    },
-                    {
-                        title: "asuro",
-                        subtitle: "Исполнитель",
-                        kind: "artist"
-                    },
-                    {
-                        title: "NXVXRMXSS",
-                        subtitle: "Исполнитель",
-                        kind: "artist"
-                    },
-                    {
-                        title: "Barsbeat",
-                        subtitle: "Исполнитель",
-                        kind: "artist"
-                    }
-                ]
-
-            case "album":
-                return [
-                    {
-                        title: "Другой альбом",
-                        subtitle: "Альбом",
-                        kind: "album"
-                    },
-                    {
-                        title: "Новый релиз",
-                        subtitle: "Альбом",
-                        kind: "album"
-                    }
-                ]
-
-            case "playlist":
-                return [
-                    {
-                        title: "Похожая подборка",
-                        subtitle: "Плейлист",
-                        kind: "playlist"
-                    },
-                    {
-                        title: "Ещё музыка",
-                        subtitle: "Плейлист",
-                        kind: "playlist"
-                    }
-                ]
-
-            default:
-                return [
-                    {
-                        title: "Sapphyre",
-                        subtitle: "Исполнитель",
-                        kind: "artist"
-                    },
-                    {
-                        title: "Phantaszz",
-                        subtitle: "Исполнитель",
-                        kind: "artist"
-                    },
-                    {
-                        title: "asuro",
-                        subtitle: "Исполнитель",
-                        kind: "artist"
-                    },
-                    {
-                        title: "NXVXRMXSS",
-                        subtitle: "Исполнитель",
-                        kind: "artist"
-                    },
-                    {
-                        title: "Barsbeat",
-                        subtitle: "Исполнитель",
-                        kind: "artist"
-                    }
-                ]
+                return qsTr(
+                    "Музыка, которая может вам понравиться"
+                )
         }
     }
 }

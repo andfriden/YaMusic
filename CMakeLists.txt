@@ -119,6 +119,12 @@ qt_add_executable(appYaMusic
         src/Core/PersonalController+Recommendations.cpp
         src/Core/PersonalController+RecentlyPlayed.cpp
         src/Core/PersonalController+Playback.cpp
+        src/Yandex/Catalog/ArtistAlbumsModel.cpp
+        src/Yandex/Catalog/ArtistAlbumsModel.h
+        src/Yandex/Catalog/SimilarArtistsModel.cpp
+        src/Yandex/Catalog/SimilarArtistsModel.h
+        src/Core/ArtistController.cpp
+        src/Core/ArtistController.h
 
 
 )
@@ -139,6 +145,8 @@ qt_add_qml_module(appYaMusic
         qml/Home/RecentListeningSection.qml
         qml/Home/AlbumView.qml
         qml/Home/ArtistView.qml
+        qml/Home/ArtistPage.qml
+        qml/Home/ArtistAlbumsSection.qml
 
         qml/MyWave/MyWaveSection.qml
 
