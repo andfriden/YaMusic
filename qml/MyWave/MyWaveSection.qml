@@ -21,10 +21,6 @@ Item {
     readonly property int spacingValue:
         compactMode ? 10 : 16
 
-    /*
-     * Background
-     */
-
     Rectangle {
         anchors.fill: parent
 
@@ -51,9 +47,7 @@ Item {
         id: compactContent
 
         anchors.fill: parent
-
-        anchors.margins:
-            root.margin
+        anchors.margins: root.margin
 
         spacing:
             root.spacingValue
@@ -108,7 +102,6 @@ Item {
                 root.controller.myWaveModel
 
             clip: true
-
             spacing: 6
 
             boundsBehavior:
@@ -179,6 +172,28 @@ Item {
 
                     asynchronous: true
                     cache: true
+
+                    Rectangle {
+                        anchors.fill: parent
+
+                        radius: 6
+
+                        color: "#d0d0d0"
+
+                        visible:
+                            compactCover.status !==
+                            Image.Ready
+
+                        Label {
+                            anchors.centerIn: parent
+
+                            text: "♪"
+
+                            color: "#666666"
+
+                            font.pixelSize: 18
+                        }
+                    }
                 }
 
                 Column {
@@ -188,7 +203,7 @@ Item {
                     anchors.leftMargin: 10
 
                     anchors.right:
-                        durationLabel.left
+                        compactDuration.left
 
                     anchors.rightMargin: 10
 
@@ -229,7 +244,7 @@ Item {
                 }
 
                 Label {
-                    id: durationLabel
+                    id: compactDuration
 
                     anchors.right:
                         parent.right
@@ -276,9 +291,7 @@ Item {
         id: fullContent
 
         anchors.fill: parent
-
-        anchors.margins:
-            root.margin
+        anchors.margins: root.margin
 
         spacing: 16
 
@@ -294,7 +307,6 @@ Item {
             id: fullHeader
 
             width: parent.width
-
             height: root.headerHeight
 
             spacing: 12
@@ -326,18 +338,14 @@ Item {
         }
 
         /*
-         * Current track
-         *
-         * Appears only after the user
-         * selects a track.
+         * Current track card
          */
 
         Rectangle {
             id: nowPlayingCard
 
             width: parent.width
-
-            height: 210
+            height: 220
 
             radius: 14
 
@@ -354,13 +362,20 @@ Item {
 
                 anchors.margins: 18
 
-                spacing: 18
+                spacing: 20
+
+                /*
+                 * Artwork
+                 */
 
                 Image {
                     id: currentCover
 
-                    width: 174
-                    height: 174
+                    width: 184
+                    height: 184
+
+                    anchors.verticalCenter:
+                        parent.verticalCenter
 
                     source:
                             root.controller.currentTrackCoverUri.length > 0
@@ -375,8 +390,7 @@ Item {
                     cache: true
 
                     Rectangle {
-                        anchors.fill:
-                            parent
+                        anchors.fill: parent
 
                         radius: 10
 
@@ -394,23 +408,37 @@ Item {
 
                             color: "#666666"
 
-                            font.pixelSize: 40
+                            font.pixelSize: 42
                         }
                     }
                 }
 
-                Column {
+                /*
+                 * Track information + centered Play/Pause
+                 */
+
+                Item {
+                    id: trackInfoArea
+
                     width:
                         parent.width -
                         currentCover.width -
-                        18
+                        parent.spacing
 
-                    anchors.verticalCenter:
-                        parent.verticalCenter
-
-                    spacing: 8
+                    height: parent.height
 
                     Label {
+                        id: playingLabel
+
+                        anchors.top:
+                            parent.top
+
+                        anchors.left:
+                            parent.left
+
+                        anchors.right:
+                            parent.right
+
                         text: "Сейчас играет"
 
                         color: "#888888"
@@ -419,7 +447,18 @@ Item {
                     }
 
                     Label {
-                        width: parent.width
+                        id: currentTitle
+
+                        anchors.top:
+                            playingLabel.bottom
+
+                        anchors.topMargin: 8
+
+                        anchors.left:
+                            parent.left
+
+                        anchors.right:
+                            parent.right
 
                         text:
                             root.controller.currentTrackTitle
@@ -427,7 +466,6 @@ Item {
                         color: "#202020"
 
                         font.pixelSize: 24
-
                         font.bold: true
 
                         elide:
@@ -435,7 +473,18 @@ Item {
                     }
 
                     Label {
-                        width: parent.width
+                        id: currentArtist
+
+                        anchors.top:
+                            currentTitle.bottom
+
+                        anchors.topMargin: 6
+
+                        anchors.left:
+                            parent.left
+
+                        anchors.right:
+                            parent.right
 
                         text:
                             root.controller.currentTrackArtist
@@ -449,16 +498,103 @@ Item {
                     }
 
                     Label {
-                        visible:
-                            root.controller.duration > 0
+                        id: currentDuration
+
+                        anchors.top:
+                            currentArtist.bottom
+
+                        anchors.topMargin: 6
+
+                        anchors.left:
+                            parent.left
 
                         text:
-                            root.formatDuration(
+                                root.controller.duration > 0
+                            ? root.formatDuration(
                                 root.controller.duration)
+                            : ""
 
                         color: "#888888"
 
                         font.pixelSize: 12
+                    }
+
+                    Rectangle {
+                        id: playPauseButton
+
+                        width: 80
+                        height: 80
+
+                        radius:
+                            width / 2
+
+                        anchors.horizontalCenter:
+                            parent.horizontalCenter
+
+                        anchors.verticalCenter:
+                            parent.verticalCenter
+
+                        color:
+                            playPauseMouseArea.containsMouse
+                                ? "#1f1f1f"
+                                : "#2b2b2b"
+
+                        scale:
+                            playPauseMouseArea.pressed
+                                ? 0.94
+                                : 1.0
+
+                        Behavior on scale {
+                            NumberAnimation {
+                                duration: 100
+                            }
+                        }
+
+                        Label {
+                            anchors.centerIn:
+                                parent
+
+                            text:
+                                root.controller.playing
+                                    ? "❚❚"
+                                    : "▶"
+
+                            color: "#ffffff"
+
+                            font.pixelSize:
+                                root.controller.playing
+                                    ? 28
+                                    : 30
+
+                            font.bold: true
+
+                            leftPadding:
+                                root.controller.playing
+                                    ? 0
+                                    : 5
+                        }
+
+                        MouseArea {
+                            id: playPauseMouseArea
+
+                            anchors.fill:
+                                parent
+
+                            hoverEnabled: true
+
+                            cursorShape:
+                                Qt.PointingHandCursor
+
+                            onClicked: {
+                                if (
+                                    root.controller.playing
+                                ) {
+                                    root.controller.pause()
+                                } else {
+                                    root.controller.play()
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -479,7 +615,6 @@ Item {
             color: "#202020"
 
             font.pixelSize: 20
-
             font.bold: true
 
             height: 26
@@ -592,12 +727,10 @@ Item {
                         Image.PreserveAspectCrop
 
                     asynchronous: true
-
                     cache: true
 
                     Rectangle {
-                        anchors.fill:
-                            parent
+                        anchors.fill: parent
 
                         radius: 6
 
@@ -606,6 +739,17 @@ Item {
                         visible:
                             trackCover.status !==
                             Image.Ready
+
+                        Label {
+                            anchors.centerIn:
+                                parent
+
+                            text: "♪"
+
+                            color: "#666666"
+
+                            font.pixelSize: 20
+                        }
                     }
                 }
 
@@ -636,7 +780,6 @@ Item {
                         color: "#202020"
 
                         font.pixelSize: 14
-
                         font.bold: true
 
                         elide:
@@ -646,7 +789,8 @@ Item {
                     Label {
                         width: parent.width
 
-                        text: artist
+                        text:
+                            artist
 
                         color: "#555555"
 
@@ -662,7 +806,8 @@ Item {
 
                         width: parent.width
 
-                        text: album
+                        text:
+                            album
 
                         color: "#888888"
 
@@ -705,7 +850,8 @@ Item {
                         Qt.PointingHandCursor
 
                     onClicked: {
-                        root.hasSelectedTrack = true
+                        root.hasSelectedTrack =
+                            true
 
                         root.controller
                             .selectMyWaveTrack(
