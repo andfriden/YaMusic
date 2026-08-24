@@ -11,7 +11,9 @@ RecentListeningModel::RecentListeningModel(
 int RecentListeningModel::rowCount(
     const QModelIndex &parent) const
 {
-    if (parent.isValid()) {
+    if (
+        parent.isValid()
+    ) {
         return 0;
     }
 
@@ -65,7 +67,11 @@ QVariant RecentListeningModel::data(
     }
 
     case ArtistIdRole:
-        if (!track.artists.isEmpty()) {
+
+        if (
+            !track.artists.isEmpty()
+        ) {
+
             return track.artists
                 .first()
                 .id;
@@ -74,7 +80,11 @@ QVariant RecentListeningModel::data(
         return QString();
 
     case AlbumRole:
-        if (!track.albums.isEmpty()) {
+
+        if (
+            !track.albums.isEmpty()
+        ) {
+
             return track.albums
                 .first()
                 .title;
@@ -83,7 +93,11 @@ QVariant RecentListeningModel::data(
         return QString();
 
     case AlbumIdRole:
-        if (!track.albums.isEmpty()) {
+
+        if (
+            !track.albums.isEmpty()
+        ) {
+
             return track.albums
                 .first()
                 .id;
@@ -106,14 +120,38 @@ QHash<int, QByteArray>
 RecentListeningModel::roleNames() const
 {
     return {
-        {IdRole, "trackId"},
-        {TitleRole, "title"},
-        {ArtistRole, "artist"},
-        {ArtistIdRole, "artistId"},
-        {AlbumRole, "album"},
-        {AlbumIdRole, "albumId"},
-        {CoverUriRole, "coverUri"},
-        {DurationMsRole, "durationMs"}
+        {
+            IdRole,
+            "trackId"
+        },
+        {
+            TitleRole,
+            "title"
+        },
+        {
+            ArtistRole,
+            "artist"
+        },
+        {
+            ArtistIdRole,
+            "artistId"
+        },
+        {
+            AlbumRole,
+            "album"
+        },
+        {
+            AlbumIdRole,
+            "albumId"
+        },
+        {
+            CoverUriRole,
+            "coverUri"
+        },
+        {
+            DurationMsRole,
+            "durationMs"
+        }
     };
 }
 
@@ -149,6 +187,12 @@ Track RecentListeningModel::trackAt(
 
     return m_tracks.at(
         index);
+}
+
+QList<Track>
+RecentListeningModel::tracks() const
+{
+    return m_tracks;
 }
 
 int RecentListeningModel::count() const

@@ -11,7 +11,9 @@ MyWaveModel::MyWaveModel(
 int MyWaveModel::rowCount(
     const QModelIndex &parent) const
 {
-    if (parent.isValid()) {
+    if (
+        parent.isValid()
+    ) {
         return 0;
     }
 
@@ -22,66 +24,82 @@ QVariant MyWaveModel::data(
     const QModelIndex &index,
     int role) const
 {
-    if (!index.isValid() ||
+    if (
+        !index.isValid() ||
         index.row() < 0 ||
-        index.row() >= m_tracks.size()) {
-
+        index.row() >= m_tracks.size()
+    ) {
         return {};
     }
 
     const Track &track =
-        m_tracks.at(index.row());
+        m_tracks.at(
+            index.row());
 
     switch (role) {
 
-        case IdRole:
-            return track.id;
+    case IdRole:
+        return track.id;
 
-        case TitleRole:
-            return track.title;
+    case TitleRole:
+        return track.title;
 
-        case ArtistRole:
-        {
-            QStringList artistNames;
+    case ArtistRole:
+    {
+        QStringList artistNames;
 
-            for (const Artist &artist :
-                 track.artists) {
+        for (
+            const Artist &artist :
+            track.artists
+        ) {
 
-                if (!artist.name.isEmpty()) {
-                    artistNames.append(
-                        artist.name);
-                }
+            if (
+                !artist.name.isEmpty()
+            ) {
+
+                artistNames.append(
+                    artist.name);
             }
-
-            return artistNames.join(", ");
         }
 
-        case ArtistIdRole:
-            if (!track.artists.isEmpty()) {
-                return track.artists
-                    .first()
-                    .id;
-            }
+        return artistNames.join(
+            ", ");
+    }
 
-            return QString();
+    case ArtistIdRole:
 
-        case AlbumRole:
-            if (!track.albums.isEmpty()) {
-                return track.albums
-                    .first()
-                    .title;
-            }
+        if (
+            !track.artists.isEmpty()
+        ) {
 
-            return QString();
+            return track.artists
+                .first()
+                .id;
+        }
 
-        case CoverUriRole:
-            return track.coverUri;
+        return QString();
 
-        case DurationMsRole:
-            return track.durationMs;
+    case AlbumRole:
 
-        default:
-            return {};
+        if (
+            !track.albums.isEmpty()
+        ) {
+
+            return track.albums
+                .first()
+                .title;
+        }
+
+        return QString();
+
+    case CoverUriRole:
+        return track.coverUri;
+
+    case DurationMsRole:
+        return track.durationMs;
+
+    default:
+        return {};
     }
 }
 
@@ -89,13 +107,34 @@ QHash<int, QByteArray>
 MyWaveModel::roleNames() const
 {
     return {
-        {IdRole, "trackId"},
-        {TitleRole, "title"},
-        {ArtistRole, "artist"},
-        {ArtistIdRole, "artistId"},
-        {AlbumRole, "album"},
-        {CoverUriRole, "coverUri"},
-        {DurationMsRole, "durationMs"}
+        {
+            IdRole,
+            "trackId"
+        },
+        {
+            TitleRole,
+            "title"
+        },
+        {
+            ArtistRole,
+            "artist"
+        },
+        {
+            ArtistIdRole,
+            "artistId"
+        },
+        {
+            AlbumRole,
+            "album"
+        },
+        {
+            CoverUriRole,
+            "coverUri"
+        },
+        {
+            DurationMsRole,
+            "durationMs"
+        }
     };
 }
 
@@ -104,15 +143,68 @@ void MyWaveModel::setTracks(
 {
     beginResetModel();
 
-    m_tracks = tracks;
+    m_tracks =
+        tracks;
 
     endResetModel();
+
+    emit countChanged();
 }
 
 void MyWaveModel::appendTracks(
     const QList<Track> &tracks)
 {
-    if (tracks.isEmpty()) {
+    if (
+        tracks.isEmpty()
+    ) {
+        return;
+    }
+
+    QList<Track> newTracks;
+
+    for (
+        const Track &track :
+        tracks
+    ) {
+
+        if (
+            track.id.isEmpty()
+        ) {
+            continue;
+        }
+
+        bool alreadyExists =
+            false;
+
+        for (
+            const Track &existing :
+            m_tracks
+        ) {
+
+            if (
+                existing.id ==
+                track.id
+            ) {
+
+                alreadyExists =
+                    true;
+
+                break;
+            }
+        }
+
+        if (
+            !alreadyExists
+        ) {
+
+            newTracks.append(
+                track);
+        }
+    }
+
+    if (
+        newTracks.isEmpty()
+    ) {
         return;
     }
 
@@ -120,7 +212,9 @@ void MyWaveModel::appendTracks(
         m_tracks.size();
 
     const int last =
-        first + tracks.size() - 1;
+        first +
+        newTracks.size() -
+        1;
 
     beginInsertRows(
         QModelIndex(),
@@ -128,39 +222,58 @@ void MyWaveModel::appendTracks(
         last);
 
     m_tracks.append(
-        tracks);
+        newTracks);
 
     endInsertRows();
+
+    emit countChanged();
 }
 
 void MyWaveModel::clear()
 {
+    if (
+        m_tracks.isEmpty()
+    ) {
+        return;
+    }
+
     beginResetModel();
 
     m_tracks.clear();
 
     endResetModel();
+
+    emit countChanged();
 }
 
 Track MyWaveModel::trackAt(
     int index) const
 {
-    if (index < 0 ||
-        index >= m_tracks.size()) {
-
+    if (
+        index < 0 ||
+        index >= m_tracks.size()
+    ) {
         return {};
     }
 
-    return m_tracks.at(index);
+    return m_tracks.at(
+        index);
 }
 
 Track MyWaveModel::lastTrack() const
 {
-    if (m_tracks.isEmpty()) {
+    if (
+        m_tracks.isEmpty()
+    ) {
         return {};
     }
 
     return m_tracks.last();
+}
+
+QList<Track> MyWaveModel::tracks() const
+{
+    return m_tracks;
 }
 
 int MyWaveModel::count() const

@@ -33,14 +33,12 @@ Item {
             id: sidebar
 
             width: 205
-
             height: parent.height
 
             currentSection:
                 root.currentSection
 
             onSectionSelected: function(section) {
-
                 root.currentSection =
                     section
 
@@ -51,7 +49,6 @@ Item {
 
         Rectangle {
             width: 1
-
             height: parent.height
 
             color: "#dddddd"
@@ -64,7 +61,7 @@ Item {
                 parent.width -
                 sidebar.width -
                 contextPanel.width -
-                1
+                2
 
             height: parent.height
 
@@ -76,11 +73,8 @@ Item {
                 anchors.fill: parent
 
                 anchors.topMargin: 18
-
                 anchors.leftMargin: 20
-
                 anchors.rightMargin: 20
-
                 anchors.bottomMargin: 158
 
                 clip: true
@@ -97,13 +91,16 @@ Item {
                     width:
                         contentScrollView.availableWidth
 
+                    height:
+                            root.currentSection === "wave"
+                        ? contentScrollView.availableHeight
+                        : Math.max(
+                            implicitHeight,
+                            contentScrollView.availableHeight
+                        )
+
                     implicitHeight:
                         childrenRect.height
-
-                    height:
-                        Math.max(
-                            implicitHeight,
-                            contentScrollView.height)
 
                     clip: false
                 }
@@ -112,7 +109,6 @@ Item {
 
         Rectangle {
             width: 1
-
             height: parent.height
 
             color: "#dddddd"
@@ -122,17 +118,12 @@ Item {
             id: contextPanel
 
             width: 260
-
             height: parent.height
 
-            anchors.top:
-                parent.top
-
-            anchors.bottom:
-                parent.bottom
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
 
             anchors.topMargin: 14
-
             anchors.bottomMargin: 158
 
             contextType:
@@ -140,7 +131,8 @@ Item {
         }
     }
 
-    function contextTypeForSection(section) {
+    function contextTypeForSection(section)
+    {
         switch (section) {
             case "artists":
                 return "artist"

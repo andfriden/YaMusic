@@ -108,6 +108,37 @@ signals:
         const PersonalPlaylist &playlist);
 
 private:
+    /*
+     * Connections
+     */
+
+    void connectMyWave();
+
+    void connectRecommendations();
+
+    void connectRecentlyPlayed();
+
+    void connectPlayback();
+
+    /*
+     * My Wave
+     */
+
+    void handleMyWaveReceived(
+        const QList<Track> &tracks,
+        const QString &batchId);
+
+    void handleMyWavePlaybackFinished();
+
+    void startMyWaveQueue(
+        int index);
+
+    void appendMyWaveTracksToQueue(
+        const QList<Track> &tracks);
+
+    void stopCurrentMyWaveTrack(
+        const QString &event);
+
     void sendMyWaveFeedback(
         const QString &event,
         const QString &trackId,
@@ -144,6 +175,10 @@ private:
     bool m_loadingMoreMyWave = false;
 
     bool m_loadingRecommendations = false;
+
+    bool m_myWaveQueueActive = false;
+
+    bool m_waitingForMoreMyWave = false;
 
     QHash<QString, QString>
         m_myWaveTrackBatches;

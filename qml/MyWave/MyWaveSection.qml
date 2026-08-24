@@ -5,359 +5,735 @@ Item {
     id: root
 
     property var controller
+    property bool compactMode: false
+    property bool hasSelectedTrack: false
+
+    readonly property bool hasTracks:
+        root.controller !== null &&
+        root.controller.myWaveModel.count > 0
+
+    readonly property int margin:
+        compactMode ? 12 : 24
+
+    readonly property int headerHeight:
+        compactMode ? 28 : 40
+
+    readonly property int spacingValue:
+        compactMode ? 10 : 16
+
+    /*
+     * Background
+     */
 
     Rectangle {
         anchors.fill: parent
 
-        radius: 10
+        visible:
+            root.compactMode ||
+            root.hasTracks
+
+        radius:
+            compactMode
+                ? 10
+                : 14
 
         color: "#e9e9e9"
 
         border.width: 1
         border.color: "#d4d4d4"
+    }
 
-        Column {
-            anchors.fill: parent
+    /*
+     * Compact Home
+     */
 
-            anchors.margins: 12
+    Column {
+        id: compactContent
 
-            spacing: 8
+        anchors.fill: parent
 
-            Row {
-                width: parent.width
+        anchors.margins:
+            root.margin
 
-                spacing: 10
+        spacing:
+            root.spacingValue
 
-                Label {
-                    text: "Моя волна"
+        visible:
+            root.compactMode &&
+            root.hasTracks
 
-                    color: "#202020"
+        Row {
+            width: parent.width
+            height: root.headerHeight
 
-                    font.pixelSize: 18
-                    font.bold: true
+            spacing: 10
 
-                    anchors.verticalCenter:
-                        parent.verticalCenter
-                }
+            Label {
+                text: "Моя волна"
 
-                Button {
-                    width: 110
+                color: "#202020"
 
-                    text:
-                        root.controller.loadingMyWave
-                            ? "Загрузка..."
-                            : "Загрузить"
+                font.pixelSize: 18
+                font.bold: true
 
-                    enabled:
-                        !root.controller.loadingMyWave &&
-                        !root.controller.loadingMoreMyWave
-
-                    onClicked: {
-                        root.controller.loadMyWave()
-                    }
-                }
-
-                Label {
-                    text:
-                            root.controller.myWaveModel.count > 0
-                        ? root.controller.myWaveModel.count +
-                        " треков"
-                        : ""
-
-                    color: "#555555"
-
-                    anchors.verticalCenter:
-                        parent.verticalCenter
-                }
+                anchors.verticalCenter:
+                    parent.verticalCenter
             }
 
-            ListView {
-                id: waveView
+            Label {
+                text:
+                    root.controller.myWaveModel.count +
+                    " треков"
 
-                property bool autoLoadArmed: true
+                color: "#777777"
 
-                width: parent.width
+                font.pixelSize: 11
 
-                height: parent.height - 40
+                anchors.verticalCenter:
+                    parent.verticalCenter
+            }
+        }
 
-                model:
-                    root.controller.myWaveModel
+        ListView {
+            id: compactList
 
-                clip: true
+            width: parent.width
 
-                spacing: 6
+            height:
+                parent.height -
+                root.headerHeight -
+                root.spacingValue
 
-                ScrollBar.vertical: ScrollBar {
-                    policy: ScrollBar.AsNeeded
+            model:
+                root.controller.myWaveModel
+
+            clip: true
+
+            spacing: 6
+
+            boundsBehavior:
+                Flickable.StopAtBounds
+
+            ScrollBar.vertical:
+                ScrollBar {
+                    policy:
+                        ScrollBar.AsNeeded
                 }
 
-                onContentYChanged: {
-                    var distanceToBottom =
-                        contentHeight -
-                        (contentY + height)
+            delegate: Rectangle {
+                required property int index
+                required property string title
+                required property string artist
+                required property string coverUri
+                required property int durationMs
 
-                    if (distanceToBottom > 450) {
-                        autoLoadArmed = true
-                    }
+                width:
+                    compactList.width -
+                    (
+                        compactList
+                            .ScrollBar
+                            .vertical
+                            .visible
+                            ? 10
+                            : 0
+                    )
 
-                    if (
-                        autoLoadArmed &&
-                        distanceToBottom <= 300 &&
-                        !root.controller.loadingMyWave &&
-                        !root.controller.loadingMoreMyWave &&
-                        root.controller.myWaveModel.count > 0
-                    ) {
-                        autoLoadArmed = false
+                height: 58
 
-                        root.controller.loadMoreMyWave()
-                    }
+                radius: 8
+
+                color:
+                    mouseArea.containsMouse
+                        ? "#dcdcdc"
+                        : "#f2f2f2"
+
+                border.width: 1
+
+                border.color:
+                    mouseArea.containsMouse
+                        ? "#c4c4c4"
+                        : "#e0e0e0"
+
+                Image {
+                    id: compactCover
+
+                    anchors.left:
+                        parent.left
+
+                    anchors.leftMargin: 7
+
+                    anchors.verticalCenter:
+                        parent.verticalCenter
+
+                    width: 44
+                    height: 44
+
+                    source:
+                            coverUri.length > 0
+                        ? "image://yandex/" +
+                        coverUri
+                        : ""
+
+                    fillMode:
+                        Image.PreserveAspectCrop
+
+                    asynchronous: true
+                    cache: true
                 }
 
-                delegate: Rectangle {
-                    id: resultItem
+                Column {
+                    anchors.left:
+                        compactCover.right
 
-                    width:
-                        waveView.width -
-                        (
-                            waveView
-                                .ScrollBar
-                                .vertical
-                                .visible
-                                ? 10
-                                : 0
-                        )
+                    anchors.leftMargin: 10
 
-                    height: 68
+                    anchors.right:
+                        durationLabel.left
 
-                    radius: 8
+                    anchors.rightMargin: 10
 
-                    color:
-                        rowMouseArea.containsMouse
-                            ? "#dcdcdc"
-                            : "#f2f2f2"
+                    anchors.verticalCenter:
+                        parent.verticalCenter
 
-                    border.width: 1
+                    spacing: 1
 
-                    border.color:
-                        rowMouseArea.containsMouse
-                            ? "#c4c4c4"
-                            : "#e0e0e0"
+                    Label {
+                        width: parent.width
 
-                    // Основной клик по строке — воспроизведение.
-                    MouseArea {
-                        id: rowMouseArea
+                        text:
+                                title.length > 0
+                            ? title
+                            : "Без названия"
 
-                        anchors.fill: parent
+                        color: "#202020"
 
-                        hoverEnabled: true
+                        font.pixelSize: 13
+                        font.bold: true
 
-                        cursorShape:
-                            Qt.PointingHandCursor
-
-                        onClicked: {
-                            root.controller
-                                .selectMyWaveTrack(
-                                index)
-                        }
-                    }
-
-                    Image {
-                        id: cover
-
-                        anchors.left:
-                            parent.left
-
-                        anchors.leftMargin: 8
-
-                        anchors.verticalCenter:
-                            parent.verticalCenter
-
-                        width: 52
-                        height: 52
-
-                        source:
-                            coverUri
-                                ? "image://yandex/" +
-                                coverUri
-                                : ""
-
-                        fillMode:
-                            Image.PreserveAspectCrop
-
-                        asynchronous: true
-                        cache: true
-
-                        Rectangle {
-                            anchors.fill: parent
-
-                            radius: 4
-
-                            color: "#d0d0d0"
-
-                            visible:
-                                cover.status !==
-                                Image.Ready
-
-                            Label {
-                                anchors.centerIn: parent
-
-                                text: "♪"
-
-                                color: "#666666"
-
-                                font.pixelSize: 20
-                            }
-                        }
-                    }
-
-                    Column {
-                        anchors.left:
-                            cover.right
-
-                        anchors.leftMargin: 12
-
-                        anchors.right:
-                            durationLabel.left
-
-                        anchors.rightMargin: 12
-
-                        anchors.verticalCenter:
-                            parent.verticalCenter
-
-                        spacing: 2
-
-                        Label {
-                            width: parent.width
-
-                            text: title
-
-                            color: "#202020"
-
-                            font.pixelSize: 14
-                            font.bold: true
-
-                            elide:
-                                Text.ElideRight
-                        }
-
-                        Label {
-                            id: artistLabel
-
-                            width: parent.width
-
-                            text: artist
-
-                            color:
-                                artistMouseArea.containsMouse
-                                    ? "#202020"
-                                    : "#555555"
-
-                            font.pixelSize: 12
-
-                            elide:
-                                Text.ElideRight
-
-                            MouseArea {
-                                id: artistMouseArea
-
-                                anchors.fill: parent
-
-                                hoverEnabled: true
-
-                                enabled:
-                                    artistId &&
-                                    artistId.length > 0
-
-                                cursorShape:
-                                    Qt.PointingHandCursor
-
-                                onClicked: {
-                                    root.controller
-                                        .loadArtist(
-                                        artistId)
-                                }
-                            }
-                        }
-
-                        Label {
-                            width: parent.width
-
-                            text: album
-
-                            color: "#777777"
-
-                            font.pixelSize: 10
-
-                            elide:
-                                Text.ElideRight
-                        }
+                        elide:
+                            Text.ElideRight
                     }
 
                     Label {
-                        id: durationLabel
+                        width: parent.width
 
-                        anchors.right:
-                            parent.right
-
-                        anchors.rightMargin: 14
-
-                        anchors.verticalCenter:
-                            parent.verticalCenter
-
-                        text:
-                            formatDuration(
-                                durationMs)
+                        text: artist
 
                         color: "#555555"
 
                         font.pixelSize: 11
+
+                        elide:
+                            Text.ElideRight
                     }
                 }
 
                 Label {
-                    anchors.centerIn: parent
+                    id: durationLabel
+
+                    anchors.right:
+                        parent.right
+
+                    anchors.rightMargin: 10
+
+                    anchors.verticalCenter:
+                        parent.verticalCenter
 
                     text:
-                        root.controller.loadingMyWave
-                            ? "Загрузка моей волны..."
-                            : "Моя волна пока пуста"
+                        root.formatDuration(
+                            durationMs)
 
                     color: "#666666"
 
-                    visible:
-                        root.controller.myWaveModel.count === 0
+                    font.pixelSize: 10
                 }
 
-                Rectangle {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
+                MouseArea {
+                    id: mouseArea
 
-                    height: 30
+                    anchors.fill: parent
 
-                    radius: 6
+                    hoverEnabled: true
 
-                    color: "#e0e0e0"
+                    cursorShape:
+                        Qt.PointingHandCursor
 
-                    visible:
-                        root.controller.loadingMoreMyWave
-
-                    Label {
-                        anchors.centerIn: parent
-
-                        text:
-                            "Загрузка следующей части..."
-
-                        color: "#555555"
-
-                        font.pixelSize: 11
+                    onClicked: {
+                        root.controller
+                            .selectMyWaveTrack(
+                            index)
                     }
                 }
             }
         }
     }
 
-    function formatDuration(milliseconds)
+    /*
+     * Full My Wave
+     */
+
+    Column {
+        id: fullContent
+
+        anchors.fill: parent
+
+        anchors.margins:
+            root.margin
+
+        spacing: 16
+
+        visible:
+            !root.compactMode &&
+            root.hasTracks
+
+        /*
+         * Header
+         */
+
+        Row {
+            id: fullHeader
+
+            width: parent.width
+
+            height: root.headerHeight
+
+            spacing: 12
+
+            Label {
+                text: "Моя волна"
+
+                color: "#202020"
+
+                font.pixelSize: 30
+                font.bold: true
+
+                anchors.verticalCenter:
+                    parent.verticalCenter
+            }
+
+            Label {
+                text:
+                    root.controller.myWaveModel.count +
+                    " треков"
+
+                color: "#777777"
+
+                font.pixelSize: 13
+
+                anchors.verticalCenter:
+                    parent.verticalCenter
+            }
+        }
+
+        /*
+         * Current track
+         *
+         * Appears only after the user
+         * selects a track.
+         */
+
+        Rectangle {
+            id: nowPlayingCard
+
+            width: parent.width
+
+            height: 210
+
+            radius: 14
+
+            color: "#f1f1f1"
+
+            border.width: 1
+            border.color: "#d8d8d8"
+
+            visible:
+                root.hasSelectedTrack
+
+            Row {
+                anchors.fill: parent
+
+                anchors.margins: 18
+
+                spacing: 18
+
+                Image {
+                    id: currentCover
+
+                    width: 174
+                    height: 174
+
+                    source:
+                            root.controller.currentTrackCoverUri.length > 0
+                        ? "image://yandex/" +
+                        root.controller.currentTrackCoverUri
+                        : ""
+
+                    fillMode:
+                        Image.PreserveAspectCrop
+
+                    asynchronous: true
+                    cache: true
+
+                    Rectangle {
+                        anchors.fill:
+                            parent
+
+                        radius: 10
+
+                        color: "#d0d0d0"
+
+                        visible:
+                            currentCover.status !==
+                            Image.Ready
+
+                        Label {
+                            anchors.centerIn:
+                                parent
+
+                            text: "♪"
+
+                            color: "#666666"
+
+                            font.pixelSize: 40
+                        }
+                    }
+                }
+
+                Column {
+                    width:
+                        parent.width -
+                        currentCover.width -
+                        18
+
+                    anchors.verticalCenter:
+                        parent.verticalCenter
+
+                    spacing: 8
+
+                    Label {
+                        text: "Сейчас играет"
+
+                        color: "#888888"
+
+                        font.pixelSize: 12
+                    }
+
+                    Label {
+                        width: parent.width
+
+                        text:
+                            root.controller.currentTrackTitle
+
+                        color: "#202020"
+
+                        font.pixelSize: 24
+
+                        font.bold: true
+
+                        elide:
+                            Text.ElideRight
+                    }
+
+                    Label {
+                        width: parent.width
+
+                        text:
+                            root.controller.currentTrackArtist
+
+                        color: "#555555"
+
+                        font.pixelSize: 16
+
+                        elide:
+                            Text.ElideRight
+                    }
+
+                    Label {
+                        visible:
+                            root.controller.duration > 0
+
+                        text:
+                            root.formatDuration(
+                                root.controller.duration)
+
+                        color: "#888888"
+
+                        font.pixelSize: 12
+                    }
+                }
+            }
+        }
+
+        /*
+         * Track list
+         */
+
+        Label {
+            id: nextTitle
+
+            text:
+                root.hasSelectedTrack
+                    ? "Далее"
+                    : "Треки"
+
+            color: "#202020"
+
+            font.pixelSize: 20
+
+            font.bold: true
+
+            height: 26
+        }
+
+        ListView {
+            id: fullList
+
+            width: parent.width
+
+            height:
+                Math.max(
+                    0,
+                    parent.height -
+                    fullHeader.height -
+                    (
+                        root.hasSelectedTrack
+                            ? nowPlayingCard.height
+                            : 0
+                    ) -
+                    nextTitle.height -
+                    (
+                        fullContent.spacing * 3
+                    )
+                )
+
+            model:
+                root.controller.myWaveModel
+
+            clip: true
+
+            spacing: 6
+
+            boundsBehavior:
+                Flickable.StopAtBounds
+
+            ScrollBar.vertical:
+                ScrollBar {
+                    policy:
+                        ScrollBar.AsNeeded
+                }
+
+            delegate: Rectangle {
+                required property int index
+                required property string trackId
+                required property string title
+                required property string artist
+                required property string album
+                required property string coverUri
+                required property int durationMs
+
+                width:
+                    fullList.width -
+                    (
+                        fullList
+                            .ScrollBar
+                            .vertical
+                            .visible
+                            ? 10
+                            : 0
+                    )
+
+                height: 68
+
+                radius: 9
+
+                color:
+                        root.hasSelectedTrack &&
+                    root.isCurrentTrack(
+                        title,
+                        artist)
+                    ? "#d9d9d9"
+                    : (
+                        fullMouseArea.containsMouse
+                            ? "#e1e1e1"
+                            : "#f2f2f2"
+                    )
+
+                border.width: 1
+
+                border.color:
+                        root.hasSelectedTrack &&
+                    root.isCurrentTrack(
+                        title,
+                        artist)
+                    ? "#bdbdbd"
+                    : "#e0e0e0"
+
+                Image {
+                    id: trackCover
+
+                    anchors.left:
+                        parent.left
+
+                    anchors.leftMargin: 9
+
+                    anchors.verticalCenter:
+                        parent.verticalCenter
+
+                    width: 52
+                    height: 52
+
+                    source:
+                            coverUri.length > 0
+                        ? "image://yandex/" +
+                        coverUri
+                        : ""
+
+                    fillMode:
+                        Image.PreserveAspectCrop
+
+                    asynchronous: true
+
+                    cache: true
+
+                    Rectangle {
+                        anchors.fill:
+                            parent
+
+                        radius: 6
+
+                        color: "#d0d0d0"
+
+                        visible:
+                            trackCover.status !==
+                            Image.Ready
+                    }
+                }
+
+                Column {
+                    anchors.left:
+                        trackCover.right
+
+                    anchors.leftMargin: 14
+
+                    anchors.right:
+                        durationText.left
+
+                    anchors.rightMargin: 14
+
+                    anchors.verticalCenter:
+                        parent.verticalCenter
+
+                    spacing: 2
+
+                    Label {
+                        width: parent.width
+
+                        text:
+                                title.length > 0
+                            ? title
+                            : "Без названия"
+
+                        color: "#202020"
+
+                        font.pixelSize: 14
+
+                        font.bold: true
+
+                        elide:
+                            Text.ElideRight
+                    }
+
+                    Label {
+                        width: parent.width
+
+                        text: artist
+
+                        color: "#555555"
+
+                        font.pixelSize: 12
+
+                        elide:
+                            Text.ElideRight
+                    }
+
+                    Label {
+                        visible:
+                            album.length > 0
+
+                        width: parent.width
+
+                        text: album
+
+                        color: "#888888"
+
+                        font.pixelSize: 10
+
+                        elide:
+                            Text.ElideRight
+                    }
+                }
+
+                Label {
+                    id: durationText
+
+                    anchors.right:
+                        parent.right
+
+                    anchors.rightMargin: 14
+
+                    anchors.verticalCenter:
+                        parent.verticalCenter
+
+                    text:
+                        root.formatDuration(
+                            durationMs)
+
+                    color: "#666666"
+
+                    font.pixelSize: 11
+                }
+
+                MouseArea {
+                    id: fullMouseArea
+
+                    anchors.fill:
+                        parent
+
+                    hoverEnabled: true
+
+                    cursorShape:
+                        Qt.PointingHandCursor
+
+                    onClicked: {
+                        root.hasSelectedTrack = true
+
+                        root.controller
+                            .selectMyWaveTrack(
+                            index)
+                    }
+                }
+            }
+        }
+    }
+
+    function isCurrentTrack(
+        title,
+        artist)
+    {
+        if (
+            root.controller === null
+        ) {
+            return false
+        }
+
+        return (
+            root.controller.currentTrackTitle === title &&
+            root.controller.currentTrackArtist === artist
+        )
+    }
+
+    function formatDuration(
+        milliseconds)
     {
         if (
             !milliseconds ||
@@ -386,4 +762,4 @@ Item {
             ) +
             seconds
     }
-} 
+}

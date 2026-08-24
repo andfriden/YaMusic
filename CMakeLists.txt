@@ -115,6 +115,10 @@ qt_add_executable(appYaMusic
         src/Core/SearchController.h
         src/Yandex/Personal/RecentListeningService.cpp
         src/Yandex/Personal/RecentListeningService.h
+        src/Core/PersonalController+MyWave.cpp
+        src/Core/PersonalController+Recommendations.cpp
+        src/Core/PersonalController+RecentlyPlayed.cpp
+        src/Core/PersonalController+Playback.cpp
 
 
 )

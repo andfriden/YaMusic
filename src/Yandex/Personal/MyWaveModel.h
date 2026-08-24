@@ -13,6 +13,11 @@ class MyWaveModel : public QAbstractListModel
 {
     Q_OBJECT
 
+    Q_PROPERTY(
+        int count
+        READ count
+        NOTIFY countChanged)
+
 public:
     enum Roles {
         IdRole = Qt::UserRole + 1,
@@ -52,7 +57,12 @@ public:
 
     Track lastTrack() const;
 
+    QList<Track> tracks() const;
+
     int count() const;
+
+    signals:
+        void countChanged();
 
 private:
     QList<Track> m_tracks;
