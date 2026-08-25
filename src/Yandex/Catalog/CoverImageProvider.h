@@ -1,11 +1,12 @@
 #pragma once
 
+#include <QImage>
 #include <QQuickAsyncImageProvider>
 #include <QQuickImageResponse>
 #include <QQuickTextureFactory>
-#include <QImage>
+#include <QSize>
+#include <QString>
 
-// Loads Yandex Music artwork asynchronously for QML.
 class CoverImageResponse : public QQuickImageResponse
 {
     Q_OBJECT
@@ -13,30 +14,46 @@ class CoverImageResponse : public QQuickImageResponse
 public:
     explicit CoverImageResponse(
         const QString &url,
-        const QSize &requestedSize);
+        const QSize &requestedSize,
+        bool circular);
 
-    QQuickTextureFactory *textureFactory() const override;
+    QQuickTextureFactory *
+    textureFactory() const override;
 
     void cancel() override;
 
 private:
     void load();
 
+    QImage makeCircular(
+        const QImage &image) const;
+
     QString m_url;
     QSize m_requestedSize;
+    bool m_circular = false;
+
     QImage m_image;
 };
 
-// Provides asynchronous Yandex Music artwork to QML.
-class CoverImageProvider : public QQuickAsyncImageProvider
+
+class CoverImageProvider :
+    public QQuickAsyncImageProvider
 {
 public:
     explicit CoverImageProvider();
 
-    QQuickImageResponse *requestImageResponse(
+    QQuickImageResponse *
+    requestImageResponse(
         const QString &id,
         const QSize &requestedSize) override;
 
 private:
-    QString createUrl(const QString &uri) const;
+    QString createUrl(
+        QString uri) const;
+
+    bool isCircularRequest(
+        const QString &id) const;
+
+    QString stripRequestPrefix(
+        QString id) const;
 };

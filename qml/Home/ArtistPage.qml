@@ -8,177 +8,347 @@ Item {
     property int selectedTrackIndex: -1
 
     readonly property var artistController:
-            controller !== null
+            controller !== null &&
+        controller.artistController !== undefined
         ? controller.artistController
         : null
 
     readonly property bool loaded:
         artistController !== null &&
-        artistController.artistName.length > 0
+        artistController.artistName !== undefined &&
+        String(artistController.artistName).length > 0
 
     implicitHeight:
         pageColumn.implicitHeight + 48
 
     Rectangle {
         anchors.fill: parent
-        color: "#f5f5f5"
+
+        color:
+            "#f5f5f5"
     }
 
     Column {
         id: pageColumn
 
-        width: parent.width
+        width:
+            parent.width
 
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
+        anchors.top:
+            parent.top
 
-        anchors.topMargin: 24
-        anchors.leftMargin: 28
-        anchors.rightMargin: 28
+        anchors.left:
+            parent.left
 
-        spacing: 28
+        anchors.right:
+            parent.right
+
+        anchors.topMargin:
+            24
+
+        anchors.leftMargin:
+            28
+
+        anchors.rightMargin:
+            28
+
+        spacing:
+            28
+
+        // =========================================================
+        // Artist header
+        // =========================================================
 
         Row {
-            width: parent.width
-            height: 220
+            width:
+                parent.width
 
-            spacing: 24
+            height:
+                220
 
-            Image {
-                id: artistCover
+            spacing:
+                24
 
-                width: 220
-                height: 220
+            // =====================================================
+            // Artist artwork
+            // =====================================================
 
-                source:
-                        root.loaded &&
-                    root.artistController.artistCoverUri.length > 0
-                    ? "image://yandex/" +
-                    root.artistController.artistCoverUri
-                    : ""
+            Item {
+                id: artistArtwork
 
-                fillMode: Image.PreserveAspectCrop
+                width:
+                    220
 
-                asynchronous: true
-                cache: true
+                height:
+                    220
 
                 Rectangle {
-                    anchors.fill: parent
+                    anchors.fill:
+                        parent
 
-                    radius: 14
-                    color: "#dddddd"
+                    radius:
+                        width / 2
+
+                    color:
+                        "#d3d3d3"
+                }
+
+                Image {
+                    id: artistCover
+
+                    anchors.fill:
+                        parent
+
+                    source:
+                            root.artistController !== null &&
+                        root.artistController.artistCoverUri !== undefined &&
+                        String(
+                            root.artistController.artistCoverUri
+                        ).length > 0
+                        ? "image://yandex/circle/" +
+                        String(
+                            root.artistController.artistCoverUri
+                        )
+                        : ""
+
+                    sourceSize:
+                        Qt.size(
+                            220,
+                            220
+                        )
+
+                    fillMode:
+                        Image.PreserveAspectFit
+
+                    asynchronous:
+                        true
+
+                    cache:
+                        false
+
+                    onStatusChanged: {
+                        console.log(
+                            "ArtistPage artwork:",
+                            status,
+                            "source:",
+                            source
+                        )
+                    }
+                }
+
+                Label {
+                    anchors.centerIn:
+                        parent
 
                     visible:
                         artistCover.status !== Image.Ready
 
-                    Label {
-                        anchors.centerIn: parent
+                    text:
+                            artistCover.status === Image.Error
+                        ? "!"
+                        : "♪"
 
-                        text: "♪"
+                    color:
+                        "#777777"
 
-                        color: "#888888"
-
-                        font.pixelSize: 48
-                    }
+                    font.pixelSize:
+                        48
                 }
             }
+
+            // =====================================================
+            // Artist information
+            // =====================================================
 
             Column {
                 width:
                     parent.width -
-                    artistCover.width -
+                    artistArtwork.width -
                     parent.spacing
 
                 anchors.verticalCenter:
                     parent.verticalCenter
 
-                spacing: 10
+                spacing:
+                    10
 
                 Label {
-                    text: qsTr("Исполнитель")
+                    text:
+                        qsTr("Исполнитель")
 
-                    color: "#888888"
-                    font.pixelSize: 13
+                    color:
+                        "#888888"
+
+                    font.pixelSize:
+                        13
                 }
 
                 Label {
-                    width: parent.width
+                    width:
+                        parent.width
 
                     text:
                         root.loaded
-                            ? root.artistController.artistName
+                            ? String(
+                                root.artistController.artistName
+                            )
                             : ""
 
-                    color: "#202020"
+                    color:
+                        "#202020"
 
-                    font.pixelSize: 34
-                    font.bold: true
+                    font.pixelSize:
+                        34
 
-                    elide: Text.ElideRight
+                    font.bold:
+                        true
+
+                    elide:
+                        Text.ElideRight
                 }
 
                 Label {
+                    width:
+                        parent.width
+
                     visible:
                         root.loaded &&
-                        root.artistController.artistGenres.length > 0
-
-                    width: parent.width
+                        root.artistController.artistGenres !== undefined &&
+                        String(
+                            root.artistController.artistGenres
+                        ).length > 0
 
                     text:
-                        root.artistController.artistGenres
+                        root.loaded
+                            ? String(
+                                root.artistController.artistGenres
+                            )
+                            : ""
 
-                    color: "#666666"
-                    font.pixelSize: 13
+                    color:
+                        "#666666"
 
-                    wrapMode: Text.WordWrap
+                    font.pixelSize:
+                        13
+
+                    wrapMode:
+                        Text.WordWrap
+
+                    maximumLineCount:
+                        2
+
+                    elide:
+                        Text.ElideRight
                 }
 
                 Label {
+                    width:
+                        parent.width
+
                     visible:
                         root.loaded &&
-                        root.artistController.artistDescription.length > 0
+                        root.artistController.artistDescription !== undefined &&
+                        String(
+                            root.artistController.artistDescription
+                        ).length > 0
 
-                    width: parent.width
-                    height: 64
+                    height:
+                        54
 
                     text:
-                        root.artistController.artistDescription
+                        root.loaded
+                            ? String(
+                                root.artistController.artistDescription
+                            )
+                            : ""
 
-                    color: "#555555"
-                    font.pixelSize: 13
+                    color:
+                        "#555555"
 
-                    wrapMode: Text.WordWrap
-                    elide: Text.ElideRight
+                    font.pixelSize:
+                        13
+
+                    wrapMode:
+                        Text.WordWrap
+
+                    maximumLineCount:
+                        3
+
+                    elide:
+                        Text.ElideRight
+                }
+
+                Button {
+                    width:
+                        130
+
+                    height:
+                        36
+
+                    text:
+                        qsTr("▶  Слушать")
+
+                    enabled:
+                        root.loaded
+
+                    onClicked: {
+                        if (
+                            root.artistController === null
+                        ) {
+                            return
+                        }
+
+                        root.selectedTrackIndex =
+                            0
+
+                        root.artistController
+                            .playArtist()
+                    }
                 }
             }
         }
 
-        Row {
-            width: parent.width
-            height: 360
+        // =========================================================
+        // Popular tracks + latest release
+        // =========================================================
 
-            spacing: 24
+        Row {
+            width:
+                parent.width
+
+            spacing:
+                24
+
+            // =====================================================
+            // Popular tracks
+            // =====================================================
 
             Column {
-                width: parent.width * 0.62
-                height: parent.height
+                width:
+                    parent.width * 0.62
 
-                spacing: 12
+                spacing:
+                    12
 
                 Label {
-                    text: qsTr("Популярные треки")
+                    text:
+                        qsTr("Популярные треки")
 
-                    color: "#202020"
+                    color:
+                        "#202020"
 
-                    font.pixelSize: 22
-                    font.bold: true
+                    font.pixelSize:
+                        22
+
+                    font.bold:
+                        true
                 }
 
                 ListView {
                     id: tracksView
 
-                    width: parent.width
+                    width:
+                        parent.width
 
                     height:
                         5 * 64 +
@@ -189,9 +359,11 @@ Item {
                         ? root.artistController.artistModel
                         : null
 
-                    clip: true
+                    clip:
+                        true
 
-                    spacing: 6
+                    spacing:
+                        6
 
                     boundsBehavior:
                         Flickable.StopAtBounds
@@ -214,51 +386,60 @@ Item {
                         required property string coverUri
                         required property int durationMs
 
-                        width: tracksView.width
-                        height: 64
+                        width:
+                            tracksView.width
 
-                        radius: 9
+                        height:
+                            64
+
+                        radius:
+                            9
 
                         color:
                                 root.selectedTrackIndex === index
                             ? "#d6d6d6"
-                            : (
-                                mouseArea.containsMouse
-                                    ? "#e2e2e2"
-                                    : "#eeeeee"
-                            )
+                            : mouseArea.containsMouse
+                                ? "#e2e2e2"
+                                : "#eeeeee"
 
-                        border.width: 1
+                        border.width:
+                            1
 
                         border.color:
                                 root.selectedTrackIndex === index
                             ? "#b8b8b8"
-                            : (
-                                mouseArea.containsMouse
-                                    ? "#c9c9c9"
-                                    : "#dddddd"
-                            )
+                            : mouseArea.containsMouse
+                                ? "#c9c9c9"
+                                : "#dddddd"
 
                         Label {
-                            anchors.left: parent.left
-                            anchors.leftMargin: 12
+                            anchors.left:
+                                parent.left
+
+                            anchors.leftMargin:
+                                12
 
                             anchors.verticalCenter:
                                 parent.verticalCenter
 
-                            width: 24
+                            width:
+                                24
 
                             text:
                                 (index + 1)
                                     .toString()
-                                    .padStart(2, "0")
+                                    .padStart(
+                                    2,
+                                    "0"
+                                )
 
                             color:
                                     root.selectedTrackIndex === index
                                 ? "#202020"
                                 : "#999999"
 
-                            font.pixelSize: 11
+                            font.pixelSize:
+                                11
 
                             font.bold:
                                 root.selectedTrackIndex === index
@@ -267,14 +448,26 @@ Item {
                         Image {
                             id: trackCover
 
-                            anchors.left: parent.left
-                            anchors.leftMargin: 42
+                            anchors.left:
+                                parent.left
+
+                            anchors.leftMargin:
+                                42
 
                             anchors.verticalCenter:
                                 parent.verticalCenter
 
-                            width: 50
-                            height: 50
+                            width:
+                                50
+
+                            height:
+                                50
+
+                            sourceSize:
+                                Qt.size(
+                                    50,
+                                    50
+                                )
 
                             source:
                                     coverUri.length > 0
@@ -282,90 +475,132 @@ Item {
                                 coverUri
                                 : ""
 
-                            fillMode: Image.PreserveAspectCrop
+                            fillMode:
+                                Image.PreserveAspectCrop
 
-                            asynchronous: true
-                            cache: true
+                            asynchronous:
+                                true
+
+                            cache:
+                                true
 
                             Rectangle {
-                                anchors.fill: parent
+                                anchors.fill:
+                                    parent
 
-                                radius: 6
-                                color: "#d0d0d0"
+                                radius:
+                                    6
+
+                                color:
+                                    "#d0d0d0"
 
                                 visible:
-                                    trackCover.status !== Image.Ready
+                                    trackCover.status !==
+                                    Image.Ready
 
                                 Label {
-                                    anchors.centerIn: parent
+                                    anchors.centerIn:
+                                        parent
 
-                                    text: "♪"
-                                    color: "#777777"
-                                    font.pixelSize: 18
+                                    text:
+                                        "♪"
+
+                                    color:
+                                        "#777777"
+
+                                    font.pixelSize:
+                                        18
                                 }
                             }
                         }
 
                         Column {
-                            anchors.left: trackCover.right
-                            anchors.leftMargin: 12
+                            anchors.left:
+                                trackCover.right
 
-                            anchors.right: durationLabel.left
-                            anchors.rightMargin: 12
+                            anchors.leftMargin:
+                                12
+
+                            anchors.right:
+                                durationLabel.left
+
+                            anchors.rightMargin:
+                                12
 
                             anchors.verticalCenter:
                                 parent.verticalCenter
 
-                            spacing: 2
+                            spacing:
+                                2
 
                             Label {
-                                width: parent.width
+                                width:
+                                    parent.width
 
                                 text:
                                         title.length > 0
                                     ? title
                                     : qsTr("Без названия")
 
-                                color: "#202020"
+                                color:
+                                    "#202020"
 
-                                font.pixelSize: 14
-                                font.bold: true
+                                font.pixelSize:
+                                    14
 
-                                elide: Text.ElideRight
+                                font.bold:
+                                    true
+
+                                elide:
+                                    Text.ElideRight
                             }
 
                             Label {
-                                width: parent.width
+                                width:
+                                    parent.width
 
-                                text: artist
+                                text:
+                                    artist
 
-                                color: "#555555"
+                                color:
+                                    "#555555"
 
-                                font.pixelSize: 12
+                                font.pixelSize:
+                                    12
 
-                                elide: Text.ElideRight
+                                elide:
+                                    Text.ElideRight
                             }
 
                             Label {
-                                visible: album.length > 0
+                                visible:
+                                    album.length > 0
 
-                                width: parent.width
+                                width:
+                                    parent.width
 
-                                text: album
+                                text:
+                                    album
 
-                                color: "#888888"
+                                color:
+                                    "#888888"
 
-                                font.pixelSize: 10
+                                font.pixelSize:
+                                    10
 
-                                elide: Text.ElideRight
+                                elide:
+                                    Text.ElideRight
                             }
                         }
 
                         Label {
                             id: durationLabel
 
-                            anchors.right: parent.right
-                            anchors.rightMargin: 14
+                            anchors.right:
+                                parent.right
+
+                            anchors.rightMargin:
+                                14
 
                             anchors.verticalCenter:
                                 parent.verticalCenter
@@ -375,17 +610,24 @@ Item {
                                     durationMs
                                 )
 
-                            color: "#666666"
-                            font.pixelSize: 11
+                            color:
+                                "#666666"
+
+                            font.pixelSize:
+                                11
                         }
 
                         MouseArea {
                             id: mouseArea
 
-                            anchors.fill: parent
+                            anchors.fill:
+                                parent
 
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
+                            hoverEnabled:
+                                true
+
+                            cursorShape:
+                                Qt.PointingHandCursor
 
                             onClicked: {
                                 if (
@@ -397,49 +639,100 @@ Item {
                                 root.selectedTrackIndex =
                                     index
 
-                                root.artistController.selectTrack(
+                                root.artistController
+                                    .selectTrack(
                                     index
                                 )
                             }
                         }
                     }
+
+                    Label {
+                        anchors.centerIn:
+                            parent
+
+                        visible:
+                            root.artistController === null ||
+                            root.artistController.artistModel === undefined ||
+                            (
+                                root.artistController.artistModel.count === 0 &&
+                                !root.artistController.loading
+                            )
+
+                        text:
+                                root.artistController !== null &&
+                            root.artistController.loading
+                            ? qsTr("Загрузка треков...")
+                            : qsTr("Нет треков")
+
+                        color:
+                            "#777777"
+
+                        font.pixelSize:
+                            13
+                    }
                 }
             }
 
+            // =====================================================
+            // Latest release
+            // =====================================================
+
             Rectangle {
-                width: parent.width * 0.38
-                height: parent.height
+                width:
+                    parent.width * 0.38
 
-                radius: 12
+                height:
+                    360
 
-                color: "#eeeeee"
+                radius:
+                    12
 
-                border.width: 1
-                border.color: "#dddddd"
+                color:
+                    "#eeeeee"
+
+                border.width:
+                    1
+
+                border.color:
+                    "#dddddd"
 
                 visible:
                     root.artistController !== null &&
-                    root.artistController.newReleaseTitle.length > 0
+                    root.artistController.newReleaseTitle !== undefined &&
+                    String(
+                        root.artistController.newReleaseTitle
+                    ).length > 0
 
                 Column {
-                    anchors.fill: parent
-                    anchors.margins: 18
+                    anchors.fill:
+                        parent
 
-                    spacing: 12
+                    anchors.margins:
+                        18
+
+                    spacing:
+                        12
 
                     Label {
-                        text: qsTr("Последний релиз")
+                        text:
+                            qsTr("Последний релиз")
 
-                        color: "#202020"
+                        color:
+                            "#202020"
 
-                        font.pixelSize: 22
-                        font.bold: true
+                        font.pixelSize:
+                            22
+
+                        font.bold:
+                            true
                     }
 
                     Image {
                         id: releaseCover
 
-                        width: parent.width
+                        width:
+                            parent.width
 
                         height:
                             Math.min(
@@ -449,41 +742,70 @@ Item {
 
                         source:
                                 root.artistController !== null &&
-                            root.artistController.newReleaseCoverUri.length > 0
+                            root.artistController.newReleaseCoverUri !== undefined &&
+                            String(
+                                root.artistController.newReleaseCoverUri
+                            ).length > 0
                             ? "image://yandex/" +
-                            root.artistController.newReleaseCoverUri
+                            String(
+                                root.artistController.newReleaseCoverUri
+                            )
                             : ""
 
-                        fillMode: Image.PreserveAspectCrop
+                        sourceSize:
+                            Qt.size(
+                                220,
+                                220
+                            )
 
-                        asynchronous: true
-                        cache: true
+                        fillMode:
+                            Image.PreserveAspectCrop
+
+                        asynchronous:
+                            true
+
+                        cache:
+                            true
 
                         Rectangle {
-                            anchors.fill: parent
+                            anchors.fill:
+                                parent
 
-                            radius: 10
-                            color: "#d0d0d0"
+                            radius:
+                                10
+
+                            color:
+                                "#d0d0d0"
 
                             visible:
-                                releaseCover.status !== Image.Ready
+                                releaseCover.status !==
+                                Image.Ready
                         }
                     }
 
                     Label {
-                        width: parent.width
+                        width:
+                            parent.width
 
                         text:
-                                root.artistController !== null
-                            ? root.artistController.newReleaseTitle
+                                root.artistController !== null &&
+                            root.artistController.newReleaseTitle !== undefined
+                            ? String(
+                                root.artistController.newReleaseTitle
+                            )
                             : ""
 
-                        color: "#202020"
+                        color:
+                            "#202020"
 
-                        font.pixelSize: 18
-                        font.bold: true
+                        font.pixelSize:
+                            18
 
-                        elide: Text.ElideRight
+                        font.bold:
+                            true
+
+                        elide:
+                            Text.ElideRight
                     }
 
                     Label {
@@ -493,33 +815,110 @@ Item {
 
                         text:
                                 root.artistController !== null
-                            ? root.artistController.newReleaseYear
+                            ? String(
+                                root.artistController.newReleaseYear
+                            )
                             : ""
 
-                        color: "#777777"
-                        font.pixelSize: 12
+                        color:
+                            "#777777"
+
+                        font.pixelSize:
+                            12
+                    }
+
+                    Label {
+                        text:
+                            qsTr("▶  Слушать релиз")
+
+                        color:
+                            releaseMouseArea.containsMouse
+                                ? "#2468d7"
+                                : "#555555"
+
+                        font.pixelSize:
+                            12
+
+                        font.bold:
+                            true
+                    }
+                }
+
+                MouseArea {
+                    id: releaseMouseArea
+
+                    anchors.fill:
+                        parent
+
+                    hoverEnabled:
+                        true
+
+                    cursorShape:
+                        Qt.PointingHandCursor
+
+                    onClicked: {
+                        if (
+                            root.controller === null ||
+                            root.artistController === null
+                        ) {
+                            return
+                        }
+
+                        const releaseId =
+                            String(
+                                root.artistController.newReleaseId
+                            )
+
+                        if (
+                            releaseId.length === 0
+                        ) {
+                            return
+                        }
+
+                        if (
+                            root.controller.playAlbum !== undefined
+                        ) {
+                            root.controller
+                                .playAlbum(
+                                releaseId
+                            )
+                        }
                     }
                 }
             }
         }
 
-        ArtistAlbumsSection {
-            width: parent.width
-            height: implicitHeight
+        // =========================================================
+        // Popular albums
+        // =========================================================
 
-            controller: root.controller
+        ArtistAlbumsSection {
+            width:
+                parent.width
+
+            controller:
+                root.controller
         }
 
         Item {
-            width: 1
-            height: 24
+            width:
+                1
+
+            height:
+                24
         }
     }
 
-    Column {
-        anchors.centerIn: parent
+    // =============================================================
+    // Loading
+    // =============================================================
 
-        spacing: 10
+    Column {
+        anchors.centerIn:
+            parent
+
+        spacing:
+            10
 
         visible:
             root.artistController !== null &&
@@ -527,53 +926,87 @@ Item {
             !root.loaded
 
         BusyIndicator {
-            width: 30
-            height: 30
+            width:
+                30
+
+            height:
+                30
 
             anchors.horizontalCenter:
                 parent.horizontalCenter
 
-            running: true
+            running:
+                true
         }
 
         Label {
-            text: qsTr("Загрузка исполнителя...")
+            text:
+                qsTr("Загрузка исполнителя...")
 
-            color: "#666666"
-            font.pixelSize: 13
+            color:
+                "#666666"
+
+            font.pixelSize:
+                13
         }
     }
 
+    // =============================================================
+    // Empty
+    // =============================================================
+
     Label {
-        anchors.centerIn: parent
+        anchors.centerIn:
+            parent
 
         visible:
             root.artistController !== null &&
             !root.artistController.loading &&
             !root.loaded
 
-        text: qsTr("Выберите исполнителя")
+        text:
+            qsTr("Выберите исполнителя")
 
-        color: "#999999"
-        font.pixelSize: 14
+        color:
+            "#999999"
+
+        font.pixelSize:
+            14
     }
 
+    // =============================================================
+    // Duration formatter
+    // =============================================================
+
     function formatDuration(milliseconds) {
-        if (!milliseconds || milliseconds <= 0)
+
+        if (
+            !milliseconds ||
+            milliseconds <= 0
+        ) {
             return "0:00"
+        }
 
         var totalSeconds =
-            Math.floor(milliseconds / 1000)
+            Math.floor(
+                milliseconds / 1000
+            )
 
         var minutes =
-            Math.floor(totalSeconds / 60)
+            Math.floor(
+                totalSeconds / 60
+            )
 
         var seconds =
             totalSeconds % 60
 
         return minutes +
             ":" +
-            (seconds < 10 ? "0" : "") +
+            (
+                    seconds < 10
+                    ? "0"
+                    : ""
+            ) +
             seconds
     }
 }

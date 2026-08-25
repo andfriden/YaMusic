@@ -9,42 +9,18 @@
 struct ArtistDetails
 {
     QString id;
-
     QString name;
-
     QString coverUri;
-
     QString description;
 
     QList<QString> genres;
 
-    /*
-     * Уже используем для блока
-     * популярных композиций.
-     */
     QList<Track> tracks;
 
-    /*
-     * Популярные альбомы.
-     *
-     * Получаются через:
-     * /artists/{id}/direct-albums
-     * sort-by=rating
-     */
     QList<Album> popularAlbums;
 
-    /*
-     * Самый свежий релиз.
-     *
-     * Получается через:
-     * /artists/{id}/direct-albums
-     * sort-by=year
-     */
     Album newRelease;
 
-    /*
-     * Похожие исполнители.
-     */
     QList<Artist> similarArtists;
 };
 
@@ -71,15 +47,6 @@ public:
         const QString &message);
 
 private:
-    void loadArtistTracks(
-        const ArtistDetails &artist);
-
-    void loadArtistAlbums(
-        const ArtistDetails &artist);
-
-    void loadArtistSimilar(
-        const ArtistDetails &artist);
-
     YandexAuth *m_auth = nullptr;
 
     YandexClient *m_yandexClient = nullptr;

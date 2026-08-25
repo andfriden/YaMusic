@@ -25,7 +25,12 @@ QVariant AlbumModel::data(
     int role) const
 {
     if (
-        !index.isValid() ||
+        !index.isValid()
+    ) {
+        return {};
+    }
+
+    if (
         index.row() < 0 ||
         index.row() >= m_tracks.size()
     ) {
@@ -52,11 +57,9 @@ QVariant AlbumModel::data(
             const Artist &artist :
             track.artists
         ) {
-
             if (
                 !artist.name.isEmpty()
             ) {
-
                 names.append(
                     artist.name);
             }
@@ -71,7 +74,6 @@ QVariant AlbumModel::data(
         if (
             !track.artists.isEmpty()
         ) {
-
             return track.artists
                 .first()
                 .id;
@@ -138,8 +140,8 @@ Track AlbumModel::trackAt(
         return {};
     }
 
-    return m_tracks.at(
-        index);
+    return m_tracks
+        .at(index);
 }
 
 QList<Track>
@@ -165,5 +167,11 @@ QString AlbumModel::coverUri() const
 
 int AlbumModel::trackCount() const
 {
-    return m_album.trackCount;
+    if (
+        m_album.trackCount > 0
+    ) {
+        return m_album.trackCount;
+    }
+
+    return m_tracks.size();
 }

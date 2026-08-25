@@ -25,6 +25,10 @@ ArtistController::ArtistController(
     if (
         m_artistService == nullptr
     ) {
+        qDebug()
+            << "ArtistController:"
+            << "ArtistService is null";
+
         return;
     }
 
@@ -43,8 +47,54 @@ ArtistController::ArtistController(
             m_artistName =
                 artist.name;
 
+            /*
+             * ArtistService may return an empty
+             * artist.coverUri.
+             *
+             * Use the strongest available fallback:
+             *
+             * 1. artist.coverUri
+             * 2. first track cover
+             * 3. first popular album cover
+             */
             m_artistCoverUri =
                 artist.coverUri;
+
+            if (
+                m_artistCoverUri.isEmpty()
+            ) {
+                for (
+                    const Track &track :
+                    artist.tracks
+                ) {
+                    if (
+                        !track.coverUri.isEmpty()
+                    ) {
+                        m_artistCoverUri =
+                            track.coverUri;
+
+                        break;
+                    }
+                }
+            }
+
+            if (
+                m_artistCoverUri.isEmpty()
+            ) {
+                for (
+                    const Album &album :
+                    artist.popularAlbums
+                ) {
+                    if (
+                        !album.coverUri.isEmpty()
+                    ) {
+                        m_artistCoverUri =
+                            album.coverUri;
+
+                        break;
+                    }
+                }
+            }
 
             m_artistDescription =
                 artist.description;
@@ -71,12 +121,26 @@ ArtistController::ArtistController(
             qDebug()
                 << "ArtistController loaded:"
                 << artist.name
+                << "| id:"
+                << artist.id
+                << "| cover:"
+                << m_artistCoverUri
                 << "| tracks:"
                 << artist.tracks.size()
                 << "| albums:"
                 << artist.popularAlbums.size()
                 << "| similar:"
                 << artist.similarArtists.size();
+
+            if (
+                m_artistCoverUri.isEmpty()
+            ) {
+                qDebug()
+                    << "ArtistController:"
+                    << "artist artwork is still empty"
+                    << "| artist:"
+                    << artist.name;
+            }
 
             emit loadingChanged();
 
@@ -220,17 +284,22 @@ void ArtistController::selectTrack(
             ->queueService();
 
     if (
-        queue != nullptr
+        queue == nullptr
     ) {
-        queue->clear();
+        emit statusChanged(
+            "Очередь воспроизведения недоступна");
 
-        queue->addTracks(
-            m_artistModel
-                ->tracks());
-
-        queue->setCurrentIndex(
-            index);
+        return;
     }
+
+    queue->clear();
+
+    queue->addTracks(
+        m_artistModel
+            ->tracks());
+
+    queue->setCurrentIndex(
+        index);
 
     qDebug()
         << "Artist track selected:"
@@ -277,6 +346,83 @@ void ArtistController::selectSimilarArtist(
 
     emit similarArtistSelected(
         artist.id);
+}
+
+void ArtistController::playArtist()
+{
+    if (
+        m_playbackController == nullptr
+    ) {
+        emit statusChanged(
+            "PlaybackController недоступен");
+
+        return;
+    }
+
+    if (
+        m_artistModel == nullptr
+    ) {
+        emit statusChanged(
+            "ArtistModel недоступен");
+
+        return;
+    }
+
+    const QList<Track> tracks =
+        m_artistModel
+            ->tracks();
+
+    if (
+        tracks.isEmpty()
+    ) {
+        emit statusChanged(
+            "У исполнителя нет доступных треков");
+
+        return;
+    }
+
+    QueueService *queue =
+        m_playbackController
+            ->queueService();
+
+    if (
+        queue == nullptr
+    ) {
+        emit statusChanged(
+            "Очередь воспроизведения недоступна");
+
+        return;
+    }
+
+    queue->clear();
+
+    queue->addTracks(
+        tracks);
+
+    queue->setCurrentIndex(
+        0);
+
+    const Track &track =
+        tracks.first();
+
+    qDebug()
+        << "Artist playback started:"
+        << m_artistName
+        << "| tracks:"
+        << tracks.size();
+
+    emit trackSelected(
+        track);
+
+    m_playbackController
+        ->playTrack(
+            track);
+
+    emit statusChanged(
+        QString(
+            "Воспроизведение исполнителя: %1")
+        .arg(
+            m_artistName));
 }
 
 ArtistModel *

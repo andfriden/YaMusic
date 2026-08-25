@@ -1,10 +1,8 @@
 #pragma once
 
 #include <QAbstractListModel>
-#include <QByteArray>
 #include <QHash>
 #include <QList>
-#include <QModelIndex>
 #include <QVariant>
 
 #include "AlbumService.h"

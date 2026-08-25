@@ -125,9 +125,9 @@ qt_add_executable(appYaMusic
         src/Yandex/Catalog/SimilarArtistsModel.h
         src/Core/ArtistController.cpp
         src/Core/ArtistController.h
-
-
-)
+        src/Core/AlbumController.cpp
+        src/Core/AlbumController.h
+   )
 
 qt_add_qml_module(appYaMusic
         URI YaMusic
@@ -147,6 +147,7 @@ qt_add_qml_module(appYaMusic
         qml/Home/ArtistView.qml
         qml/Home/ArtistPage.qml
         qml/Home/ArtistAlbumsSection.qml
+        qml/Home/AlbumPage.qml
 
         qml/MyWave/MyWaveSection.qml
 

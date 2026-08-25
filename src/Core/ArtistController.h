@@ -96,6 +96,8 @@ public:
     Q_INVOKABLE void selectSimilarArtist(
         int index);
 
+    Q_INVOKABLE void playArtist();
+
     ArtistModel *artistModel() const;
 
     ArtistAlbumsModel *albumsModel() const;
@@ -156,13 +158,9 @@ private:
         false;
 
     QString m_artistId;
-
     QString m_artistName;
-
     QString m_artistCoverUri;
-
     QString m_artistDescription;
-
     QString m_artistGenres;
 
     Album m_newRelease;

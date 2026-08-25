@@ -5,9 +5,6 @@
 
 #include "../Playback/PlaybackController.h"
 
-#include "../Yandex/Catalog/AlbumModel.h"
-#include "../Yandex/Catalog/AlbumService.h"
-
 #include "../Yandex/Catalog/ArtistModel.h"
 #include "../Yandex/Catalog/ArtistService.h"
 
@@ -24,11 +21,6 @@ class LibraryController : public QObject
         NOTIFY loadingPlaylistChanged)
 
     Q_PROPERTY(
-        bool loadingAlbum
-        READ isLoadingAlbum
-        NOTIFY loadingAlbumChanged)
-
-    Q_PROPERTY(
         bool loadingArtist
         READ isLoadingArtist
         NOTIFY loadingArtistChanged)
@@ -42,21 +34,6 @@ class LibraryController : public QObject
         int currentPlaylistTrackCount
         READ currentPlaylistTrackCount
         NOTIFY currentPlaylistChanged)
-
-    Q_PROPERTY(
-        QString currentAlbumTitle
-        READ currentAlbumTitle
-        NOTIFY currentAlbumChanged)
-
-    Q_PROPERTY(
-        int currentAlbumTrackCount
-        READ currentAlbumTrackCount
-        NOTIFY currentAlbumChanged)
-
-    Q_PROPERTY(
-        QString currentAlbumCoverUri
-        READ currentAlbumCoverUri
-        NOTIFY currentAlbumChanged)
 
     Q_PROPERTY(
         QString currentArtistName
@@ -84,11 +61,6 @@ class LibraryController : public QObject
         CONSTANT)
 
     Q_PROPERTY(
-        AlbumModel *albumModel
-        READ albumModel
-        CONSTANT)
-
-    Q_PROPERTY(
         ArtistModel *artistModel
         READ artistModel
         CONSTANT)
@@ -96,7 +68,6 @@ class LibraryController : public QObject
 public:
     explicit LibraryController(
         PlaylistService *playlistService,
-        AlbumService *albumService,
         ArtistService *artistService,
         PlaybackController *playbackController,
         QObject *parent = nullptr);
@@ -105,16 +76,10 @@ public:
         const QString &uid,
         int kind);
 
-    void loadAlbum(
-        const QString &id);
-
     void loadArtist(
         const QString &id);
 
     void selectPlaylistTrack(
-        int index);
-
-    void selectAlbumTrack(
         int index);
 
     void selectArtistTrack(
@@ -122,25 +87,15 @@ public:
 
     PlaylistModel *playlistModel() const;
 
-    AlbumModel *albumModel() const;
-
     ArtistModel *artistModel() const;
 
     bool isLoadingPlaylist() const;
-
-    bool isLoadingAlbum() const;
 
     bool isLoadingArtist() const;
 
     QString currentPlaylistTitle() const;
 
     int currentPlaylistTrackCount() const;
-
-    QString currentAlbumTitle() const;
-
-    int currentAlbumTrackCount() const;
-
-    QString currentAlbumCoverUri() const;
 
     QString currentArtistName() const;
 
@@ -156,30 +111,14 @@ signals:
 
     void loadingPlaylistChanged();
 
-    void loadingAlbumChanged();
-
     void loadingArtistChanged();
 
     void currentPlaylistChanged();
 
-    void currentAlbumChanged();
-
     void currentArtistChanged();
 
 private:
-    void loadPlaylistInternal(
-        const QString &uid,
-        int kind,
-        const QString &statusTitle);
-
-    void loadAlbumInternal(
-        const QString &id,
-        const QString &statusTitle);
-
-private:
     PlaylistService *m_playlistService = nullptr;
-
-    AlbumService *m_albumService = nullptr;
 
     ArtistService *m_artistService = nullptr;
 
@@ -187,25 +126,15 @@ private:
 
     PlaylistModel *m_playlistModel = nullptr;
 
-    AlbumModel *m_albumModel = nullptr;
-
     ArtistModel *m_artistModel = nullptr;
 
     bool m_loadingPlaylist = false;
-
-    bool m_loadingAlbum = false;
 
     bool m_loadingArtist = false;
 
     QString m_currentPlaylistTitle;
 
     int m_currentPlaylistTrackCount = 0;
-
-    QString m_currentAlbumTitle;
-
-    int m_currentAlbumTrackCount = 0;
-
-    QString m_currentAlbumCoverUri;
 
     QString m_currentArtistName;
 
