@@ -1,45 +1,62 @@
 #include "AlbumModel.h"
 
+#include <QDebug>
 #include <QStringList>
 
 AlbumModel::AlbumModel(
     QObject *parent)
     : QAbstractListModel(parent)
 {
+    qDebug()
+        << "AlbumModel CREATED";
 }
 
 int AlbumModel::rowCount(
     const QModelIndex &parent) const
 {
-    if (
-        parent.isValid()
-    ) {
+    if (parent.isValid()) {
         return 0;
     }
 
-    return m_tracks.size();
+    const int result =
+        m_tracks.size();
+
+    qDebug()
+        << "AlbumModel::rowCount ="
+        << result;
+
+    return result;
 }
 
 QVariant AlbumModel::data(
     const QModelIndex &index,
     int role) const
 {
-    if (
-        !index.isValid()
-    ) {
+    if (!index.isValid()) {
+        qDebug()
+            << "AlbumModel::data invalid index";
+
         return {};
     }
 
+    const int row =
+        index.row();
+
     if (
-        index.row() < 0 ||
-        index.row() >= m_tracks.size()
+        row < 0 ||
+        row >= m_tracks.size()
     ) {
+        qDebug()
+            << "AlbumModel::data invalid row:"
+            << row
+            << "| size:"
+            << m_tracks.size();
+
         return {};
     }
 
     const Track &track =
-        m_tracks.at(
-            index.row());
+        m_tracks.at(row);
 
     switch (role) {
 
@@ -57,23 +74,17 @@ QVariant AlbumModel::data(
             const Artist &artist :
             track.artists
         ) {
-            if (
-                !artist.name.isEmpty()
-            ) {
+            if (!artist.name.isEmpty()) {
                 names.append(
                     artist.name);
             }
         }
 
-        return names.join(
-            ", ");
+        return names.join(", ");
     }
 
     case ArtistIdRole:
-
-        if (
-            !track.artists.isEmpty()
-        ) {
+        if (!track.artists.isEmpty()) {
             return track.artists
                 .first()
                 .id;
@@ -108,6 +119,26 @@ AlbumModel::roleNames() const
 void AlbumModel::setAlbum(
     const AlbumDetails &album)
 {
+    qDebug()
+        << "==================================================";
+
+    qDebug()
+        << "AlbumModel::setAlbum";
+
+    qDebug()
+        << "BEFORE:"
+        << "model tracks ="
+        << m_tracks.size();
+
+    qDebug()
+        << "INCOMING:"
+        << "album id ="
+        << album.album.id
+        << "| title ="
+        << album.album.title
+        << "| service tracks ="
+        << album.tracks.size();
+
     beginResetModel();
 
     m_album =
@@ -116,18 +147,76 @@ void AlbumModel::setAlbum(
     m_tracks =
         album.tracks;
 
+    qDebug()
+        << "AFTER:"
+        << "model tracks ="
+        << m_tracks.size();
+
+    for (
+        int i = 0;
+        i < m_tracks.size();
+        ++i
+    ) {
+        const Track &track =
+            m_tracks.at(i);
+
+        qDebug()
+            << "AlbumModel TRACK"
+            << i
+            << "| id:"
+            << track.id
+            << "| title:"
+            << track.title
+            << "| artists:"
+            << track.artists.size()
+            << "| cover:"
+            << track.coverUri;
+    }
+
     endResetModel();
+
+    qDebug()
+        << "RESET FINISHED";
+
+    emit countChanged();
+    emit albumChanged();
+
+    qDebug()
+        << "SIGNALS EMITTED"
+        << "| count:"
+        << count();
+
+    qDebug()
+        << "==================================================";
 }
 
 void AlbumModel::clear()
 {
+    qDebug()
+        << "==================================================";
+
+    qDebug()
+        << "AlbumModel::clear"
+        << "| old count:"
+        << m_tracks.size();
+
     beginResetModel();
 
     m_album = {};
-
     m_tracks.clear();
 
     endResetModel();
+
+    emit countChanged();
+    emit albumChanged();
+
+    qDebug()
+        << "AlbumModel::clear DONE"
+        << "| count:"
+        << m_tracks.size();
+
+    qDebug()
+        << "==================================================";
 }
 
 Track AlbumModel::trackAt(
@@ -137,11 +226,16 @@ Track AlbumModel::trackAt(
         index < 0 ||
         index >= m_tracks.size()
     ) {
+        qDebug()
+            << "AlbumModel::trackAt invalid:"
+            << index
+            << "| size:"
+            << m_tracks.size();
+
         return {};
     }
 
-    return m_tracks
-        .at(index);
+    return m_tracks.at(index);
 }
 
 QList<Track>
@@ -167,11 +261,5 @@ QString AlbumModel::coverUri() const
 
 int AlbumModel::trackCount() const
 {
-    if (
-        m_album.trackCount > 0
-    ) {
-        return m_album.trackCount;
-    }
-
     return m_tracks.size();
 }

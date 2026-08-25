@@ -9,7 +9,7 @@
 class AlbumService;
 class PlaybackController;
 
-class AlbumController : public QObject
+class AlbumController final : public QObject
 {
     Q_OBJECT
 

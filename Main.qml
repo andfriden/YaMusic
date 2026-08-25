@@ -4,6 +4,7 @@ import QtQuick.Controls.Basic
 import YaMusic.Core
 
 import "qml/Layout"
+import "qml/Home"
 
 ApplicationWindow {
     id: window
@@ -29,6 +30,12 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
+        console.log("========================================")
+        console.log("YaMusic Main.qml CREATED")
+        console.log("appController:", appController)
+        console.log("currentSection:", mainLayout.currentSection)
+        console.log("========================================")
+
         appController.loadRecommendations()
     }
 
@@ -42,7 +49,8 @@ ApplicationWindow {
                     appController.albumController.albumTitle
                 ).length > 0
             ) {
-                mainLayout.currentSection = "albums"
+                mainLayout.currentSection =
+                    "albums"
             }
         }
 
@@ -53,7 +61,8 @@ ApplicationWindow {
                     appController.artistController.artistName
                 ).length > 0
             ) {
-                mainLayout.currentSection = "artists"
+                mainLayout.currentSection =
+                    "artists"
             }
         }
 
@@ -63,7 +72,8 @@ ApplicationWindow {
                     appController.currentPlaylistTitle
                 ).length > 0
             ) {
-                mainLayout.currentSection = "playlists"
+                mainLayout.currentSection =
+                    "playlists"
             }
         }
     }
@@ -77,42 +87,12 @@ ApplicationWindow {
         controller:
             appController
 
-        Loader {
-            id: contentLoader
-
-            anchors.left:
-                parent.left
-
-            anchors.right:
-                parent.right
-
-            anchors.top:
-                parent.top
-
-            width:
-                parent.width
-
-            height:
-                    item !== null
-                ? Math.max(
-                    item.implicitHeight,
-                    1
-                )
-                : 1
-
-            sourceComponent:
-                contentComponentForSection(
-                    mainLayout.currentSection
-                )
-
-            onLoaded: {
-                if (!item) {
-                    return
-                }
-
-                item.width =
-                    contentLoader.width
-            }
+        onSectionSelected:
+                function(section) {
+            console.log(
+                "Main section selected:",
+                section
+            )
         }
     }
 
@@ -152,299 +132,5 @@ ApplicationWindow {
 
         controller:
             appController
-    }
-
-    // =============================================================
-    // Home
-    // =============================================================
-
-    Component {
-        id: homeComponent
-
-        Column {
-            width:
-                parent
-                    ? parent.width
-                    : 0
-
-            spacing:
-                16
-
-            SearchBar {
-                width:
-                    parent.width
-
-                controller:
-                    appController
-            }
-
-            MyWaveSection {
-                width:
-                    parent.width
-
-                height:
-                    190
-
-                compactMode:
-                    true
-
-                controller:
-                    appController
-            }
-
-            PersonalPlaylistsSection {
-                width:
-                    parent.width
-
-                height:
-                    190
-
-                controller:
-                    appController
-            }
-
-            RecentListeningSection {
-                width:
-                    parent.width
-
-                height:
-                    300
-
-                controller:
-                    appController
-            }
-
-            Item {
-                width:
-                    1
-
-                height:
-                    12
-            }
-        }
-    }
-
-    // =============================================================
-    // Search
-    // =============================================================
-
-    Component {
-        id: searchComponent
-
-        Column {
-            width:
-                parent
-                    ? parent.width
-                    : 0
-
-            spacing:
-                16
-
-            SearchBar {
-                width:
-                    parent.width
-
-                controller:
-                    appController
-            }
-
-            SearchResultsSection {
-                width:
-                    parent.width
-
-                height:
-                    620
-
-                controller:
-                    appController
-            }
-        }
-    }
-
-    // =============================================================
-    // My Wave
-    // =============================================================
-
-    Component {
-        id: waveComponent
-
-        MyWaveSection {
-            width:
-                parent
-                    ? parent.width
-                    : 0
-
-            height:
-                620
-
-            compactMode:
-                false
-
-            controller:
-                appController
-
-            Component.onCompleted: {
-                appController.loadMyWave()
-            }
-        }
-    }
-
-    // =============================================================
-    // Library
-    // =============================================================
-
-    Component {
-        id: libraryComponent
-
-        Column {
-            width:
-                parent
-                    ? parent.width
-                    : 0
-
-            spacing:
-                16
-
-            PersonalPlaylistsSection {
-                width:
-                    parent.width
-
-                height:
-                    300
-
-                controller:
-                    appController
-            }
-
-            RecentListeningSection {
-                width:
-                    parent.width
-
-                height:
-                    300
-
-                controller:
-                    appController
-            }
-
-            Item {
-                width:
-                    1
-
-                height:
-                    12
-            }
-        }
-    }
-
-    // =============================================================
-    // Album
-    // =============================================================
-
-    Component {
-        id: albumComponent
-
-        AlbumPage {
-            width:
-                parent
-                    ? parent.width
-                    : 0
-
-            controller:
-                appController
-        }
-    }
-
-    // =============================================================
-    // Artist
-    // =============================================================
-
-    Component {
-        id: artistComponent
-
-        ArtistPage {
-            width:
-                parent
-                    ? parent.width
-                    : 0
-
-            controller:
-                appController
-        }
-    }
-
-    // =============================================================
-    // Playlist
-    // =============================================================
-
-    Component {
-        id: playlistComponent
-
-        PlaylistView {
-            width:
-                parent
-                    ? parent.width
-                    : 0
-
-            height:
-                620
-
-            controller:
-                appController
-        }
-    }
-
-    // =============================================================
-    // Recently played
-    // =============================================================
-
-    Component {
-        id: recentComponent
-
-        RecentListeningSection {
-            width:
-                parent
-                    ? parent.width
-                    : 0
-
-            height:
-                620
-
-            controller:
-                appController
-        }
-    }
-
-    // =============================================================
-    // Section routing
-    // =============================================================
-
-    function contentComponentForSection(section) {
-        switch (section) {
-            case "search":
-                return searchComponent
-
-            case "wave":
-                return waveComponent
-
-            case "library":
-                return libraryComponent
-
-            case "albums":
-                return albumComponent
-
-            case "artists":
-                return artistComponent
-
-            case "playlists":
-                return playlistComponent
-
-            case "recent":
-                return recentComponent
-
-            case "home":
-            default:
-                return homeComponent
-        }
     }
 }

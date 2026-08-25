@@ -15,9 +15,28 @@ AlbumController::AlbumController(
     , m_playbackController(playbackController)
     , m_albumModel(new AlbumModel(this))
 {
+    qDebug()
+        << "==================================================";
+
+    qDebug()
+        << "AlbumController CREATED"
+        << "| service:"
+        << m_albumService
+        << "| playback:"
+        << m_playbackController
+        << "| model:"
+        << m_albumModel;
+
+    qDebug()
+        << "==================================================";
+
     if (
         m_albumService == nullptr
     ) {
+        qDebug()
+            << "AlbumController:"
+            << "AlbumService is null";
+
         return;
     }
 
@@ -28,22 +47,60 @@ AlbumController::AlbumController(
         [this](
             const AlbumDetails &album) {
 
-            m_loading = false;
+            qDebug()
+                << "##################################################";
+
+            qDebug()
+                << "AlbumController::albumReceived";
+
+            qDebug()
+                << "SERVICE:"
+                << "id ="
+                << album.album.id
+                << "| title ="
+                << album.album.title
+                << "| tracks ="
+                << album.tracks.size();
+
+            m_loading =
+                false;
 
             m_albumId =
                 album.album.id;
 
-            m_albumModel
-                ->setAlbum(
-                    album);
+            qDebug()
+                << "MODEL BEFORE setAlbum:"
+                << "count ="
+                << m_albumModel->count()
+                << "| tracks ="
+                << m_albumModel->tracks().size();
+
+            m_albumModel->setAlbum(
+                album);
 
             qDebug()
-                << "AlbumController loaded:"
-                << album.album.title
-                << "| id:"
-                << album.album.id
-                << "| tracks:"
-                << album.tracks.size();
+                << "MODEL AFTER setAlbum:"
+                << "count ="
+                << m_albumModel->count()
+                << "| tracks ="
+                << m_albumModel->tracks().size();
+
+            const QList<Track> modelTracks =
+                m_albumModel->tracks();
+
+            for (
+                int i = 0;
+                i < modelTracks.size();
+                ++i
+            ) {
+                qDebug()
+                    << "AlbumController MODEL TRACK"
+                    << i
+                    << "| id:"
+                    << modelTracks.at(i).id
+                    << "| title:"
+                    << modelTracks.at(i).title;
+            }
 
             emit loadingChanged();
 
@@ -54,6 +111,16 @@ AlbumController::AlbumController(
                     "Альбом загружен: %1")
                     .arg(
                         album.album.title));
+
+            qDebug()
+                << "AlbumController SIGNALS EMITTED"
+                << "| loading:"
+                << m_loading
+                << "| model count:"
+                << m_albumModel->count();
+
+            qDebug()
+                << "##################################################";
         });
 
     connect(
@@ -63,19 +130,19 @@ AlbumController::AlbumController(
         [this](
             const QString &message) {
 
-            m_loading = false;
-
-            emit loadingChanged();
+            m_loading =
+                false;
 
             qDebug()
-                << "AlbumController error:"
+                << "AlbumController ERROR:"
                 << message;
+
+            emit loadingChanged();
 
             emit statusChanged(
                 QString(
                     "Ошибка загрузки альбома: %1")
-                    .arg(
-                        message));
+                    .arg(message));
         });
 }
 
@@ -84,6 +151,14 @@ void AlbumController::loadAlbum(
 {
     const QString albumId =
         id.trimmed();
+
+    qDebug()
+        << "==================================================";
+
+    qDebug()
+        << "AlbumController::loadAlbum"
+        << "| requested id:"
+        << albumId;
 
     if (
         albumId.isEmpty()
@@ -106,38 +181,60 @@ void AlbumController::loadAlbum(
     if (
         m_loading
     ) {
+        qDebug()
+            << "AlbumController:"
+            << "already loading";
+
         return;
     }
 
-    m_loading = true;
+    m_loading =
+        true;
 
     emit loadingChanged();
 
     m_albumId.clear();
 
-    m_albumModel
-        ->clear();
+    qDebug()
+        << "CLEARING MODEL BEFORE LOAD"
+        << "| count:"
+        << m_albumModel->count();
 
-    emit albumChanged();
+    m_albumModel->clear();
 
     qDebug()
-        << "AlbumController loading:"
-        << albumId;
+        << "MODEL CLEARED"
+        << "| count:"
+        << m_albumModel->count();
+
+    emit albumChanged();
 
     emit statusChanged(
         QString(
             "Загрузка альбома: %1")
-            .arg(
-                albumId));
+            .arg(albumId));
 
-    m_albumService
-        ->loadAlbum(
-            albumId);
+    qDebug()
+        << "CALL AlbumService::loadAlbum:"
+        << albumId;
+
+    m_albumService->loadAlbum(
+        albumId);
+
+    qDebug()
+        << "==================================================";
 }
 
 void AlbumController::selectAlbumTrack(
     int index)
 {
+    qDebug()
+        << "AlbumController::selectAlbumTrack"
+        << "| index:"
+        << index
+        << "| model count:"
+        << m_albumModel->count();
+
     if (
         m_playbackController == nullptr
     ) {
@@ -147,19 +244,8 @@ void AlbumController::selectAlbumTrack(
         return;
     }
 
-    if (
-        m_albumModel == nullptr
-    ) {
-        emit statusChanged(
-            "AlbumModel недоступен");
-
-        return;
-    }
-
     const Track track =
-        m_albumModel
-            ->trackAt(
-                index);
+        m_albumModel->trackAt(index);
 
     if (
         track.id.isEmpty()
@@ -171,8 +257,7 @@ void AlbumController::selectAlbumTrack(
     }
 
     QueueService *queue =
-        m_playbackController
-            ->queueService();
+        m_playbackController->queueService();
 
     if (
         queue == nullptr
@@ -184,12 +269,9 @@ void AlbumController::selectAlbumTrack(
     }
 
     const QList<Track> tracks =
-        m_albumModel
-            ->tracks();
+        m_albumModel->tracks();
 
-    if (
-        tracks.isEmpty()
-    ) {
+    if (tracks.isEmpty()) {
         emit statusChanged(
             "В альбоме нет треков");
 
@@ -217,21 +299,25 @@ void AlbumController::selectAlbumTrack(
     qDebug()
         << "Album track selected:"
         << track.title
-        << "| album:"
-        << albumTitle()
         << "| index:"
-        << index;
+        << index
+        << "| queue tracks:"
+        << tracks.size();
 
     emit trackSelected(
         track);
 
-    m_playbackController
-        ->playTrack(
-            track);
+    m_playbackController->playTrack(
+        track);
 }
 
 void AlbumController::playAlbum()
 {
+    qDebug()
+        << "AlbumController::playAlbum"
+        << "| model count:"
+        << m_albumModel->count();
+
     if (
         m_playbackController == nullptr
     ) {
@@ -241,22 +327,10 @@ void AlbumController::playAlbum()
         return;
     }
 
-    if (
-        m_albumModel == nullptr
-    ) {
-        emit statusChanged(
-            "AlbumModel недоступен");
-
-        return;
-    }
-
     const QList<Track> tracks =
-        m_albumModel
-            ->tracks();
+        m_albumModel->tracks();
 
-    if (
-        tracks.isEmpty()
-    ) {
+    if (tracks.isEmpty()) {
         emit statusChanged(
             "В альбоме нет доступных треков");
 
@@ -264,8 +338,7 @@ void AlbumController::playAlbum()
     }
 
     QueueService *queue =
-        m_playbackController
-            ->queueService();
+        m_playbackController->queueService();
 
     if (
         queue == nullptr
@@ -281,8 +354,7 @@ void AlbumController::playAlbum()
     queue->addTracks(
         tracks);
 
-    queue->setCurrentIndex(
-        0);
+    queue->setCurrentIndex(0);
 
     const Track &track =
         tracks.first();
@@ -296,15 +368,13 @@ void AlbumController::playAlbum()
     emit trackSelected(
         track);
 
-    m_playbackController
-        ->playTrack(
-            track);
+    m_playbackController->playTrack(
+        track);
 
     emit statusChanged(
         QString(
             "Воспроизведение альбома: %1")
-        .arg(
-            albumTitle()));
+            .arg(albumTitle()));
 }
 
 AlbumModel *
@@ -331,8 +401,7 @@ QString AlbumController::albumTitle() const
         return {};
     }
 
-    return m_albumModel
-        ->title();
+    return m_albumModel->title();
 }
 
 QString AlbumController::albumCoverUri() const
@@ -343,8 +412,7 @@ QString AlbumController::albumCoverUri() const
         return {};
     }
 
-    return m_albumModel
-        ->coverUri();
+    return m_albumModel->coverUri();
 }
 
 int AlbumController::albumTrackCount() const
@@ -355,6 +423,5 @@ int AlbumController::albumTrackCount() const
         return 0;
     }
 
-    return m_albumModel
-        ->trackCount();
+    return m_albumModel->count();
 }

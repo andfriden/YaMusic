@@ -3,13 +3,34 @@
 #include <QAbstractListModel>
 #include <QHash>
 #include <QList>
+#include <QString>
 #include <QVariant>
 
 #include "AlbumService.h"
 
-class AlbumModel : public QAbstractListModel
+class AlbumModel final : public QAbstractListModel
 {
     Q_OBJECT
+
+    Q_PROPERTY(
+        int count
+        READ count
+        NOTIFY countChanged)
+
+    Q_PROPERTY(
+        QString title
+        READ title
+        NOTIFY albumChanged)
+
+    Q_PROPERTY(
+        QString coverUri
+        READ coverUri
+        NOTIFY albumChanged)
+
+    Q_PROPERTY(
+        int trackCount
+        READ trackCount
+        NOTIFY albumChanged)
 
 public:
     enum Roles {
@@ -20,6 +41,8 @@ public:
         CoverUriRole,
         DurationMsRole
     };
+
+    Q_ENUM(Roles)
 
     explicit AlbumModel(
         QObject *parent = nullptr);
@@ -54,8 +77,11 @@ public:
 
     int trackCount() const;
 
+    signals:
+        void countChanged();
+    void albumChanged();
+
 private:
     AlbumDetails m_album;
-
     QList<Track> m_tracks;
 };
