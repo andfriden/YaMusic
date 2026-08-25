@@ -5,8 +5,10 @@
 
 #include "../Models/Track.h"
 #include "../Yandex/Catalog/AlbumModel.h"
+#include "../Yandex/Catalog/ArtistAlbumsModel.h"
 
 class AlbumService;
+class ArtistService;
 class PlaybackController;
 
 class AlbumController final : public QObject
@@ -21,6 +23,11 @@ class AlbumController final : public QObject
     Q_PROPERTY(
         AlbumModel *albumModel
         READ albumModel
+        CONSTANT)
+
+    Q_PROPERTY(
+        ArtistAlbumsModel *otherAlbumsModel
+        READ otherAlbumsModel
         CONSTANT)
 
     Q_PROPERTY(
@@ -46,6 +53,7 @@ class AlbumController final : public QObject
 public:
     explicit AlbumController(
         AlbumService *albumService,
+        ArtistService *artistService,
         PlaybackController *playbackController,
         QObject *parent = nullptr);
 
@@ -57,7 +65,11 @@ public:
 
     Q_INVOKABLE void playAlbum();
 
-    AlbumModel *albumModel() const;
+    AlbumModel *
+    albumModel() const;
+
+    ArtistAlbumsModel *
+    otherAlbumsModel() const;
 
     bool isLoading() const;
 
@@ -69,8 +81,8 @@ public:
 
     int albumTrackCount() const;
 
-    signals:
-        void loadingChanged();
+signals:
+    void loadingChanged();
 
     void albumChanged();
 
@@ -81,17 +93,33 @@ public:
         const Track &track);
 
 private:
-    AlbumService *m_albumService =
-        nullptr;
+    void loadOtherAlbumsForCurrentArtist(
+        const AlbumDetails &album);
 
-    PlaybackController *m_playbackController =
-        nullptr;
+    AlbumService *
+        m_albumService =
+            nullptr;
 
-    AlbumModel *m_albumModel =
-        nullptr;
+    ArtistService *
+        m_artistService =
+            nullptr;
+
+    PlaybackController *
+        m_playbackController =
+            nullptr;
+
+    AlbumModel *
+        m_albumModel =
+            nullptr;
+
+    ArtistAlbumsModel *
+        m_otherAlbumsModel =
+            nullptr;
 
     bool m_loading =
         false;
 
     QString m_albumId;
+
+    QString m_currentArtistId;
 };

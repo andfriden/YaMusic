@@ -39,15 +39,23 @@ public:
     void loadArtist(
         const QString &id);
 
+    void loadArtistAlbums(
+        const QString &artistId);
+
     signals:
         void artistReceived(
             const ArtistDetails &artist);
+
+    void artistAlbumsReceived(
+        const QList<Album> &albums);
 
     void errorOccurred(
         const QString &message);
 
 private:
-    YandexAuth *m_auth = nullptr;
+    YandexAuth *m_auth =
+        nullptr;
 
-    YandexClient *m_yandexClient = nullptr;
+    YandexClient *m_yandexClient =
+        nullptr;
 };

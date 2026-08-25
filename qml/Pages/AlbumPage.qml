@@ -26,12 +26,12 @@ Item {
 
     readonly property string albumTitle:
             root.albumController !== null
-        ? String(root.albumController.albumTitle || "")
+        ? String(root.albumController.currentAlbumTitle || "")
         : ""
 
     readonly property string albumCover:
             root.albumController !== null
-        ? String(root.albumController.albumCoverUri || "")
+        ? String(root.albumController.currentAlbumCoverUri || "")
         : ""
 
     readonly property bool hasAlbum:

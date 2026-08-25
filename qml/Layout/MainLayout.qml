@@ -63,6 +63,11 @@ Item {
                     "Main section selected:",
                     section
                 )
+
+                console.log(
+                    "Context type:",
+                    root.contextType
+                )
             }
         }
 
@@ -156,7 +161,8 @@ Item {
                         height:
                                 item !== null
                             ? (
-                                    item.pageHeight !== undefined
+                                    item.pageHeight !==
+                                    undefined
                                     ? item.pageHeight
                                     : (
                                             item.implicitHeight > 0
@@ -168,7 +174,9 @@ Item {
 
                         onLoaded: {
 
-                            if (!item) {
+                            if (
+                                !item
+                            ) {
                                 return
                             }
 
@@ -189,6 +197,11 @@ Item {
                             )
 
                             console.log(
+                                "contextType:",
+                                root.contextType
+                            )
+
+                            console.log(
                                 "page:",
                                 item
                             )
@@ -201,7 +214,8 @@ Item {
 
                             console.log(
                                 "pageHeight:",
-                                    item.pageHeight !== undefined
+                                    item.pageHeight !==
+                                    undefined
                                     ? item.pageHeight
                                     : "undefined"
                             )
@@ -289,6 +303,11 @@ Item {
         )
 
         console.log(
+            "contextType:",
+            root.contextType
+        )
+
+        console.log(
             "source:",
             source
         )
@@ -317,15 +336,9 @@ Item {
 
     onControllerChanged: {
 
-        /*
-         * Controller may be assigned after MainLayout
-         * itself has already been constructed.
-         *
-         * Reload current page so that the initial
-         * property is passed during object creation.
-         */
         if (
-            root.controller !== null
+            root.controller !== null &&
+            root.controller !== undefined
         ) {
             loadCurrentPage()
         }
@@ -352,6 +365,11 @@ Item {
         )
 
         console.log(
+            "contextType:",
+            root.contextType
+        )
+
+        console.log(
             "mainArea:",
             mainArea.width,
             mainArea.height
@@ -364,11 +382,18 @@ Item {
         )
 
         console.log(
+            "contextPanel:",
+            contextPanel.width,
+            contextPanel.height
+        )
+
+        console.log(
             "========================================"
         )
 
         if (
-            root.controller !== null
+            root.controller !== null &&
+            root.controller !== undefined
         ) {
             loadCurrentPage()
         }

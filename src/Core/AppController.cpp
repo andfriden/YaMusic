@@ -92,11 +92,12 @@ AppController::AppController(
               m_searchService,
               m_playbackController,
               this))
-    , m_albumController(
-          new AlbumController(
-              m_albumService,
-              m_playbackController,
-              this))
+ , m_albumController(
+       new AlbumController(
+         m_albumService,
+         m_artistService,
+         m_playbackController,
+          this))
     , m_artistController(
           new ArtistController(
               m_artistService,
