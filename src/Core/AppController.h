@@ -148,6 +148,10 @@ class AppController : public QObject
         READ currentArtistTrackCount
         NOTIFY currentArtistChanged)
 
+    /*
+     * Current track
+     */
+
     Q_PROPERTY(
         QString currentTrackTitle
         READ currentTrackTitle
@@ -164,9 +168,23 @@ class AppController : public QObject
         NOTIFY currentTrackChanged)
 
     Q_PROPERTY(
+        QString currentTrackAlbumTitle
+        READ currentTrackAlbumTitle
+        NOTIFY currentTrackChanged)
+
+    Q_PROPERTY(
+        QString currentTrackAlbumId
+        READ currentTrackAlbumId
+        NOTIFY currentTrackChanged)
+
+    Q_PROPERTY(
         QString currentTrackCoverUri
         READ currentTrackCoverUri
         NOTIFY currentTrackChanged)
+
+    /*
+     * Playback
+     */
 
     Q_PROPERTY(
         qint64 position
@@ -197,12 +215,20 @@ public:
     explicit AppController(
         QObject *parent = nullptr);
 
+    /*
+     * Tests
+     */
+
     Q_INVOKABLE void testConnection();
 
     Q_INVOKABLE void testYandexApi();
 
     Q_INVOKABLE void testSearch(
         const QString &query);
+
+    /*
+     * Catalog
+     */
 
     Q_INVOKABLE void loadArtist(
         const QString &id);
@@ -213,11 +239,19 @@ public:
     Q_INVOKABLE void playAlbum(
         const QString &id);
 
+    /*
+     * Personal
+     */
+
     Q_INVOKABLE void loadMyWave();
 
     Q_INVOKABLE void loadMoreMyWave();
 
     Q_INVOKABLE void loadRecommendations();
+
+    /*
+     * Selection
+     */
 
     Q_INVOKABLE void selectSearchResult(
         int index);
@@ -243,6 +277,10 @@ public:
     Q_INVOKABLE void selectSimilarArtist(
         int index);
 
+    /*
+     * Playback
+     */
+
     Q_INVOKABLE void play();
 
     Q_INVOKABLE void pause();
@@ -266,6 +304,10 @@ public:
     Q_INVOKABLE void seek(
         qint64 position);
 
+    /*
+     * Models
+     */
+
     SearchModel *
     searchModel() const;
 
@@ -287,39 +329,85 @@ public:
     ArtistController *
     artistController() const;
 
+    /*
+     * Loading state
+     */
+
     bool isSearching() const;
+
     bool isPlaying() const;
+
     bool isLoadingMyWave() const;
+
     bool isLoadingMoreMyWave() const;
+
     bool isLoadingRecommendations() const;
+
     bool isLoadingPlaylist() const;
+
     bool isLoadingAlbum() const;
+
     bool isLoadingArtist() const;
 
+    /*
+     * Current playlist
+     */
+
     QString currentPlaylistTitle() const;
+
     int currentPlaylistTrackCount() const;
 
+    /*
+     * Current album
+     */
+
     QString currentAlbumTitle() const;
+
     int currentAlbumTrackCount() const;
+
     QString currentAlbumCoverUri() const;
 
+    /*
+     * Current artist
+     */
+
     QString currentArtistName() const;
+
     QString currentArtistCoverUri() const;
+
     QString currentArtistGenres() const;
+
     int currentArtistTrackCount() const;
 
+    /*
+     * Current track
+     */
+
     QString currentTrackTitle() const;
+
     QString currentTrackArtist() const;
+
     QString currentTrackArtistId() const;
+
+    QString currentTrackAlbumTitle() const;
+
+    QString currentTrackAlbumId() const;
+
     QString currentTrackCoverUri() const;
 
+    /*
+     * Playback state
+     */
+
     qint64 position() const;
+
     qint64 duration() const;
 
     PlaybackController::PlaybackState
     playbackState() const;
 
     int repeatMode() const;
+
     bool shuffleEnabled() const;
 
 signals:
@@ -327,53 +415,76 @@ signals:
         const QString &message);
 
     void searchingChanged();
+
     void playingChanged();
 
     void loadingMyWaveChanged();
+
     void loadingMoreMyWaveChanged();
+
     void loadingRecommendationsChanged();
 
     void loadingPlaylistChanged();
+
     void loadingAlbumChanged();
+
     void loadingArtistChanged();
 
     void recommendationsLoaded();
 
     void currentPlaylistChanged();
+
     void currentAlbumChanged();
+
     void currentArtistChanged();
+
     void currentTrackChanged();
 
     void positionChanged();
+
     void durationChanged();
+
     void playbackStateChanged();
+
     void repeatModeChanged();
+
     void shuffleChanged();
 
 private:
     YandexAuth *m_auth = nullptr;
 
     AccountService *m_accountService = nullptr;
+
     SearchService *m_searchService = nullptr;
+
     TrackService *m_trackService = nullptr;
 
     YandexPersonal *m_yandexPersonal = nullptr;
+
     PersonalLanding *m_personalLanding = nullptr;
+
     RecentListeningService *m_recentListeningService = nullptr;
+
     PlaylistService *m_playlistService = nullptr;
 
     AlbumService *m_albumService = nullptr;
+
     ArtistService *m_artistService = nullptr;
 
     PlayerService *m_playerService = nullptr;
+
     QueueService *m_queueService = nullptr;
 
     PlaybackController *m_playbackController = nullptr;
 
     LibraryController *m_libraryController = nullptr;
+
     PersonalController *m_personalController = nullptr;
+
     SearchController *m_searchController = nullptr;
+
     AlbumController *m_albumController = nullptr;
+
     ArtistController *m_artistController = nullptr;
 
     bool m_playAlbumAfterLoad = false;

@@ -73,8 +73,27 @@ AlbumController::AlbumController(
                 << album.album.id
                 << "| title ="
                 << album.album.title
+                << "| album cover ="
+                << album.album.coverUri
                 << "| tracks ="
                 << album.tracks.size();
+
+            for (
+                int i = 0;
+                i < album.tracks.size();
+                ++i
+            ) {
+                const Track &track =
+                    album.tracks.at(i);
+
+                qDebug()
+                    << "SERVICE TRACK"
+                    << i
+                    << "| title:"
+                    << track.title
+                    << "| cover:"
+                    << track.coverUri;
+            }
 
             m_loading =
                 false;
@@ -90,10 +109,21 @@ AlbumController::AlbumController(
                 << "AlbumController MODEL:"
                 << "count ="
                 << m_albumModel->count()
+                << "| title ="
+                << m_albumModel->title()
+                << "| album cover ="
+                << m_albumModel->coverUri()
                 << "| tracks ="
                 << m_albumModel
                        ->tracks()
                        .size();
+
+            const QString resolvedCover =
+                albumCoverUri();
+
+            qDebug()
+                << "AlbumController RESOLVED ARTWORK:"
+                << resolvedCover;
 
             loadOtherAlbumsForCurrentArtist(
                 album);
@@ -543,28 +573,78 @@ QString AlbumController::albumCoverUri() const
         return {};
     }
 
-    const QString albumCover =
-        m_albumModel->coverUri();
-
-    if (
-        !albumCover.isEmpty()
-    ) {
-        return albumCover;
-    }
+    /*
+     * ============================================================
+     * ARTWORK RESOLUTION
+     *
+     * Track artwork is currently the most reliable source because
+     * AlbumPage already successfully uses Track::coverUri for the
+     * individual track rows.
+     *
+     * Prefer the first valid track artwork.
+     * ============================================================
+     */
 
     const QList<Track> tracks =
         m_albumModel->tracks();
 
     for (
-        const Track &track :
-        tracks
+        int i = 0;
+        i < tracks.size();
+        ++i
     ) {
+        const Track &track =
+            tracks.at(i);
+
+        const QString cover =
+            track.coverUri.trimmed();
+
         if (
-            !track.coverUri.isEmpty()
+            cover.isEmpty()
         ) {
-            return track.coverUri;
+            continue;
         }
+
+        qDebug()
+            << "AlbumController::albumCoverUri"
+            << "| using track artwork"
+            << "| index:"
+            << i
+            << "| track:"
+            << track.title
+            << "| cover:"
+            << cover;
+
+        return cover;
     }
+
+    /*
+     * ============================================================
+     * FALLBACK
+     *
+     * If track artwork is unavailable, use album-level artwork.
+     * ============================================================
+     */
+
+    const QString albumCover =
+        m_albumModel
+            ->coverUri()
+            .trimmed();
+
+    if (
+        !albumCover.isEmpty()
+    ) {
+        qDebug()
+            << "AlbumController::albumCoverUri"
+            << "| using album artwork:"
+            << albumCover;
+
+        return albumCover;
+    }
+
+    qDebug()
+        << "AlbumController::albumCoverUri"
+        << "| no artwork available";
 
     return {};
 }

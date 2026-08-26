@@ -6,7 +6,7 @@
 #include <QDateTime>
 #include <QJsonArray>
 #include <QJsonDocument>
-#include <QJsonObject>
+#include <QJsonParseError>
 #include <QNetworkReply>
 #include <QUrlQuery>
 
@@ -22,29 +22,23 @@ YandexPersonal::YandexPersonal(
 
 void YandexPersonal::loadMyWave()
 {
-    loadMyWaveInternal(
-        QString());
+    loadMyWaveInternal({});
 }
 
 void YandexPersonal::loadMoreMyWave(
     const QString &queueTrackId)
 {
-    const QString trimmedQueue =
+    const QString trackId =
         queueTrackId.trimmed();
 
-    if (
-        trimmedQueue.isEmpty()
-    ) {
-
+    if (trackId.isEmpty()) {
         emit errorOccurred(
             "Идентификатор последнего трека "
             "для продолжения Wave не задан");
-
         return;
     }
 
-    loadMyWaveInternal(
-        trimmedQueue);
+    loadMyWaveInternal(trackId);
 }
 
 void YandexPersonal::sendMyWaveFeedback(
@@ -57,98 +51,80 @@ void YandexPersonal::sendMyWaveFeedback(
         m_auth == nullptr ||
         !m_auth->isAuthenticated()
     ) {
-
         emit feedbackError(
             "Токен Яндекс Музыки не установлен");
-
         return;
     }
 
-    const QString trimmedEvent =
+    const QString type =
         event.trimmed();
 
-    const QString trimmedTrackId =
+    const QString id =
         trackId.trimmed();
 
-    const QString trimmedBatchId =
+    const QString batch =
         batchId.trimmed();
 
-    if (
-        trimmedEvent.isEmpty()
-    ) {
+    if (type.isEmpty()) {
         return;
     }
 
-    if (
-        trimmedBatchId.isEmpty()
-    ) {
-
-        emit feedbackError(
-            "Для feedback не указан batchId");
-
-        return;
-    }
-
-    if (
-        trimmedTrackId.isEmpty()
-    ) {
-
+    if (id.isEmpty()) {
         emit feedbackError(
             "Для feedback не указан trackId");
+        return;
+    }
 
+    if (batch.isEmpty()) {
+        emit feedbackError(
+            "Для feedback не указан batchId");
         return;
     }
 
     if (
-        trimmedEvent != "trackStarted" &&
-        trimmedEvent != "trackFinished" &&
-        trimmedEvent != "skip"
+        type != "trackStarted" &&
+        type != "trackFinished" &&
+        type != "skip"
     ) {
-
         emit feedbackError(
             "Неподдерживаемый тип feedback");
-
         return;
     }
 
-    m_yandexClient
-        ->setToken(
-            m_auth->token());
+    m_yandexClient->setToken(
+        m_auth->token());
 
     QJsonObject body;
 
     body.insert(
         "type",
-        trimmedEvent);
+        type);
 
     body.insert(
         "timestamp",
         QDateTime::currentDateTimeUtc()
-            .toString(
-                Qt::ISODate));
+            .toString(Qt::ISODate));
 
     body.insert(
         "trackId",
-        trimmedTrackId);
+        id);
 
     if (
-        trimmedEvent == "trackFinished" ||
-        trimmedEvent == "skip"
+        type == "trackFinished" ||
+        type == "skip"
     ) {
-
         body.insert(
             "totalPlayedSeconds",
-            static_cast<qint64>(
-                qMax(
-                    qint64(0),
-                    totalPlayedSeconds)));
+            qMax(
+                qint64(0),
+                totalPlayedSeconds));
     }
 
     QUrlQuery query;
 
     query.addQueryItem(
         "batch-id",
-        trimmedBatchId);
+        batch);
 
     const QString path =
         "/rotor/station/user:onyourwave/feedback?" +
@@ -156,18 +132,13 @@ void YandexPersonal::sendMyWaveFeedback(
             QUrl::FullyEncoded);
 
     QNetworkReply *reply =
-        m_yandexClient
-            ->post(
-                path,
-                body);
+        m_yandexClient->post(
+            path,
+            body);
 
-    if (
-        reply == nullptr
-    ) {
-
+    if (reply == nullptr) {
         emit feedbackError(
             "Не удалось создать запрос feedback");
-
         return;
     }
 
@@ -175,9 +146,7 @@ void YandexPersonal::sendMyWaveFeedback(
         reply,
         &QNetworkReply::finished,
         this,
-        [this,
-         reply,
-         trimmedEvent]() {
+        [this, reply, type]() {
 
             const QByteArray response =
                 reply->readAll();
@@ -186,30 +155,24 @@ void YandexPersonal::sendMyWaveFeedback(
                 reply->error() !=
                 QNetworkReply::NoError
             ) {
-
                 QString message =
                     reply->errorString();
 
-                if (
-                    !response.isEmpty()
-                ) {
-
+                if (!response.isEmpty()) {
                     message +=
                         " | " +
                         QString::fromUtf8(
                             response);
                 }
 
-                emit feedbackError(
-                    message);
+                emit feedbackError(message);
 
                 reply->deleteLater();
 
                 return;
             }
 
-            emit feedbackSent(
-                trimmedEvent);
+            emit feedbackSent(type);
 
             reply->deleteLater();
         });
@@ -218,9 +181,7 @@ void YandexPersonal::sendMyWaveFeedback(
 void YandexPersonal::loadMyWaveInternal(
     const QString &queueTrackId)
 {
-    if (
-        m_loading
-    ) {
+    if (m_loading) {
         return;
     }
 
@@ -228,19 +189,15 @@ void YandexPersonal::loadMyWaveInternal(
         m_auth == nullptr ||
         !m_auth->isAuthenticated()
     ) {
-
         emit errorOccurred(
             "Токен Яндекс Музыки не установлен");
-
         return;
     }
 
-    m_loading =
-        true;
+    m_loading = true;
 
-    m_yandexClient
-        ->setToken(
-            m_auth->token());
+    m_yandexClient->setToken(
+        m_auth->token());
 
     QUrlQuery query;
 
@@ -248,10 +205,7 @@ void YandexPersonal::loadMyWaveInternal(
         "settings2",
         "true");
 
-    if (
-        !queueTrackId.isEmpty()
-    ) {
-
+    if (!queueTrackId.isEmpty()) {
         query.addQueryItem(
             "queue",
             queueTrackId);
@@ -263,16 +217,10 @@ void YandexPersonal::loadMyWaveInternal(
             QUrl::FullyEncoded);
 
     QNetworkReply *reply =
-        m_yandexClient
-            ->get(
-                path);
+        m_yandexClient->get(path);
 
-    if (
-        reply == nullptr
-    ) {
-
-        m_loading =
-            false;
+    if (reply == nullptr) {
+        m_loading = false;
 
         emit errorOccurred(
             "Не удалось создать запрос My Wave");
@@ -286,8 +234,7 @@ void YandexPersonal::loadMyWaveInternal(
         this,
         [this, reply, queueTrackId]() {
 
-            m_loading =
-                false;
+            m_loading = false;
 
             const QByteArray data =
                 reply->readAll();
@@ -296,7 +243,6 @@ void YandexPersonal::loadMyWaveInternal(
                 reply->error() !=
                 QNetworkReply::NoError
             ) {
-
                 emit errorOccurred(
                     reply->errorString());
 
@@ -317,7 +263,6 @@ void YandexPersonal::loadMyWaveInternal(
                     QJsonParseError::NoError ||
                 !document.isObject()
             ) {
-
                 emit errorOccurred(
                     "Некорректный ответ My Wave");
 
@@ -330,14 +275,10 @@ void YandexPersonal::loadMyWaveInternal(
                 document.object();
 
             const QJsonObject result =
-                root
-                    .value("result")
+                root.value("result")
                     .toObject();
 
-            if (
-                result.isEmpty()
-            ) {
-
+            if (result.isEmpty()) {
                 emit errorOccurred(
                     "Ответ My Wave пуст");
 
@@ -347,20 +288,15 @@ void YandexPersonal::loadMyWaveInternal(
             }
 
             const QString batchId =
-                result
-                    .value("batchId")
+                result.value("batchId")
                     .toString()
                     .trimmed();
 
             const QJsonArray sequence =
-                result
-                    .value("sequence")
+                result.value("sequence")
                     .toArray();
 
-            if (
-                sequence.isEmpty()
-            ) {
-
+            if (sequence.isEmpty()) {
                 emit errorOccurred(
                     queueTrackId.isEmpty()
                         ? "Яндекс Музыка не вернула "
@@ -379,37 +315,24 @@ void YandexPersonal::loadMyWaveInternal(
                 const QJsonValue &value :
                 sequence
             ) {
-
-                if (
-                    !value.isObject()
-                ) {
+                if (!value.isObject()) {
                     continue;
                 }
 
-                const QJsonObject sequenceItem =
+                const QJsonObject item =
                     value.toObject();
 
-                /*
-                 * Rotor sequence может содержать
-                 * элементы разных типов. Для Wave
-                 * нам нужны только элементы с track.
-                 */
-
-                const QString type =
-                    sequenceItem
-                        .value("type")
-                        .toString();
-
                 const QJsonObject trackObject =
-                    sequenceItem
-                        .value("track")
+                    item.value("track")
                         .toObject();
 
-                if (
-                    trackObject.isEmpty()
-                ) {
+                if (trackObject.isEmpty()) {
                     continue;
                 }
+
+                const QString type =
+                    item.value("type")
+                        .toString();
 
                 if (
                     !type.isEmpty() &&
@@ -419,23 +342,14 @@ void YandexPersonal::loadMyWaveInternal(
                 }
 
                 const Track track =
-                    parseTrack(
-                        trackObject);
+                    parseTrack(trackObject);
 
-                if (
-                    track.id.isEmpty()
-                ) {
-                    continue;
+                if (!track.id.isEmpty()) {
+                    tracks.append(track);
                 }
-
-                tracks.append(
-                    track);
             }
 
-            if (
-                tracks.isEmpty()
-            ) {
-
+            if (tracks.isEmpty()) {
                 emit errorOccurred(
                     "В ответе My Wave нет "
                     "корректных треков");
@@ -458,194 +372,120 @@ Track YandexPersonal::parseTrack(
 {
     Track track;
 
-    /*
-     * ID может приходить строкой
-     * или числом.
-     */
-
     const QJsonValue idValue =
         object.value("id");
 
-    if (
-        idValue.isString()
-    ) {
-
+    if (idValue.isString()) {
         track.id =
             idValue.toString();
-
-    } else if (
-        idValue.isDouble()
-    ) {
-
-        const qint64 id =
-            idValue.toInteger();
-
-        if (
-            id > 0
-        ) {
-
-            track.id =
-                QString::number(
-                    id);
-        }
+    }
+    else if (idValue.isDouble()) {
+        track.id =
+            QString::number(
+                idValue.toInteger());
     }
 
     track.title =
-        object
-            .value("title")
+        object.value("title")
             .toString();
 
     track.coverUri =
-        object
-            .value("coverUri")
+        object.value("coverUri")
             .toString();
 
     track.durationMs =
-        object
-            .value("durationMs")
+        object.value("durationMs")
             .toInt();
 
-    /*
-     * Artists
-     */
-
     const QJsonArray artists =
-        object
-            .value("artists")
+        object.value("artists")
             .toArray();
 
     for (
         const QJsonValue &value :
         artists
     ) {
-
-        if (
-            !value.isObject()
-        ) {
+        if (!value.isObject()) {
             continue;
         }
 
-        const QJsonObject artistObject =
+        const QJsonObject object =
             value.toObject();
 
         Artist artist;
 
-        const QJsonValue artistIdValue =
-            artistObject.value("id");
+        const QJsonValue id =
+            object.value("id");
 
-        if (
-            artistIdValue.isString()
-        ) {
-
+        if (id.isString()) {
             artist.id =
-                artistIdValue.toString();
-
-        } else if (
-            artistIdValue.isDouble()
-        ) {
-
-            const qint64 id =
-                artistIdValue.toInteger();
-
-            if (
-                id > 0
-            ) {
-
-                artist.id =
-                    QString::number(
-                        id);
-            }
+                id.toString();
+        }
+        else if (id.isDouble()) {
+            artist.id =
+                QString::number(
+                    id.toInteger());
         }
 
         artist.name =
-            artistObject
-                .value("name")
+            object.value("name")
                 .toString();
 
         if (
             !artist.id.isEmpty() ||
             !artist.name.isEmpty()
         ) {
-
-            track.artists.append(
-                artist);
+            track.artists.append(artist);
         }
     }
 
-    /*
-     * Albums
-     */
-
     const QJsonArray albums =
-        object
-            .value("albums")
+        object.value("albums")
             .toArray();
 
     for (
         const QJsonValue &value :
         albums
     ) {
-
-        if (
-            !value.isObject()
-        ) {
+        if (!value.isObject()) {
             continue;
         }
 
-        const QJsonObject albumObject =
+        const QJsonObject object =
             value.toObject();
 
         Album album;
 
-        const QJsonValue albumIdValue =
-            albumObject.value("id");
+        const QJsonValue id =
+            object.value("id");
 
-        if (
-            albumIdValue.isString()
-        ) {
-
+        if (id.isString()) {
             album.id =
-                albumIdValue.toString();
-
-        } else if (
-            albumIdValue.isDouble()
-        ) {
-
-            const qint64 id =
-                albumIdValue.toInteger();
-
-            if (
-                id > 0
-            ) {
-
-                album.id =
-                    QString::number(
-                        id);
-            }
+                id.toString();
+        }
+        else if (id.isDouble()) {
+            album.id =
+                QString::number(
+                    id.toInteger());
         }
 
         album.title =
-            albumObject
-                .value("title")
+            object.value("title")
                 .toString();
 
         album.coverUri =
-            albumObject
-                .value("coverUri")
+            object.value("coverUri")
                 .toString();
 
         album.year =
-            albumObject
-                .value("year")
+            object.value("year")
                 .toInt();
 
         if (
             !album.id.isEmpty() ||
             !album.title.isEmpty()
         ) {
-
-            track.albums.append(
-                album);
+            track.albums.append(album);
         }
     }
 

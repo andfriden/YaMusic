@@ -281,6 +281,17 @@ qt_add_qml_module(
         qml/Search/SearchResultsSection.qml
 
         # =============================================================
+        # Context
+        # =============================================================
+
+        qml/Context/ContextPanelHome.qml
+        qml/Context/ContextPanelMyWave.qml
+        qml/Context/ContextPanelArtist.qml
+        qml/Context/ContextPanelAlbum.qml
+        qml/Context/ContextPanelPlaylist.qml
+        qml/Context/ContextPanelLibrary.qml
+
+        # =============================================================
         # Layout
         # =============================================================
 

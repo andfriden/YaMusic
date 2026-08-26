@@ -2,6 +2,7 @@
 
 #include "../Playback/PlaybackController.h"
 #include "../Player/PlayerService.h"
+#include "../Yandex/Personal/YandexPersonal.h"
 
 PersonalController::PersonalController(
     YandexPersonal *yandexPersonal,
@@ -13,13 +14,10 @@ PersonalController::PersonalController(
     : QObject(parent)
     , m_yandexPersonal(yandexPersonal)
     , m_personalLanding(personalLanding)
-    , m_recentListeningService(
-          recentListeningService)
-    , m_playbackController(
-          playbackController)
+    , m_recentListeningService(recentListeningService)
+    , m_playbackController(playbackController)
     , m_playerService(playerService)
-    , m_myWaveModel(
-          new MyWaveModel(this))
+    , m_myWaveModel(new MyWaveModel(this))
     , m_personalPlaylistsModel(
           new PersonalPlaylistsModel(this))
     , m_recentListeningModel(

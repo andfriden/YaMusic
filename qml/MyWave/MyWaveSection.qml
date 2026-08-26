@@ -8,18 +8,24 @@ Item {
     property bool compactMode: false
     property bool hasSelectedTrack: false
 
-    readonly property bool hasTracks:
+    readonly property bool hasController:
         root.controller !== null &&
+        root.controller !== undefined
+
+    readonly property bool hasTracks:
+        root.hasController &&
+        root.controller.myWaveModel !== null &&
+        root.controller.myWaveModel !== undefined &&
         root.controller.myWaveModel.count > 0
 
     readonly property int margin:
-        compactMode ? 12 : 24
+        root.compactMode ? 12 : 24
 
     readonly property int headerHeight:
-        compactMode ? 28 : 40
+        root.compactMode ? 28 : 40
 
     readonly property int spacingValue:
-        compactMode ? 10 : 16
+        root.compactMode ? 10 : 16
 
     Rectangle {
         anchors.fill: parent
@@ -29,7 +35,7 @@ Item {
             root.hasTracks
 
         radius:
-            compactMode
+            root.compactMode
                 ? 10
                 : 14
 
@@ -40,7 +46,9 @@ Item {
     }
 
     /*
-     * Compact Home
+     * ============================================================
+     * COMPACT MODE
+     * ============================================================
      */
 
     Column {
@@ -94,14 +102,19 @@ Item {
             width: parent.width
 
             height:
-                parent.height -
-                root.headerHeight -
-                root.spacingValue
+                Math.max(
+                    0,
+                    parent.height -
+                    root.headerHeight -
+                    root.spacingValue)
 
             model:
-                root.controller.myWaveModel
+                root.hasController
+                    ? root.controller.myWaveModel
+                    : null
 
             clip: true
+
             spacing: 6
 
             boundsBehavior:
@@ -123,10 +136,7 @@ Item {
                 width:
                     compactList.width -
                     (
-                        compactList
-                            .ScrollBar
-                            .vertical
-                            .visible
+                        compactList.ScrollBar.vertical.visible
                             ? 10
                             : 0
                     )
@@ -136,14 +146,14 @@ Item {
                 radius: 8
 
                 color:
-                    mouseArea.containsMouse
+                    compactMouseArea.containsMouse
                         ? "#dcdcdc"
                         : "#f2f2f2"
 
                 border.width: 1
 
                 border.color:
-                    mouseArea.containsMouse
+                    compactMouseArea.containsMouse
                         ? "#c4c4c4"
                         : "#e0e0e0"
 
@@ -163,8 +173,7 @@ Item {
 
                     source:
                             coverUri.length > 0
-                        ? "image://yandex/" +
-                        coverUri
+                        ? "image://yandex/" + coverUri
                         : ""
 
                     fillMode:
@@ -185,7 +194,8 @@ Item {
                             Image.Ready
 
                         Label {
-                            anchors.centerIn: parent
+                            anchors.centerIn:
+                                parent
 
                             text: "♪"
 
@@ -232,7 +242,8 @@ Item {
                     Label {
                         width: parent.width
 
-                        text: artist
+                        text:
+                            artist
 
                         color: "#555555"
 
@@ -264,9 +275,10 @@ Item {
                 }
 
                 MouseArea {
-                    id: mouseArea
+                    id: compactMouseArea
 
-                    anchors.fill: parent
+                    anchors.fill:
+                        parent
 
                     hoverEnabled: true
 
@@ -274,8 +286,7 @@ Item {
                         Qt.PointingHandCursor
 
                     onClicked: {
-                        root.controller
-                            .selectMyWaveTrack(
+                        root.controller.selectMyWaveTrack(
                             index)
                     }
                 }
@@ -284,7 +295,9 @@ Item {
     }
 
     /*
-     * Full My Wave
+     * ============================================================
+     * FULL MODE
+     * ============================================================
      */
 
     Column {
@@ -300,7 +313,9 @@ Item {
             root.hasTracks
 
         /*
+         * --------------------------------------------------------
          * Header
+         * --------------------------------------------------------
          */
 
         Row {
@@ -338,7 +353,9 @@ Item {
         }
 
         /*
-         * Current track card
+         * --------------------------------------------------------
+         * Current track
+         * --------------------------------------------------------
          */
 
         Rectangle {
@@ -378,7 +395,8 @@ Item {
                         parent.verticalCenter
 
                     source:
-                            root.controller.currentTrackCoverUri.length > 0
+                            root.hasController &&
+                        root.controller.currentTrackCoverUri.length > 0
                         ? "image://yandex/" +
                         root.controller.currentTrackCoverUri
                         : ""
@@ -414,7 +432,7 @@ Item {
                 }
 
                 /*
-                 * Track information + centered Play/Pause
+                 * Track information
                  */
 
                 Item {
@@ -461,7 +479,9 @@ Item {
                             parent.right
 
                         text:
-                            root.controller.currentTrackTitle
+                            root.hasController
+                                ? root.controller.currentTrackTitle
+                                : ""
 
                         color: "#202020"
 
@@ -471,6 +491,10 @@ Item {
                         elide:
                             Text.ElideRight
                     }
+
+                    /*
+                     * Artist
+                     */
 
                     Label {
                         id: currentArtist
@@ -483,25 +507,130 @@ Item {
                         anchors.left:
                             parent.left
 
-                        anchors.right:
-                            parent.right
+                        width:
+                            Math.min(
+                                implicitWidth,
+                                parent.width)
 
                         text:
-                            root.controller.currentTrackArtist
+                            root.hasController
+                                ? root.controller.currentTrackArtist
+                                : ""
 
-                        color: "#555555"
+                        color:
+                            artistMouseArea.containsMouse
+                                ? "#202020"
+                                : "#555555"
 
                         font.pixelSize: 16
 
                         elide:
                             Text.ElideRight
+
+                        font.underline:
+                            artistMouseArea.containsMouse
+
+                        MouseArea {
+                            id: artistMouseArea
+
+                            anchors.fill:
+                                parent
+
+                            hoverEnabled: true
+
+                            enabled:
+                                root.hasController &&
+                                root.controller.currentTrackArtistId.length > 0
+
+                            cursorShape:
+                                enabled
+                                    ? Qt.PointingHandCursor
+                                    : Qt.ArrowCursor
+
+                            onClicked: {
+                                root.controller.loadArtist(
+                                    root.controller.currentTrackArtistId)
+                            }
+                        }
                     }
+
+                    /*
+                     * Album
+                     */
+
+                    Label {
+                        id: currentAlbum
+
+                        anchors.top:
+                            currentArtist.bottom
+
+                        anchors.topMargin: 4
+
+                        anchors.left:
+                            parent.left
+
+                        width:
+                            Math.min(
+                                implicitWidth,
+                                parent.width)
+
+                        visible:
+                            root.hasController &&
+                            root.controller.currentTrackAlbumTitle.length > 0
+
+                        text:
+                            root.hasController
+                                ? root.controller.currentTrackAlbumTitle
+                                : ""
+
+                        color:
+                            albumMouseArea.containsMouse
+                                ? "#202020"
+                                : "#777777"
+
+                        font.pixelSize: 13
+
+                        elide:
+                            Text.ElideRight
+
+                        font.underline:
+                            albumMouseArea.containsMouse
+
+                        MouseArea {
+                            id: albumMouseArea
+
+                            anchors.fill:
+                                parent
+
+                            hoverEnabled: true
+
+                            enabled:
+                                root.hasController &&
+                                root.controller.currentTrackAlbumId.length > 0
+
+                            cursorShape:
+                                enabled
+                                    ? Qt.PointingHandCursor
+                                    : Qt.ArrowCursor
+
+                            onClicked: {
+                                root.controller.loadAlbum(
+                                    root.controller.currentTrackAlbumId)
+                            }
+                        }
+                    }
+
+                    /*
+                     * Duration
+                     */
 
                     Label {
                         id: currentDuration
 
                         anchors.top:
-                            currentArtist.bottom
+                            currentAlbum.visible
+                                ? currentAlbum.bottom
+                                : currentArtist.bottom
 
                         anchors.topMargin: 6
 
@@ -509,7 +638,8 @@ Item {
                             parent.left
 
                         text:
-                                root.controller.duration > 0
+                                root.hasController &&
+                            root.controller.duration > 0
                             ? root.formatDuration(
                                 root.controller.duration)
                             : ""
@@ -518,6 +648,10 @@ Item {
 
                         font.pixelSize: 12
                     }
+
+                    /*
+                     * Play / Pause
+                     */
 
                     Rectangle {
                         id: playPauseButton
@@ -555,23 +689,26 @@ Item {
                                 parent
 
                             text:
+                                    root.hasController &&
                                 root.controller.playing
-                                    ? "❚❚"
-                                    : "▶"
+                                ? "❚❚"
+                                : "▶"
 
                             color: "#ffffff"
 
                             font.pixelSize:
+                                    root.hasController &&
                                 root.controller.playing
-                                    ? 28
-                                    : 30
+                                ? 28
+                                : 30
 
                             font.bold: true
 
                             leftPadding:
+                                    root.hasController &&
                                 root.controller.playing
-                                    ? 0
-                                    : 5
+                                ? 0
+                                : 5
                         }
 
                         MouseArea {
@@ -584,6 +721,10 @@ Item {
 
                             cursorShape:
                                 Qt.PointingHandCursor
+
+                            enabled:
+                                root.hasController &&
+                                root.hasSelectedTrack
 
                             onClicked: {
                                 if (
@@ -601,7 +742,9 @@ Item {
         }
 
         /*
-         * Track list
+         * --------------------------------------------------------
+         * Track list title
+         * --------------------------------------------------------
          */
 
         Label {
@@ -619,6 +762,12 @@ Item {
 
             height: 26
         }
+
+        /*
+         * --------------------------------------------------------
+         * Track list
+         * --------------------------------------------------------
+         */
 
         ListView {
             id: fullList
@@ -642,7 +791,9 @@ Item {
                 )
 
             model:
-                root.controller.myWaveModel
+                root.hasController
+                    ? root.controller.myWaveModel
+                    : null
 
             clip: true
 
@@ -669,10 +820,7 @@ Item {
                 width:
                     fullList.width -
                     (
-                        fullList
-                            .ScrollBar
-                            .vertical
-                            .visible
+                        fullList.ScrollBar.vertical.visible
                             ? 10
                             : 0
                     )
@@ -850,11 +998,9 @@ Item {
                         Qt.PointingHandCursor
 
                     onClicked: {
-                        root.hasSelectedTrack =
-                            true
+                        root.hasSelectedTrack = true
 
-                        root.controller
-                            .selectMyWaveTrack(
+                        root.controller.selectMyWaveTrack(
                             index)
                     }
                 }
@@ -862,12 +1008,18 @@ Item {
         }
     }
 
+    /*
+     * ============================================================
+     * HELPERS
+     * ============================================================
+     */
+
     function isCurrentTrack(
         title,
         artist)
     {
         if (
-            root.controller === null
+            !root.hasController
         ) {
             return false
         }

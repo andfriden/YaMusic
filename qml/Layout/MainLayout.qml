@@ -6,85 +6,52 @@ Item {
 
     property var controller
 
-    property string currentSection:
-        "home"
+    property string currentSection: "home"
 
     property string contextType:
-        contextTypeForSection(
-            currentSection
-        )
+        contextTypeForSection(root.currentSection)
 
-    signal sectionSelected(
-        string section
-    )
+    signal sectionSelected(string section)
 
     Rectangle {
-        anchors.fill:
-            parent
-
-        color:
-            "#f5f5f5"
+        anchors.fill: parent
+        color: "#f5f5f5"
     }
 
     Row {
-        anchors.fill:
-            parent
-
-        spacing:
-            0
-
-        // =========================================================
-        // Sidebar
-        // =========================================================
+        anchors.fill: parent
+        spacing: 0
 
         Sidebar {
             id: sidebar
 
-            width:
-                205
+            width: 205
+            height: parent.height
 
-            height:
-                parent.height
+            currentSection: root.currentSection
 
-            currentSection:
-                root.currentSection
+            onSectionSelected: function(section) {
+                console.log("========================================")
+                console.log("MainLayout received sectionSelected")
+                console.log("section:", section)
+                console.log("old currentSection:", root.currentSection)
 
-            onSectionSelected:
-                    function(section) {
+                root.currentSection = section
 
-                root.currentSection =
-                    section
+                console.log("new currentSection:", root.currentSection)
+                console.log("new contextType:", root.contextType)
 
-                root.sectionSelected(
-                    section
-                )
+                root.sectionSelected(section)
 
-                console.log(
-                    "Main section selected:",
-                    section
-                )
-
-                console.log(
-                    "Context type:",
-                    root.contextType
-                )
+                console.log("========================================")
             }
         }
 
         Rectangle {
-            width:
-                1
-
-            height:
-                parent.height
-
-            color:
-                "#dddddd"
+            width: 1
+            height: parent.height
+            color: "#dddddd"
         }
-
-        // =========================================================
-        // Main content
-        // =========================================================
 
         Item {
             id: mainArea
@@ -95,38 +62,24 @@ Item {
                 contextPanel.width -
                 2
 
-            height:
-                parent.height
-
-            clip:
-                true
+            height: parent.height
+            clip: true
 
             ScrollView {
                 id: contentScrollView
 
-                anchors.fill:
-                    parent
+                anchors.fill: parent
 
-                anchors.topMargin:
-                    10
+                anchors.topMargin: 10
+                anchors.leftMargin: 20
+                anchors.rightMargin: 20
+                anchors.bottomMargin: 126
 
-                anchors.leftMargin:
-                    20
+                clip: true
 
-                anchors.rightMargin:
-                    20
-
-                anchors.bottomMargin:
-                    126
-
-                clip:
-                    true
-
-                ScrollBar.vertical:
-                    ScrollBar {
-                        policy:
-                            ScrollBar.AsNeeded
-                    }
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                }
 
                 Item {
                     id: contentHost
@@ -140,29 +93,19 @@ Item {
                             contentScrollView.availableHeight
                         )
 
-                    clip:
-                        false
-
                     Loader {
                         id: pageLoader
 
-                        anchors.left:
-                            parent.left
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.top: parent.top
 
-                        anchors.right:
-                            parent.right
-
-                        anchors.top:
-                            parent.top
-
-                        width:
-                            parent.width
+                        width: parent.width
 
                         height:
                                 item !== null
                             ? (
-                                    item.pageHeight !==
-                                    undefined
+                                    item.pageHeight !== undefined
                                     ? item.pageHeight
                                     : (
                                             item.implicitHeight > 0
@@ -173,49 +116,23 @@ Item {
                             : 1
 
                         onLoaded: {
-
-                            if (
-                                !item
-                            ) {
+                            if (!item) {
                                 return
                             }
 
-                            item.width =
-                                pageLoader.width
+                            item.width = pageLoader.width
 
-                            console.log(
-                                "========================================"
-                            )
-
-                            console.log(
-                                "MainLayout PageLoader"
-                            )
-
-                            console.log(
-                                "section:",
-                                root.currentSection
-                            )
-
-                            console.log(
-                                "contextType:",
-                                root.contextType
-                            )
-
-                            console.log(
-                                "page:",
-                                item
-                            )
-
-                            console.log(
-                                "page size:",
-                                item.width,
-                                item.height
-                            )
+                            console.log("========================================")
+                            console.log("MainLayout PageLoader")
+                            console.log("section:", root.currentSection)
+                            console.log("contextType:", root.contextType)
+                            console.log("source:", pageLoader.source)
+                            console.log("page:", item)
+                            console.log("page size:", item.width, item.height)
 
                             console.log(
                                 "pageHeight:",
-                                    item.pageHeight !==
-                                    undefined
+                                    item.pageHeight !== undefined
                                     ? item.pageHeight
                                     : "undefined"
                             )
@@ -225,9 +142,7 @@ Item {
                                 item.controller
                             )
 
-                            console.log(
-                                "========================================"
-                            )
+                            console.log("========================================")
                         }
                     }
                 }
@@ -235,106 +150,65 @@ Item {
         }
 
         Rectangle {
-            width:
-                1
-
-            height:
-                parent.height
-
-            color:
-                "#dddddd"
+            width: 1
+            height: parent.height
+            color: "#dddddd"
         }
-
-        // =========================================================
-        // Context panel
-        // =========================================================
 
         ContextPanel {
             id: contextPanel
 
-            width:
-                260
+            width: 260
+            height: parent.height
 
-            height:
-                parent.height
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
 
-            anchors.top:
-                parent.top
+            anchors.topMargin: 14
+            anchors.bottomMargin: 126
 
-            anchors.bottom:
-                parent.bottom
-
-            anchors.topMargin:
-                14
-
-            anchors.bottomMargin:
-                126
-
-            contextType:
-                root.contextType
-
-            controller:
-                root.controller
+            contextType: root.contextType
+            controller: root.controller
         }
     }
 
-    // =============================================================
-    // Page loading
-    // =============================================================
-
     function loadCurrentPage() {
-
         const source =
             pageSourceForSection(
                 root.currentSection
             )
 
-        console.log(
-            "========================================"
-        )
-
-        console.log(
-            "MainLayout loading page"
-        )
-
-        console.log(
-            "section:",
-            root.currentSection
-        )
-
-        console.log(
-            "contextType:",
-            root.contextType
-        )
-
-        console.log(
-            "source:",
-            source
-        )
-
-        console.log(
-            "controller:",
-            root.controller
-        )
-
-        console.log(
-            "========================================"
-        )
+        console.log("========================================")
+        console.log("MainLayout loading page")
+        console.log("section:", root.currentSection)
+        console.log("contextType:", root.contextType)
+        console.log("source:", source)
+        console.log("controller:", root.controller)
+        console.log("========================================")
 
         pageLoader.setSource(
             source,
             {
-                controller:
-                root.controller
+                controller: root.controller
             }
         )
     }
 
     onCurrentSectionChanged: {
+        console.log("========================================")
+        console.log("MainLayout currentSection CHANGED")
+        console.log("currentSection:", root.currentSection)
+        console.log("contextType:", root.contextType)
+        console.log("========================================")
+
         loadCurrentPage()
     }
 
     onControllerChanged: {
+        console.log("========================================")
+        console.log("MainLayout controller CHANGED")
+        console.log("controller:", root.controller)
+        console.log("========================================")
 
         if (
             root.controller !== null &&
@@ -345,29 +219,11 @@ Item {
     }
 
     Component.onCompleted: {
-
-        console.log(
-            "========================================"
-        )
-
-        console.log(
-            "MainLayout CREATED"
-        )
-
-        console.log(
-            "controller:",
-            root.controller
-        )
-
-        console.log(
-            "currentSection:",
-            root.currentSection
-        )
-
-        console.log(
-            "contextType:",
-            root.contextType
-        )
+        console.log("========================================")
+        console.log("MainLayout CREATED")
+        console.log("controller:", root.controller)
+        console.log("currentSection:", root.currentSection)
+        console.log("contextType:", root.contextType)
 
         console.log(
             "mainArea:",
@@ -387,9 +243,7 @@ Item {
             contextPanel.height
         )
 
-        console.log(
-            "========================================"
-        )
+        console.log("========================================")
 
         if (
             root.controller !== null &&
@@ -399,15 +253,8 @@ Item {
         }
     }
 
-    // =============================================================
-    // Page routing
-    // =============================================================
-
-    function pageSourceForSection(
-        section
-    ) {
+    function pageSourceForSection(section) {
         switch (section) {
-
             case "home":
                 return "../Pages/HomePage.qml"
 
@@ -436,30 +283,44 @@ Item {
                 return "../Pages/HomePage.qml"
 
             default:
+                console.warn(
+                    "Unknown section:",
+                    section,
+                    "-> HomePage"
+                )
+
                 return "../Pages/HomePage.qml"
         }
     }
 
-    // =============================================================
-    // Context routing
-    // =============================================================
-
-    function contextTypeForSection(
-        section
-    ) {
+    function contextTypeForSection(section) {
         switch (section) {
+            case "home":
+                return "home"
 
-            case "artists":
-                return "artist"
+            case "search":
+                return "home"
+
+            case "wave":
+                return "mywave"
+
+            case "library":
+                return "library"
 
             case "albums":
                 return "album"
 
+            case "artists":
+                return "artist"
+
             case "playlists":
                 return "playlist"
 
-            case "library":
-                return "library"
+            case "liked":
+                return "home"
+
+            case "recent":
+                return "home"
 
             default:
                 return "home"

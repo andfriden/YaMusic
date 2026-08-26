@@ -43,28 +43,6 @@ Item {
 
     /*
      * ============================================================
-     * Public page size
-     * ============================================================
-     */
-
-    readonly property int pageHeight: 1040
-
-    width:
-        parent
-            ? parent.width
-            : 0
-
-    height:
-        pageHeight
-
-    implicitWidth:
-        width
-
-    implicitHeight:
-        pageHeight
-
-    /*
-     * ============================================================
      * Artist state
      * ============================================================
      */
@@ -143,42 +121,37 @@ Item {
      */
 
     Rectangle {
-        anchors.fill:
-            parent
-
-        color:
-            "#f5f5f5"
+        anchors.fill: parent
+        color: "#f5f5f5"
     }
 
     /*
      * ============================================================
      * Main scroll
+     *
+     * IMPORTANT:
+     * No fixed page height.
+     * Column grows according to its contents.
      * ============================================================
      */
 
     ScrollView {
         id: pageScroll
 
-        anchors.fill:
-            parent
+        anchors.fill: parent
 
-        clip:
-            true
+        clip: true
 
-        ScrollBar.vertical:
-            ScrollBar {
-                policy:
-                    ScrollBar.AsNeeded
-            }
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+        }
 
         Column {
             id: pageColumn
 
-            width:
-                pageScroll.availableWidth
+            width: pageScroll.availableWidth
 
-            spacing:
-                20
+            spacing: 20
 
             /*
              * ====================================================
@@ -187,33 +160,21 @@ Item {
              */
 
             Rectangle {
-                width:
-                    parent.width
+                width: parent.width
+                height: 260
 
-                height:
-                    260
+                radius: 14
 
-                radius:
-                    14
+                color: "#e9e9e9"
 
-                color:
-                    "#e9e9e9"
-
-                border.width:
-                    1
-
-                border.color:
-                    "#d6d6d6"
+                border.width: 1
+                border.color: "#d6d6d6"
 
                 Row {
-                    anchors.fill:
-                        parent
+                    anchors.fill: parent
+                    anchors.margins: 20
 
-                    anchors.margins:
-                        20
-
-                    spacing:
-                        24
+                    spacing: 24
 
                     /*
                      * ------------------------------------------------
@@ -224,30 +185,22 @@ Item {
                     Item {
                         id: artistArtwork
 
-                        width:
-                            220
-
-                        height:
-                            220
+                        width: 220
+                        height: 220
 
                         Rectangle {
-                            anchors.fill:
-                                parent
+                            anchors.fill: parent
 
-                            radius:
-                                width / 2
+                            radius: width / 2
 
-                            color:
-                                "#d0d0d0"
+                            color: "#d0d0d0"
 
-                            clip:
-                                true
+                            clip: true
 
                             Image {
                                 id: artistImage
 
-                                anchors.fill:
-                                    parent
+                                anchors.fill: parent
 
                                 source:
                                         root.artistCoverUri.length > 0
@@ -264,29 +217,21 @@ Item {
                                 fillMode:
                                     Image.PreserveAspectCrop
 
-                                asynchronous:
-                                    true
-
-                                cache:
-                                    true
+                                asynchronous: true
+                                cache: true
 
                                 visible:
-                                    status ===
-                                    Image.Ready
+                                    status === Image.Ready
                             }
 
                             Label {
-                                anchors.centerIn:
-                                    parent
+                                anchors.centerIn: parent
 
-                                text:
-                                    "♪"
+                                text: "♪"
 
-                                color:
-                                    "#777777"
+                                color: "#777777"
 
-                                font.pixelSize:
-                                    54
+                                font.pixelSize: 54
 
                                 visible:
                                     artistImage.status !==
@@ -295,20 +240,14 @@ Item {
                         }
 
                         Rectangle {
-                            anchors.fill:
-                                parent
+                            anchors.fill: parent
 
-                            radius:
-                                width / 2
+                            radius: width / 2
 
-                            color:
-                                "transparent"
+                            color: "transparent"
 
-                            border.width:
-                                1
-
-                            border.color:
-                                "#c8c8c8"
+                            border.width: 1
+                            border.color: "#c8c8c8"
                         }
                     }
 
@@ -324,112 +263,74 @@ Item {
                             artistArtwork.width -
                             parent.spacing
 
-                        anchors.verticalCenter:
-                            parent.verticalCenter
+                        anchors.verticalCenter: parent.verticalCenter
 
-                        spacing:
-                            10
+                        spacing: 10
 
                         Label {
-                            text:
-                                qsTr(
-                                    "ИСПОЛНИТЕЛЬ"
-                                )
+                            text: qsTr("ИСПОЛНИТЕЛЬ")
 
-                            color:
-                                "#888888"
+                            color: "#888888"
 
-                            font.pixelSize:
-                                12
-
-                            font.bold:
-                                true
+                            font.pixelSize: 12
+                            font.bold: true
                         }
 
                         Label {
-                            width:
-                                parent.width
+                            width: parent.width
 
                             text:
                                     root.artistName.length > 0
                                 ? root.artistName
-                                : qsTr(
-                                    "Исполнитель"
-                                )
+                                : qsTr("Исполнитель")
 
-                            color:
-                                "#202020"
+                            color: "#202020"
 
-                            font.pixelSize:
-                                32
+                            font.pixelSize: 32
+                            font.bold: true
 
-                            font.bold:
-                                true
-
-                            elide:
-                                Text.ElideRight
+                            elide: Text.ElideRight
                         }
 
                         Label {
-                            width:
-                                parent.width
+                            width: parent.width
 
-                            text:
-                                root.artistGenres
+                            text: root.artistGenres
 
-                            color:
-                                "#666666"
+                            color: "#666666"
 
-                            font.pixelSize:
-                                13
+                            font.pixelSize: 13
 
-                            wrapMode:
-                                Text.WordWrap
+                            wrapMode: Text.WordWrap
 
-                            maximumLineCount:
-                                2
+                            maximumLineCount: 2
 
-                            visible:
-                                text.length > 0
+                            visible: text.length > 0
                         }
 
                         Label {
-                            width:
-                                parent.width
+                            width: parent.width
 
-                            text:
-                                root.artistDescription
+                            text: root.artistDescription
 
-                            color:
-                                "#666666"
+                            color: "#666666"
 
-                            font.pixelSize:
-                                12
+                            font.pixelSize: 12
 
-                            wrapMode:
-                                Text.WordWrap
+                            wrapMode: Text.WordWrap
 
-                            maximumLineCount:
-                                3
+                            maximumLineCount: 3
 
-                            elide:
-                                Text.ElideRight
+                            elide: Text.ElideRight
 
-                            visible:
-                                text.length > 0
+                            visible: text.length > 0
                         }
 
                         Button {
-                            width:
-                                140
+                            width: 140
+                            height: 38
 
-                            height:
-                                38
-
-                            text:
-                                qsTr(
-                                    "▶  Слушать"
-                                )
+                            text: qsTr("▶  Слушать")
 
                             enabled:
                                 !root.loading &&
@@ -460,18 +361,13 @@ Item {
             Row {
                 id: tracksAndReleaseRow
 
-                width:
-                    parent.width
+                width: parent.width
 
-                spacing:
-                    20
+                spacing: 20
 
                 /*
                  * =================================================
                  * Popular tracks
-                 *
-                 * Only 4 rows are visible.
-                 * Additional tracks are available by scrolling.
                  * =================================================
                  */
 
@@ -496,68 +392,39 @@ Item {
                             ) * 68
                         )
 
-                    radius:
-                        12
+                    radius: 12
 
-                    color:
-                        "#e9e9e9"
+                    color: "#e9e9e9"
 
-                    border.width:
-                        1
-
-                    border.color:
-                        "#d6d6d6"
+                    border.width: 1
+                    border.color: "#d6d6d6"
 
                     Column {
-                        anchors.fill:
-                            parent
+                        anchors.fill: parent
 
-                        anchors.leftMargin:
-                            16
+                        anchors.leftMargin: 16
+                        anchors.rightMargin: 16
+                        anchors.topMargin: 14
+                        anchors.bottomMargin: 14
 
-                        anchors.rightMargin:
-                            16
-
-                        anchors.topMargin:
-                            14
-
-                        anchors.bottomMargin:
-                            14
-
-                        spacing:
-                            10
+                        spacing: 10
 
                         Label {
-                            width:
-                                parent.width
+                            width: parent.width
 
                             text:
-                                qsTr(
-                                    "Популярные треки"
-                                ) +
-                                (
-                                        artistTracksView.count > 0
-                                        ? "  (" +
-                                        artistTracksView.count +
-                                        ")"
-                                        : ""
-                                )
+                                qsTr("Популярные треки")
 
-                            color:
-                                "#202020"
+                            color: "#202020"
 
-                            font.pixelSize:
-                                22
-
-                            font.bold:
-                                true
+                            font.pixelSize: 22
+                            font.bold: true
                         }
 
                         ListView {
                             id: artistTracksView
 
-                            width:
-                                parent.width
+                            width: parent.width
 
                             height:
                                 Math.max(
@@ -568,243 +435,197 @@ Item {
                                     1
                                 )
 
-                            model:
-                                root.artistModel
+                            model: root.artistModel
 
                             interactive:
                                 count > 4
 
-                            clip:
-                                true
+                            clip: true
 
-                            spacing:
-                                4
+                            spacing: 4
 
-                            ScrollBar.vertical:
-                                ScrollBar {
-                                    policy:
-                                            artistTracksView.count > 4
-                                        ? ScrollBar.AsNeeded
-                                        : ScrollBar.AlwaysOff
-                                }
+                            ScrollBar.vertical: ScrollBar {
+                                policy:
+                                        artistTracksView.count > 4
+                                    ? ScrollBar.AsNeeded
+                                    : ScrollBar.AlwaysOff
+                            }
 
-                            delegate:
-                                Rectangle {
-                                    id: trackRow
+                            delegate: Rectangle {
+                                id: trackRow
 
-                                    required property int index
-                                    required property string trackId
-                                    required property string title
-                                    required property string artist
-                                    required property string artistId
-                                    required property string coverUri
-                                    required property int durationMs
+                                required property int index
+                                required property string trackId
+                                required property string title
+                                required property string artist
+                                required property string artistId
+                                required property string coverUri
+                                required property int durationMs
 
-                                    width:
-                                        artistTracksView.width
+                                width:
+                                    artistTracksView.width
 
-                                    height:
-                                        64
+                                height: 64
 
-                                    radius:
-                                        8
+                                radius: 8
 
-                                    color:
-                                        trackMouse.containsMouse
-                                            ? "#dddddd"
-                                            : "#f1f1f1"
+                                color:
+                                    trackMouse.containsMouse
+                                        ? "#dddddd"
+                                        : "#f1f1f1"
 
-                                    border.width:
-                                        1
+                                border.width: 1
 
-                                    border.color:
-                                        trackMouse.containsMouse
-                                            ? "#c8c8c8"
-                                            : "#dfdfdf"
+                                border.color:
+                                    trackMouse.containsMouse
+                                        ? "#c8c8c8"
+                                        : "#dfdfdf"
 
-                                    Image {
-                                        id: trackImage
+                                Image {
+                                    id: trackImage
 
-                                        width:
+                                    width: 48
+                                    height: 48
+
+                                    anchors.left: parent.left
+                                    anchors.leftMargin: 8
+
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+
+                                    source:
+                                            trackRow.coverUri.length > 0
+                                        ? "image://yandex/" +
+                                        trackRow.coverUri
+                                        : ""
+
+                                    sourceSize:
+                                        Qt.size(
+                                            48,
                                             48
+                                        )
 
-                                        height:
-                                            48
+                                    fillMode:
+                                        Image.PreserveAspectCrop
 
-                                        anchors.left:
-                                            parent.left
+                                    asynchronous: true
+                                    cache: true
 
-                                        anchors.leftMargin:
-                                            8
+                                    Rectangle {
+                                        anchors.fill: parent
 
-                                        anchors.verticalCenter:
-                                            parent.verticalCenter
+                                        radius: 6
 
-                                        source:
-                                                trackRow.coverUri.length > 0
-                                            ? "image://yandex/" +
-                                            trackRow.coverUri
-                                            : ""
+                                        color: "#d0d0d0"
 
-                                        sourceSize:
-                                            Qt.size(
-                                                48,
-                                                48
-                                            )
+                                        visible:
+                                            trackImage.status !==
+                                            Image.Ready
 
-                                        fillMode:
-                                            Image.PreserveAspectCrop
+                                        Label {
+                                            anchors.centerIn: parent
 
-                                        asynchronous:
-                                            true
+                                            text: "♪"
 
-                                        cache:
-                                            true
+                                            color: "#777777"
 
-                                        Rectangle {
-                                            anchors.fill:
-                                                parent
-
-                                            radius:
-                                                6
-
-                                            color:
-                                                "#d0d0d0"
-
-                                            visible:
-                                                trackImage.status !==
-                                                Image.Ready
-
-                                            Label {
-                                                anchors.centerIn:
-                                                    parent
-
-                                                text:
-                                                    "♪"
-
-                                                color:
-                                                    "#777777"
-
-                                                font.pixelSize:
-                                                    18
-                                            }
+                                            font.pixelSize: 18
                                         }
                                     }
+                                }
 
-                                    Column {
-                                        anchors.left:
-                                            trackImage.right
+                                Column {
+                                    anchors.left:
+                                        trackImage.right
 
-                                        anchors.leftMargin:
-                                            12
+                                    anchors.leftMargin: 12
 
-                                        anchors.right:
-                                            durationLabel.left
+                                    anchors.right:
+                                        durationLabel.left
 
-                                        anchors.rightMargin:
-                                            12
+                                    anchors.rightMargin: 12
 
-                                        anchors.verticalCenter:
-                                            parent.verticalCenter
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
 
-                                        spacing:
-                                            2
+                                    spacing: 2
 
-                                        Label {
-                                            width:
-                                                parent.width
+                                    Label {
+                                        width: parent.width
 
-                                            text:
-                                                    trackRow.title.length > 0
-                                                ? trackRow.title
-                                                : qsTr(
-                                                    "Без названия"
-                                                )
+                                        text:
+                                                trackRow.title.length > 0
+                                            ? trackRow.title
+                                            : qsTr("Без названия")
 
-                                            color:
-                                                "#202020"
+                                        color: "#202020"
 
-                                            font.pixelSize:
-                                                14
+                                        font.pixelSize: 14
+                                        font.bold: true
 
-                                            font.bold:
-                                                true
-
-                                            elide:
-                                                Text.ElideRight
-                                        }
-
-                                        Label {
-                                            width:
-                                                parent.width
-
-                                            text:
-                                                    trackRow.artist.length > 0
-                                                ? trackRow.artist
-                                                : qsTr(
-                                                    "Неизвестный исполнитель"
-                                                )
-
-                                            color:
-                                                "#555555"
-
-                                            font.pixelSize:
-                                                12
-
-                                            elide:
-                                                Text.ElideRight
-                                        }
+                                        elide: Text.ElideRight
                                     }
 
                                     Label {
-                                        id: durationLabel
-
-                                        anchors.right:
-                                            parent.right
-
-                                        anchors.rightMargin:
-                                            14
-
-                                        anchors.verticalCenter:
-                                            parent.verticalCenter
+                                        width: parent.width
 
                                         text:
-                                            root.formatDuration(
-                                                trackRow.durationMs
+                                                trackRow.artist.length > 0
+                                            ? trackRow.artist
+                                            : qsTr(
+                                                "Неизвестный исполнитель"
                                             )
 
-                                        color:
-                                            "#666666"
+                                        color: "#555555"
 
-                                        font.pixelSize:
-                                            11
-                                    }
+                                        font.pixelSize: 12
 
-                                    MouseArea {
-                                        id: trackMouse
-
-                                        anchors.fill:
-                                            parent
-
-                                        hoverEnabled:
-                                            true
-
-                                        cursorShape:
-                                            Qt.PointingHandCursor
-
-                                        onClicked: {
-                                            if (
-                                                root.artistController === null
-                                            ) {
-                                                return
-                                            }
-
-                                            root.artistController.selectTrack(
-                                                trackRow.index
-                                            )
-                                        }
+                                        elide: Text.ElideRight
                                     }
                                 }
+
+                                Label {
+                                    id: durationLabel
+
+                                    anchors.right: parent.right
+                                    anchors.rightMargin: 14
+
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+
+                                    text:
+                                        root.formatDuration(
+                                            trackRow.durationMs
+                                        )
+
+                                    color: "#666666"
+
+                                    font.pixelSize: 11
+                                }
+
+                                MouseArea {
+                                    id: trackMouse
+
+                                    anchors.fill: parent
+
+                                    hoverEnabled: true
+
+                                    cursorShape:
+                                        Qt.PointingHandCursor
+
+                                    onClicked: {
+                                        if (
+                                            root.artistController === null
+                                        ) {
+                                            return
+                                        }
+
+                                        root.artistController.selectTrack(
+                                            trackRow.index
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -827,51 +648,34 @@ Item {
                             ) * 0.32
                         )
 
-                    height:
-                        tracksPanel.height
+                    height: tracksPanel.height
 
-                    radius:
-                        12
+                    radius: 12
 
-                    color:
-                        "#e9e9e9"
+                    color: "#e9e9e9"
 
-                    border.width:
-                        1
-
-                    border.color:
-                        "#d6d6d6"
+                    border.width: 1
+                    border.color: "#d6d6d6"
 
                     visible:
                         root.newReleaseTitle.length > 0
 
                     Column {
-                        anchors.fill:
-                            parent
+                        anchors.fill: parent
 
-                        anchors.margins:
-                            14
+                        anchors.margins: 14
 
-                        spacing:
-                            12
+                        spacing: 12
 
                         Label {
-                            width:
-                                parent.width
+                            width: parent.width
 
-                            text:
-                                qsTr(
-                                    "ПОСЛЕДНИЙ РЕЛИЗ"
-                                )
+                            text: qsTr("ПОСЛЕДНИЙ РЕЛИЗ")
 
-                            color:
-                                "#888888"
+                            color: "#888888"
 
-                            font.pixelSize:
-                                11
-
-                            font.bold:
-                                true
+                            font.pixelSize: 11
+                            font.bold: true
                         }
 
                         Rectangle {
@@ -881,24 +685,19 @@ Item {
                                     180
                                 )
 
-                            height:
-                                width
+                            height: width
 
                             anchors.horizontalCenter:
                                 parent.horizontalCenter
 
-                            radius:
-                                10
+                            radius: 10
 
-                            color:
-                                "#d0d0d0"
+                            color: "#d0d0d0"
 
-                            clip:
-                                true
+                            clip: true
 
                             Image {
-                                anchors.fill:
-                                    parent
+                                anchors.fill: parent
 
                                 source:
                                         root.newReleaseCoverUri.length > 0
@@ -915,29 +714,21 @@ Item {
                                 fillMode:
                                     Image.PreserveAspectCrop
 
-                                asynchronous:
-                                    true
-
-                                cache:
-                                    true
+                                asynchronous: true
+                                cache: true
 
                                 visible:
-                                    status ===
-                                    Image.Ready
+                                    status === Image.Ready
                             }
 
                             Label {
-                                anchors.centerIn:
-                                    parent
+                                anchors.centerIn: parent
 
-                                text:
-                                    "♪"
+                                text: "♪"
 
-                                color:
-                                    "#777777"
+                                color: "#777777"
 
-                                font.pixelSize:
-                                    34
+                                font.pixelSize: 34
 
                                 visible:
                                     root.newReleaseCoverUri.length === 0
@@ -945,37 +736,28 @@ Item {
                         }
 
                         Label {
-                            width:
-                                parent.width
+                            width: parent.width
 
                             text:
                                 root.newReleaseTitle
 
-                            color:
-                                "#202020"
+                            color: "#202020"
 
-                            font.pixelSize:
-                                20
+                            font.pixelSize: 20
+                            font.bold: true
 
-                            font.bold:
-                                true
+                            wrapMode: Text.WordWrap
 
-                            wrapMode:
-                                Text.WordWrap
+                            maximumLineCount: 2
 
-                            maximumLineCount:
-                                2
-
-                            elide:
-                                Text.ElideRight
+                            elide: Text.ElideRight
 
                             horizontalAlignment:
                                 Text.AlignHCenter
                         }
 
                         Label {
-                            width:
-                                parent.width
+                            width: parent.width
 
                             text:
                                     root.newReleaseYear > 0
@@ -984,11 +766,9 @@ Item {
                                 )
                                 : ""
 
-                            color:
-                                "#666666"
+                            color: "#666666"
 
-                            font.pixelSize:
-                                12
+                            font.pixelSize: 12
 
                             horizontalAlignment:
                                 Text.AlignHCenter
@@ -1003,47 +783,41 @@ Item {
             /*
              * ====================================================
              * Popular albums
+             *
+             * 5 albums per row.
+             *
              * ====================================================
              */
 
             Rectangle {
                 id: albumsPanel
 
-                width:
-                    parent.width
+                width: parent.width
 
                 height:
                         root.albumsModel !== null
-                    ? 90 +
+                    ? 78 +
                     Math.max(
                         Math.ceil(
-                            albumsView.count / 4
-                        ) * 170,
+                            albumsView.count / 5
+                        ) * 158,
                         1
                     )
                     : 150
 
-                radius:
-                    12
+                radius: 12
 
-                color:
-                    "#e9e9e9"
+                color: "#e9e9e9"
 
-                border.width:
-                    1
-
-                border.color:
-                    "#d6d6d6"
+                border.width: 1
+                border.color: "#d6d6d6"
 
                 Column {
-                    anchors.fill:
-                        parent
+                    anchors.fill: parent
 
-                    anchors.margins:
-                        14
+                    anchors.margins: 14
 
-                    spacing:
-                        12
+                    spacing: 8
 
                     Label {
                         text:
@@ -1051,238 +825,223 @@ Item {
                                 "Популярные альбомы"
                             )
 
-                        color:
-                            "#202020"
+                        color: "#202020"
 
-                        font.pixelSize:
-                            22
-
-                        font.bold:
-                            true
+                        font.pixelSize: 22
+                        font.bold: true
                     }
 
                     GridView {
                         id: albumsView
 
-                        width:
-                            parent.width
+                        width: parent.width
 
                         height:
                             Math.max(
                                 Math.ceil(
-                                    count / 4
-                                ) * 160,
+                                    count / 5
+                                ) * 150,
                                 1
                             )
 
                         model:
                             root.albumsModel
 
+                        /*
+                         * Five columns.
+                         */
                         cellWidth:
                                 width > 0
                             ? Math.floor(
-                                width / 4
+                                width / 5
                             )
                             : 1
 
                         cellHeight:
-                            160
+                            150
 
-                        interactive:
-                            false
+                        interactive: false
 
-                        clip:
-                            true
+                        clip: true
 
-                        delegate:
-                            Item {
-                                id: albumDelegate
+                        delegate: Item {
+                            id: albumDelegate
+
+                            width:
+                                albumsView.cellWidth
+
+                            height:
+                                albumsView.cellHeight
+
+                            required property int index
+                            required property string albumId
+                            required property string title
+                            required property string coverUri
+                            required property int year
+
+                            /*
+                             * ------------------------------------------------
+                             * Cover
+                             * ------------------------------------------------
+                             */
+
+                            Rectangle {
+                                id: albumCover
 
                                 width:
-                                    albumsView.cellWidth
+                                    Math.min(
+                                        124,
+                                        albumsView.cellWidth - 8
+                                    )
 
                                 height:
-                                    albumsView.cellHeight
+                                    width
 
-                                required property int index
-                                required property string albumId
-                                required property string title
-                                required property string coverUri
-                                required property int year
+                                anchors.horizontalCenter:
+                                    parent.horizontalCenter
 
-                                Rectangle {
-                                    id: albumCover
+                                radius: 9
 
-                                    width:
-                                        132
+                                color: "#d0d0d0"
 
-                                    height:
-                                        132
+                                clip: true
 
-                                    anchors.horizontalCenter:
-                                        parent.horizontalCenter
+                                Image {
+                                    anchors.fill: parent
 
-                                    radius:
-                                        10
+                                    source:
+                                            albumDelegate.coverUri.length > 0
+                                        ? "image://yandex/" +
+                                        albumDelegate.coverUri
+                                        : ""
 
-                                    color:
-                                        "#d0d0d0"
+                                    sourceSize:
+                                        Qt.size(
+                                            124,
+                                            124
+                                        )
 
-                                    clip:
-                                        true
+                                    fillMode:
+                                        Image.PreserveAspectCrop
 
-                                    Image {
-                                        anchors.fill:
-                                            parent
+                                    asynchronous: true
+                                    cache: true
 
-                                        source:
-                                                albumDelegate.coverUri.length > 0
-                                            ? "image://yandex/" +
-                                            albumDelegate.coverUri
-                                            : ""
-
-                                        sourceSize:
-                                            Qt.size(
-                                                132,
-                                                132
-                                            )
-
-                                        fillMode:
-                                            Image.PreserveAspectCrop
-
-                                        asynchronous:
-                                            true
-
-                                        cache:
-                                            true
-
-                                        visible:
-                                            status ===
-                                            Image.Ready
-                                    }
-
-                                    Label {
-                                        anchors.centerIn:
-                                            parent
-
-                                        text:
-                                            "♪"
-
-                                        color:
-                                            "#777777"
-
-                                        font.pixelSize:
-                                            26
-
-                                        visible:
-                                            albumDelegate.coverUri.length === 0
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill:
-                                            parent
-
-                                        cursorShape:
-                                            Qt.PointingHandCursor
-
-                                        onClicked: {
-                                            if (
-                                                root.controller === null ||
-                                                root.controller === undefined
-                                            ) {
-                                                return
-                                            }
-
-                                            if (
-                                                albumDelegate.albumId.length === 0
-                                            ) {
-                                                return
-                                            }
-
-                                            root.controller.loadAlbum(
-                                                albumDelegate.albumId
-                                            )
-                                        }
-                                    }
+                                    visible:
+                                        status === Image.Ready
                                 }
 
-                                Column {
-                                    width:
-                                        132
+                                Label {
+                                    anchors.centerIn: parent
 
-                                    anchors.top:
-                                        albumCover.bottom
+                                    text: "♪"
 
-                                    anchors.topMargin:
-                                        4
+                                    color: "#777777"
 
-                                    anchors.horizontalCenter:
-                                        parent.horizontalCenter
+                                    font.pixelSize: 24
 
-                                    spacing:
-                                        2
+                                    visible:
+                                        albumDelegate.coverUri.length === 0
+                                }
 
-                                    Label {
-                                        width:
-                                            parent.width
+                                MouseArea {
+                                    anchors.fill: parent
 
-                                        text:
-                                            albumDelegate.title
+                                    cursorShape:
+                                        Qt.PointingHandCursor
 
-                                        color:
-                                            "#202020"
+                                    onClicked: {
+                                        if (
+                                            root.controller === null ||
+                                            root.controller === undefined
+                                        ) {
+                                            return
+                                        }
 
-                                        font.pixelSize:
-                                            12
+                                        if (
+                                            albumDelegate.albumId.length === 0
+                                        ) {
+                                            return
+                                        }
 
-                                        font.bold:
-                                            true
-
-                                        elide:
-                                            Text.ElideRight
-                                    }
-
-                                    Label {
-                                        width:
-                                            parent.width
-
-                                        text:
-                                                albumDelegate.year > 0
-                                            ? String(
-                                                albumDelegate.year
-                                            )
-                                            : ""
-
-                                        color:
-                                            "#777777"
-
-                                        font.pixelSize:
-                                            11
-
-                                        visible:
-                                            text.length > 0
+                                        root.controller.loadAlbum(
+                                            albumDelegate.albumId
+                                        )
                                     }
                                 }
                             }
 
+                            /*
+                             * ------------------------------------------------
+                             * Album title
+                             * ------------------------------------------------
+                             */
+
+                            Column {
+                                width:
+                                    albumCover.width
+
+                                anchors.top:
+                                    albumCover.bottom
+
+                                anchors.topMargin:
+                                    4
+
+                                anchors.horizontalCenter:
+                                    parent.horizontalCenter
+
+                                spacing: 1
+
+                                Label {
+                                    width: parent.width
+
+                                    text:
+                                        albumDelegate.title
+
+                                    color: "#202020"
+
+                                    font.pixelSize: 12
+                                    font.bold: true
+
+                                    elide:
+                                        Text.ElideRight
+
+                                    maximumLineCount: 1
+                                }
+
+                                Label {
+                                    width: parent.width
+
+                                    text:
+                                            albumDelegate.year > 0
+                                        ? String(
+                                            albumDelegate.year
+                                        )
+                                        : ""
+
+                                    color: "#777777"
+
+                                    font.pixelSize: 11
+
+                                    visible:
+                                        text.length > 0
+                                }
+                            }
+                        }
+
                         Label {
-                            anchors.centerIn:
-                                parent
+                            anchors.centerIn: parent
 
                             text:
                                 root.loading
-                                    ? qsTr(
-                                        "Загрузка..."
-                                    )
+                                    ? qsTr("Загрузка...")
                                     : qsTr(
                                         "Нет доступных альбомов"
                                     )
 
-                            color:
-                                "#999999"
+                            color: "#999999"
 
-                            font.pixelSize:
-                                12
+                            font.pixelSize: 12
 
                             visible:
                                 albumsView.count === 0
@@ -1298,11 +1057,8 @@ Item {
              */
 
             Item {
-                width:
-                    1
-
-                height:
-                    30
+                width: 1
+                height: 30
             }
         }
     }
@@ -1314,38 +1070,31 @@ Item {
      */
 
     Rectangle {
-        anchors.fill:
-            parent
+        anchors.fill: parent
 
-        color:
-            "#f5f5f5"
+        color: "#f5f5f5"
 
-        opacity:
-            0.96
+        opacity: 0.96
 
         visible:
             root.loading &&
             root.artistName.length === 0
 
-        Column {
-            anchors.centerIn:
-                parent
+        z: 100
 
-            spacing:
-                10
+        Column {
+            anchors.centerIn: parent
+
+            spacing: 10
 
             BusyIndicator {
-                width:
-                    32
-
-                height:
-                    32
+                width: 32
+                height: 32
 
                 anchors.horizontalCenter:
                     parent.horizontalCenter
 
-                running:
-                    true
+                running: true
             }
 
             Label {
@@ -1354,11 +1103,9 @@ Item {
                         "Загрузка исполнителя..."
                     )
 
-                color:
-                    "#666666"
+                color: "#666666"
 
-                font.pixelSize:
-                    13
+                font.pixelSize: 13
 
                 anchors.horizontalCenter:
                     parent.horizontalCenter
@@ -1373,23 +1120,22 @@ Item {
      */
 
     Label {
-        anchors.centerIn:
-            parent
+        anchors.centerIn: parent
 
         text:
             qsTr(
                 "Выберите исполнителя"
             )
 
-        color:
-            "#999999"
+        color: "#999999"
 
-        font.pixelSize:
-            14
+        font.pixelSize: 14
 
         visible:
             !root.loading &&
             root.artistName.length === 0
+
+        z: 101
     }
 
     /*
@@ -1415,11 +1161,6 @@ Item {
         console.log(
             "height:",
             root.height
-        )
-
-        console.log(
-            "pageHeight:",
-            root.pageHeight
         )
 
         console.log(

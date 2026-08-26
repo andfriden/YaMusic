@@ -11,9 +11,7 @@ MyWaveModel::MyWaveModel(
 int MyWaveModel::rowCount(
     const QModelIndex &parent) const
 {
-    if (
-        parent.isValid()
-    ) {
+    if (parent.isValid()) {
         return 0;
     }
 
@@ -33,8 +31,7 @@ QVariant MyWaveModel::data(
     }
 
     const Track &track =
-        m_tracks.at(
-            index.row());
+        m_tracks.at(index.row());
 
     switch (role) {
 
@@ -46,48 +43,37 @@ QVariant MyWaveModel::data(
 
     case ArtistRole:
     {
-        QStringList artistNames;
+        QStringList names;
 
         for (
             const Artist &artist :
             track.artists
         ) {
-
-            if (
-                !artist.name.isEmpty()
-            ) {
-
-                artistNames.append(
-                    artist.name);
+            if (!artist.name.isEmpty()) {
+                names.append(artist.name);
             }
         }
 
-        return artistNames.join(
-            ", ");
+        return names.join(", ");
     }
 
     case ArtistIdRole:
-
-        if (
-            !track.artists.isEmpty()
-        ) {
-
-            return track.artists
-                .first()
-                .id;
+        if (!track.artists.isEmpty()) {
+            return track.artists.first().id;
         }
 
         return QString();
 
     case AlbumRole:
+        if (!track.albums.isEmpty()) {
+            return track.albums.first().title;
+        }
 
-        if (
-            !track.albums.isEmpty()
-        ) {
+        return QString();
 
-            return track.albums
-                .first()
-                .title;
+    case AlbumIdRole:
+        if (!track.albums.isEmpty()) {
+            return track.albums.first().id;
         }
 
         return QString();
@@ -107,34 +93,14 @@ QHash<int, QByteArray>
 MyWaveModel::roleNames() const
 {
     return {
-        {
-            IdRole,
-            "trackId"
-        },
-        {
-            TitleRole,
-            "title"
-        },
-        {
-            ArtistRole,
-            "artist"
-        },
-        {
-            ArtistIdRole,
-            "artistId"
-        },
-        {
-            AlbumRole,
-            "album"
-        },
-        {
-            CoverUriRole,
-            "coverUri"
-        },
-        {
-            DurationMsRole,
-            "durationMs"
-        }
+        {IdRole, "trackId"},
+        {TitleRole, "title"},
+        {ArtistRole, "artist"},
+        {ArtistIdRole, "artistId"},
+        {AlbumRole, "album"},
+        {AlbumIdRole, "albumId"},
+        {CoverUriRole, "coverUri"},
+        {DurationMsRole, "durationMs"}
     };
 }
 
@@ -143,8 +109,7 @@ void MyWaveModel::setTracks(
 {
     beginResetModel();
 
-    m_tracks =
-        tracks;
+    m_tracks = tracks;
 
     endResetModel();
 
@@ -154,57 +119,36 @@ void MyWaveModel::setTracks(
 void MyWaveModel::appendTracks(
     const QList<Track> &tracks)
 {
-    if (
-        tracks.isEmpty()
-    ) {
-        return;
-    }
-
     QList<Track> newTracks;
 
     for (
-        const Track &track :
-        tracks
+        const Track &track : tracks
     ) {
-
-        if (
-            track.id.isEmpty()
-        ) {
+        if (track.id.isEmpty()) {
             continue;
         }
 
-        bool alreadyExists =
-            false;
+        bool exists = false;
 
         for (
             const Track &existing :
             m_tracks
         ) {
-
             if (
                 existing.id ==
                 track.id
             ) {
-
-                alreadyExists =
-                    true;
-
+                exists = true;
                 break;
             }
         }
 
-        if (
-            !alreadyExists
-        ) {
-
-            newTracks.append(
-                track);
+        if (!exists) {
+            newTracks.append(track);
         }
     }
 
-    if (
-        newTracks.isEmpty()
-    ) {
+    if (newTracks.isEmpty()) {
         return;
     }
 
@@ -221,8 +165,7 @@ void MyWaveModel::appendTracks(
         first,
         last);
 
-    m_tracks.append(
-        newTracks);
+    m_tracks.append(newTracks);
 
     endInsertRows();
 
@@ -231,9 +174,7 @@ void MyWaveModel::appendTracks(
 
 void MyWaveModel::clear()
 {
-    if (
-        m_tracks.isEmpty()
-    ) {
+    if (m_tracks.isEmpty()) {
         return;
     }
 
@@ -256,15 +197,12 @@ Track MyWaveModel::trackAt(
         return {};
     }
 
-    return m_tracks.at(
-        index);
+    return m_tracks.at(index);
 }
 
 Track MyWaveModel::lastTrack() const
 {
-    if (
-        m_tracks.isEmpty()
-    ) {
+    if (m_tracks.isEmpty()) {
         return {};
     }
 

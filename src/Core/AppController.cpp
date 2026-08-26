@@ -92,12 +92,12 @@ AppController::AppController(
               m_searchService,
               m_playbackController,
               this))
- , m_albumController(
-       new AlbumController(
-         m_albumService,
-         m_artistService,
-         m_playbackController,
-          this))
+    , m_albumController(
+          new AlbumController(
+              m_albumService,
+              m_artistService,
+              m_playbackController,
+              this))
     , m_artistController(
           new ArtistController(
               m_artistService,
@@ -1060,6 +1060,42 @@ AppController::currentTrackArtistId() const
     }
 
     return track.artists
+        .first()
+        .id;
+}
+
+QString
+AppController::currentTrackAlbumTitle() const
+{
+    const Track track =
+        m_playbackController
+            ->currentTrack();
+
+    if (
+        track.albums.isEmpty()
+    ) {
+        return {};
+    }
+
+    return track.albums
+        .first()
+        .title;
+}
+
+QString
+AppController::currentTrackAlbumId() const
+{
+    const Track track =
+        m_playbackController
+            ->currentTrack();
+
+    if (
+        track.albums.isEmpty()
+    ) {
+        return {};
+    }
+
+    return track.albums
         .first()
         .id;
 }

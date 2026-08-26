@@ -60,19 +60,19 @@ public:
         PlayerService *playerService,
         QObject *parent = nullptr);
 
-    void loadMyWave();
+    Q_INVOKABLE void loadMyWave();
 
-    void loadMoreMyWave();
+    Q_INVOKABLE void loadMoreMyWave();
 
-    void loadRecommendations();
+    Q_INVOKABLE void loadRecommendations();
 
-    void selectMyWaveTrack(
+    Q_INVOKABLE void selectMyWaveTrack(
         int index);
 
-    void selectPersonalPlaylist(
+    Q_INVOKABLE void selectPersonalPlaylist(
         int index);
 
-    void selectRecentListening(
+    Q_INVOKABLE void selectRecentListening(
         int index);
 
     MyWaveModel *myWaveModel() const;
@@ -108,10 +108,6 @@ signals:
         const PersonalPlaylist &playlist);
 
 private:
-    /*
-     * Connections
-     */
-
     void connectMyWave();
 
     void connectRecommendations();
@@ -119,10 +115,6 @@ private:
     void connectRecentlyPlayed();
 
     void connectPlayback();
-
-    /*
-     * My Wave
-     */
 
     void handleMyWaveReceived(
         const QList<Track> &tracks,
