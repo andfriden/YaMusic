@@ -119,7 +119,6 @@ AppController::AppController(
                 m_recentListeningService !=
                 nullptr
             ) {
-
                 m_recentListeningService
                     ->setUserId(
                         QString::number(
@@ -214,7 +213,6 @@ AppController::AppController(
         &AlbumController::loadingChanged,
         this,
         [this]() {
-
             emit loadingAlbumChanged();
         });
 
@@ -245,7 +243,6 @@ AppController::AppController(
                     ->albumModel()
                     ->count() <= 0
             ) {
-
                 emit statusChanged(
                     "В альбоме нет треков");
 
@@ -326,15 +323,13 @@ AppController::AppController(
         [this](
             const QString &artistId) {
 
-            if (
-                m_artistController == nullptr
-            ) {
-                return;
-            }
+            /*
+             * Go through AppController::loadArtist()
+             * so MainLayout receives the navigation request.
+             */
 
-            m_artistController
-                ->loadArtist(
-                    artistId);
+            loadArtist(
+                artistId);
         });
 
     // =============================================================
@@ -364,7 +359,6 @@ AppController::AppController(
             if (
                 !track.artists.isEmpty()
             ) {
-
                 artistName =
                     track.artists
                         .first()
@@ -431,7 +425,6 @@ AppController::AppController(
                 m_playerService
                     ->isPlaying()
             ) {
-
                 emit statusChanged(
                     "Воспроизведение");
             }
@@ -442,7 +435,6 @@ AppController::AppController(
         &PlayerService::positionChanged,
         this,
         [this](qint64) {
-
             emit positionChanged();
         });
 
@@ -451,7 +443,6 @@ AppController::AppController(
         &PlayerService::durationChanged,
         this,
         [this](qint64) {
-
             emit durationChanged();
         });
 
@@ -460,7 +451,6 @@ AppController::AppController(
         &PlayerService::playbackPaused,
         this,
         [this]() {
-
             emit statusChanged(
                 "Пауза");
         });
@@ -470,7 +460,6 @@ AppController::AppController(
         &PlayerService::playbackStopped,
         this,
         [this]() {
-
             emit statusChanged(
                 "Остановлено");
         });
@@ -530,9 +519,29 @@ void AppController::loadArtist(
         return;
     }
 
+    const QString artistId =
+        id.trimmed();
+
+    if (
+        artistId.isEmpty()
+    ) {
+        emit statusChanged(
+            "Некорректный исполнитель");
+
+        return;
+    }
+
+    /*
+     * First tell the navigation layer to open
+     * ArtistPage, then load the artist data.
+     */
+
+    emit artistPageRequested(
+        artistId);
+
     m_artistController
         ->loadArtist(
-            id);
+            artistId);
 }
 
 // =============================================================
@@ -548,11 +557,27 @@ void AppController::loadAlbum(
         return;
     }
 
-    m_playAlbumAfterLoad = false;
+    const QString albumId =
+        id.trimmed();
+
+    if (
+        albumId.isEmpty()
+    ) {
+        emit statusChanged(
+            "Некорректный альбом");
+
+        return;
+    }
+
+    m_playAlbumAfterLoad =
+        false;
+
+    emit albumPageRequested(
+        albumId);
 
     m_albumController
         ->loadAlbum(
-            id);
+            albumId);
 }
 
 void AppController::playAlbum(
@@ -570,14 +595,17 @@ void AppController::playAlbum(
     if (
         albumId.isEmpty()
     ) {
-
         emit statusChanged(
             "Некорректный альбом");
 
         return;
     }
 
-    m_playAlbumAfterLoad = true;
+    m_playAlbumAfterLoad =
+        true;
+
+    emit albumPageRequested(
+        albumId);
 
     m_albumController
         ->loadAlbum(
@@ -720,7 +748,6 @@ void AppController::next()
         !m_playbackController
             ->next()
     ) {
-
         emit statusChanged(
             "Следующего трека нет");
     }
@@ -732,7 +759,6 @@ void AppController::previous()
         !m_playbackController
             ->previous()
     ) {
-
         emit statusChanged(
             "Предыдущего трека нет");
     }
@@ -808,18 +834,18 @@ AppController::personalPlaylistsModel() const
         ->personalPlaylistsModel();
 }
 
-RecentListeningModel *
-AppController::recentListeningModel() const
-{
-    return m_personalController
-        ->recentListeningModel();
-}
-
 PlaylistModel *
 AppController::playlistModel() const
 {
     return m_libraryController
         ->playlistModel();
+}
+
+RecentListeningModel *
+AppController::recentListeningModel() const
+{
+    return m_personalController
+        ->recentListeningModel();
 }
 
 AlbumController *
@@ -838,43 +864,50 @@ AppController::artistController() const
 // State
 // =============================================================
 
-bool AppController::isSearching() const
+bool
+AppController::isSearching() const
 {
     return m_searchController
         ->isSearching();
 }
 
-bool AppController::isPlaying() const
+bool
+AppController::isPlaying() const
 {
     return m_playerService
         ->isPlaying();
 }
 
-bool AppController::isLoadingMyWave() const
+bool
+AppController::isLoadingMyWave() const
 {
     return m_personalController
         ->isLoadingMyWave();
 }
 
-bool AppController::isLoadingMoreMyWave() const
+bool
+AppController::isLoadingMoreMyWave() const
 {
     return m_personalController
         ->isLoadingMoreMyWave();
 }
 
-bool AppController::isLoadingRecommendations() const
+bool
+AppController::isLoadingRecommendations() const
 {
     return m_personalController
         ->isLoadingRecommendations();
 }
 
-bool AppController::isLoadingPlaylist() const
+bool
+AppController::isLoadingPlaylist() const
 {
     return m_libraryController
         ->isLoadingPlaylist();
 }
 
-bool AppController::isLoadingAlbum() const
+bool
+AppController::isLoadingAlbum() const
 {
     if (
         m_albumController == nullptr
@@ -886,7 +919,8 @@ bool AppController::isLoadingAlbum() const
         ->isLoading();
 }
 
-bool AppController::isLoadingArtist() const
+bool
+AppController::isLoadingArtist() const
 {
     if (
         m_artistController == nullptr

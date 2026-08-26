@@ -414,6 +414,20 @@ signals:
     void statusChanged(
         const QString &message);
 
+    /*
+     * Navigation
+     */
+
+    void artistPageRequested(
+        const QString &artistId);
+
+    void albumPageRequested(
+        const QString &albumId);
+
+    /*
+     * State
+     */
+
     void searchingChanged();
 
     void playingChanged();
@@ -463,9 +477,11 @@ private:
 
     PersonalLanding *m_personalLanding = nullptr;
 
-    RecentListeningService *m_recentListeningService = nullptr;
+    RecentListeningService *
+        m_recentListeningService = nullptr;
 
-    PlaylistService *m_playlistService = nullptr;
+    PlaylistService *
+        m_playlistService = nullptr;
 
     AlbumService *m_albumService = nullptr;
 
@@ -475,17 +491,23 @@ private:
 
     QueueService *m_queueService = nullptr;
 
-    PlaybackController *m_playbackController = nullptr;
+    PlaybackController *
+        m_playbackController = nullptr;
 
-    LibraryController *m_libraryController = nullptr;
+    LibraryController *
+        m_libraryController = nullptr;
 
-    PersonalController *m_personalController = nullptr;
+    PersonalController *
+        m_personalController = nullptr;
 
-    SearchController *m_searchController = nullptr;
+    SearchController *
+        m_searchController = nullptr;
 
-    AlbumController *m_albumController = nullptr;
+    AlbumController *
+        m_albumController = nullptr;
 
-    ArtistController *m_artistController = nullptr;
+    ArtistController *
+        m_artistController = nullptr;
 
     bool m_playAlbumAfterLoad = false;
 };

@@ -5,11 +5,13 @@ Item {
 
     property var controller
 
+
     // =============================================================
     // Page contract
     // =============================================================
 
-    readonly property real pageHeight: 764
+    readonly property real pageHeight:
+        764
 
     width:
         parent
@@ -19,11 +21,32 @@ Item {
     height:
         pageHeight
 
+
     // =============================================================
-    // Debug
+    // Initial data loading
     // =============================================================
 
     Component.onCompleted: {
+
+        /*
+         * Home starts with My Wave, so load it immediately.
+         *
+         * AppController already protects against concurrent/redundant
+         * loading while a request is active.
+         */
+
+        if (
+            root.controller !== null &&
+            root.controller !== undefined
+        ) {
+            root.controller.loadMyWave()
+        }
+
+
+        // =========================================================
+        // Debug
+        // =========================================================
+
         console.log(
             "========================================"
         )
@@ -53,9 +76,14 @@ Item {
         )
 
         console.log(
+            "My Wave loading requested"
+        )
+
+        console.log(
             "========================================"
         )
     }
+
 
     // =============================================================
     // Content
@@ -76,6 +104,7 @@ Item {
         spacing:
             16
 
+
         // ---------------------------------------------------------
         // Search
         // ---------------------------------------------------------
@@ -87,6 +116,7 @@ Item {
             controller:
                 root.controller
         }
+
 
         // ---------------------------------------------------------
         // My Wave
@@ -106,6 +136,7 @@ Item {
                 root.controller
         }
 
+
         // ---------------------------------------------------------
         // Personal playlists
         // ---------------------------------------------------------
@@ -120,6 +151,7 @@ Item {
             controller:
                 root.controller
         }
+
 
         // ---------------------------------------------------------
         // Recently listened

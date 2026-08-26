@@ -6,42 +6,81 @@ Item {
 
     signal sectionSelected(string section)
 
-    property string currentSection: "home"
+    property string currentSection:
+        "home"
+
 
     Rectangle {
-        anchors.fill: parent
+        anchors.fill:
+            parent
 
-        color: AppTheme.backgroundSecondary
+        color:
+            AppTheme.backgroundSecondary
 
-        border.width: 1
-        border.color: AppTheme.borderSubtle
+        border.width:
+            1
 
-        // Header + navigation
+        border.color:
+            AppTheme.borderSubtle
+
+
         Column {
             id: navigation
 
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
+            anchors.top:
+                parent.top
 
-            anchors.margins: 12
+            anchors.left:
+                parent.left
 
-            spacing: 6
+            anchors.right:
+                parent.right
+
+            anchors.margins:
+                12
+
+            spacing:
+                6
+
+
+            /*
+             * =====================================================
+             * Header
+             * =====================================================
+             */
 
             Label {
-                width: parent.width
+                width:
+                    parent.width
 
-                leftPadding: 10
+                leftPadding:
+                    10
 
-                text: "YaMusic"
+                text:
+                    "YaMusic"
 
-                color: AppTheme.textPrimary
+                color:
+                    AppTheme.textPrimary
 
-                font.pixelSize: 22
-                font.bold: true
+                font.pixelSize:
+                    22
 
-                bottomPadding: 12
+                font.bold:
+                    true
+
+                bottomPadding:
+                    12
             }
+
+
+            /*
+             * =====================================================
+             * Sections
+             *
+             * Albums / Artists intentionally removed.
+             * They are detail pages, not root sections.
+             * =====================================================
+             */
 
             Repeater {
                 model: [
@@ -62,14 +101,6 @@ Item {
                         title: "Медиатека"
                     },
                     {
-                        id: "albums",
-                        title: "Альбомы"
-                    },
-                    {
-                        id: "artists",
-                        title: "Исполнители"
-                    },
-                    {
                         id: "playlists",
                         title: "Плейлисты"
                     },
@@ -83,92 +114,154 @@ Item {
                     }
                 ]
 
-                delegate: Rectangle {
-                    width: navigation.width
-                    height: 40
 
-                    radius: 8
+                delegate:
+                    Rectangle {
+                        width:
+                            navigation.width
 
-                    color:
-                            root.currentSection === modelData.id
-                        ? AppTheme.panelActive
-                        : mouseArea.containsMouse
-                            ? AppTheme.panelHover
-                            : "transparent"
+                        height:
+                            40
 
-                    border.width:
-                            root.currentSection === modelData.id
-                        ? 1
-                        : 0
-
-                    border.color: AppTheme.borderSubtle
-
-                    MouseArea {
-                        id: mouseArea
-
-                        anchors.fill: parent
-
-                        hoverEnabled: true
-
-                        cursorShape: Qt.PointingHandCursor
-
-                        onClicked: {
-                            root.currentSection = modelData.id
-                            root.sectionSelected(modelData.id)
-                        }
-                    }
-
-                    Label {
-                        anchors.fill: parent
-
-                        leftPadding: 12
-                        rightPadding: 12
-
-                        text: modelData.title
+                        radius:
+                            8
 
                         color:
                                 root.currentSection === modelData.id
-                            ? AppTheme.textPrimary
-                            : AppTheme.textSecondary
+                            ? AppTheme.panelActive
+                            : mouseArea.containsMouse
+                                ? AppTheme.panelHover
+                                : "transparent"
 
-                        font.pixelSize: 13
+                        border.width:
+                                root.currentSection === modelData.id
+                            ? 1
+                            : 0
 
-                        verticalAlignment: Text.AlignVCenter
+                        border.color:
+                            AppTheme.borderSubtle
+
+
+                        MouseArea {
+                            id: mouseArea
+
+                            anchors.fill:
+                                parent
+
+                            hoverEnabled:
+                                true
+
+                            cursorShape:
+                                Qt.PointingHandCursor
+
+                            onClicked: {
+
+                                if (
+                                    root.currentSection ===
+                                    modelData.id
+                                ) {
+                                    return
+                                }
+
+                                root.currentSection =
+                                    modelData.id
+
+                                root.sectionSelected(
+                                    modelData.id
+                                )
+                            }
+                        }
+
+
+                        Label {
+                            anchors.fill:
+                                parent
+
+                            leftPadding:
+                                12
+
+                            rightPadding:
+                                12
+
+                            text:
+                                modelData.title
+
+                            color:
+                                    root.currentSection ===
+                                modelData.id
+                                ? AppTheme.textPrimary
+                                : AppTheme.textSecondary
+
+                            font.pixelSize:
+                                13
+
+                            verticalAlignment:
+                                Text.AlignVCenter
+                        }
                     }
-                }
             }
         }
 
-        // Footer
+
+        /*
+         * =========================================================
+         * Footer
+         * =========================================================
+         */
+
         Column {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
+            anchors.left:
+                parent.left
 
-            anchors.leftMargin: 12
-            anchors.rightMargin: 12
-            anchors.bottomMargin: 12
+            anchors.right:
+                parent.right
 
-            spacing: 0
+            anchors.bottom:
+                parent.bottom
+
+            anchors.leftMargin:
+                12
+
+            anchors.rightMargin:
+                12
+
+            anchors.bottomMargin:
+                12
+
+            spacing:
+                0
+
 
             Rectangle {
-                width: parent.width
-                height: 1
+                width:
+                    parent.width
 
-                color: AppTheme.divider
+                height:
+                    1
+
+                color:
+                    AppTheme.divider
             }
 
+
             Label {
-                width: parent.width
+                width:
+                    parent.width
 
-                leftPadding: 10
-                topPadding: 8
+                leftPadding:
+                    10
 
-                text: "YaMusic"
+                topPadding:
+                    8
 
-                color: AppTheme.textMuted
+                text:
+                    "YaMusic"
 
-                font.pixelSize: 10
+                color:
+                    AppTheme.textMuted
+
+                font.pixelSize:
+                    10
             }
         }
     }

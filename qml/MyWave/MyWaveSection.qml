@@ -81,20 +81,7 @@ Item {
                 anchors.verticalCenter:
                     parent.verticalCenter
             }
-
-            Label {
-                text:
-                    root.controller.myWaveModel.count +
-                    " треков"
-
-                color: AppTheme.textMuted
-
-                font.pixelSize: 11
-
-                anchors.verticalCenter:
-                    parent.verticalCenter
-            }
-        }
+             }
 
         ListView {
             id: compactList
@@ -333,19 +320,6 @@ Item {
 
                 font.pixelSize: 30
                 font.bold: true
-
-                anchors.verticalCenter:
-                    parent.verticalCenter
-            }
-
-            Label {
-                text:
-                    root.controller.myWaveModel.count +
-                    " треков"
-
-                color: AppTheme.textMuted
-
-                font.pixelSize: 13
 
                 anchors.verticalCenter:
                     parent.verticalCenter

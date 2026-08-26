@@ -6,6 +6,8 @@
 #include <QList>
 #include <QModelIndex>
 #include <QVariant>
+#include <QVariantList>
+#include <QVariantMap>
 
 #include "../../Models/Track.h"
 
@@ -47,10 +49,20 @@ public:
     Track trackAt(
         int index) const;
 
+    Q_INVOKABLE QVariantMap trackDataAt(
+        int index) const;
+
+    Q_INVOKABLE QVariantList randomTrackData(
+        int limit) const;
+
     QList<Track> tracks() const;
 
     int count() const;
 
 private:
+    QVariantMap trackToMap(
+        const Track &track,
+        int sourceIndex) const;
+
     QList<Track> m_tracks;
 };
