@@ -39,7 +39,7 @@ Item {
                 ? 10
                 : 14
 
-        color: "#e9e9e9"
+        color: AppTheme.panel
 
         border.width: 1
         border.color: "#d4d4d4"
@@ -73,7 +73,7 @@ Item {
             Label {
                 text: "Моя волна"
 
-                color: "#202020"
+                color: AppTheme.textPrimary
 
                 font.pixelSize: 18
                 font.bold: true
@@ -87,7 +87,7 @@ Item {
                     root.controller.myWaveModel.count +
                     " треков"
 
-                color: "#777777"
+                color: AppTheme.textMuted
 
                 font.pixelSize: 11
 
@@ -147,7 +147,7 @@ Item {
 
                 color:
                     compactMouseArea.containsMouse
-                        ? "#dcdcdc"
+                        ? AppTheme.panelActive
                         : "#f2f2f2"
 
                 border.width: 1
@@ -187,7 +187,7 @@ Item {
 
                         radius: 6
 
-                        color: "#d0d0d0"
+                        color: AppTheme.surface
 
                         visible:
                             compactCover.status !==
@@ -199,7 +199,7 @@ Item {
 
                             text: "♪"
 
-                            color: "#666666"
+                            color: AppTheme.textSecondary
 
                             font.pixelSize: 18
                         }
@@ -230,7 +230,7 @@ Item {
                             ? title
                             : "Без названия"
 
-                        color: "#202020"
+                        color: AppTheme.textPrimary
 
                         font.pixelSize: 13
                         font.bold: true
@@ -245,7 +245,7 @@ Item {
                         text:
                             artist
 
-                        color: "#555555"
+                        color: AppTheme.textSecondary
 
                         font.pixelSize: 11
 
@@ -269,7 +269,7 @@ Item {
                         root.formatDuration(
                             durationMs)
 
-                    color: "#666666"
+                    color: AppTheme.textSecondary
 
                     font.pixelSize: 10
                 }
@@ -329,7 +329,7 @@ Item {
             Label {
                 text: "Моя волна"
 
-                color: "#202020"
+                color: AppTheme.textPrimary
 
                 font.pixelSize: 30
                 font.bold: true
@@ -343,7 +343,7 @@ Item {
                     root.controller.myWaveModel.count +
                     " треков"
 
-                color: "#777777"
+                color: AppTheme.textMuted
 
                 font.pixelSize: 13
 
@@ -366,7 +366,7 @@ Item {
 
             radius: 14
 
-            color: "#f1f1f1"
+            color: AppTheme.panelSecondary
 
             border.width: 1
             border.color: "#d8d8d8"
@@ -412,7 +412,7 @@ Item {
 
                         radius: 10
 
-                        color: "#d0d0d0"
+                        color: AppTheme.surface
 
                         visible:
                             currentCover.status !==
@@ -424,7 +424,7 @@ Item {
 
                             text: "♪"
 
-                            color: "#666666"
+                            color: AppTheme.textSecondary
 
                             font.pixelSize: 42
                         }
@@ -459,7 +459,7 @@ Item {
 
                         text: "Сейчас играет"
 
-                        color: "#888888"
+                        color: AppTheme.textMuted
 
                         font.pixelSize: 12
                     }
@@ -483,7 +483,7 @@ Item {
                                 ? root.controller.currentTrackTitle
                                 : ""
 
-                        color: "#202020"
+                        color: AppTheme.textPrimary
 
                         font.pixelSize: 24
                         font.bold: true
@@ -519,8 +519,8 @@ Item {
 
                         color:
                             artistMouseArea.containsMouse
-                                ? "#202020"
-                                : "#555555"
+                                ? AppTheme.textPrimary
+                                : AppTheme.textSecondary
 
                         font.pixelSize: 16
 
@@ -585,8 +585,8 @@ Item {
 
                         color:
                             albumMouseArea.containsMouse
-                                ? "#202020"
-                                : "#777777"
+                                ? AppTheme.textPrimary
+                                : AppTheme.textMuted
 
                         font.pixelSize: 13
 
@@ -644,7 +644,7 @@ Item {
                                 root.controller.duration)
                             : ""
 
-                        color: "#888888"
+                        color: AppTheme.textMuted
 
                         font.pixelSize: 12
                     }
@@ -755,7 +755,7 @@ Item {
                     ? "Далее"
                     : "Треки"
 
-            color: "#202020"
+            color: AppTheme.textPrimary
 
             font.pixelSize: 20
             font.bold: true
@@ -882,7 +882,7 @@ Item {
 
                         radius: 6
 
-                        color: "#d0d0d0"
+                        color: AppTheme.surface
 
                         visible:
                             trackCover.status !==
@@ -894,7 +894,7 @@ Item {
 
                             text: "♪"
 
-                            color: "#666666"
+                            color: AppTheme.textSecondary
 
                             font.pixelSize: 20
                         }
@@ -925,7 +925,7 @@ Item {
                             ? title
                             : "Без названия"
 
-                        color: "#202020"
+                        color: AppTheme.textPrimary
 
                         font.pixelSize: 14
                         font.bold: true
@@ -940,7 +940,7 @@ Item {
                         text:
                             artist
 
-                        color: "#555555"
+                        color: AppTheme.textSecondary
 
                         font.pixelSize: 12
 
@@ -957,7 +957,7 @@ Item {
                         text:
                             album
 
-                        color: "#888888"
+                        color: AppTheme.textMuted
 
                         font.pixelSize: 10
 
@@ -981,7 +981,7 @@ Item {
                         root.formatDuration(
                             durationMs)
 
-                    color: "#666666"
+                    color: AppTheme.textSecondary
 
                     font.pixelSize: 11
                 }

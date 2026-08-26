@@ -11,7 +11,7 @@ Item {
 
         radius: 12
 
-        color: "#e9e9e9"
+        color: AppTheme.panel
 
         border.width: 1
         border.color: "#d4d4d4"
@@ -50,7 +50,7 @@ Item {
 
                     radius: 8
 
-                    color: "#d0d0d0"
+                    color: AppTheme.surface
 
                     visible:
                         cover.status !== Image.Ready
@@ -60,7 +60,7 @@ Item {
 
                         text: "♪"
 
-                        color: "#666666"
+                        color: AppTheme.textSecondary
 
                         font.pixelSize: 28
                     }
@@ -90,7 +90,7 @@ Item {
                         root.controller.currentTrackTitle ||
                         "Ничего не играет"
 
-                    color: "#202020"
+                    color: AppTheme.textPrimary
 
                     font.pixelSize: 15
                     font.bold: true
@@ -106,7 +106,7 @@ Item {
                         root.controller.currentTrackArtist ||
                         ""
 
-                    color: "#666666"
+                    color: AppTheme.textSecondary
 
                     font.pixelSize: 12
 
@@ -160,7 +160,7 @@ Item {
                             formatTime(
                                 root.controller.position)
 
-                        color: "#777777"
+                        color: AppTheme.textMuted
 
                         font.pixelSize: 10
 

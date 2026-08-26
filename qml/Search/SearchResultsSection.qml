@@ -14,7 +14,7 @@ Item {
         Label {
             text: "Результаты поиска"
 
-            color: "#202020"
+            color: AppTheme.textPrimary
 
             font.pixelSize: 18
             font.bold: true
@@ -56,7 +56,7 @@ Item {
 
                 color:
                     rowMouseArea.containsMouse
-                        ? "#dcdcdc"
+                        ? AppTheme.panelActive
                         : "#e8e8e8"
 
                 border.width: 1
@@ -117,7 +117,7 @@ Item {
 
                         radius: 4
 
-                        color: "#d0d0d0"
+                        color: AppTheme.surface
 
                         visible:
                             cover.status !==
@@ -129,7 +129,7 @@ Item {
 
                             text: "♪"
 
-                            color: "#666666"
+                            color: AppTheme.textSecondary
 
                             font.pixelSize: 20
                         }
@@ -157,7 +157,7 @@ Item {
 
                         text: title
 
-                        color: "#202020"
+                        color: AppTheme.textPrimary
 
                         font.pixelSize: 14
                         font.bold: true
@@ -175,8 +175,8 @@ Item {
 
                         color:
                             artistMouseArea.containsMouse
-                                ? "#202020"
-                                : "#555555"
+                                ? AppTheme.textPrimary
+                                : AppTheme.textSecondary
 
                         font.pixelSize: 12
 
@@ -214,8 +214,8 @@ Item {
 
                         color:
                             albumMouseArea.containsMouse
-                                ? "#202020"
-                                : "#777777"
+                                ? AppTheme.textPrimary
+                                : AppTheme.textMuted
 
                         font.pixelSize: 10
 
@@ -260,7 +260,7 @@ Item {
                         formatDuration(
                             durationMs)
 
-                    color: "#555555"
+                    color: AppTheme.textSecondary
 
                     font.pixelSize: 11
                 }
@@ -275,7 +275,7 @@ Item {
                         ? "Поиск..."
                         : "Ничего не найдено"
 
-                color: "#666666"
+                color: AppTheme.textSecondary
 
                 visible:
                     root.controller

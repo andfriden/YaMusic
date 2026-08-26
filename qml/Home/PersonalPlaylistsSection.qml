@@ -11,7 +11,7 @@ Item {
 
         radius: 10
 
-        color: "#e9e9e9"
+        color: AppTheme.panel
 
         border.width: 1
 
@@ -27,7 +27,7 @@ Item {
             Label {
                 text: "Собираем для вас"
 
-                color: "#202020"
+                color: AppTheme.textPrimary
 
                 font.pixelSize: 18
                 font.bold: true
@@ -66,7 +66,7 @@ Item {
 
                     color:
                         mouseArea.containsMouse
-                            ? "#dcdcdc"
+                            ? AppTheme.panelActive
                             : "#f2f2f2"
 
                     border.width: 1
@@ -107,7 +107,7 @@ Item {
 
                                 radius: 6
 
-                                color: "#d0d0d0"
+                                color: AppTheme.surface
 
                                 visible:
                                     cover.status !==
@@ -119,7 +119,7 @@ Item {
 
                                     text: "♪"
 
-                                    color: "#666666"
+                                    color: AppTheme.textSecondary
 
                                     font.pixelSize: 26
                                 }
@@ -131,7 +131,7 @@ Item {
 
                             text: title
 
-                            color: "#202020"
+                            color: AppTheme.textPrimary
 
                             font.pixelSize: 13
 
@@ -150,7 +150,7 @@ Item {
                                 " треков"
                                 : ""
 
-                            color: "#666666"
+                            color: AppTheme.textSecondary
 
                             font.pixelSize: 11
 
@@ -184,7 +184,7 @@ Item {
                             ? "Загрузка рекомендаций..."
                             : "Рекомендации пока недоступны"
 
-                    color: "#666666"
+                    color: AppTheme.textSecondary
 
                     visible:
                         root.controller

@@ -18,10 +18,10 @@ Item {
         anchors.fill: parent
 
         radius: 10
-        color: "#f5f5f5"
+        color: AppTheme.backgroundPrimary
 
         border.width: 1
-        border.color: "#dddddd"
+        border.color: AppTheme.panelHover
 
         Column {
             anchors.fill: parent
@@ -37,7 +37,7 @@ Item {
                     ? "Моя волна  •  " + root.myWaveModel.count
                     : "Моя волна"
 
-                color: "#202020"
+                color: AppTheme.textPrimary
 
                 font.pixelSize: 18
                 font.bold: true
@@ -55,7 +55,7 @@ Item {
                     ? "Модель My Wave недоступна"
                     : "Моя волна пока пуста"
 
-                color: "#888888"
+                color: AppTheme.textMuted
 
                 font.pixelSize: 13
 
@@ -99,10 +99,10 @@ Item {
                     color:
                         mouseArea.containsMouse
                             ? "#e5e5e5"
-                            : "#ededed"
+                            : AppTheme.backgroundSecondary
 
                     border.width: 1
-                    border.color: "#dddddd"
+                    border.color: AppTheme.panelHover
 
                     Row {
                         anchors.fill: parent
@@ -144,7 +144,7 @@ Item {
 
                                 text: "♪"
 
-                                color: "#999999"
+                                color: AppTheme.textDisabled
 
                                 font.pixelSize: 20
 
@@ -168,7 +168,7 @@ Item {
                                     ? trackDelegate.title
                                     : "Без названия"
 
-                                color: "#202020"
+                                color: AppTheme.textPrimary
 
                                 font.pixelSize: 13
                                 font.bold: true
@@ -184,7 +184,7 @@ Item {
                                     ? trackDelegate.artist
                                     : "Неизвестный исполнитель"
 
-                                color: "#555555"
+                                color: AppTheme.textSecondary
 
                                 font.pixelSize: 11
 
@@ -199,7 +199,7 @@ Item {
                                     ? trackDelegate.album
                                     : "Без альбома"
 
-                                color: "#888888"
+                                color: AppTheme.textMuted
 
                                 font.pixelSize: 10
 

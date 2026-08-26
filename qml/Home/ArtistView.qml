@@ -41,7 +41,7 @@ Item {
 
             Label {
                 text: qsTr("Loading tracks…")
-                color: "#888888"
+                color: AppTheme.textMuted
                 font.pixelSize: 13
             }
         }
@@ -111,7 +111,7 @@ Item {
 
                             text: "♪"
 
-                            color: "#666666"
+                            color: AppTheme.textSecondary
                             font.pixelSize: 20
 
                             visible: cover.status !== Image.Ready
@@ -151,7 +151,7 @@ Item {
                                 return trackItem.album
                             }
 
-                            color: "#888888"
+                            color: AppTheme.textMuted
                             font.pixelSize: 12
 
                             elide: Text.ElideRight
@@ -179,7 +179,7 @@ Item {
                                 seconds
                         }
 
-                        color: "#777777"
+                        color: AppTheme.textMuted
                         font.pixelSize: 12
                     }
                 }
@@ -217,7 +217,7 @@ Item {
 
             text: qsTr("No tracks")
 
-            color: "#777777"
+            color: AppTheme.textMuted
             font.pixelSize: 15
 
             horizontalAlignment: Text.AlignHCenter

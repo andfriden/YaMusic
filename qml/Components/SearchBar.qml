@@ -26,10 +26,10 @@ Item {
             placeholderText:
                 "Поиск музыки..."
 
-            color: "#202020"
+            color: AppTheme.textPrimary
 
             placeholderTextColor:
-                "#777777"
+                AppTheme.textMuted
 
             selectionColor:
                 "#8ab4f8"
@@ -46,8 +46,8 @@ Item {
 
                 border.color:
                     searchField.activeFocus
-                        ? "#777777"
-                        : "#c8c8c8"
+                        ? AppTheme.textMuted
+                        : AppTheme.borderStrong
             }
 
             enabled:

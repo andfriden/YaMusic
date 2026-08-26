@@ -9,10 +9,15 @@ Item {
     Rectangle {
         anchors.fill: parent
 
-        color: "#ededed"
+        color: AppTheme.backgroundSecondary
 
         border.width: 1
-        border.color: "#d7d7d7"
+        border.color: Qt.rgba(
+            AppTheme.border.r,
+            AppTheme.border.g,
+            AppTheme.border.b,
+            0.35
+        )
 
         Column {
             anchors.fill: parent
@@ -28,7 +33,7 @@ Item {
                         "Вам может понравиться"
                     )
 
-                color: "#202020"
+                color: AppTheme.textPrimary
 
                 font.pixelSize: 17
                 font.bold: true
@@ -42,7 +47,7 @@ Item {
                         "Музыка, которая может вам понравиться"
                     )
 
-                color: "#777777"
+                color: AppTheme.textMuted
 
                 font.pixelSize: 11
 

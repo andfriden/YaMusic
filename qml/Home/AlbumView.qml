@@ -39,7 +39,7 @@ Item {
     Rectangle {
         anchors.fill: parent
 
-        color: "#f5f5f5"
+        color: AppTheme.backgroundPrimary
     }
 
     ScrollView {
@@ -76,10 +76,10 @@ Item {
 
                 radius: 14
 
-                color: "#e9e9e9"
+                color: AppTheme.panel
 
                 border.width: 1
-                border.color: "#d6d6d6"
+                border.color: AppTheme.borderSubtle
 
                 Row {
                     anchors.fill: parent
@@ -105,7 +105,7 @@ Item {
 
                         radius: 12
 
-                        color: "#d0d0d0"
+                        color: AppTheme.surface
 
                         clip: true
 
@@ -150,7 +150,7 @@ Item {
                                 ? "!"
                                 : "♪"
 
-                            color: "#777777"
+                            color: AppTheme.textMuted
 
                             font.pixelSize: 44
 
@@ -166,7 +166,7 @@ Item {
                             color: "transparent"
 
                             border.width: 1
-                            border.color: "#cccccc"
+                            border.color: AppTheme.borderStrong
                         }
                     }
 
@@ -192,7 +192,7 @@ Item {
                                 qsTr("АЛЬБОМ")
 
                             color:
-                                "#888888"
+                                AppTheme.textMuted
 
                             font.pixelSize: 12
                             font.bold: true
@@ -210,7 +210,7 @@ Item {
                                     : qsTr("Альбом")
 
                             color:
-                                "#202020"
+                                AppTheme.textPrimary
 
                             font.pixelSize: 30
                             font.bold: true
@@ -229,7 +229,7 @@ Item {
                                 : ""
 
                             color:
-                                "#666666"
+                                AppTheme.textSecondary
 
                             font.pixelSize: 13
 
@@ -278,10 +278,10 @@ Item {
                 radius: 12
 
                 color:
-                    "#e9e9e9"
+                    AppTheme.panel
 
                 border.width: 1
-                border.color: "#d6d6d6"
+                border.color: AppTheme.borderSubtle
 
                 implicitHeight:
                     tracksColumn.implicitHeight + 32
@@ -324,7 +324,7 @@ Item {
                                 qsTr("Треки")
 
                             color:
-                                "#202020"
+                                AppTheme.textPrimary
 
                             font.pixelSize: 22
                             font.bold: true
@@ -341,7 +341,7 @@ Item {
                                 : ""
 
                             color:
-                                "#888888"
+                                AppTheme.textMuted
 
                             font.pixelSize: 12
                         }
@@ -404,16 +404,16 @@ Item {
 
                             color:
                                 rowMouseArea.containsMouse
-                                    ? "#dddddd"
-                                    : "#f1f1f1"
+                                    ? AppTheme.panelHover
+                                    : AppTheme.panelSecondary
 
                             border.width:
                                 1
 
                             border.color:
                                 rowMouseArea.containsMouse
-                                    ? "#c8c8c8"
-                                    : "#dfdfdf"
+                                    ? AppTheme.borderStrong
+                                    : AppTheme.border
 
                             /*
                              * ------------------------------------------------
@@ -435,7 +435,7 @@ Item {
                                 radius: 6
 
                                 color:
-                                    "#d0d0d0"
+                                    AppTheme.surface
 
                                 clip: true
 
@@ -478,7 +478,7 @@ Item {
                                         "♪"
 
                                     color:
-                                        "#777777"
+                                        AppTheme.textMuted
 
                                     font.pixelSize:
                                         20
@@ -523,7 +523,7 @@ Item {
                                         trackDelegate.title
 
                                     color:
-                                        "#202020"
+                                        AppTheme.textPrimary
 
                                     font.pixelSize:
                                         14
@@ -552,8 +552,8 @@ Item {
 
                                     color:
                                         artistMouseArea.containsMouse
-                                            ? "#2468d7"
-                                            : "#555555"
+                                            ? AppTheme.accent
+                                            : AppTheme.textSecondary
 
                                     font.pixelSize:
                                         12
@@ -593,7 +593,7 @@ Item {
                                     )
 
                                 color:
-                                    "#666666"
+                                    AppTheme.textSecondary
 
                                 font.pixelSize:
                                     11
@@ -658,7 +658,7 @@ Item {
                                     trackInfo.spacing
 
                                 width:
-                                    trackInfo.width
+                                    artistLabel.width
 
                                 height:
                                     artistLabel.height
@@ -710,7 +710,7 @@ Item {
                                     : qsTr("В альбоме нет треков")
 
                             color:
-                                "#777777"
+                                AppTheme.textMuted
 
                             font.pixelSize:
                                 13
@@ -744,7 +744,7 @@ Item {
             parent
 
         color:
-            "#f5f5f5"
+            AppTheme.backgroundPrimary
 
         opacity:
             0.94
@@ -779,7 +779,7 @@ Item {
                     qsTr("Загрузка альбома...")
 
                 color:
-                    "#666666"
+                    AppTheme.textSecondary
 
                 font.pixelSize:
                     13
@@ -806,7 +806,7 @@ Item {
             qsTr("Выберите альбом")
 
         color:
-            "#999999"
+            AppTheme.textDisabled
 
         font.pixelSize:
             14

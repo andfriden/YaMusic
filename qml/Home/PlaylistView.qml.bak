@@ -254,7 +254,7 @@ Item {
                             artistArea.y
 
                         width:
-                                    artistLabel.width
+                            trackInfo.width
 
                         height: 18
 

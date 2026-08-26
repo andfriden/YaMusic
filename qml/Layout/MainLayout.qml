@@ -15,7 +15,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: "#f5f5f5"
+        color: AppTheme.background
     }
 
     Row {
@@ -50,7 +50,7 @@ Item {
         Rectangle {
             width: 1
             height: parent.height
-            color: "#dddddd"
+            color: AppTheme.divider
         }
 
         Item {
@@ -152,7 +152,7 @@ Item {
         Rectangle {
             width: 1
             height: parent.height
-            color: "#dddddd"
+            color: AppTheme.divider
         }
 
         ContextPanel {

@@ -1,59 +1,35 @@
 import QtQuick
-import QtQuick.Controls.Basic
 
 Item {
     id: root
 
     property var controller
-
     property string contextType: "home"
-
-    // =============================================================
-    // Context panel routing
-    // =============================================================
 
     Loader {
         id: panelLoader
 
         anchors.fill: parent
 
-        source:
-            root.sourceForContext(
-                root.contextType
-            )
+        source: root.sourceForContext(root.contextType)
 
         onLoaded: {
             if (!item) {
                 return
             }
 
-            item.controller =
-                root.controller
+            item.controller = root.controller
         }
     }
-
-    // =============================================================
-    // Controller forwarding
-    // =============================================================
 
     onControllerChanged: {
-        if (
-            panelLoader.item !== null &&
-            panelLoader.item !== undefined
-        ) {
-            panelLoader.item.controller =
-                root.controller
+        if (panelLoader.item) {
+            panelLoader.item.controller = root.controller
         }
     }
 
-    // =============================================================
-    // Context routing
-    // =============================================================
-
     function sourceForContext(type) {
-
         switch (type) {
-
             case "artist":
                 return "qrc:/qt/qml/YaMusic/qml/Context/ContextPanelArtist.qml"
 
@@ -73,55 +49,5 @@ Item {
             default:
                 return "qrc:/qt/qml/YaMusic/qml/Context/ContextPanelHome.qml"
         }
-    }
-
-    // =============================================================
-    // Debug
-    // =============================================================
-
-    onContextTypeChanged: {
-        console.log(
-            "ContextPanel:"
-        )
-
-        console.log(
-            "contextType:",
-            root.contextType
-        )
-
-        console.log(
-            "source:",
-            root.sourceForContext(
-                root.contextType
-            )
-        )
-    }
-
-    Component.onCompleted: {
-
-        console.log(
-            "========== ContextPanel =========="
-        )
-
-        console.log(
-            "controller:",
-            root.controller
-        )
-
-        console.log(
-            "contextType:",
-            root.contextType
-        )
-
-        console.log(
-            "source:",
-            root.sourceForContext(
-                root.contextType
-            )
-        )
-
-        console.log(
-            "================================="
-        )
     }
 }

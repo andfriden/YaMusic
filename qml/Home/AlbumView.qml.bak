@@ -36,17 +36,10 @@ Item {
             albumController.currentAlbumTitle || ""
         ).length > 0
 
-    readonly property string albumArtworkUri:
-            albumController !== null
-        ? String(
-            albumController.currentAlbumCoverUri || ""
-        )
-        : ""
-
     Rectangle {
         anchors.fill: parent
 
-        color: AppTheme.background
+        color: AppTheme.backgroundPrimary
     }
 
     ScrollView {
@@ -83,7 +76,7 @@ Item {
 
                 radius: 14
 
-                color: AppTheme.backgroundSecondary
+                color: AppTheme.panel
 
                 border.width: 1
                 border.color: AppTheme.borderSubtle
@@ -122,9 +115,15 @@ Item {
                             anchors.fill: parent
 
                             source:
-                                    root.albumArtworkUri.length > 0
+                                    root.albumController !== null &&
+                                String(
+                                    root.albumController.currentAlbumCoverUri ||
+                                    ""
+                                ).length > 0
                                 ? "image://yandex/" +
-                                root.albumArtworkUri
+                                String(
+                                    root.albumController.currentAlbumCoverUri
+                                )
                                 : ""
 
                             sourceSize:
@@ -137,23 +136,10 @@ Item {
                                 Image.PreserveAspectCrop
 
                             asynchronous: true
-
                             cache: true
-
-                            smooth: true
 
                             visible:
                                 status === Image.Ready
-
-                            onStatusChanged: {
-                                console.log(
-                                    "AlbumPage artwork:"
-                                    + " status =",
-                                    status,
-                                    "| uri =",
-                                    root.albumArtworkUri
-                                )
-                            }
                         }
 
                         Label {
@@ -169,8 +155,7 @@ Item {
                             font.pixelSize: 44
 
                             visible:
-                                albumCover.status !==
-                                Image.Ready
+                                albumCover.status !== Image.Ready
                         }
 
                         Rectangle {
@@ -181,7 +166,7 @@ Item {
                             color: "transparent"
 
                             border.width: 1
-                            border.color: AppTheme.border
+                            border.color: AppTheme.borderStrong
                         }
                     }
 
@@ -271,8 +256,7 @@ Item {
                                     return
                                 }
 
-                                root.albumController
-                                    .playAlbum()
+                                root.albumController.playAlbum()
                             }
                         }
                     }
@@ -294,7 +278,7 @@ Item {
                 radius: 12
 
                 color:
-                    AppTheme.backgroundSecondary
+                    AppTheme.panel
 
                 border.width: 1
                 border.color: AppTheme.borderSubtle
@@ -410,26 +394,26 @@ Item {
                             required property int durationMs
 
                             width:
-                                tracksView.width - 8
+                                tracksView.width -
+                                8
 
                             height:
                                 68
 
-                            radius:
-                                8
+                            radius: 8
 
                             color:
                                 rowMouseArea.containsMouse
                                     ? AppTheme.panelHover
-                                    : AppTheme.surfaceElevated
+                                    : AppTheme.panelSecondary
 
                             border.width:
                                 1
 
                             border.color:
                                 rowMouseArea.containsMouse
-                                    ? AppTheme.border
-                                    : AppTheme.borderSubtle
+                                    ? AppTheme.borderStrong
+                                    : AppTheme.border
 
                             /*
                              * ------------------------------------------------
@@ -482,9 +466,6 @@ Item {
                                     cache:
                                         true
 
-                                    smooth:
-                                        true
-
                                     visible:
                                         status === Image.Ready
                                 }
@@ -530,8 +511,7 @@ Item {
                                 anchors.verticalCenter:
                                     parent.verticalCenter
 
-                                spacing:
-                                    2
+                                spacing: 2
 
                                 Label {
                                     id: titleLabel
@@ -626,7 +606,6 @@ Item {
                              * ------------------------------------------------
                              * Whole row
                              * ------------------------------------------------
-
                              */
 
                             MouseArea {
@@ -661,6 +640,9 @@ Item {
                             /*
                              * ------------------------------------------------
                              * Artist click
+                             *
+                             * No anchors to artistLabel.
+                             * Absolute coordinates inside delegate.
                              * ------------------------------------------------
                              */
 
@@ -676,7 +658,7 @@ Item {
                                     trackInfo.spacing
 
                                 width:
-                                    artistLabel.width
+                                    trackInfo.width
 
                                 height:
                                     artistLabel.height
@@ -708,8 +690,7 @@ Item {
                                         return
                                     }
 
-                                    root.controller
-                                        .loadArtist(
+                                    root.controller.loadArtist(
                                         trackDelegate.artistId
                                     )
                                 }
@@ -729,7 +710,7 @@ Item {
                                     : qsTr("В альбоме нет треков")
 
                             color:
-                                AppTheme.textSecondary
+                                AppTheme.textMuted
 
                             font.pixelSize:
                                 13
@@ -763,7 +744,7 @@ Item {
             parent
 
         color:
-            AppTheme.background
+            AppTheme.backgroundPrimary
 
         opacity:
             0.94
@@ -825,7 +806,7 @@ Item {
             qsTr("Выберите альбом")
 
         color:
-            AppTheme.textMuted
+            AppTheme.textDisabled
 
         font.pixelSize:
             14
@@ -842,10 +823,6 @@ Item {
 
     Component.onCompleted: {
         console.log(
-            "=================================================="
-        )
-
-        console.log(
             "AlbumPage CREATED",
             "| controller:",
             root.controller,
@@ -854,13 +831,7 @@ Item {
             "| albumModel:",
             root.albumModel,
             "| count:",
-            root.trackCount,
-            "| artwork:",
-            root.albumArtworkUri
-        )
-
-        console.log(
-            "=================================================="
+            root.trackCount
         )
     }
 
@@ -872,44 +843,13 @@ Item {
             console.log(
                 "AlbumPage MODEL RESET",
                 "| count:",
-                root.trackCount,
-                "| artwork:",
-                root.albumArtworkUri
+                root.trackCount
             )
         }
 
         function onCountChanged() {
             console.log(
                 "AlbumPage COUNT CHANGED:",
-                root.trackCount
-            )
-        }
-
-        function onAlbumChanged() {
-            console.log(
-                "AlbumPage ALBUM CHANGED",
-                "| title:",
-                root.hasAlbum
-                    ? root.albumController.currentAlbumTitle
-                    : "",
-                "| artwork:",
-                root.albumArtworkUri
-            )
-        }
-    }
-
-    Connections {
-        target:
-            root.albumController
-
-        function onAlbumChanged() {
-            console.log(
-                "AlbumPage CONTROLLER ALBUM CHANGED",
-                "| title:",
-                root.albumController.currentAlbumTitle,
-                "| artwork:",
-                root.albumArtworkUri,
-                "| track count:",
                 root.trackCount
             )
         }

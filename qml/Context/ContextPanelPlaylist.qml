@@ -9,10 +9,10 @@ Item {
     Rectangle {
         anchors.fill: parent
 
-        color: "#ededed"
+        color: AppTheme.backgroundSecondary
 
         border.width: 1
-        border.color: "#d7d7d7"
+        border.color: AppTheme.borderSubtle
 
         Column {
             anchors.fill: parent
@@ -28,7 +28,7 @@ Item {
                         "Похожие плейлисты"
                     )
 
-                color: "#202020"
+                color: AppTheme.textPrimary
 
                 font.pixelSize: 17
                 font.bold: true
@@ -42,7 +42,7 @@ Item {
                         "Подборки в похожем стиле"
                     )
 
-                color: "#777777"
+                color: AppTheme.textMuted
 
                 font.pixelSize: 11
 

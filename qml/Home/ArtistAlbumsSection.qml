@@ -25,7 +25,7 @@ Item {
             text:
                 qsTr("Популярные альбомы")
 
-            color: "#202020"
+            color: AppTheme.textPrimary
 
             font.pixelSize: 22
             font.bold: true
@@ -74,7 +74,7 @@ Item {
                 border.color:
                     mouseArea.containsMouse
                         ? "#c9c9c9"
-                        : "#dddddd"
+                        : AppTheme.panelHover
 
                 Column {
                     anchors.fill: parent
@@ -104,7 +104,7 @@ Item {
 
                             radius: 9
 
-                            color: "#d0d0d0"
+                            color: AppTheme.surface
 
                             visible:
                                 albumCover.status !== Image.Ready
@@ -116,7 +116,7 @@ Item {
 
                         text: title
 
-                        color: "#202020"
+                        color: AppTheme.textPrimary
 
                         font.pixelSize: 12
                         font.bold: true
@@ -129,7 +129,7 @@ Item {
 
                         text: year
 
-                        color: "#888888"
+                        color: AppTheme.textMuted
 
                         font.pixelSize: 10
                     }
@@ -166,7 +166,7 @@ Item {
             text:
                 qsTr("Альбомов нет")
 
-            color: "#888888"
+            color: AppTheme.textMuted
 
             font.pixelSize: 13
 

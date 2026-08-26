@@ -18,22 +18,15 @@ Item {
 
         Column {
             anchors.fill: parent
-
             anchors.margins: 12
-
             spacing: 8
 
             Row {
                 width: parent.width
-
                 spacing: 10
 
                 Label {
-                    id: titleLabel
-
-                    text:
-                        root.controller.currentPlaylistTitle ||
-                        "Плейлист"
+                    text: "Недавно слушали"
 
                     color: AppTheme.textPrimary
 
@@ -46,8 +39,12 @@ Item {
 
                 Label {
                     text:
-                            root.controller.currentPlaylistTrackCount > 0
-                        ? root.controller.currentPlaylistTrackCount +
+                            root.controller
+                                .recentListeningModel
+                                .count > 0
+                        ? root.controller
+                            .recentListeningModel
+                            .count +
                         " треков"
                         : ""
 
@@ -63,18 +60,22 @@ Item {
 
                 width: parent.width
 
-                height: parent.height - 45
+                height:
+                    parent.height - 40
 
                 model:
-                    root.controller.playlistModel
+                    root.controller
+                        .recentListeningModel
 
                 clip: true
 
                 spacing: 6
 
-                ScrollBar.vertical: ScrollBar {
-                    policy: ScrollBar.AsNeeded
-                }
+                ScrollBar.vertical:
+                    ScrollBar {
+                        policy:
+                            ScrollBar.AsNeeded
+                    }
 
                 delegate: Rectangle {
                     id: trackDelegate
@@ -133,17 +134,20 @@ Item {
                         cache: true
 
                         Rectangle {
-                            anchors.fill: parent
+                            anchors.fill:
+                                parent
 
                             radius: 4
 
                             color: AppTheme.surface
 
                             visible:
-                                cover.status !== Image.Ready
+                                cover.status !==
+                                Image.Ready
 
                             Label {
-                                anchors.centerIn: parent
+                                anchors.centerIn:
+                                    parent
 
                                 text: "♪"
 
@@ -175,7 +179,9 @@ Item {
                         Label {
                             width: parent.width
 
-                            text: title
+                            text:
+                                title ||
+                                "Без названия"
 
                             color: AppTheme.textPrimary
 
@@ -196,7 +202,9 @@ Item {
                         Label {
                             width: parent.width
 
-                            text: album
+                            text:
+                                album ||
+                                ""
 
                             color: AppTheme.textMuted
 
@@ -230,7 +238,8 @@ Item {
                     MouseArea {
                         id: rowMouseArea
 
-                        anchors.fill: parent
+                        anchors.fill:
+                            parent
 
                         hoverEnabled: true
 
@@ -238,7 +247,7 @@ Item {
 
                         onClicked: {
                             root.controller
-                                .selectPlaylistTrack(
+                                .selectRecentListening(
                                 index)
                         }
                     }
@@ -254,15 +263,17 @@ Item {
                             artistArea.y
 
                         width:
-                                    artistLabel.width
+                            trackInfo.width
 
                         height: 18
 
                         z: 10
 
                         enabled:
-                            artistId &&
-                            artistId.length > 0
+                            (
+                                artistId ||
+                                ""
+                            ).length > 0
 
                         hoverEnabled: true
 
@@ -272,18 +283,30 @@ Item {
                                 : Qt.ArrowCursor
 
                         onClicked: {
-                            root.controller
-                                .loadArtist(
-                                artistId)
+                            var id =
+                                artistId ||
+                                ""
+
+                            if (
+                                id.length > 0
+                            ) {
+                                root.controller
+                                    .loadArtist(
+                                    id)
+                            }
                         }
 
                         Label {
-                            anchors.fill: parent
+                            anchors.fill:
+                                parent
 
-                            text: artist
+                            text:
+                                artist ||
+                                ""
 
                             color:
-                                artistMouseArea.containsMouse
+                                artistMouseArea
+                                    .containsMouse
                                     ? AppTheme.accent
                                     : AppTheme.textSecondary
 
@@ -295,19 +318,26 @@ Item {
                     }
                 }
 
-                Label {
-                    anchors.centerIn: parent
-
-                    text:
-                        root.controller.loadingPlaylist
-                            ? "Загрузка плейлиста..."
-                            : "В плейлисте нет треков"
-
-                    color: AppTheme.textSecondary
+                Item {
+                    anchors.fill:
+                        parent
 
                     visible:
-                        root.controller.loadingPlaylist ||
-                        root.controller.playlistModel.count === 0
+                        root.controller
+                            .recentListeningModel
+                            .count === 0
+
+                    Label {
+                        anchors.centerIn:
+                            parent
+
+                        text:
+                            "Недавно слушали пока пусто"
+
+                        color: AppTheme.textSecondary
+
+                        font.pixelSize: 12
+                    }
                 }
             }
         }

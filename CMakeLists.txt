@@ -35,12 +35,17 @@ if (
     )
 endif()
 
+
 # =============================================================
 # Application
 # =============================================================
 
 qt_add_executable(
         appYaMusic
+
+        # =========================================================
+        # Entry point
+        # =========================================================
 
         main.cpp
 
@@ -65,6 +70,7 @@ qt_add_executable(
 
         src/Core/PersonalController.h
         src/Core/PersonalController.cpp
+
         src/Core/PersonalController+MyWave.cpp
         src/Core/PersonalController+Playback.cpp
         src/Core/PersonalController+RecentlyPlayed.cpp
@@ -73,12 +79,14 @@ qt_add_executable(
         src/Core/SearchController.h
         src/Core/SearchController.cpp
 
+
         # =========================================================
         # Player
         # =========================================================
 
         src/Player/PlayerService.h
         src/Player/PlayerService.cpp
+
 
         # =========================================================
         # Playback
@@ -87,12 +95,14 @@ qt_add_executable(
         src/Playback/PlaybackController.h
         src/Playback/PlaybackController.cpp
 
+
         # =========================================================
         # Queue
         # =========================================================
 
         src/Queue/QueueService.h
         src/Queue/QueueService.cpp
+
 
         # =========================================================
         # Models
@@ -110,6 +120,7 @@ qt_add_executable(
         src/Models/PersonalPlaylist.h
         src/Models/PersonalPlaylist.cpp
 
+
         # =========================================================
         # Recent Listening
         # =========================================================
@@ -119,6 +130,7 @@ qt_add_executable(
 
         src/Yandex/Personal/RecentListeningService.h
         src/Yandex/Personal/RecentListeningService.cpp
+
 
         # =========================================================
         # Yandex
@@ -130,6 +142,7 @@ qt_add_executable(
         src/Yandex/AccountParser.h
         src/Yandex/AccountParser.cpp
 
+
         # =========================================================
         # Auth
         # =========================================================
@@ -140,12 +153,14 @@ qt_add_executable(
         src/Yandex/Auth/YandexTokenStorage.h
         src/Yandex/Auth/YandexTokenStorage.cpp
 
+
         # =========================================================
         # Account
         # =========================================================
 
         src/Yandex/Account/AccountService.h
         src/Yandex/Account/AccountService.cpp
+
 
         # =========================================================
         # Catalog
@@ -187,6 +202,7 @@ qt_add_executable(
         src/Yandex/Catalog/SimilarArtistsModel.h
         src/Yandex/Catalog/SimilarArtistsModel.cpp
 
+
         # =========================================================
         # Personal
         # =========================================================
@@ -210,6 +226,21 @@ qt_add_executable(
         src/Yandex/Personal/PlaylistModel.cpp
 )
 
+
+# =============================================================
+# Theme singleton
+#
+# IMPORTANT:
+# QT_QML_SINGLETON_TYPE must be set BEFORE qt_add_qml_module().
+# =============================================================
+
+set_source_files_properties(
+        qml/Theme/AppTheme.qml
+        PROPERTIES
+        QT_QML_SINGLETON_TYPE TRUE
+)
+
+
 # =============================================================
 # QML module
 # =============================================================
@@ -228,6 +259,7 @@ qt_add_qml_module(
 
         Main.qml
 
+
         # =========================================================
         # Components
         # =========================================================
@@ -236,9 +268,10 @@ qt_add_qml_module(
         qml/Components/StatusBar.qml
         qml/Components/NowPlayingBar.qml
 
-        # =============================================================
+
+        # =========================================================
         # Pages
-        # =============================================================
+        # =========================================================
 
         qml/Pages/HomePage.qml
         qml/Pages/SearchPage.qml
@@ -249,17 +282,10 @@ qt_add_qml_module(
         qml/Pages/PlaylistPage.qml
         qml/Pages/RecentPage.qml
 
-        # =============================================================
-        # Components
-        # =============================================================
 
-        qml/Components/SearchBar.qml
-        qml/Components/StatusBar.qml
-        qml/Components/NowPlayingBar.qml
-
-        # =============================================================
-        # Home sections
-        # =============================================================
+        # =========================================================
+        # Home
+        # =========================================================
 
         qml/Home/PersonalPlaylistsSection.qml
         qml/Home/PlaylistView.qml
@@ -268,21 +294,24 @@ qt_add_qml_module(
         qml/Home/ArtistView.qml
         qml/Home/ArtistAlbumsSection.qml
 
-        # =============================================================
+
+        # =========================================================
         # My Wave
-        # =============================================================
+        # =========================================================
 
         qml/MyWave/MyWaveSection.qml
 
-        # =============================================================
+
+        # =========================================================
         # Search
-        # =============================================================
+        # =========================================================
 
         qml/Search/SearchResultsSection.qml
 
-        # =============================================================
+
+        # =========================================================
         # Context
-        # =============================================================
+        # =========================================================
 
         qml/Context/ContextPanelHome.qml
         qml/Context/ContextPanelMyWave.qml
@@ -291,14 +320,23 @@ qt_add_qml_module(
         qml/Context/ContextPanelPlaylist.qml
         qml/Context/ContextPanelLibrary.qml
 
-        # =============================================================
+
+        # =========================================================
         # Layout
-        # =============================================================
+        # =========================================================
 
         qml/Layout/ContextPanel.qml
         qml/Layout/MainLayout.qml
         qml/Layout/Sidebar.qml
+
+
+        # =========================================================
+        # Theme
+        # =========================================================
+
+        qml/Theme/AppTheme.qml
 )
+
 
 # =============================================================
 # Target properties
@@ -321,6 +359,7 @@ set_target_properties(
         TRUE
 )
 
+
 # =============================================================
 # Qt libraries
 # =============================================================
@@ -333,6 +372,7 @@ target_link_libraries(
         Qt6::Network
         Qt6::Multimedia
 )
+
 
 # =============================================================
 # macOS Security framework
@@ -358,6 +398,7 @@ if (APPLE)
 
 endif()
 
+
 # =============================================================
 # Install
 # =============================================================
@@ -369,11 +410,10 @@ install(
         appYaMusic
 
         BUNDLE DESTINATION .
-        LIBRARY DESTINATION
-        ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION
-        ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
 
 # =============================================================
 # QML deployment

@@ -11,10 +11,10 @@ Item {
     Rectangle {
         anchors.fill: parent
 
-        color: "#ededed"
+        color: AppTheme.backgroundSecondary
 
         border.width: 1
-        border.color: "#d7d7d7"
+        border.color: AppTheme.borderSubtle
 
         // Header + navigation
         Column {
@@ -35,7 +35,7 @@ Item {
 
                 text: "YaMusic"
 
-                color: "#202020"
+                color: AppTheme.textPrimary
 
                 font.pixelSize: 22
                 font.bold: true
@@ -91,9 +91,9 @@ Item {
 
                     color:
                             root.currentSection === modelData.id
-                        ? "#dcdcdc"
+                        ? AppTheme.panelActive
                         : mouseArea.containsMouse
-                            ? "#e4e4e4"
+                            ? AppTheme.panelHover
                             : "transparent"
 
                     border.width:
@@ -101,7 +101,7 @@ Item {
                         ? 1
                         : 0
 
-                    border.color: "#cfcfcf"
+                    border.color: AppTheme.borderSubtle
 
                     MouseArea {
                         id: mouseArea
@@ -128,8 +128,8 @@ Item {
 
                         color:
                                 root.currentSection === modelData.id
-                            ? "#202020"
-                            : "#555555"
+                            ? AppTheme.textPrimary
+                            : AppTheme.textSecondary
 
                         font.pixelSize: 13
 
@@ -155,7 +155,7 @@ Item {
                 width: parent.width
                 height: 1
 
-                color: "#d5d5d5"
+                color: AppTheme.divider
             }
 
             Label {
@@ -166,7 +166,7 @@ Item {
 
                 text: "YaMusic"
 
-                color: "#888888"
+                color: AppTheme.textMuted
 
                 font.pixelSize: 10
             }

@@ -24,10 +24,10 @@ Item {
     Rectangle {
         anchors.fill: parent
 
-        color: "#ededed"
+        color: AppTheme.backgroundSecondary
 
         border.width: 1
-        border.color: "#d7d7d7"
+        border.color: AppTheme.borderSubtle
 
         Column {
             anchors.fill: parent
@@ -44,7 +44,7 @@ Item {
 
                 text: qsTr("Другие альбомы")
 
-                color: "#202020"
+                color: AppTheme.textPrimary
 
                 font.pixelSize: 17
                 font.bold: true
@@ -59,7 +59,7 @@ Item {
                     "Другие релизы этого исполнителя"
                 )
 
-                color: "#777777"
+                color: AppTheme.textMuted
 
                 font.pixelSize: 11
 
@@ -148,7 +148,7 @@ Item {
 
                             radius: 6
 
-                            color: "#d0d0d0"
+                            color: AppTheme.surface
 
                             clip: true
 
@@ -181,7 +181,7 @@ Item {
 
                                 text: "♪"
 
-                                color: "#777777"
+                                color: AppTheme.textMuted
 
                                 font.pixelSize: 22
 
@@ -219,7 +219,7 @@ Item {
                                     ? albumRow.title
                                     : qsTr("Без названия")
 
-                                color: "#202020"
+                                color: AppTheme.textPrimary
 
                                 font.pixelSize: 13
                                 font.bold: true
@@ -236,7 +236,7 @@ Item {
                                     ? String(albumRow.year)
                                     : ""
 
-                                color: "#777777"
+                                color: AppTheme.textMuted
 
                                 font.pixelSize: 11
 
@@ -298,7 +298,7 @@ Item {
                         ? qsTr("Загрузка...")
                         : qsTr("Нет других альбомов")
 
-                    color: "#999999"
+                    color: AppTheme.textDisabled
 
                     font.pixelSize: 12
 

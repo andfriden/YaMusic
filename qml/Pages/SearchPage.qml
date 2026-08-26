@@ -16,7 +16,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: "#f5f5f5"
+        color: AppTheme.backgroundPrimary
     }
 
     Column {
