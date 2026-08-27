@@ -1200,7 +1200,7 @@ Item {
                     Math.max(
                         Math.ceil(
                             albumsView.count / 5
-                        ) * 158,
+                        ) * 210,
                         1
                     )
                     : 150
@@ -1257,7 +1257,7 @@ Item {
                             Math.max(
                                 Math.ceil(
                                     count / 5
-                                ) * 150,
+                                ) * 175,
                                 1
                             )
 
@@ -1272,7 +1272,7 @@ Item {
                             : 1
 
                         cellHeight:
-                            150
+                            180
 
                         interactive:
                             false
