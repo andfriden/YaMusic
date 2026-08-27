@@ -3,10 +3,12 @@
 #include "../Auth/YandexAuth.h"
 #include "../YandexClient.h"
 
+#include <QDebug>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkReply>
+#include <QSet>
 #include <QUrlQuery>
 
 namespace
@@ -22,6 +24,11 @@ const QString LandingBlocks =
     "podcasts";
 }
 
+
+// =============================================================
+// Constructor
+// =============================================================
+
 PersonalLanding::PersonalLanding(
     YandexAuth *auth,
     QObject *parent)
@@ -30,14 +37,41 @@ PersonalLanding::PersonalLanding(
     , m_yandexClient(
           new YandexClient(this))
 {
+    qDebug()
+        << "PersonalLanding CREATED";
 }
+
+
+// =============================================================
+// Load
+// =============================================================
 
 void PersonalLanding::load()
 {
+    qDebug()
+        << "========================================";
+
+    qDebug()
+        << "PersonalLanding::load";
+
     if (
-        m_auth == nullptr ||
+        m_auth == nullptr
+    ) {
+        qDebug()
+            << "ERROR: auth is null";
+
+        emit errorOccurred(
+            "Авторизация недоступна");
+
+        return;
+    }
+
+
+    if (
         !m_auth->isAuthenticated()
     ) {
+        qDebug()
+            << "ERROR: not authenticated";
 
         emit errorOccurred(
             "Токен Яндекс Музыки не установлен");
@@ -45,9 +79,11 @@ void PersonalLanding::load()
         return;
     }
 
+
     m_yandexClient
         ->setToken(
             m_auth->token());
+
 
     QUrlQuery query;
 
@@ -55,16 +91,28 @@ void PersonalLanding::load()
         "blocks",
         LandingBlocks);
 
+
     const QString path =
         "/landing3?" +
         query.toString(
             QUrl::FullyEncoded);
 
+
+    qDebug()
+        << "Request:"
+        << path;
+
+
     QNetworkReply *reply =
         m_yandexClient
             ->get(path);
 
-    if (reply == nullptr) {
+
+    if (
+        reply == nullptr
+    ) {
+        qDebug()
+            << "ERROR: reply is null";
 
         emit errorOccurred(
             "Не удалось создать запрос рекомендаций");
@@ -72,14 +120,32 @@ void PersonalLanding::load()
         return;
     }
 
+
     connect(
         reply,
         &QNetworkReply::finished,
         this,
         [this, reply]() {
 
+            qDebug()
+                << "========================================";
+
+            qDebug()
+                << "PersonalLanding RESPONSE";
+
+
             const QByteArray data =
                 reply->readAll();
+
+
+            qDebug()
+                << "HTTP error:"
+                << reply->error();
+
+            qDebug()
+                << "HTTP error string:"
+                << reply->errorString();
+
 
             if (
                 reply->error() !=
@@ -94,18 +160,31 @@ void PersonalLanding::load()
                 return;
             }
 
+
+            qDebug()
+                << "Response bytes:"
+                << data.size();
+
+
             QJsonParseError parseError;
+
 
             const QJsonDocument document =
                 QJsonDocument::fromJson(
                     data,
                     &parseError);
 
+
             if (
                 parseError.error !=
                     QJsonParseError::NoError ||
                 !document.isObject()
             ) {
+
+                qDebug()
+                    << "JSON parse error:"
+                    << parseError.errorString();
+
 
                 emit errorOccurred(
                     "Некорректный ответ от Яндекс Музыки");
@@ -115,17 +194,24 @@ void PersonalLanding::load()
                 return;
             }
 
+
             const QJsonObject root =
                 document.object();
+
 
             const QJsonObject result =
                 root
                     .value("result")
                     .toObject();
 
+
             if (
                 result.isEmpty()
             ) {
+
+                qDebug()
+                    << "ERROR: result is empty";
+
 
                 emit errorOccurred(
                     "Ответ рекомендаций пуст");
@@ -135,14 +221,20 @@ void PersonalLanding::load()
                 return;
             }
 
+
             const QJsonArray blocks =
                 result
                     .value("blocks")
                     .toArray();
 
+
             if (
                 blocks.isEmpty()
             ) {
+
+                qDebug()
+                    << "ERROR: blocks is empty";
+
 
                 emit errorOccurred(
                     "В ответе нет блоков рекомендаций");
@@ -152,11 +244,24 @@ void PersonalLanding::load()
                 return;
             }
 
+
             QList<PersonalLandingSection>
                 sections;
 
+
             QList<PersonalPlaylist>
                 personalPlaylists;
+
+
+            QSet<QString>
+                playlistIds;
+
+
+            /*
+             * =====================================================
+             * Parse every landing block
+             * =====================================================
+             */
 
             for (
                 const QJsonValue &value :
@@ -169,12 +274,75 @@ void PersonalLanding::load()
                     continue;
                 }
 
+
                 const QJsonObject block =
                     value.toObject();
+
+
+                /*
+                 * -------------------------------------------------
+                 * Log raw block metadata
+                 * -------------------------------------------------
+                 */
+
+                const QString blockId =
+                    block
+                        .value("id")
+                        .toString();
+
+
+                const QString blockTitle =
+                    block
+                        .value("title")
+                        .toString();
+
+
+                const QString blockType =
+                    block
+                        .value("type")
+                        .toString();
+
+
+                const QJsonArray entities =
+                    block
+                        .value("entities")
+                        .toArray();
+
+
+                qDebug()
+                    << "----------------------------------------";
+
+
+                qDebug()
+                    << "LANDING BLOCK";
+
+                qDebug()
+                    << "id:"
+                    << blockId;
+
+                qDebug()
+                    << "title:"
+                    << blockTitle;
+
+                qDebug()
+                    << "type:"
+                    << blockType;
+
+                qDebug()
+                    << "entities:"
+                    << entities.size();
+
+
+                /*
+                 * -------------------------------------------------
+                 * Parse section
+                 * -------------------------------------------------
+                 */
 
                 const PersonalLandingSection section =
                     parseSection(
                         block);
+
 
                 if (
                     !section.id.isEmpty() ||
@@ -186,31 +354,285 @@ void PersonalLanding::load()
                         section);
                 }
 
+
+                /*
+                 * -------------------------------------------------
+                 * Personal playlists
+                 * -------------------------------------------------
+                 */
+
                 if (
                     section.type ==
                     "personal-playlists"
                 ) {
 
+                    qDebug()
+                        << "Processing personal-playlists"
+                        << "| items:"
+                        << section.items.size();
+
+
                     for (
-                        const PersonalLandingItem &item :
-                        section.items
+                        int i = 0;
+                        i < section.items.size();
+                        ++i
                     ) {
+
+                        const PersonalLandingItem &item =
+                            section.items.at(i);
+
 
                         const PersonalPlaylist playlist =
                             parsePersonalPlaylist(
                                 item);
 
+
+                        qDebug()
+                            << "PERSONAL PLAYLIST"
+                            << i
+                            << "| item id:"
+                            << item.id
+                            << "| parsed id:"
+                            << playlist.id
+                            << "| title:"
+                            << playlist.title
+                            << "| uid:"
+                            << playlist.uid
+                            << "| kind:"
+                            << playlist.kind;
+
+
                         if (
-                            !playlist.id.isEmpty() &&
-                            !playlist.title.isEmpty()
+                            playlist.id.isEmpty() ||
+                            playlist.title.isEmpty()
                         ) {
 
-                            personalPlaylists.append(
-                                playlist);
+                            qDebug()
+                                << "Skipped:"
+                                << "invalid personal playlist";
+
+                            continue;
                         }
+
+
+                        if (
+                            playlistIds.contains(
+                                playlist.id)
+                        ) {
+
+                            qDebug()
+                                << "Skipped duplicate:"
+                                << playlist.id;
+
+                            continue;
+                        }
+
+
+                        playlistIds.insert(
+                            playlist.id);
+
+
+                        personalPlaylists.append(
+                            playlist);
+                    }
+                }
+
+
+                /*
+                 * -------------------------------------------------
+                 * New playlists
+                 *
+                 * IMPORTANT:
+                 * We log the complete item JSON because its
+                 * structure may differ from personal-playlists.
+                 * -------------------------------------------------
+                 */
+
+                if (
+                    section.type ==
+                    "new-playlists"
+                ) {
+
+                    qDebug()
+                        << "Processing new-playlists"
+                        << "| items:"
+                        << section.items.size();
+
+
+                    for (
+                        int i = 0;
+                        i < section.items.size();
+                        ++i
+                    ) {
+
+                        const PersonalLandingItem &item =
+                            section.items.at(i);
+
+
+                        qDebug()
+                            << "========================================";
+
+                        qDebug()
+                            << "NEW PLAYLIST ITEM"
+                            << i;
+
+
+                        qDebug()
+                            << "item.id:"
+                            << item.id;
+
+
+                        qDebug()
+                            << "item.type:"
+                            << item.type;
+
+
+                        qDebug()
+                            << "item.data:"
+                            << QJsonDocument(
+                                   item.data
+                               ).toJson(
+                                   QJsonDocument::Compact);
+
+
+                        qDebug()
+                            << "========================================";
+
+
+                        const PersonalPlaylist playlist =
+                            parsePersonalPlaylist(
+                                item);
+
+
+                        qDebug()
+                            << "NEW PLAYLIST PARSED"
+                            << i
+                            << "| id:"
+                            << playlist.id
+                            << "| title:"
+                            << playlist.title
+                            << "| uid:"
+                            << playlist.uid
+                            << "| kind:"
+                            << playlist.kind
+                            << "| cover:"
+                            << playlist.coverUri;
+
+
+                        /*
+                         * Do not silently discard the object.
+                         * We need to know what structure Yandex
+                         * actually returned.
+                         */
+
+                        if (
+                            playlist.id.isEmpty() ||
+                            playlist.title.isEmpty()
+                        ) {
+
+                            qDebug()
+                                << "NEW PLAYLIST SKIPPED"
+                                << "| parser could not extract playlist";
+
+                            continue;
+                        }
+
+
+                        if (
+                            playlistIds.contains(
+                                playlist.id)
+                        ) {
+
+                            qDebug()
+                                << "NEW PLAYLIST DUPLICATE:"
+                                << playlist.id;
+
+                            continue;
+                        }
+
+
+                        playlistIds.insert(
+                            playlist.id);
+
+
+                        personalPlaylists.append(
+                            playlist);
                     }
                 }
             }
+
+
+            /*
+             * =====================================================
+             * Final diagnostics
+             * =====================================================
+             */
+
+            qDebug()
+                << "========================================";
+
+            qDebug()
+                << "PersonalLanding sections:"
+                << sections.size();
+
+
+            for (
+                const PersonalLandingSection &section :
+                sections
+            ) {
+
+                qDebug()
+                    << "Section:"
+                    << section.title
+                    << "| type:"
+                    << section.type
+                    << "| items:"
+                    << section.items.size();
+            }
+
+
+            qDebug()
+                << "Playlist cards:"
+                << personalPlaylists.size();
+
+
+            for (
+                int i = 0;
+                i < personalPlaylists.size();
+                ++i
+            ) {
+
+                const PersonalPlaylist &playlist =
+                    personalPlaylists.at(i);
+
+
+                qDebug()
+                    << "Playlist"
+                    << i
+                    << "| title:"
+                    << playlist.title
+                    << "| id:"
+                    << playlist.id
+                    << "| uid:"
+                    << playlist.uid
+                    << "| kind:"
+                    << playlist.kind
+                    << "| tracks:"
+                    << playlist.trackCount
+                    << "| cover:"
+                    << playlist.coverUri;
+            }
+
+
+            qDebug()
+                << "========================================";
+
+
+            /*
+             * =====================================================
+             * Validate sections
+             * =====================================================
+             */
 
             if (
                 sections.isEmpty()
@@ -224,8 +646,22 @@ void PersonalLanding::load()
                 return;
             }
 
+
+            /*
+             * =====================================================
+             * Emit sections
+             * =====================================================
+             */
+
             emit loaded(
                 sections);
+
+
+            /*
+             * =====================================================
+             * Emit playlists
+             * =====================================================
+             */
 
             if (
                 !personalPlaylists.isEmpty()
@@ -235,9 +671,15 @@ void PersonalLanding::load()
                     personalPlaylists);
             }
 
+
             reply->deleteLater();
         });
 }
+
+
+// =============================================================
+// Parse item
+// =============================================================
 
 PersonalLandingItem
 PersonalLanding::parseItem(
@@ -245,23 +687,32 @@ PersonalLanding::parseItem(
 {
     PersonalLandingItem item;
 
+
     item.id =
         object
             .value("id")
             .toString();
+
 
     item.type =
         object
             .value("type")
             .toString();
 
+
     item.data =
         object
             .value("data")
             .toObject();
 
+
     return item;
 }
+
+
+// =============================================================
+// Parse section
+// =============================================================
 
 PersonalLandingSection
 PersonalLanding::parseSection(
@@ -269,35 +720,42 @@ PersonalLanding::parseSection(
 {
     PersonalLandingSection section;
 
+
     section.id =
         object
             .value("id")
             .toString();
+
 
     section.title =
         object
             .value("title")
             .toString();
 
+
     section.type =
         object
             .value("type")
             .toString();
+
 
     section.typeForFrom =
         object
             .value("typeForFrom")
             .toString();
 
+
     section.description =
         object
             .value("description")
             .toString();
 
+
     const QJsonArray entities =
         object
             .value("entities")
             .toArray();
+
 
     for (
         const QJsonValue &value :
@@ -310,12 +768,15 @@ PersonalLanding::parseSection(
             continue;
         }
 
+
         const QJsonObject entity =
             value.toObject();
+
 
         const PersonalLandingItem item =
             parseItem(
                 entity);
+
 
         if (
             item.id.isEmpty() &&
@@ -325,12 +786,19 @@ PersonalLanding::parseSection(
             continue;
         }
 
+
         section.items.append(
             item);
     }
 
+
     return section;
 }
+
+
+// =============================================================
+// Parse personal playlist
+// =============================================================
 
 PersonalPlaylist
 PersonalLanding::parsePersonalPlaylist(
@@ -338,26 +806,91 @@ PersonalLanding::parsePersonalPlaylist(
 {
     PersonalPlaylist playlist;
 
-    const QJsonObject playlistObject =
+
+    qDebug()
+        << "parsePersonalPlaylist"
+        << "| item id:"
+        << item.id
+        << "| item type:"
+        << item.type;
+
+
+    /*
+     * ==========================================================
+     * Current known structure:
+     *
+     * item.data["data"]
+     *
+     * Some landing blocks may use a different nesting.
+     * We inspect all obvious candidates here.
+     * ==========================================================
+     */
+
+    QJsonObject playlistObject =
         item.data
             .value("data")
             .toObject();
 
+
     if (
         playlistObject.isEmpty()
     ) {
+
+        /*
+         * Fallback:
+         *
+         * Sometimes the playlist data itself can be directly
+         * inside item.data.
+         */
+
+        playlistObject =
+            item.data;
+    }
+
+
+    if (
+        playlistObject.isEmpty()
+    ) {
+
+        qDebug()
+            << "parsePersonalPlaylist:"
+            << "playlist object is empty";
+
         return playlist;
     }
+
+
+    qDebug()
+        << "playlist object:"
+        << QJsonDocument(
+               playlistObject
+           ).toJson(
+               QJsonDocument::Compact);
+
+
+    /*
+     * ==========================================================
+     * kind
+     * ==========================================================
+     */
 
     playlist.kind =
         playlistObject
             .value("kind")
             .toInt();
 
+
+    /*
+     * ==========================================================
+     * uid
+     * ==========================================================
+     */
+
     const qint64 uid =
         playlistObject
             .value("uid")
             .toInteger();
+
 
     if (
         uid > 0
@@ -367,6 +900,12 @@ PersonalLanding::parsePersonalPlaylist(
             QString::number(
                 uid);
     }
+
+
+    /*
+     * owner.uid fallback
+     * ==========================================================
+     */
 
     if (
         playlist.uid.isEmpty()
@@ -379,6 +918,7 @@ PersonalLanding::parsePersonalPlaylist(
                 .value("uid")
                 .toInteger();
 
+
         if (
             ownerUid > 0
         ) {
@@ -388,6 +928,13 @@ PersonalLanding::parsePersonalPlaylist(
                     ownerUid);
         }
     }
+
+
+    /*
+     * ==========================================================
+     * id
+     * ==========================================================
+     */
 
     if (
         !playlist.uid.isEmpty() &&
@@ -406,40 +953,100 @@ PersonalLanding::parsePersonalPlaylist(
             item.id;
     }
 
+
+    /*
+     * ==========================================================
+     * title
+     * ==========================================================
+     */
+
     playlist.title =
         playlistObject
             .value("title")
             .toString();
+
+
+    /*
+     * ==========================================================
+     * description
+     * ==========================================================
+     */
 
     playlist.description =
         playlistObject
             .value("description")
             .toString();
 
+
     playlist.previewDescription =
         item.data
             .value("previewDescription")
             .toString();
+
+
+    /*
+     * ==========================================================
+     * track count
+     * ==========================================================
+     */
 
     playlist.trackCount =
         playlistObject
             .value("trackCount")
             .toInt();
 
+
+    /*
+     * ==========================================================
+     * generated playlist type
+     * ==========================================================
+     */
+
     playlist.generatedPlaylistType =
         playlistObject
             .value("generatedPlaylistType")
             .toString();
+
+
+    /*
+     * ==========================================================
+     * Cover
+     * ==========================================================
+     */
 
     const QJsonObject cover =
         playlistObject
             .value("cover")
             .toObject();
 
+
     playlist.coverUri =
         cover
             .value("uri")
             .toString();
+
+
+    /*
+     * ==========================================================
+     * Final parser diagnostics
+     * ==========================================================
+     */
+
+    qDebug()
+        << "parsePersonalPlaylist RESULT"
+        << "| id:"
+        << playlist.id
+        << "| title:"
+        << playlist.title
+        << "| uid:"
+        << playlist.uid
+        << "| kind:"
+        << playlist.kind
+        << "| tracks:"
+        << playlist.trackCount
+        << "| cover:"
+        << playlist.coverUri;
+
 
     return playlist;
 }
