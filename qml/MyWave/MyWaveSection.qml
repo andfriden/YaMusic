@@ -7,15 +7,18 @@ Item {
     property var controller
     property bool compactMode: false
 
+
     readonly property bool hasController:
         root.controller !== null &&
         root.controller !== undefined
+
 
     readonly property bool hasTracks:
         root.hasController &&
         root.controller.myWaveModel !== null &&
         root.controller.myWaveModel !== undefined &&
         root.controller.myWaveModel.count > 0
+
 
     readonly property int margin:
         root.compactMode ? 12 : 24
@@ -25,58 +28,84 @@ Item {
         anchors.fill: parent
 
         visible:
-            root.hasTracks || root.compactMode
+            root.hasTracks ||
+            root.compactMode
 
         radius:
-            root.compactMode ? 10 : 14
+            root.compactMode
+                ? 10
+                : 14
 
-        color: AppTheme.panel
+        color:
+            AppTheme.panel
 
-        border.width: 1
-        border.color: "#d4d4d4"
+        border.width:
+            1
+
+        border.color:
+            "#d4d4d4"
     }
 
 
     Column {
-        anchors.fill: parent
-        anchors.margins: root.margin
+        anchors.fill:
+            parent
+
+        anchors.margins:
+            root.margin
 
         spacing:
-            root.compactMode ? 10 : 16
+            root.compactMode
+                ? 10
+                : 16
 
 
         Label {
-            text: "Моя волна"
+            text:
+                "Моя волна"
 
-            color: AppTheme.textPrimary
+            color:
+                AppTheme.textPrimary
 
             font.pixelSize:
-                root.compactMode ? 18 : 30
+                root.compactMode
+                    ? 18
+                    : 30
 
-            font.bold: true
+            font.bold:
+                true
 
             height:
-                root.compactMode ? 28 : 40
+                root.compactMode
+                    ? 28
+                    : 40
         }
 
 
         ListView {
             id: trackList
 
-            width: parent.width
+            width:
+                parent.width
 
             height:
                 parent.height -
-                (root.compactMode ? 38 : 56)
+                (
+                    root.compactMode
+                        ? 38
+                        : 56
+                )
 
             model:
                 root.hasController
                     ? root.controller.myWaveModel
                     : null
 
-            clip: true
+            clip:
+                true
 
-            spacing: 6
+            spacing:
+                6
 
 
             ScrollBar.vertical:
@@ -86,167 +115,266 @@ Item {
                 }
 
 
-            delegate: Rectangle {
+            delegate:
+                Rectangle {
 
-                required property int index
-                required property string title
-                required property string artist
-                required property string album
-                required property string coverUri
-                required property int durationMs
+                    id: trackDelegate
 
 
-                width:
-                    trackList.width -
-                    (
-                        trackList.ScrollBar.vertical.visible
-                            ? 10
-                            : 0
-                    )
-
-                height:
-                    root.compactMode
-                        ? 58
-                        : 68
-
-
-                radius: 9
-
-
-                color:
-                    root.isCurrentTrack(
-                        title,
-                        artist)
-                        ? "#d9d9d9"
-                        : (
-                            mouse.containsMouse
-                                ? "#e1e1e1"
-                                : "#f2f2f2"
-                        )
-
-
-                border.width: 1
-
-                border.color:
-                    root.isCurrentTrack(
-                        title,
-                        artist)
-                        ? "#bdbdbd"
-                        : "#e0e0e0"
-
-
-
-                Image {
-                    id: cover
-
-                    anchors.left:
-                        parent.left
-
-                    anchors.leftMargin:
-                        root.compactMode ? 7 : 9
-
-                    anchors.verticalCenter:
-                        parent.verticalCenter
+                    required property int index
+                    required property string title
+                    required property string artist
+                    required property string artistId
+                    required property string album
+                    required property string albumId
+                    required property string coverUri
+                    required property int durationMs
 
 
                     width:
-                        root.compactMode ? 44 : 52
+                        trackList.width -
+                        (
+                            trackList.ScrollBar.vertical.visible
+                                ? 10
+                                : 0
+                        )
+
 
                     height:
-                        root.compactMode ? 44 : 52
+                        root.compactMode
+                            ? 58
+                            : 68
 
 
-                    source:
-                            coverUri.length > 0
-                        ? "image://yandex/" + coverUri
-                        : ""
+                    radius:
+                        9
 
 
-                    fillMode:
-                        Image.PreserveAspectCrop
+                    color:
+                        root.isCurrentTrack(
+                            trackDelegate.title,
+                            trackDelegate.artist
+                        )
+                            ? "#d9d9d9"
+                            : (
+                                rowMouseArea.containsMouse
+                                    ? "#e1e1e1"
+                                    : "#f2f2f2"
+                            )
 
-                    asynchronous: true
-                    cache: true
+
+                    border.width:
+                        1
 
 
-                    Rectangle {
-                        anchors.fill: parent
+                    border.color:
+                        root.isCurrentTrack(
+                            trackDelegate.title,
+                            trackDelegate.artist
+                        )
+                            ? "#bdbdbd"
+                            : "#e0e0e0"
 
-                        radius: 6
 
-                        color: AppTheme.surface
 
-                        visible:
-                            cover.status !== Image.Ready
+                    Image {
+                        id: cover
+
+
+                        anchors.left:
+                            parent.left
+
+                        anchors.leftMargin:
+                            root.compactMode
+                                ? 7
+                                : 9
+
+                        anchors.verticalCenter:
+                            parent.verticalCenter
+
+
+                        width:
+                            root.compactMode
+                                ? 44
+                                : 52
+
+                        height:
+                            root.compactMode
+                                ? 44
+                                : 52
+
+
+                        source:
+                                trackDelegate.coverUri.length > 0
+                            ? "image://yandex/" +
+                            trackDelegate.coverUri
+                            : ""
+
+
+                        fillMode:
+                            Image.PreserveAspectCrop
+
+
+                        asynchronous:
+                            true
+
+                        cache:
+                            true
+
+
+                        Rectangle {
+                            anchors.fill:
+                                parent
+
+                            radius:
+                                6
+
+                            color:
+                                AppTheme.surface
+
+                            visible:
+                                cover.status !==
+                                Image.Ready
+
+
+                            Label {
+                                anchors.centerIn:
+                                    parent
+
+                                text:
+                                    "♪"
+
+                                color:
+                                    AppTheme.textSecondary
+                            }
+                        }
+                    }
+
+
+
+                    Column {
+                        id: trackInfo
+
+
+                        z:
+                            5
+
+
+                        anchors.left:
+                            cover.right
+
+
+                        anchors.leftMargin:
+                            12
+
+
+                        anchors.right:
+                            durationLabel.left
+
+
+                        anchors.rightMargin:
+                            10
+
+
+                        anchors.verticalCenter:
+                            parent.verticalCenter
+
+
+                        spacing:
+                            2
+
 
 
                         Label {
-                            anchors.centerIn: parent
+                            width:
+                                parent.width
 
-                            text: "♪"
+
+                            text:
+                                    trackDelegate.title.length > 0
+                                ? trackDelegate.title
+                                : "Без названия"
+
 
                             color:
-                                AppTheme.textSecondary
+                                AppTheme.textPrimary
+
 
                             font.pixelSize:
-                                root.compactMode ? 18 : 20
+                                root.compactMode
+                                    ? 13
+                                    : 14
+
+
+                            font.bold:
+                                true
+
+
+                            elide:
+                                Text.ElideRight
+                        }
+
+
+
+                        EntityLink {
+                            text:
+                                trackDelegate.artist
+
+                            entityId:
+                                trackDelegate.artistId
+
+                            entityType:
+                                "artist"
+
+                            controller:
+                                root.controller
+                        }
+
+
+
+                        EntityLink {
+                            visible:
+                                !root.compactMode &&
+                                trackDelegate.album.length > 0
+
+                            text:
+                                trackDelegate.album
+
+                            entityId:
+                                trackDelegate.albumId
+
+                            entityType:
+                                "album"
+
+                            controller:
+                                root.controller
                         }
                     }
-                }
 
-
-
-                Column {
-
-                    anchors.left:
-                        cover.right
-
-                    anchors.leftMargin: 12
-
-                    anchors.right:
-                        duration.left
-
-                    anchors.rightMargin: 10
-
-                    anchors.verticalCenter:
-                        parent.verticalCenter
-
-
-                    spacing: 2
 
 
                     Label {
-
-                        width: parent.width
-
-                        text:
-                                title.length > 0
-                            ? title
-                            : "Без названия"
+                        id: durationLabel
 
 
-                        color:
-                            AppTheme.textPrimary
+                        anchors.right:
+                            parent.right
 
 
-                        font.pixelSize:
-                            root.compactMode ? 13 : 14
+                        anchors.rightMargin:
+                            root.compactMode
+                                ? 10
+                                : 14
 
 
-                        font.bold: true
-
-                        elide:
-                            Text.ElideRight
-                    }
-
-
-                    Label {
-
-                        width: parent.width
+                        anchors.verticalCenter:
+                            parent.verticalCenter
 
 
                         text:
-                            artist
+                            root.formatDuration(
+                                trackDelegate.durationMs
+                            )
 
 
                         color:
@@ -254,105 +382,52 @@ Item {
 
 
                         font.pixelSize:
-                            root.compactMode ? 11 : 12
-
-
-                        elide:
-                            Text.ElideRight
+                            11
                     }
 
 
-                    Label {
 
-                        visible:
-                            !root.compactMode &&
-                            album.length > 0
+                    MouseArea {
+                        id: rowMouseArea
 
 
-                        width: parent.width
+                        anchors.fill:
+                            parent
 
 
-                        text:
-                            album
+                        hoverEnabled:
+                            true
 
 
-                        color:
-                            AppTheme.textMuted
+                        cursorShape:
+                            Qt.PointingHandCursor
 
 
-                        font.pixelSize: 10
+                        z:
+                            0
 
 
-                        elide:
-                            Text.ElideRight
+                        onClicked: {
+
+                            root.controller.selectMyWaveTrack(
+                                trackDelegate.index
+                            )
+                        }
                     }
                 }
-
-
-
-                Label {
-
-                    id: duration
-
-
-                    anchors.right:
-                        parent.right
-
-                    anchors.rightMargin:
-                        root.compactMode ? 10 : 14
-
-
-                    anchors.verticalCenter:
-                        parent.verticalCenter
-
-
-                    text:
-                        root.formatDuration(
-                            durationMs)
-
-
-                    color:
-                        AppTheme.textSecondary
-
-
-                    font.pixelSize: 11
-                }
-
-
-
-                MouseArea {
-
-                    id: mouse
-
-
-                    anchors.fill:
-                        parent
-
-
-                    hoverEnabled: true
-
-
-                    cursorShape:
-                        Qt.PointingHandCursor
-
-
-                    onClicked: {
-
-                        root.controller.selectMyWaveTrack(
-                            index)
-
-                    }
-                }
-            }
         }
     }
 
 
-
-    function isCurrentTrack(title, artist)
+    function isCurrentTrack(
+        title,
+        artist)
     {
-        if (!root.hasController)
+        if (
+            !root.hasController
+        ) {
             return false
+        }
 
 
         return (
@@ -362,19 +437,27 @@ Item {
     }
 
 
-
-    function formatDuration(milliseconds)
+    function formatDuration(
+        milliseconds)
     {
-        if (!milliseconds || milliseconds <= 0)
+        if (
+            !milliseconds ||
+            milliseconds <= 0
+        ) {
             return "0:00"
+        }
 
 
         var totalSeconds =
-            Math.floor(milliseconds / 1000)
+            Math.floor(
+                milliseconds / 1000
+            )
 
 
         var minutes =
-            Math.floor(totalSeconds / 60)
+            Math.floor(
+                totalSeconds / 60
+            )
 
 
         var seconds =
@@ -383,7 +466,11 @@ Item {
 
         return minutes +
             ":" +
-            (seconds < 10 ? "0" : "") +
+            (
+                    seconds < 10
+                    ? "0"
+                    : ""
+            ) +
             seconds
     }
 }
