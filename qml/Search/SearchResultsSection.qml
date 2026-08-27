@@ -6,287 +6,579 @@ Item {
 
     property var controller
 
+
     Column {
+
         anchors.fill: parent
 
         spacing: 8
 
+
+
         Label {
-            text: "Результаты поиска"
 
-            color: AppTheme.textPrimary
+            text:
+                qsTr("Результаты поиска")
 
-            font.pixelSize: 18
-            font.bold: true
+
+            color:
+                AppTheme.textPrimary
+
+
+            font.pixelSize:
+                18
+
+
+            font.bold:
+                true
         }
 
+
+
         ListView {
+
             id: resultsView
 
-            width: parent.width
-            height: parent.height - 30
 
-            model: root.controller.searchModel
+            width:
+                parent.width
 
-            clip: true
 
-            spacing: 6
+            height:
+                parent.height - 30
 
-            ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AsNeeded
-            }
 
-            delegate: Rectangle {
-                id: resultItem
+            model:
+                    root.controller !== null
+                ? root.controller.searchModel
+                : null
 
-                width:
-                    resultsView.width -
-                    (
-                        resultsView
-                            .ScrollBar
-                            .vertical
-                            .visible
-                            ? 10
-                            : 0
-                    )
 
-                height: 68
+            clip:
+                true
 
-                radius: 8
 
-                color:
-                    rowMouseArea.containsMouse
-                        ? AppTheme.panelActive
-                        : "#e8e8e8"
+            spacing:
+                6
 
-                border.width: 1
 
-                border.color:
-                    rowMouseArea.containsMouse
-                        ? "#c4c4c4"
-                        : "#dedede"
 
-                // Основной клик по результату:
-                // воспроизведение трека.
-                MouseArea {
-                    id: rowMouseArea
+            ScrollBar.vertical:
 
-                    anchors.fill: parent
-
-                    hoverEnabled: true
-
-                    cursorShape:
-                        Qt.PointingHandCursor
-
-                    onClicked: {
-                        root.controller
-                            .selectSearchResult(
-                            index)
-                    }
+                ScrollBar {
+                    policy:
+                        ScrollBar.AsNeeded
                 }
 
-                Image {
-                    id: cover
 
-                    anchors.left:
-                        parent.left
 
-                    anchors.leftMargin: 8
+            delegate:
 
-                    anchors.verticalCenter:
-                        parent.verticalCenter
+                Rectangle {
 
-                    width: 52
-                    height: 52
+                    id: resultItem
 
-                    source:
-                        coverUri
+
+
+                    required property int index
+
+                    required property string trackId
+
+                    required property string title
+
+                    required property string artist
+
+                    required property string artistId
+
+                    required property string album
+
+                    required property string albumId
+
+                    required property string coverUri
+
+                    required property int durationMs
+
+
+
+                    width:
+
+                        resultsView.width -
+                        (
+                            resultsView.ScrollBar.vertical.visible
+                                ? 10
+                                : 0
+                        )
+
+
+                    height:
+                        68
+
+
+                    radius:
+                        8
+
+
+
+                    color:
+
+                        rowMouseArea.containsMouse
+                            ? AppTheme.panelActive
+                            : AppTheme.panelSecondary
+
+
+
+                    border.width:
+                        1
+
+
+                    border.color:
+                        AppTheme.borderSubtle
+
+
+
+                    MouseArea {
+
+                        id: rowMouseArea
+
+
+                        anchors.fill:
+                            parent
+
+
+                        hoverEnabled:
+                            true
+
+
+                        cursorShape:
+                            Qt.PointingHandCursor
+
+
+                        z:
+                            0
+
+
+
+                        onClicked: {
+
+                            root.controller.selectSearchResult(
+                                resultItem.index
+                            )
+                        }
+                    }
+
+
+
+
+                    Image {
+
+                        id: cover
+
+
+                        anchors.left:
+                            parent.left
+
+
+                        anchors.leftMargin:
+                            8
+
+
+                        anchors.verticalCenter:
+                            parent.verticalCenter
+
+
+                        width:
+                            52
+
+
+                        height:
+                            52
+
+
+
+                        source:
+
+                                resultItem.coverUri.length > 0
                             ? "image://yandex/" +
-                            coverUri
+                            resultItem.coverUri
                             : ""
 
-                    fillMode:
-                        Image.PreserveAspectCrop
 
-                    asynchronous: true
 
-                    cache: true
+                        fillMode:
+                            Image.PreserveAspectCrop
 
-                    Rectangle {
-                        anchors.fill: parent
 
-                        radius: 4
+                        asynchronous:
+                            true
 
-                        color: AppTheme.surface
 
-                        visible:
-                            cover.status !==
-                            Image.Ready
+                        cache:
+                            true
 
-                        Label {
-                            anchors.centerIn:
+
+
+                        Rectangle {
+
+                            anchors.fill:
                                 parent
 
-                            text: "♪"
 
-                            color: AppTheme.textSecondary
+                            radius:
+                                6
 
-                            font.pixelSize: 20
-                        }
-                    }
-                }
 
-                Column {
-                    anchors.left:
-                        cover.right
+                            color:
+                                AppTheme.surface
 
-                    anchors.leftMargin: 12
 
-                    anchors.right:
-                        durationLabel.left
+                            visible:
+                                cover.status !== Image.Ready
 
-                    anchors.rightMargin: 12
 
-                    anchors.verticalCenter:
-                        parent.verticalCenter
 
-                    spacing: 2
+                            Label {
 
-                    Label {
-                        width: parent.width
+                                anchors.centerIn:
+                                    parent
 
-                        text: title
 
-                        color: AppTheme.textPrimary
+                                text:
+                                    "♪"
 
-                        font.pixelSize: 14
-                        font.bold: true
 
-                        elide:
-                            Text.ElideRight
-                    }
+                                color:
+                                    AppTheme.textSecondary
 
-                    Label {
-                        id: artistLabel
 
-                        width: parent.width
-
-                        text: artist
-
-                        color:
-                            artistMouseArea.containsMouse
-                                ? AppTheme.textPrimary
-                                : AppTheme.textSecondary
-
-                        font.pixelSize: 12
-
-                        elide:
-                            Text.ElideRight
-
-                        MouseArea {
-                            id: artistMouseArea
-
-                            anchors.fill: parent
-
-                            hoverEnabled: true
-
-                            enabled:
-                                artistId &&
-                                artistId.length > 0
-
-                            cursorShape:
-                                Qt.PointingHandCursor
-
-                            onClicked: {
-                                root.controller
-                                    .loadArtist(
-                                    artistId)
+                                font.pixelSize:
+                                    20
                             }
                         }
                     }
 
-                    Label {
-                        id: albumLabel
 
-                        width: parent.width
 
-                        text: album
 
-                        color:
-                            albumMouseArea.containsMouse
-                                ? AppTheme.textPrimary
-                                : AppTheme.textMuted
 
-                        font.pixelSize: 10
+                    Column {
 
-                        elide:
-                            Text.ElideRight
+                        id: trackInfo
 
-                        MouseArea {
-                            id: albumMouseArea
 
-                            anchors.fill: parent
+                        anchors.left:
+                            cover.right
 
-                            hoverEnabled: true
 
-                            enabled:
-                                albumId &&
-                                albumId.length > 0
+                        anchors.leftMargin:
+                            12
 
-                            cursorShape:
-                                Qt.PointingHandCursor
 
-                            onClicked: {
-                                root.controller
-                                    .loadAlbum(
-                                    albumId)
+                        anchors.right:
+                            durationLabel.left
+
+
+                        anchors.rightMargin:
+                            12
+
+
+                        anchors.verticalCenter:
+                            parent.verticalCenter
+
+
+                        spacing:
+                            2
+
+
+
+
+                        Label {
+
+                            width:
+                                parent.width
+
+
+                            text:
+                                    resultItem.title.length > 0
+                                ? resultItem.title
+                                : qsTr("Без названия")
+
+
+                            color:
+                                AppTheme.textPrimary
+
+
+                            font.pixelSize:
+                                14
+
+
+                            font.bold:
+                                true
+
+
+                            elide:
+                                Text.ElideRight
+                        }
+
+
+
+
+
+                        Item {
+
+                            id: artistArea
+
+
+                            width:
+                                artistLabel.width
+
+
+                            height:
+                                artistLabel.height
+
+
+
+                            Label {
+
+                                id: artistLabel
+
+
+                                width:
+                                    Math.min(
+                                        implicitWidth,
+                                        trackInfo.width
+                                    )
+
+
+                                height:
+                                    18
+
+
+                                text:
+                                    resultItem.artist
+
+
+                                color:
+
+                                    artistMouseArea.containsMouse
+                                        ? AppTheme.accent
+                                        : AppTheme.textSecondary
+
+
+                                font.pixelSize:
+                                    12
+
+
+                                elide:
+                                    Text.ElideRight
+                            }
+
+
+
+                            MouseArea {
+
+                                id: artistMouseArea
+
+
+                                anchors.fill:
+                                    artistLabel
+
+
+                                hoverEnabled:
+                                    true
+
+
+                                enabled:
+
+                                    resultItem.artistId.length > 0
+
+
+                                cursorShape:
+
+                                    enabled
+                                        ? Qt.PointingHandCursor
+                                        : Qt.ArrowCursor
+
+
+                                z:
+                                    10
+
+
+
+                                onClicked: {
+
+                                    root.controller.loadArtist(
+                                        resultItem.artistId
+                                    )
+                                }
+                            }
+                        }
+
+
+
+
+
+                        Item {
+
+                            id: albumArea
+
+
+                            width:
+                                albumLabel.width
+
+
+                            height:
+                                albumLabel.height
+
+
+
+                            Label {
+
+                                id: albumLabel
+
+
+                                width:
+                                    Math.min(
+                                        implicitWidth,
+                                        trackInfo.width
+                                    )
+
+
+                                height:
+                                    16
+
+
+                                text:
+                                    resultItem.album
+
+
+                                color:
+
+                                    albumMouseArea.containsMouse
+                                        ? AppTheme.accent
+                                        : AppTheme.textMuted
+
+
+                                font.pixelSize:
+                                    10
+
+
+                                elide:
+                                    Text.ElideRight
+                            }
+
+
+
+                            MouseArea {
+
+                                id: albumMouseArea
+
+                                width:
+                                    albumLabel.width
+
+                                height:
+                                    albumLabel.height
+
+
+                                hoverEnabled:
+                                    true
+
+
+                                enabled:
+
+                                    resultItem.albumId.length > 0
+
+
+                                cursorShape:
+
+                                    enabled
+                                        ? Qt.PointingHandCursor
+                                        : Qt.ArrowCursor
+
+
+                                z:
+                                    10
+
+
+
+                                onClicked: {
+
+                                    root.controller.loadAlbum(
+                                        resultItem.albumId
+                                    )
+                                }
                             }
                         }
                     }
+
+
+
+
+
+                    Label {
+
+                        id: durationLabel
+
+
+                        anchors.right:
+                            parent.right
+
+
+                        anchors.rightMargin:
+                            14
+
+
+                        anchors.verticalCenter:
+                            parent.verticalCenter
+
+
+
+                        text:
+                            root.formatDuration(
+                                resultItem.durationMs
+                            )
+
+
+                        color:
+                            AppTheme.textSecondary
+
+
+                        font.pixelSize:
+                            11
+                    }
                 }
 
-                Label {
-                    id: durationLabel
 
-                    anchors.right:
-                        parent.right
 
-                    anchors.rightMargin: 14
-
-                    anchors.verticalCenter:
-                        parent.verticalCenter
-
-                    text:
-                        formatDuration(
-                            durationMs)
-
-                    color: AppTheme.textSecondary
-
-                    font.pixelSize: 11
-                }
-            }
 
             Label {
+
                 anchors.centerIn:
                     parent
 
-                text:
-                    root.controller.searching
-                        ? "Поиск..."
-                        : "Ничего не найдено"
 
-                color: AppTheme.textSecondary
+                text:
+
+                        root.controller &&
+                    root.controller.searching
+                    ? qsTr("Поиск...")
+                    : qsTr("Ничего не найдено")
+
+
+                color:
+                    AppTheme.textSecondary
+
 
                 visible:
-                    root.controller
-                        .searchModel
-                        .count === 0
+
+                    root.controller !== null &&
+                    root.controller.searchModel.count === 0
             }
         }
     }
 
-    function formatDuration(
-        milliseconds)
+
+
+    function formatDuration(milliseconds)
     {
         if (
             !milliseconds ||
@@ -295,16 +587,22 @@ Item {
             return "0:00"
         }
 
+
         var totalSeconds =
             Math.floor(
-                milliseconds / 1000)
+                milliseconds / 1000
+            )
+
 
         var minutes =
             Math.floor(
-                totalSeconds / 60)
+                totalSeconds / 60
+            )
+
 
         var seconds =
             totalSeconds % 60
+
 
         return minutes +
             ":" +

@@ -267,6 +267,7 @@ qt_add_qml_module(
         qml/Components/SearchBar.qml
         qml/Components/StatusBar.qml
         qml/Components/NowPlayingBar.qml
+        qml/Components/EntityLink.qml
 
 
         # =========================================================

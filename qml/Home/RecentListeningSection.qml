@@ -512,15 +512,8 @@ Item {
                          */
 
                         MouseArea {
+
                             id: artistMouseArea
-
-                            x:
-                                trackInfo.x
-
-                            y:
-                                trackInfo.y +
-                                titleLabel.height +
-                                trackInfo.spacing
 
                             width:
                                 artistLabel.width
@@ -528,36 +521,24 @@ Item {
                             height:
                                 artistLabel.height
 
-                            z:
-                                10
-
-                            enabled:
-                                trackDelegate.artistId.length > 0
-
                             hoverEnabled:
                                 true
+
+                            enabled:
+                                resultItem.artistId.length > 0
 
                             cursorShape:
                                 enabled
                                     ? Qt.PointingHandCursor
                                     : Qt.ArrowCursor
 
-                            onClicked: {
-                                if (
-                                    root.controller === null ||
-                                    root.controller === undefined
-                                ) {
-                                    return
-                                }
+                            z:
+                                10
 
-                                if (
-                                    trackDelegate.artistId.length === 0
-                                ) {
-                                    return
-                                }
+                            onClicked: {
 
                                 root.controller.loadArtist(
-                                    trackDelegate.artistId
+                                    resultItem.artistId
                                 )
                             }
                         }

@@ -796,8 +796,7 @@ Item {
                                                     parent.width
                                                 )
 
-                                            height:
-                                                18
+
 
                                             text:
                                                     trackRow.artist.length > 0
@@ -907,12 +906,10 @@ Item {
                                         id: artistMouseArea
 
                                         x:
-                                            trackInfo.x
+                                            artistLabel.x
 
                                         y:
-                                            trackInfo.y +
-                                            titleLabel.height +
-                                            trackInfo.spacing
+                                            artistLabel.y
 
                                         width:
                                             artistLabel.width
@@ -920,34 +917,16 @@ Item {
                                         height:
                                             artistLabel.height
 
-                                        z:
-                                            10
+                                        hoverEnabled:
+                                            true
 
                                         enabled:
                                             trackRow.artistId.length > 0
 
-                                        hoverEnabled:
-                                            true
-
                                         cursorShape:
-                                            enabled
-                                                ? Qt.PointingHandCursor
-                                                : Qt.ArrowCursor
+                                            Qt.PointingHandCursor
 
                                         onClicked: {
-                                            if (
-                                                root.controller === null ||
-                                                root.controller === undefined
-                                            ) {
-                                                return
-                                            }
-
-                                            if (
-                                                trackRow.artistId.length === 0
-                                            ) {
-                                                return
-                                            }
-
                                             root.controller.loadArtist(
                                                 trackRow.artistId
                                             )
