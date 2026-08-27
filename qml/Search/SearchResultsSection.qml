@@ -378,36 +378,30 @@ Item {
 
                                 id: artistMouseArea
 
+                                width:
+                                    artistLabel.width
 
-                                anchors.fill:
-                                    artistLabel
-
+                                height:
+                                    artistLabel.height
 
                                 hoverEnabled:
                                     true
 
-
                                 enabled:
-
-                                    resultItem.artistId.length > 0
-
+                                    trackDelegate.artistId.length > 0
 
                                 cursorShape:
-
                                     enabled
                                         ? Qt.PointingHandCursor
                                         : Qt.ArrowCursor
 
-
                                 z:
                                     10
-
-
 
                                 onClicked: {
 
                                     root.controller.loadArtist(
-                                        resultItem.artistId
+                                        trackDelegate.artistId
                                     )
                                 }
                             }
