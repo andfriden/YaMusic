@@ -1,13 +1,11 @@
 #pragma once
 
 #include <QAbstractListModel>
-#include <QByteArray>
 #include <QHash>
 #include <QList>
 #include <QModelIndex>
 #include <QVariant>
 
-#include "../../Models/PersonalPlaylist.h"
 #include "PersonalLanding.h"
 
 
@@ -17,8 +15,7 @@ class PersonalPlaylistsModel : public QAbstractListModel
 
 public:
 
-    enum Roles
-    {
+    enum Roles {
         TitleRole = Qt::UserRole + 1,
         TypeRole,
         PlaylistsRole
@@ -53,35 +50,14 @@ public:
     );
 
 
-    void setPlaylists(
-        const QList<PersonalPlaylist> &playlists
-    );
-
-
     void clear();
 
 
     int count() const;
 
 
-    PersonalPlaylist playlistAt(
-        int index
-    ) const;
-
-
-private:
-
-    QVariantList playlistsForSection(
-        const PersonalLandingSection &section
-    ) const;
-
-
 private:
 
     QList<PersonalLandingSection>
         m_sections;
-
-
-    QList<PersonalPlaylist>
-        m_playlists;
 };

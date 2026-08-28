@@ -6,41 +6,39 @@ Item {
 
     property var controller
 
+    implicitHeight:
+        sectionsColumn.implicitHeight
+
 
     Column {
         id: sectionsColumn
 
-        width: parent.width
+        width:
+            parent.width
 
-        spacing: 24
+        spacing:
+            24
 
 
         Repeater {
-            id: sectionsRepeater
-
             model:
-                root.controller
-                    ? root.controller.personalPlaylistsModel
-                    : null
+                    root.controller !== null &&
+                root.controller !== undefined
+                ? root.controller.personalPlaylistsModel
+                : null
 
 
             delegate: Column {
-                id: sectionDelegate
-
                 width:
                     sectionsColumn.width
 
-                spacing: 10
-
-
-                property var sectionPlaylists:
-                    model.playlists
-
+                spacing:
+                    10
 
                 visible:
-                    sectionPlaylists !== undefined &&
-                    sectionPlaylists !== null &&
-                    sectionPlaylists.length > 0
+                    playlists !== null &&
+                    playlists !== undefined &&
+                    playlists.length > 0
 
 
                 Label {
@@ -48,127 +46,159 @@ Item {
                         parent.width
 
                     text:
-                        model.title
+                        title
 
                     color:
                         AppTheme.textPrimary
 
-                    font.pixelSize: 20
+                    font.pixelSize:
+                        18
 
-                    font.bold: true
+                    font.bold:
+                        true
                 }
 
 
-                ListView {
-                    id: playlistList
-
-                    width:
-                        parent.width
-
-                    height: 150
-
-                    orientation:
-                        ListView.Horizontal
-
-                    spacing: 12
-
-                    clip: true
-
-                    model:
-                        sectionDelegate.sectionPlaylists
+                Row {
+                    spacing:
+                        12
 
 
-                    delegate: Rectangle {
-                        width: 150
-                        height: 150
-
-                        radius: 10
-
-                        color:
-                            AppTheme.panelSecondary
-
-                        border.width: 1
-
-                        border.color:
-                            AppTheme.border
+                    Repeater {
+                        model:
+                            playlists
 
 
-                        Column {
-                            anchors.fill: parent
+                        delegate: Rectangle {
+                            width:
+                                150
 
-                            anchors.margins: 8
+                            height:
+                                150
 
-                            spacing: 6
+                            radius:
+                                10
+
+                            color:
+                                AppTheme.panelSecondary
+
+                            border.width:
+                                1
+
+                            border.color:
+                                AppTheme.border
 
 
-                            Rectangle {
-                                width: 134
-                                height: 90
+                            Column {
+                                anchors.fill:
+                                    parent
 
-                                radius: 8
+                                anchors.margins:
+                                    8
 
-                                color:
-                                    AppTheme.artworkPlaceholder
-
-                                clip: true
+                                spacing:
+                                    6
 
 
-                                Image {
-                                    anchors.fill: parent
+                                Rectangle {
+                                    width:
+                                        134
 
-                                    source:
-                                            modelData.coverUri &&
-                                        modelData.coverUri.length > 0
-                                        ? "image://yandex/" +
-                                        modelData.coverUri
+                                    height:
+                                        90
+
+                                    radius:
+                                        8
+
+                                    color:
+                                        AppTheme.panelHover
+
+
+                                    Image {
+                                        anchors.fill:
+                                            parent
+
+                                        source:
+                                                modelData.coverUri &&
+                                            modelData.coverUri.length > 0
+                                            ? "image://yandex/" +
+                                            modelData.coverUri
+                                            : ""
+
+                                        fillMode:
+                                            Image.PreserveAspectCrop
+
+                                        asynchronous:
+                                            true
+
+                                        cache:
+                                            true
+                                    }
+                                }
+
+
+                                Label {
+                                    width:
+                                        parent.width
+
+                                    text:
+                                        modelData.title
+
+                                    color:
+                                        AppTheme.textPrimary
+
+                                    font.pixelSize:
+                                        13
+
+                                    font.bold:
+                                        true
+
+                                    elide:
+                                        Text.ElideRight
+                                }
+
+
+                                Label {
+                                    text:
+                                            modelData.trackCount > 0
+                                        ? qsTr("%1 треков")
+                                            .arg(
+                                            modelData.trackCount
+                                        )
                                         : ""
 
-                                    fillMode:
-                                        Image.PreserveAspectCrop
+                                    color:
+                                        AppTheme.textSecondary
 
-                                    asynchronous:
-                                        true
-
-                                    cache:
-                                        true
-
-                                    smooth:
-                                        true
+                                    font.pixelSize:
+                                        11
                                 }
                             }
 
 
-                            Label {
-                                width:
-                                    parent.width
+                            MouseArea {
+                                anchors.fill:
+                                    parent
 
-                                text:
-                                    modelData.title
-
-                                color:
-                                    AppTheme.textPrimary
-
-                                font.pixelSize: 13
-
-                                font.bold: true
-
-                                elide:
-                                    Text.ElideRight
-                            }
+                                cursorShape:
+                                    Qt.PointingHandCursor
 
 
-                            Label {
-                                width:
-                                    parent.width
+                                onClicked: {
+                                    if (
+                                        root.controller === null ||
+                                        root.controller === undefined
+                                    ) {
+                                        return
+                                    }
 
-                                text:
-                                    modelData.trackCount +
-                                    " треков"
 
-                                color:
-                                    AppTheme.textSecondary
-
-                                font.pixelSize: 11
+                                    root.controller
+                                        .selectPersonalPlaylist(
+                                        String(modelData.uid),
+                                        Number(modelData.kind)
+                                    )
+                                }
                             }
                         }
                     }

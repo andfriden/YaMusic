@@ -5,50 +5,12 @@
 
 void PersonalController::connectRecommendations()
 {
-    if (m_personalLanding == nullptr)
+    if (
+        m_personalLanding == nullptr
+    )
     {
         return;
     }
-
-
-    connect(
-        m_personalLanding,
-        &PersonalLanding::personalPlaylistsReceived,
-        this,
-        [this](
-            const QList<PersonalPlaylist> &playlists)
-        {
-            if (m_personalPlaylistsModel == nullptr)
-            {
-                return;
-            }
-
-
-            m_personalPlaylistsModel
-                ->setPlaylists(
-                    playlists);
-
-
-            qDebug()
-                << "Персональных плейлистов:"
-                << playlists.size();
-
-
-            for (
-                const PersonalPlaylist &playlist :
-                playlists)
-            {
-                qDebug()
-                    << "Плейлист:"
-                    << playlist.title
-                    << "| uid:"
-                    << playlist.uid
-                    << "| kind:"
-                    << playlist.kind
-                    << "| tracks:"
-                    << playlist.trackCount;
-            }
-        });
 
 
     connect(
@@ -58,12 +20,43 @@ void PersonalController::connectRecommendations()
         [this](
             const QList<PersonalLandingSection> &sections)
         {
-            m_loadingRecommendations = false;
+            m_loadingRecommendations =
+                false;
 
             emit loadingRecommendationsChanged();
 
 
-            if (m_personalPlaylistsModel != nullptr)
+            m_recommendationSections =
+                sections;
+
+
+            QList<PersonalPlaylist>
+                playlists;
+
+
+            for (
+                const PersonalLandingSection &section :
+                sections
+            )
+            {
+                for (
+                    const PersonalPlaylist &playlist :
+                    section.playlists
+                )
+                {
+                    playlists.append(
+                        playlist);
+                }
+            }
+
+
+            m_recommendationPlaylists =
+                playlists;
+
+
+            if (
+                m_personalPlaylistsModel != nullptr
+            )
             {
                 m_personalPlaylistsModel
                     ->setSections(
@@ -76,30 +69,9 @@ void PersonalController::connectRecommendations()
                 << sections.size();
 
 
-            for (
-                const PersonalLandingSection &section :
-                sections)
-            {
-                qDebug()
-                    << "SECTION:"
-                    << section.title
-                    << "| type:"
-                    << section.type
-                    << "| items:"
-                    << section.items.size();
-
-
-                for (
-                    const PersonalLandingItem &item :
-                    section.items)
-                {
-                    qDebug()
-                        << "  ITEM:"
-                        << item.id
-                        << "| type:"
-                        << item.type;
-                }
-            }
+            qDebug()
+                << "Персональных плейлистов:"
+                << playlists.size();
 
 
             emit recommendationsLoaded();
@@ -120,12 +92,20 @@ void PersonalController::connectRecommendations()
         [this](
             const QString &message)
         {
-            m_loadingRecommendations = false;
+            m_loadingRecommendations =
+                false;
 
             emit loadingRecommendationsChanged();
 
 
-            if (m_personalPlaylistsModel != nullptr)
+            m_recommendationSections.clear();
+
+            m_recommendationPlaylists.clear();
+
+
+            if (
+                m_personalPlaylistsModel != nullptr
+            )
             {
                 m_personalPlaylistsModel
                     ->clear();
@@ -146,26 +126,42 @@ void PersonalController::connectRecommendations()
 }
 
 
+// =============================================================
+// Load recommendations
+// =============================================================
+
 void PersonalController::loadRecommendations()
 {
-    if (m_loadingRecommendations)
+    if (
+        m_loadingRecommendations
+    )
     {
         return;
     }
 
 
-    if (m_personalLanding == nullptr)
+    if (
+        m_personalLanding == nullptr
+    )
     {
         return;
     }
 
 
-    m_loadingRecommendations = true;
+    m_loadingRecommendations =
+        true;
 
     emit loadingRecommendationsChanged();
 
 
-    if (m_personalPlaylistsModel != nullptr)
+    m_recommendationSections.clear();
+
+    m_recommendationPlaylists.clear();
+
+
+    if (
+        m_personalPlaylistsModel != nullptr
+    )
     {
         m_personalPlaylistsModel
             ->clear();
@@ -181,23 +177,21 @@ void PersonalController::loadRecommendations()
 }
 
 
+// =============================================================
+// Select personal playlist
+// =============================================================
+
 void PersonalController::selectPersonalPlaylist(
-    int index)
+    const QString &uid,
+    int kind)
 {
-    if (m_personalPlaylistsModel == nullptr)
-    {
-        return;
-    }
-
-
-    const PersonalPlaylist playlist =
-        m_personalPlaylistsModel
-            ->playlistAt(index);
+    const QString playlistUid =
+        uid.trimmed();
 
 
     if (
-        playlist.uid.isEmpty() ||
-        playlist.kind <= 0
+        playlistUid.isEmpty() ||
+        kind <= 0
     )
     {
         emit statusChanged(
@@ -207,11 +201,82 @@ void PersonalController::selectPersonalPlaylist(
     }
 
 
-    m_myWaveQueueActive = false;
+    PersonalPlaylist selectedPlaylist;
 
-    m_waitingForMoreMyWave = false;
+
+    for (
+        const PersonalPlaylist &playlist :
+        m_recommendationPlaylists
+    )
+    {
+        if (
+            playlist.uid == playlistUid &&
+            playlist.kind == kind
+        )
+        {
+            selectedPlaylist =
+                playlist;
+
+            break;
+        }
+    }
+
+
+    if (
+        selectedPlaylist.uid.isEmpty()
+    )
+    {
+        for (
+            const PersonalLandingSection &section :
+            m_recommendationSections
+        )
+        {
+            for (
+                const PersonalPlaylist &playlist :
+                section.playlists
+            )
+            {
+                if (
+                    playlist.uid == playlistUid &&
+                    playlist.kind == kind
+                )
+                {
+                    selectedPlaylist =
+                        playlist;
+
+                    break;
+                }
+            }
+
+
+            if (
+                !selectedPlaylist.uid.isEmpty()
+            )
+            {
+                break;
+            }
+        }
+    }
+
+
+    if (
+        selectedPlaylist.uid.isEmpty()
+    )
+    {
+        emit statusChanged(
+            "Плейлист не найден");
+
+        return;
+    }
+
+
+    m_myWaveQueueActive =
+        false;
+
+    m_waitingForMoreMyWave =
+        false;
 
 
     emit personalPlaylistSelected(
-        playlist);
+        selectedPlaylist);
 }

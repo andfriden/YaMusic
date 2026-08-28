@@ -8,200 +8,151 @@ Item {
 
     readonly property int pageHeight: 700
 
-    width: parent ? parent.width : 0
-    height: pageHeight
 
-    implicitWidth: width
-    implicitHeight: pageHeight
+    width:
+        parent
+            ? parent.width
+            : 0
+
+    height:
+        pageHeight
 
 
-    Component.onCompleted: {
+    implicitWidth:
+        width
 
-        console.log(
-            "PlaylistPage loaded",
-            controller
-        )
-
-        if (controller) {
-            controller.loadRecommendations()
-        }
-    }
+    implicitHeight:
+        pageHeight
 
 
     Rectangle {
-        anchors.fill: parent
+        anchors.fill:
+            parent
 
-        color: AppTheme.backgroundPrimary
+        color:
+            AppTheme.backgroundPrimary
     }
 
 
     Column {
+        anchors.fill:
+            parent
 
-        anchors.fill: parent
+        anchors.margins:
+            20
 
-        anchors.margins: 20
-
-        spacing: 20
-
-
-
-        Label {
-
-            text: "Собираем для вас"
-
-            color: AppTheme.textPrimary
-
-            font.pixelSize: 18
-
-            font.bold: true
-        }
+        spacing:
+            20
 
 
+        // =========================================================
+        // Header
+        // =========================================================
 
-        ListView {
+        Column {
+            width:
+                parent.width
 
-            width: parent.width
-
-            height: 180
-
-
-            orientation:
-                ListView.Horizontal
-
-
-            spacing: 14
+            spacing:
+                6
 
 
-            model:
-                root.controller
-                    ? root.controller.personalPlaylistsModel
-                    : null
+            Label {
+                width:
+                    parent.width
 
-
-
-            delegate: Rectangle {
-
-                width: 150
-
-                height: 150
-
-                radius: 12
-
+                text:
+                        root.controller !== null &&
+                    root.controller !== undefined &&
+                    root.controller.currentPlaylistTitle.length > 0
+                    ? root.controller.currentPlaylistTitle
+                    : "Плейлист"
 
                 color:
-                    AppTheme.panel
+                    AppTheme.textPrimary
+
+                font.pixelSize:
+                    24
+
+                font.bold:
+                    true
+
+                elide:
+                    Text.ElideRight
+            }
 
 
+            Label {
+                width:
+                    parent.width
 
-                Column {
+                text:
+                        root.controller !== null &&
+                    root.controller !== undefined &&
+                    root.controller.currentPlaylistTrackCount > 0
+                    ? qsTr("%1 треков")
+                        .arg(
+                        root.controller.currentPlaylistTrackCount
+                    )
+                    : ""
 
-                    anchors.fill: parent
+                color:
+                    AppTheme.textSecondary
 
-                    anchors.margins: 10
-
-                    spacing: 8
-
-
-
-                    Image {
-
-                        width: 100
-
-                        height: 100
-
-
-                        anchors.horizontalCenter:
-                            parent.horizontalCenter
-
-
-
-                        source:
-                            coverUri
-                                ?
-                                "image://yandex/" + coverUri
-                                :
-                                ""
-
-
-
-                        fillMode:
-                            Image.PreserveAspectCrop
-                    }
-
-
-
-                    Label {
-
-                        width:
-                            parent.width
-
-
-                        text:
-                            title
-
-
-                        color:
-                            AppTheme.textPrimary
-
-
-                        elide:
-                            Text.ElideRight
-                    }
-                }
-
-
-
-                MouseArea {
-
-                    anchors.fill: parent
-
-
-
-                    onClicked: {
-
-                        root.controller
-                            .selectPersonalPlaylist(
-                            index
-                        )
-                    }
-                }
+                font.pixelSize:
+                    13
             }
         }
 
 
+        // =========================================================
+        // Loading
+        // =========================================================
 
         Label {
+            width:
+                parent.width
 
             text:
-                "Выбранный плейлист"
-
+                "Загрузка плейлиста..."
 
             color:
-                AppTheme.textPrimary
-
+                AppTheme.textSecondary
 
             font.pixelSize:
-                18
+                14
 
-
-            font.bold:
-                true
+            visible:
+                root.controller !== null &&
+                root.controller !== undefined &&
+                root.controller.loadingPlaylist
         }
 
 
+        // =========================================================
+        // Playlist content
+        // =========================================================
 
         PlaylistView {
+            id: playlistView
 
             width:
                 parent.width
 
-
             height:
-                350
-
+                Math.max(
+                    0,
+                    parent.height
+                    - 90
+                )
 
             controller:
                 root.controller
+
+            visible:
+                root.controller !== null &&
+                root.controller !== undefined &&
+                !root.controller.loadingPlaylist
         }
     }
 }

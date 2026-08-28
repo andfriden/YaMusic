@@ -655,11 +655,23 @@ void AppController::selectMyWaveTrack(
 }
 
 void AppController::selectPersonalPlaylist(
-    int index)
+    const QString &uid,
+    int kind)
 {
+    if (
+        m_personalController == nullptr
+    ) {
+        return;
+    }
+
+
+    emit playlistPageRequested();
+
+
     m_personalController
         ->selectPersonalPlaylist(
-            index);
+            uid,
+            kind);
 }
 
 void AppController::selectPlaylistTrack(

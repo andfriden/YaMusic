@@ -89,7 +89,8 @@ public:
 
 
     Q_INVOKABLE void selectPersonalPlaylist(
-        int index);
+    const QString &uid,
+    int kind);
 
 
     Q_INVOKABLE void selectRecentListening(

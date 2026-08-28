@@ -4,27 +4,25 @@ import QtQuick.Controls.Basic
 Item {
     id: root
 
+
+    // =============================================================
+    // Controller
+    // =============================================================
+
     property var controller
 
-    /*
-     * =============================================================
-     * Current root section
-     * =============================================================
-     */
+
+    // =============================================================
+    // Current root section
+    // =============================================================
 
     property string currentSection:
         "home"
 
 
-    /*
-     * =============================================================
-     * Current page
-     *
-     * section = normal sidebar page
-     * artist  = ArtistPage
-     * album   = AlbumPage
-     * =============================================================
-     */
+    // =============================================================
+    // Current page
+    // =============================================================
 
     property string currentPageType:
         "section"
@@ -33,26 +31,17 @@ Item {
         ""
 
 
-    /*
-     * =============================================================
-     * Navigation stack
-     *
-     * Example:
-     *
-     * Search
-     *   -> Artist
-     *   -> Album
-     *
-     * [
-     *   { type: "section", section: "search", id: "" },
-     *   { type: "artist",  section: "search", id: "123" }
-     * ]
-     * =============================================================
-     */
+    // =============================================================
+    // Navigation stack
+    // =============================================================
 
     property var navigationStack:
         []
 
+
+    // =============================================================
+    // Context
+    // =============================================================
 
     readonly property string contextType:
         contextTypeForCurrentPage()
@@ -63,11 +52,9 @@ Item {
     )
 
 
-    /*
-     * =============================================================
-     * Background
-     * =============================================================
-     */
+    // =============================================================
+    // Background
+    // =============================================================
 
     Rectangle {
         anchors.fill:
@@ -78,11 +65,9 @@ Item {
     }
 
 
-    /*
-     * =============================================================
-     * Main layout
-     * =============================================================
-     */
+    // =============================================================
+    // Main layout
+    // =============================================================
 
     Row {
         anchors.fill:
@@ -92,11 +77,9 @@ Item {
             0
 
 
-        /*
-         * =========================================================
-         * Sidebar
-         * =========================================================
-         */
+        // =========================================================
+        // Sidebar
+        // =========================================================
 
         Sidebar {
             id: sidebar
@@ -112,7 +95,6 @@ Item {
 
             onSectionSelected:
                     function(section) {
-
                 root.selectSection(
                     section
                 )
@@ -120,11 +102,9 @@ Item {
         }
 
 
-        /*
-         * =========================================================
-         * Sidebar separator
-         * =========================================================
-         */
+        // =========================================================
+        // Sidebar separator
+        // =========================================================
 
         Rectangle {
             width:
@@ -138,11 +118,9 @@ Item {
         }
 
 
-        /*
-         * =========================================================
-         * Main content
-         * =========================================================
-         */
+        // =========================================================
+        // Main area
+        // =========================================================
 
         Item {
             id: mainArea
@@ -160,11 +138,9 @@ Item {
                 true
 
 
-            /*
-             * -----------------------------------------------------
-             * Page scroll
-             * -----------------------------------------------------
-             */
+            // =====================================================
+            // Page scroll
+            // =====================================================
 
             ScrollView {
                 id: contentScrollView
@@ -195,131 +171,57 @@ Item {
                     }
 
 
-                Item {
-                    id: contentHost
+                // -------------------------------------------------
+                // Explicit content size
+                // -------------------------------------------------
+
+                contentWidth:
+                    availableWidth
+
+                contentHeight:
+                    Math.max(
+                        pageLoader.height,
+                        availableHeight
+                    )
+
+
+                // -------------------------------------------------
+                // Current page
+                // -------------------------------------------------
+
+                Loader {
+                    id: pageLoader
 
                     width:
                         contentScrollView.availableWidth
 
                     height:
-                        Math.max(
-                            pageLoader.height,
-                            contentScrollView.availableHeight
+                            item !== null
+                        ? Math.max(
+                            item.implicitHeight,
+                            item.height
                         )
+                        : 0
 
 
-                    Loader {
-                        id: pageLoader
-
-                        anchors.left:
-                            parent.left
-
-                        anchors.right:
-                            parent.right
-
-                        anchors.top:
-                            parent.top
-
-                        width:
-                            parent.width
-
-                        height:
-                                item !== null
-                            ? (
-                                    item.pageHeight !== undefined
-                                    ? item.pageHeight
-                                    : (
-                                            item.implicitHeight > 0
-                                            ? item.implicitHeight
-                                            : item.height
-                                    )
-                            )
-                            : 1
-
-
-                        onLoaded: {
-
-                            if (
-                                !item
-                            ) {
-                                return
-                            }
-
-                            item.width =
-                                pageLoader.width
-
-                            console.log(
-                                "========================================"
-                            )
-
-                            console.log(
-                                "MainLayout PageLoader"
-                            )
-
-                            console.log(
-                                "page type:",
-                                root.currentPageType
-                            )
-
-                            console.log(
-                                "section:",
-                                root.currentSection
-                            )
-
-                            console.log(
-                                "detail id:",
-                                root.currentDetailId
-                            )
-
-                            console.log(
-                                "contextType:",
-                                root.contextType
-                            )
-
-                            console.log(
-                                "source:",
-                                pageLoader.source
-                            )
-
-                            console.log(
-                                "page:",
-                                item
-                            )
-
-                            console.log(
-                                "page size:",
-                                item.width,
-                                item.height
-                            )
-
-                            console.log(
-                                "pageHeight:",
-                                    item.pageHeight !== undefined
-                                    ? item.pageHeight
-                                    : "undefined"
-                            )
-
-                            console.log(
-                                "page controller:",
-                                item.controller
-                            )
-
-                            console.log(
-                                "========================================"
-                            )
+                    onLoaded: {
+                        if (
+                            !item
+                        ) {
+                            return
                         }
+
+
+                        item.width =
+                            pageLoader.width
                     }
                 }
             }
 
 
-            /*
-             * =====================================================
-             * Back button
-             * =====================================================
-             *
-             * It belongs visually to the page area, not Sidebar.
-             */
+            // =====================================================
+            // Back button
+            // =====================================================
 
             ToolButton {
                 id: backButton
@@ -393,11 +295,9 @@ Item {
         }
 
 
-        /*
-         * =========================================================
-         * Context separator
-         * =========================================================
-         */
+        // =========================================================
+        // Context separator
+        // =========================================================
 
         Rectangle {
             width:
@@ -411,11 +311,9 @@ Item {
         }
 
 
-        /*
-         * =========================================================
-         * Context panel
-         * =========================================================
-         */
+        // =========================================================
+        // Context panel
+        // =========================================================
 
         ContextPanel {
             id: contextPanel
@@ -447,28 +345,11 @@ Item {
     }
 
 
-    /*
-     * =============================================================
-     * Root section navigation
-     * =============================================================
-     */
+    // =============================================================
+    // Root section navigation
+    // =============================================================
 
     function selectSection(section) {
-
-        console.log(
-            "========================================"
-        )
-
-        console.log(
-            "MainLayout selecting section:",
-            section
-        )
-
-
-        /*
-         * Sidebar always starts a new navigation branch.
-         */
-
         root.navigationStack =
             []
 
@@ -488,38 +369,21 @@ Item {
         root.sectionSelected(
             section
         )
-
-
-        console.log(
-            "currentSection:",
-            root.currentSection
-        )
-
-        console.log(
-            "currentPageType:",
-            root.currentPageType
-        )
-
-        console.log(
-            "========================================"
-        )
     }
 
 
-    /*
-     * =============================================================
-     * Open Artist detail
-     * =============================================================
-     */
+    // =============================================================
+    // Open Artist
+    // =============================================================
 
     function openArtistPage(
         artistId
     ) {
-
         var id =
             String(
                 artistId || ""
             ).trim()
+
 
         if (
             id.length === 0
@@ -553,32 +417,21 @@ Item {
 
 
         loadCurrentPage()
-
-
-        console.log(
-            "MainLayout: open artist",
-            "| id:",
-            id,
-            "| depth:",
-            root.navigationStack.length
-        )
     }
 
 
-    /*
-     * =============================================================
-     * Open Album detail
-     * =============================================================
-     */
+    // =============================================================
+    // Open Album
+    // =============================================================
 
     function openAlbumPage(
         albumId
     ) {
-
         var id =
             String(
                 albumId || ""
             ).trim()
+
 
         if (
             id.length === 0
@@ -612,26 +465,14 @@ Item {
 
 
         loadCurrentPage()
-
-
-        console.log(
-            "MainLayout: open album",
-            "| id:",
-            id,
-            "| depth:",
-            root.navigationStack.length
-        )
     }
 
 
-    /*
-     * =============================================================
-     * Back
-     * =============================================================
-     */
+    // =============================================================
+    // Back
+    // =============================================================
 
     function goBack() {
-
         if (
             root.navigationStack.length === 0
         ) {
@@ -641,6 +482,7 @@ Item {
 
         var stack =
             root.navigationStack.slice()
+
 
         var previous =
             stack.pop()
@@ -660,105 +502,17 @@ Item {
             previous.id || ""
 
 
-        /*
-         * Important:
-         *
-         * We only restore the visual route here.
-         * We DO NOT call loadArtist/loadAlbum,
-         * otherwise AppController would emit another
-         * navigation request and push another stack entry.
-         */
-
         loadCurrentPage()
-
-
-        console.log(
-            "========================================"
-        )
-
-        console.log(
-            "MainLayout BACK"
-        )
-
-        console.log(
-            "restored type:",
-            root.currentPageType
-        )
-
-        console.log(
-            "restored section:",
-            root.currentSection
-        )
-
-        console.log(
-            "restored id:",
-            root.currentDetailId
-        )
-
-        console.log(
-            "remaining depth:",
-            root.navigationStack.length
-        )
-
-        console.log(
-            "========================================"
-        )
     }
 
 
-    /*
-     * =============================================================
-     * Load current page
-     * =============================================================
-     */
+    // =============================================================
+    // Load current page
+    // =============================================================
 
     function loadCurrentPage() {
-
         var source =
             pageSourceForCurrentPage()
-
-
-        console.log(
-            "========================================"
-        )
-
-        console.log(
-            "MainLayout loading page"
-        )
-
-        console.log(
-            "page type:",
-            root.currentPageType
-        )
-
-        console.log(
-            "section:",
-            root.currentSection
-        )
-
-        console.log(
-            "detail id:",
-            root.currentDetailId
-        )
-
-        console.log(
-            "contextType:",
-            root.contextType
-        )
-
-        console.log(
-            "source:",
-            source
-        )
-
-        console.log(
-            "controller:",
-            root.controller
-        )
-
-        console.log(
-            "========================================"
-        )
 
 
         pageLoader.setSource(
@@ -771,14 +525,11 @@ Item {
     }
 
 
-    /*
-     * =============================================================
-     * Page source
-     * =============================================================
-     */
+    // =============================================================
+    // Page source
+    // =============================================================
 
     function pageSourceForCurrentPage() {
-
         switch (
             root.currentPageType
             ) {
@@ -786,8 +537,10 @@ Item {
             case "artist":
                 return "../Pages/ArtistPage.qml"
 
+
             case "album":
                 return "../Pages/AlbumPage.qml"
+
 
             case "section":
             default:
@@ -801,7 +554,6 @@ Item {
     function pageSourceForSection(
         section
     ) {
-
         switch (
             section
             ) {
@@ -809,45 +561,42 @@ Item {
             case "home":
                 return "../Pages/HomePage.qml"
 
+
             case "search":
                 return "../Pages/SearchPage.qml"
+
 
             case "wave":
                 return "../Pages/MyWavePage.qml"
 
+
             case "library":
                 return "../Pages/LibraryPage.qml"
+
 
             case "playlists":
                 return "../Pages/PlaylistPage.qml"
 
+
             case "recent":
                 return "../Pages/RecentPage.qml"
+
 
             case "liked":
                 return "../Pages/HomePage.qml"
 
+
             default:
-
-                console.warn(
-                    "Unknown section:",
-                    section,
-                    "-> HomePage"
-                )
-
                 return "../Pages/HomePage.qml"
         }
     }
 
 
-    /*
-     * =============================================================
-     * Context
-     * =============================================================
-     */
+    // =============================================================
+    // Context
+    // =============================================================
 
     function contextTypeForCurrentPage() {
-
         switch (
             root.currentPageType
             ) {
@@ -855,8 +604,10 @@ Item {
             case "artist":
                 return "artist"
 
+
             case "album":
                 return "album"
+
 
             case "section":
             default:
@@ -870,7 +621,6 @@ Item {
     function contextTypeForSection(
         section
     ) {
-
         switch (
             section
             ) {
@@ -878,23 +628,30 @@ Item {
             case "home":
                 return "home"
 
+
             case "search":
                 return "home"
+
 
             case "wave":
                 return "mywave"
 
+
             case "library":
                 return "library"
+
 
             case "playlists":
                 return "playlist"
 
+
             case "liked":
                 return "home"
 
+
             case "recent":
                 return "home"
+
 
             default:
                 return "home"
@@ -902,11 +659,9 @@ Item {
     }
 
 
-    /*
-     * =============================================================
-     * Navigation requests from AppController
-     * =============================================================
-     */
+    // =============================================================
+    // Navigation requests from AppController
+    // =============================================================
 
     Connections {
         target:
@@ -916,7 +671,6 @@ Item {
         function onArtistPageRequested(
             artistId
         ) {
-
             root.openArtistPage(
                 artistId
             )
@@ -926,40 +680,25 @@ Item {
         function onAlbumPageRequested(
             albumId
         ) {
-
             root.openAlbumPage(
                 albumId
+            )
+        }
+
+
+        function onPlaylistPageRequested() {
+            root.selectSection(
+                "playlists"
             )
         }
     }
 
 
-    /*
-     * =============================================================
-     * Controller
-     * =============================================================
-     */
+    // =============================================================
+    // Controller
+    // =============================================================
 
     onControllerChanged: {
-
-        console.log(
-            "========================================"
-        )
-
-        console.log(
-            "MainLayout controller CHANGED"
-        )
-
-        console.log(
-            "controller:",
-            root.controller
-        )
-
-        console.log(
-            "========================================"
-        )
-
-
         if (
             root.controller !== null &&
             root.controller !== undefined
@@ -969,47 +708,11 @@ Item {
     }
 
 
-    /*
-     * =============================================================
-     * Initial state
-     * =============================================================
-     */
+    // =============================================================
+    // Initial state
+    // =============================================================
 
     Component.onCompleted: {
-
-        console.log(
-            "========================================"
-        )
-
-        console.log(
-            "MainLayout CREATED"
-        )
-
-        console.log(
-            "controller:",
-            root.controller
-        )
-
-        console.log(
-            "currentSection:",
-            root.currentSection
-        )
-
-        console.log(
-            "currentPageType:",
-            root.currentPageType
-        )
-
-        console.log(
-            "contextType:",
-            root.contextType
-        )
-
-        console.log(
-            "========================================"
-        )
-
-
         if (
             root.controller !== null &&
             root.controller !== undefined

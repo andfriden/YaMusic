@@ -5,12 +5,14 @@ Item {
 
     property var controller
 
+
     // =============================================================
-    // Page contract
+    // Page size
     // =============================================================
 
     readonly property real pageHeight:
-        764
+        content.implicitHeight
+
 
     width:
         parent
@@ -20,13 +22,18 @@ Item {
     height:
         pageHeight
 
+    implicitWidth:
+        width
+
+    implicitHeight:
+        pageHeight
+
 
     // =============================================================
     // Initial data loading
     // =============================================================
 
     Component.onCompleted: {
-
         if (
             root.controller !== null &&
             root.controller !== undefined
@@ -43,14 +50,8 @@ Item {
     Column {
         id: content
 
-        anchors.left:
-            parent.left
-
-        anchors.right:
-            parent.right
-
-        anchors.top:
-            parent.top
+        width:
+            parent.width
 
         spacing:
             16
@@ -96,12 +97,10 @@ Item {
             width:
                 content.width
 
-            height:
-                340
-
             controller:
                 root.controller
         }
+
 
         // ---------------------------------------------------------
         // Recently listened

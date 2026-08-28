@@ -3,53 +3,6 @@
 #include <QVariantMap>
 
 
-namespace
-{
-
-QVariantMap playlistToVariant(
-    const PersonalPlaylist &playlist)
-{
-    QVariantMap map;
-
-
-    map["id"] =
-        playlist.id;
-
-
-    map["uid"] =
-        playlist.uid;
-
-
-    map["kind"] =
-        playlist.kind;
-
-
-    map["title"] =
-        playlist.title;
-
-
-    map["description"] =
-        playlist.description;
-
-
-    map["coverUri"] =
-        playlist.coverUri;
-
-
-    map["trackCount"] =
-        playlist.trackCount;
-
-
-    return map;
-}
-
-}
-
-
-// =============================================================
-// Constructor
-// =============================================================
-
 PersonalPlaylistsModel::PersonalPlaylistsModel(
     QObject *parent)
     : QAbstractListModel(parent)
@@ -62,9 +15,12 @@ PersonalPlaylistsModel::PersonalPlaylistsModel(
 // =============================================================
 
 int PersonalPlaylistsModel::rowCount(
-    const QModelIndex &parent) const
+    const QModelIndex &parent
+) const
 {
-    if (parent.isValid())
+    if (
+        parent.isValid()
+    )
     {
         return 0;
     }
@@ -80,13 +36,12 @@ int PersonalPlaylistsModel::rowCount(
 
 QVariant PersonalPlaylistsModel::data(
     const QModelIndex &index,
-    int role) const
+    int role
+) const
 {
     if (
-        !index.isValid()
-        ||
-        index.row() < 0
-        ||
+        !index.isValid() ||
+        index.row() < 0 ||
         index.row() >= m_sections.size()
     )
     {
@@ -102,16 +57,72 @@ QVariant PersonalPlaylistsModel::data(
     switch (role)
     {
         case TitleRole:
+        {
             return section.title;
+        }
 
 
         case TypeRole:
+        {
             return section.type;
+        }
 
 
         case PlaylistsRole:
-            return playlistsForSection(
-                section);
+        {
+            QVariantList playlists;
+
+
+            for (
+                const PersonalPlaylist &playlist :
+                section.playlists
+            )
+            {
+                QVariantMap object;
+
+
+                object.insert(
+                    "id",
+                    playlist.id);
+
+
+                object.insert(
+                    "uid",
+                    playlist.uid);
+
+
+                object.insert(
+                    "kind",
+                    playlist.kind);
+
+
+                object.insert(
+                    "title",
+                    playlist.title);
+
+
+                object.insert(
+                    "description",
+                    playlist.description);
+
+
+                object.insert(
+                    "coverUri",
+                    playlist.coverUri);
+
+
+                object.insert(
+                    "trackCount",
+                    playlist.trackCount);
+
+
+                playlists.append(
+                    object);
+            }
+
+
+            return playlists;
+        }
 
 
         default:
@@ -121,7 +132,7 @@ QVariant PersonalPlaylistsModel::data(
 
 
 // =============================================================
-// Role names
+// Roles
 // =============================================================
 
 QHash<int, QByteArray>
@@ -149,54 +160,15 @@ PersonalPlaylistsModel::roleNames() const
 // =============================================================
 
 void PersonalPlaylistsModel::setSections(
-    const QList<PersonalLandingSection> &sections)
+    const QList<PersonalLandingSection> &sections
+)
 {
     beginResetModel();
-
 
     m_sections =
         sections;
 
-
-    m_playlists.clear();
-
-
-    for (
-        const PersonalLandingSection &section :
-        m_sections
-    )
-    {
-        for (
-            const PersonalPlaylist &playlist :
-            section.playlists
-        )
-        {
-            m_playlists.append(
-                playlist);
-        }
-    }
-
-
     endResetModel();
-}
-
-
-// =============================================================
-// Set playlists
-// =============================================================
-
-void PersonalPlaylistsModel::setPlaylists(
-    const QList<PersonalPlaylist> &playlists)
-{
-    /*
-     * Сохраняем плоский список для
-     * существующего API playlistAt().
-     *
-     * Секционная структура определяется
-     * исключительно через setSections().
-     */
-    m_playlists =
-        playlists;
 }
 
 
@@ -208,11 +180,7 @@ void PersonalPlaylistsModel::clear()
 {
     beginResetModel();
 
-
     m_sections.clear();
-
-    m_playlists.clear();
-
 
     endResetModel();
 }
@@ -225,57 +193,4 @@ void PersonalPlaylistsModel::clear()
 int PersonalPlaylistsModel::count() const
 {
     return m_sections.size();
-}
-
-
-// =============================================================
-// Playlist at
-// =============================================================
-
-PersonalPlaylist
-PersonalPlaylistsModel::playlistAt(
-    int index) const
-{
-    if (
-        index < 0
-        ||
-        index >= m_playlists.size()
-    )
-    {
-        return {};
-    }
-
-
-    return m_playlists.at(
-        index);
-}
-
-
-// =============================================================
-// Playlists for section
-// =============================================================
-
-QVariantList
-PersonalPlaylistsModel::playlistsForSection(
-    const PersonalLandingSection &section) const
-{
-    QVariantList result;
-
-
-    result.reserve(
-        section.playlists.size());
-
-
-    for (
-        const PersonalPlaylist &playlist :
-        section.playlists
-    )
-    {
-        result.append(
-            playlistToVariant(
-                playlist));
-    }
-
-
-    return result;
 }

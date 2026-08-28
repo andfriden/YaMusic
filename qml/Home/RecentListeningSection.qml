@@ -525,7 +525,7 @@ Item {
                                 true
 
                             enabled:
-                                resultItem.artistId.length > 0
+                                trackDelegate.artistId.length > 0
 
                             cursorShape:
                                 enabled

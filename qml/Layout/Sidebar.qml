@@ -43,11 +43,9 @@ Item {
                 6
 
 
-            /*
-             * =====================================================
-             * Header
-             * =====================================================
-             */
+            // =====================================================
+            // Header
+            // =====================================================
 
             Label {
                 width:
@@ -73,14 +71,9 @@ Item {
             }
 
 
-            /*
-             * =====================================================
-             * Sections
-             *
-             * Albums / Artists intentionally removed.
-             * They are detail pages, not root sections.
-             * =====================================================
-             */
+            // =====================================================
+            // Sections
+            // =====================================================
 
             Repeater {
                 model: [
@@ -115,99 +108,102 @@ Item {
                 ]
 
 
-                delegate:
-                    Rectangle {
-                        width:
-                            navigation.width
+                delegate: Rectangle {
+                    width:
+                        navigation.width
 
-                        height:
-                            40
+                    height:
+                        40
 
-                        radius:
-                            8
+                    radius:
+                        8
 
-                        color:
-                                root.currentSection === modelData.id
-                            ? AppTheme.panelActive
-                            : mouseArea.containsMouse
-                                ? AppTheme.panelHover
-                                : "transparent"
+                    color:
+                            root.currentSection === modelData.id
+                        ? AppTheme.panelActive
+                        : mouseArea.containsMouse
+                            ? AppTheme.panelHover
+                            : "transparent"
 
-                        border.width:
-                                root.currentSection === modelData.id
-                            ? 1
-                            : 0
+                    border.width:
+                            root.currentSection === modelData.id
+                        ? 1
+                        : 0
 
-                        border.color:
-                            AppTheme.borderSubtle
-
-
-                        MouseArea {
-                            id: mouseArea
-
-                            anchors.fill:
-                                parent
-
-                            hoverEnabled:
-                                true
-
-                            cursorShape:
-                                Qt.PointingHandCursor
-
-                            onClicked: {
-
-                                if (
-                                    root.currentSection ===
-                                    modelData.id
-                                ) {
-                                    return
-                                }
-
-                                root.currentSection =
-                                    modelData.id
-
-                                root.sectionSelected(
-                                    modelData.id
-                                )
-                            }
-                        }
+                    border.color:
+                        AppTheme.borderSubtle
 
 
-                        Label {
-                            anchors.fill:
-                                parent
+                    MouseArea {
+                        id: mouseArea
 
-                            leftPadding:
-                                12
+                        anchors.fill:
+                            parent
 
-                            rightPadding:
-                                12
+                        hoverEnabled:
+                            true
 
-                            text:
-                                modelData.title
+                        cursorShape:
+                            Qt.PointingHandCursor
 
-                            color:
-                                    root.currentSection ===
+
+                        onClicked: {
+                            /*
+                             * Do not modify root.currentSection here.
+                             *
+                             * It is bound from MainLayout.
+                             * MainLayout is the single source of truth
+                             * for the current root section.
+                             */
+
+                            if (
+                                root.currentSection ===
                                 modelData.id
-                                ? AppTheme.textPrimary
-                                : AppTheme.textSecondary
+                            ) {
+                                return
+                            }
 
-                            font.pixelSize:
-                                13
 
-                            verticalAlignment:
-                                Text.AlignVCenter
+                            root.sectionSelected(
+                                modelData.id
+                            )
                         }
                     }
+
+
+                    Label {
+                        anchors.fill:
+                            parent
+
+                        leftPadding:
+                            12
+
+                        rightPadding:
+                            12
+
+                        text:
+                            modelData.title
+
+                        color:
+                                root.currentSection ===
+                            modelData.id
+                            ? AppTheme.textPrimary
+                            : AppTheme.textSecondary
+
+                        font.pixelSize:
+                            13
+
+                        verticalAlignment:
+                            Text.AlignVCenter
+                    }
+                }
             }
         }
 
 
-        /*
-         * =========================================================
-         * Footer
-         * =========================================================
-         */
+        // =========================================================
+        // Footer
+        // =========================================================
 
         Column {
             anchors.left:

@@ -260,7 +260,8 @@ public:
         int index);
 
     Q_INVOKABLE void selectPersonalPlaylist(
-        int index);
+    const QString &uid,
+    int kind);
 
     Q_INVOKABLE void selectPlaylistTrack(
         int index);
@@ -463,6 +464,8 @@ signals:
     void repeatModeChanged();
 
     void shuffleChanged();
+
+    void playlistPageRequested();
 
 private:
     YandexAuth *m_auth = nullptr;
