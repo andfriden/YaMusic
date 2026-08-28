@@ -228,6 +228,7 @@ qt_add_executable(
         src/Core/AppController+Personal.cpp
         src/Core/AppController+Selection.cpp
         src/Core/AppController+Playback.cpp
+        src/Core/AppController+Search.cpp
 )
 
 

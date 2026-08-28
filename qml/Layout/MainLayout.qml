@@ -93,6 +93,7 @@ Item {
             currentSection:
                 root.currentSection
 
+
             onSectionSelected:
                     function(section) {
                 root.selectSection(
@@ -139,7 +140,7 @@ Item {
 
 
             // =====================================================
-            // Page scroll
+            // Scrollable page area
             // =====================================================
 
             ScrollView {
@@ -171,10 +172,6 @@ Item {
                     }
 
 
-                // -------------------------------------------------
-                // Explicit content size
-                // -------------------------------------------------
-
                 contentWidth:
                     availableWidth
 
@@ -184,10 +181,6 @@ Item {
                         availableHeight
                     )
 
-
-                // -------------------------------------------------
-                // Current page
-                // -------------------------------------------------
 
                 Loader {
                     id: pageLoader
@@ -349,7 +342,9 @@ Item {
     // Root section navigation
     // =============================================================
 
-    function selectSection(section) {
+    function selectSection(
+        section
+    ) {
         root.navigationStack =
             []
 
@@ -379,7 +374,7 @@ Item {
     function openArtistPage(
         artistId
     ) {
-        var id =
+        const id =
             String(
                 artistId || ""
             ).trim()
@@ -427,7 +422,7 @@ Item {
     function openAlbumPage(
         albumId
     ) {
-        var id =
+        const id =
             String(
                 albumId || ""
             ).trim()
@@ -480,11 +475,11 @@ Item {
         }
 
 
-        var stack =
+        const stack =
             root.navigationStack.slice()
 
 
-        var previous =
+        const previous =
             stack.pop()
 
 
@@ -511,7 +506,7 @@ Item {
     // =============================================================
 
     function loadCurrentPage() {
-        var source =
+        const source =
             pageSourceForCurrentPage()
 
 
@@ -689,6 +684,15 @@ Item {
         function onPlaylistPageRequested() {
             root.selectSection(
                 "playlists"
+            )
+        }
+
+
+        function onSearchPageRequested(
+            query
+        ) {
+            root.selectSection(
+                "search"
             )
         }
     }

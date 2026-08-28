@@ -275,6 +275,8 @@ public:
     Q_INVOKABLE void testSearch(
         const QString &query);
 
+    Q_INVOKABLE void search(
+    const QString &query);
 
     // =============================================================
     // Catalog
@@ -471,6 +473,12 @@ signals:
     void statusChanged(
         const QString &message);
 
+    // =============================================================
+    // Search
+    // =============================================================
+
+    void searchPageRequested(
+         const QString &query);
 
     // =============================================================
     // Navigation

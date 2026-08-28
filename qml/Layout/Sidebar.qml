@@ -82,10 +82,6 @@ Item {
                         title: "Главная"
                     },
                     {
-                        id: "search",
-                        title: "Поиск"
-                    },
-                    {
                         id: "wave",
                         title: "Моя волна"
                     },

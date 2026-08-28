@@ -6,12 +6,17 @@ Item {
 
     property var controller
 
-    height: 40
+    height:
+        40
+
 
     Row {
-        anchors.fill: parent
+        anchors.fill:
+            parent
 
-        spacing: 10
+        spacing:
+            10
+
 
         TextField {
             id: searchField
@@ -21,12 +26,14 @@ Item {
                 searchButton.width -
                 10
 
-            height: parent.height
+            height:
+                parent.height
 
             placeholderText:
                 "Поиск музыки..."
 
-            color: AppTheme.textPrimary
+            color:
+                AppTheme.textPrimary
 
             placeholderTextColor:
                 AppTheme.textMuted
@@ -37,42 +44,60 @@ Item {
             selectedTextColor:
                 "#101010"
 
-            background: Rectangle {
-                radius: 6
 
-                color: "#ffffff"
+            background:
+                Rectangle {
+                    radius:
+                        6
 
-                border.width: 1
+                    color:
+                        "#ffffff"
 
-                border.color:
-                    searchField.activeFocus
-                        ? AppTheme.textMuted
-                        : AppTheme.borderStrong
-            }
+                    border.width:
+                        1
+
+                    border.color:
+                        searchField.activeFocus
+                            ? AppTheme.textMuted
+                            : AppTheme.borderStrong
+                }
+
 
             enabled:
+                root.controller !== null &&
+                root.controller !== undefined &&
                 !root.controller.searching
+
 
             onAccepted: {
                 root.performSearch()
             }
         }
 
+
         Button {
             id: searchButton
 
-            width: 100
+            width:
+                100
 
-            height: parent.height
+            height:
+                parent.height
 
             text:
+                    root.controller !== null &&
+                root.controller !== undefined &&
                 root.controller.searching
-                    ? "Поиск..."
-                    : "Найти"
+                ? "Поиск..."
+                : "Найти"
+
 
             enabled:
+                root.controller !== null &&
+                root.controller !== undefined &&
                 !root.controller.searching &&
                 searchField.text.trim().length > 0
+
 
             onClicked: {
                 root.performSearch()
@@ -80,15 +105,30 @@ Item {
         }
     }
 
-    function performSearch() {
-        var query =
+
+    function performSearch()
+    {
+        const query =
             searchField.text.trim()
 
-        if (query.length === 0) {
+
+        if (
+            query.length === 0
+        ) {
             return
         }
 
-        root.controller.testSearch(
-            query)
+
+        if (
+            root.controller === null ||
+            root.controller === undefined
+        ) {
+            return
+        }
+
+
+        root.controller.search(
+            query
+        )
     }
 }
