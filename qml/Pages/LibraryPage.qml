@@ -6,26 +6,26 @@ Item {
 
     property var controller
 
-    readonly property int pageHeight:
-        Math.max(
-            700,
-            contentColumn.implicitHeight + 40
-        )
-
     width:
         parent
             ? parent.width
             : 0
 
     height:
-        pageHeight
+        parent
+            ? parent.height
+            : 700
 
     implicitWidth:
         width
 
     implicitHeight:
-        pageHeight
+        height
 
+
+    // =============================================================
+    // Background
+    // =============================================================
 
     Rectangle {
         anchors.fill:
@@ -36,14 +36,27 @@ Item {
     }
 
 
-    ScrollView {
-        id: pageScroll
+    // =============================================================
+    // Main page scroll
+    // =============================================================
+
+    Flickable {
+        id: pageFlickable
 
         anchors.fill:
             parent
 
         clip:
             true
+
+        boundsBehavior:
+            Flickable.StopAtBounds
+
+        contentWidth:
+            width
+
+        contentHeight:
+            contentColumn.implicitHeight + 40
 
 
         ScrollBar.vertical:
@@ -57,18 +70,18 @@ Item {
             id: contentColumn
 
             width:
-                pageScroll.availableWidth
+                pageFlickable.width - 40
+
+            anchors.left:
+                parent.left
 
             anchors.leftMargin:
                 20
 
-            anchors.rightMargin:
-                20
+            anchors.top:
+                parent.top
 
             anchors.topMargin:
-                20
-
-            anchors.bottomMargin:
                 20
 
             spacing:
@@ -219,6 +232,10 @@ Item {
                                 true
 
 
+                            // -------------------------------------------------
+                            // Artwork
+                            // -------------------------------------------------
+
                             Rectangle {
                                 id: playlistArtworkContainer
 
@@ -293,6 +310,10 @@ Item {
                             }
 
 
+                            // -------------------------------------------------
+                            // Title
+                            // -------------------------------------------------
+
                             Label {
                                 id: playlistTitle
 
@@ -332,6 +353,10 @@ Item {
                                     Text.ElideRight
                             }
 
+
+                            // -------------------------------------------------
+                            // Track count
+                            // -------------------------------------------------
 
                             Label {
                                 anchors.left:
@@ -383,6 +408,7 @@ Item {
                                 cursorShape:
                                     Qt.PointingHandCursor
 
+
                                 onClicked: {
                                     if (
                                         root.controller === null ||
@@ -400,6 +426,10 @@ Item {
                             }
                         }
 
+
+                    // ---------------------------------------------------------
+                    // Empty state
+                    // ---------------------------------------------------------
 
                     Label {
                         anchors.centerIn:
@@ -426,11 +456,11 @@ Item {
 
 
             // =========================================================
-            // Liked tracks
+            // Likes
             // =========================================================
 
             Column {
-                id: likedSection
+                id: likesSection
 
                 width:
                     parent.width
@@ -477,6 +507,10 @@ Item {
                 }
 
 
+                // ---------------------------------------------------------
+                // Liked tracks container
+                // ---------------------------------------------------------
+
                 Rectangle {
                     id: likedTracksContainer
 
@@ -485,7 +519,10 @@ Item {
 
                     height:
                             likedTracksView.count > 0
-                        ? likedTracksView.count * 74 + 20
+                        ? (
+                            likedTracksView.count * 74 +
+                            20
+                        )
                         : 120
 
                     radius:
@@ -527,6 +564,10 @@ Item {
 
                         interactive:
                             false
+
+                        boundsBehavior:
+                            Flickable.StopAtBounds
+
 
                         model:
                                 root.controller !== null &&
@@ -571,9 +612,9 @@ Item {
                                     AppTheme.borderSubtle
 
 
-                                // =================================================
-                                // Track click
-                                // =================================================
+                                // =============================================
+                                // Row click
+                                // =============================================
 
                                 MouseArea {
                                     id: rowMouseArea
@@ -589,6 +630,7 @@ Item {
 
                                     z:
                                         0
+
 
                                     onClicked: {
                                         if (
@@ -607,12 +649,12 @@ Item {
                                 }
 
 
-                                // =================================================
+                                // =============================================
                                 // Artwork
-                                // =================================================
+                                // =============================================
 
                                 Rectangle {
-                                    id: likedCoverContainer
+                                    id: coverContainer
 
                                     width:
                                         52
@@ -640,7 +682,7 @@ Item {
 
 
                                     Image {
-                                        id: likedCover
+                                        id: cover
 
                                         anchors.fill:
                                             parent
@@ -685,27 +727,26 @@ Item {
                                             AppTheme.textSecondary
 
                                         visible:
-                                            likedCover.status !==
-                                            Image.Ready
+                                            cover.status !== Image.Ready
                                     }
                                 }
 
 
-                                // =================================================
-                                // Info
-                                // =================================================
+                                // =============================================
+                                // Track information
+                                // =============================================
 
                                 Column {
-                                    id: likedTrackInfo
+                                    id: trackInfo
 
                                     anchors.left:
-                                        likedCoverContainer.right
+                                        coverContainer.right
 
                                     anchors.leftMargin:
                                         12
 
                                     anchors.right:
-                                        likedDuration.left
+                                        durationLabel.left
 
                                     anchors.rightMargin:
                                         12
@@ -716,6 +757,10 @@ Item {
                                     spacing:
                                         2
 
+
+                                    // -----------------------------------------
+                                    // Title
+                                    // -----------------------------------------
 
                                     Label {
                                         width:
@@ -740,9 +785,9 @@ Item {
                                     }
 
 
-                                    // -------------------------------------------------
+                                    // -----------------------------------------
                                     // Artist
-                                    // -------------------------------------------------
+                                    // -----------------------------------------
 
                                     Item {
                                         id: artistArea
@@ -771,7 +816,7 @@ Item {
                                             width:
                                                 Math.min(
                                                     implicitWidth,
-                                                    likedTrackInfo.width
+                                                    trackInfo.width
                                                 )
 
                                             height:
@@ -802,6 +847,7 @@ Item {
                                             z:
                                                 10
 
+
                                             onClicked: {
                                                 root.controller
                                                     .loadArtist(
@@ -812,9 +858,9 @@ Item {
                                     }
 
 
-                                    // -------------------------------------------------
+                                    // -----------------------------------------
                                     // Album
-                                    // -------------------------------------------------
+                                    // -----------------------------------------
 
                                     Item {
                                         id: albumArea
@@ -843,7 +889,7 @@ Item {
                                             width:
                                                 Math.min(
                                                     implicitWidth,
-                                                    likedTrackInfo.width
+                                                    trackInfo.width
                                                 )
 
                                             height:
@@ -874,6 +920,7 @@ Item {
                                             z:
                                                 10
 
+
                                             onClicked: {
                                                 root.controller
                                                     .loadAlbum(
@@ -885,12 +932,12 @@ Item {
                                 }
 
 
-                                // =================================================
+                                // =============================================
                                 // Duration
-                                // =================================================
+                                // =============================================
 
                                 Label {
-                                    id: likedDuration
+                                    id: durationLabel
 
                                     anchors.right:
                                         parent.right
@@ -914,6 +961,10 @@ Item {
                                 }
                             }
 
+
+                        // ---------------------------------------------------------
+                        // Empty state
+                        // ---------------------------------------------------------
 
                         Label {
                             anchors.centerIn:
@@ -945,6 +996,10 @@ Item {
                 }
             }
 
+
+            // =========================================================
+            // Bottom spacing
+            // =========================================================
 
             Item {
                 width:
