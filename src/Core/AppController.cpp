@@ -14,71 +14,98 @@
 #include "../Yandex/Catalog/TrackService.h"
 
 #include "../Yandex/Personal/PersonalLanding.h"
-#include "../Yandex/Personal/RecentListeningService.h"
 #include "../Yandex/Personal/PlaylistService.h"
+#include "../Yandex/Personal/RecentListeningService.h"
 #include "../Yandex/Personal/YandexPersonal.h"
 
 #include <QDebug>
 
+
+// =============================================================
+// Constructor
+// =============================================================
+
 AppController::AppController(
     QObject *parent)
     : QObject(parent)
+
+    // ---------------------------------------------------------
+    // Services
+    // ---------------------------------------------------------
+
     , m_auth(
           new YandexAuth(this))
+
     , m_accountService(
           new AccountService(
               m_auth,
               this))
+
     , m_searchService(
           new SearchService(
               m_auth,
               this))
+
     , m_trackService(
           new TrackService(
               m_auth,
               this))
+
     , m_yandexPersonal(
           new YandexPersonal(
               m_auth,
               this))
+
     , m_personalLanding(
           new PersonalLanding(
               m_auth,
               this))
+
     , m_recentListeningService(
           new RecentListeningService(
               m_auth,
               this))
+
     , m_playlistService(
           new PlaylistService(
               m_auth,
               this))
+
     , m_albumService(
           new AlbumService(
               m_auth,
               this))
+
     , m_artistService(
           new ArtistService(
               m_auth,
               this))
+
     , m_playerService(
-          new PlayerService(
-              this))
+          new PlayerService(this))
+
     , m_queueService(
-          new QueueService(
-              this))
+          new QueueService(this))
+
+
+    // ---------------------------------------------------------
+    // Controllers
+    // ---------------------------------------------------------
+
     , m_playbackController(
           new PlaybackController(
               m_trackService,
               m_playerService,
               m_queueService,
               this))
+
     , m_libraryController(
           new LibraryController(
               m_playlistService,
               m_artistService,
               m_playbackController,
               this))
+
     , m_personalController(
           new PersonalController(
               m_yandexPersonal,
@@ -87,38 +114,58 @@ AppController::AppController(
               m_playbackController,
               m_playerService,
               this))
+
     , m_searchController(
           new SearchController(
               m_searchService,
               m_playbackController,
               this))
+
     , m_albumController(
           new AlbumController(
               m_albumService,
               m_artistService,
               m_playbackController,
               this))
+
     , m_artistController(
           new ArtistController(
               m_artistService,
               m_playbackController,
               this))
 {
-    // =============================================================
-    // Account
-    // =============================================================
+    connectAccount();
+    connectSearch();
+    connectLibrary();
+    connectAlbum();
+    connectPersonal();
+    connectArtist();
+    connectPlayback();
+    connectPlayer();
 
+
+    m_accountService
+        ->loadAccount();
+}
+
+
+// =============================================================
+// Account
+// =============================================================
+
+void AppController::connectAccount()
+{
     connect(
         m_accountService,
         &AccountService::accountReceived,
         this,
         [this](
-            const Account &account) {
-
+            const Account &account)
+        {
             if (
-                m_recentListeningService !=
-                nullptr
-            ) {
+                m_recentListeningService != nullptr
+            )
+            {
                 m_recentListeningService
                     ->setUserId(
                         QString::number(
@@ -130,6 +177,7 @@ AppController::AppController(
                         10);
             }
 
+
             emit statusChanged(
                 QString(
                     "Выполнен вход: %1 (uid: %2)")
@@ -139,40 +187,48 @@ AppController::AppController(
                         account.uid));
         });
 
+
     connect(
         m_accountService,
         &AccountService::errorOccurred,
         this,
         &AppController::statusChanged);
+}
 
-    m_accountService
-        ->loadAccount();
 
-    // =============================================================
-    // Search
-    // =============================================================
+// =============================================================
+// Search
+// =============================================================
 
+void AppController::connectSearch()
+{
     connect(
         m_searchController,
         &SearchController::statusChanged,
         this,
         &AppController::statusChanged);
 
+
     connect(
         m_searchController,
         &SearchController::searchingChanged,
         this,
         &AppController::searchingChanged);
+}
 
-    // =============================================================
-    // Library
-    // =============================================================
 
+// =============================================================
+// Library
+// =============================================================
+
+void AppController::connectLibrary()
+{
     connect(
         m_libraryController,
         &LibraryController::statusChanged,
         this,
         &AppController::statusChanged);
+
 
     connect(
         m_libraryController,
@@ -180,11 +236,13 @@ AppController::AppController(
         this,
         &AppController::loadingPlaylistChanged);
 
+
     connect(
         m_libraryController,
         &LibraryController::loadingArtistChanged,
         this,
         &AppController::loadingArtistChanged);
+
 
     connect(
         m_libraryController,
@@ -192,76 +250,95 @@ AppController::AppController(
         this,
         &AppController::currentPlaylistChanged);
 
+
     connect(
         m_libraryController,
         &LibraryController::currentArtistChanged,
         this,
         &AppController::currentArtistChanged);
+}
 
-    // =============================================================
-    // Album
-    // =============================================================
 
+// =============================================================
+// Album
+// =============================================================
+
+void AppController::connectAlbum()
+{
     connect(
         m_albumController,
         &AlbumController::statusChanged,
         this,
         &AppController::statusChanged);
 
+
     connect(
         m_albumController,
         &AlbumController::loadingChanged,
         this,
-        [this]() {
-            emit loadingAlbumChanged();
-        });
+        &AppController::loadingAlbumChanged);
+
 
     connect(
         m_albumController,
         &AlbumController::albumChanged,
         this,
-        [this]() {
-
+        [this]()
+        {
             emit currentAlbumChanged();
+
 
             if (
                 !m_playAlbumAfterLoad
-            ) {
+            )
+            {
                 return;
             }
 
-            m_playAlbumAfterLoad = false;
+
+            m_playAlbumAfterLoad =
+                false;
+
 
             if (
                 m_albumController == nullptr
-            ) {
+            )
+            {
                 return;
             }
+
 
             if (
                 m_albumController
                     ->albumModel()
                     ->count() <= 0
-            ) {
+            )
+            {
                 emit statusChanged(
                     "В альбоме нет треков");
 
                 return;
             }
 
+
             m_albumController
                 ->playAlbum();
         });
+}
 
-    // =============================================================
-    // Personal
-    // =============================================================
 
+// =============================================================
+// Personal
+// =============================================================
+
+void AppController::connectPersonal()
+{
     connect(
         m_personalController,
         &PersonalController::statusChanged,
         this,
         &AppController::statusChanged);
+
 
     connect(
         m_personalController,
@@ -269,11 +346,13 @@ AppController::AppController(
         this,
         &AppController::loadingMyWaveChanged);
 
+
     connect(
         m_personalController,
         &PersonalController::loadingMoreMyWaveChanged,
         this,
         &AppController::loadingMoreMyWaveChanged);
+
 
     connect(
         m_personalController,
@@ -281,34 +360,49 @@ AppController::AppController(
         this,
         &AppController::loadingRecommendationsChanged);
 
+
     connect(
         m_personalController,
         &PersonalController::recommendationsLoaded,
         this,
         &AppController::recommendationsLoaded);
 
+
     connect(
         m_personalController,
         &PersonalController::personalPlaylistSelected,
         this,
         [this](
-            const PersonalPlaylist &playlist) {
+            const PersonalPlaylist &playlist)
+        {
+            if (
+                m_libraryController == nullptr
+            )
+            {
+                return;
+            }
+
 
             m_libraryController
                 ->loadPlaylist(
                     playlist.uid,
                     playlist.kind);
         });
+}
 
-    // =============================================================
-    // Artist
-    // =============================================================
 
+// =============================================================
+// Artist
+// =============================================================
+
+void AppController::connectArtist()
+{
     connect(
         m_artistController,
         &ArtistController::statusChanged,
         this,
         &AppController::statusChanged);
+
 
     connect(
         m_artistController,
@@ -316,54 +410,61 @@ AppController::AppController(
         this,
         &AppController::currentArtistChanged);
 
+
     connect(
         m_artistController,
         &ArtistController::similarArtistSelected,
         this,
         [this](
-            const QString &artistId) {
-
-            /*
-             * Go through AppController::loadArtist()
-             * so MainLayout receives the navigation request.
-             */
-
+            const QString &artistId)
+        {
             loadArtist(
                 artistId);
         });
+}
 
-    // =============================================================
-    // Playback
-    // =============================================================
 
+// =============================================================
+// Playback controller
+// =============================================================
+
+void AppController::connectPlayback()
+{
     connect(
         m_playbackController,
         &PlaybackController::currentTrackChanged,
         this,
-        [this]() {
-
+        [this]()
+        {
             emit currentTrackChanged();
+
 
             const Track track =
                 m_playbackController
                     ->currentTrack();
 
+
             if (
                 track.id.isEmpty()
-            ) {
+            )
+            {
                 return;
             }
 
+
             QString artistName;
+
 
             if (
                 !track.artists.isEmpty()
-            ) {
+            )
+            {
                 artistName =
                     track.artists
                         .first()
                         .name;
             }
+
 
             const QString message =
                 artistName.isEmpty()
@@ -378,12 +479,15 @@ AppController::AppController(
                           .arg(
                               artistName);
 
+
             qDebug()
                 << message;
+
 
             emit statusChanged(
                 message);
         });
+
 
     connect(
         m_playbackController,
@@ -391,11 +495,13 @@ AppController::AppController(
         this,
         &AppController::playbackStateChanged);
 
+
     connect(
         m_playbackController,
         &PlaybackController::repeatModeChanged,
         this,
         &AppController::repeatModeChanged);
+
 
     connect(
         m_playbackController,
@@ -403,74 +509,90 @@ AppController::AppController(
         this,
         &AppController::shuffleChanged);
 
+
     connect(
         m_playbackController,
         &PlaybackController::playbackError,
         this,
         &AppController::statusChanged);
+}
 
-    // =============================================================
-    // Player
-    // =============================================================
 
+// =============================================================
+// Player
+// =============================================================
+
+void AppController::connectPlayer()
+{
     connect(
         m_playerService,
         &PlayerService::playingChanged,
         this,
-        [this]() {
-
+        [this]()
+        {
             emit playingChanged();
+
 
             if (
                 m_playerService
                     ->isPlaying()
-            ) {
+            )
+            {
                 emit statusChanged(
                     "Воспроизведение");
             }
         });
 
+
     connect(
         m_playerService,
         &PlayerService::positionChanged,
         this,
-        [this](qint64) {
+        [this](qint64)
+        {
             emit positionChanged();
         });
+
 
     connect(
         m_playerService,
         &PlayerService::durationChanged,
         this,
-        [this](qint64) {
+        [this](qint64)
+        {
             emit durationChanged();
         });
+
 
     connect(
         m_playerService,
         &PlayerService::playbackPaused,
         this,
-        [this]() {
+        [this]()
+        {
             emit statusChanged(
                 "Пауза");
         });
+
 
     connect(
         m_playerService,
         &PlayerService::playbackStopped,
         this,
-        [this]() {
+        [this]()
+        {
             emit statusChanged(
                 "Остановлено");
         });
+
 
     connect(
         m_playerService,
         &PlayerService::errorOccurred,
         this,
         [this](
-            const QString &message) {
-
+            const QString &message)
+        {
             emit statusChanged(
                 QString(
                     "Ошибка воспроизведения: %1")
@@ -478,6 +600,7 @@ AppController::AppController(
                         message));
         });
 }
+
 
 // =============================================================
 // Tests
@@ -489,337 +612,34 @@ void AppController::testConnection()
         "Приложение работает");
 }
 
+
 void AppController::testYandexApi()
 {
     m_accountService
         ->loadAccount();
 
+
     emit statusChanged(
         "Проверка аккаунта Яндекс Музыки...");
 }
 
+
 void AppController::testSearch(
     const QString &query)
 {
+    if (
+        m_searchController == nullptr
+    )
+    {
+        return;
+    }
+
+
     m_searchController
         ->search(
             query);
 }
 
-// =============================================================
-// Artist
-// =============================================================
-
-void AppController::loadArtist(
-    const QString &id)
-{
-    if (
-        m_artistController == nullptr
-    ) {
-        return;
-    }
-
-    const QString artistId =
-        id.trimmed();
-
-    if (
-        artistId.isEmpty()
-    ) {
-        emit statusChanged(
-            "Некорректный исполнитель");
-
-        return;
-    }
-
-    /*
-     * First tell the navigation layer to open
-     * ArtistPage, then load the artist data.
-     */
-
-    emit artistPageRequested(
-        artistId);
-
-    m_artistController
-        ->loadArtist(
-            artistId);
-}
-
-// =============================================================
-// Album
-// =============================================================
-
-void AppController::loadAlbum(
-    const QString &id)
-{
-    if (
-        m_albumController == nullptr
-    ) {
-        return;
-    }
-
-    const QString albumId =
-        id.trimmed();
-
-    if (
-        albumId.isEmpty()
-    ) {
-        emit statusChanged(
-            "Некорректный альбом");
-
-        return;
-    }
-
-    m_playAlbumAfterLoad =
-        false;
-
-    emit albumPageRequested(
-        albumId);
-
-    m_albumController
-        ->loadAlbum(
-            albumId);
-}
-
-void AppController::playAlbum(
-    const QString &id)
-{
-    if (
-        m_albumController == nullptr
-    ) {
-        return;
-    }
-
-    const QString albumId =
-        id.trimmed();
-
-    if (
-        albumId.isEmpty()
-    ) {
-        emit statusChanged(
-            "Некорректный альбом");
-
-        return;
-    }
-
-    m_playAlbumAfterLoad =
-        true;
-
-    emit albumPageRequested(
-        albumId);
-
-    m_albumController
-        ->loadAlbum(
-            albumId);
-}
-
-// =============================================================
-// Personal
-// =============================================================
-
-void AppController::loadMyWave()
-{
-    m_personalController
-        ->loadMyWave();
-}
-
-void AppController::loadMoreMyWave()
-{
-    m_personalController
-        ->loadMoreMyWave();
-}
-
-void AppController::loadRecommendations()
-{
-    m_personalController
-        ->loadRecommendations();
-}
-
-// =============================================================
-// Selection
-// =============================================================
-
-void AppController::selectSearchResult(
-    int index)
-{
-    m_searchController
-        ->selectResult(
-            index);
-}
-
-void AppController::selectMyWaveTrack(
-    int index)
-{
-    m_personalController
-        ->selectMyWaveTrack(
-            index);
-}
-
-void AppController::selectPersonalPlaylist(
-    const QString &uid,
-    int kind)
-{
-    if (
-        m_personalController == nullptr
-    ) {
-        return;
-    }
-
-
-    emit playlistPageRequested();
-
-
-    m_personalController
-        ->selectPersonalPlaylist(
-            uid,
-            kind);
-}
-
-void AppController::selectPlaylistTrack(
-    int index)
-{
-    m_libraryController
-        ->selectPlaylistTrack(
-            index);
-}
-
-void AppController::selectRecentListening(
-    int index)
-{
-    m_personalController
-        ->selectRecentListening(
-            index);
-}
-
-void AppController::selectAlbumTrack(
-    int index)
-{
-    if (
-        m_albumController == nullptr
-    ) {
-        return;
-    }
-
-    m_albumController
-        ->selectAlbumTrack(
-            index);
-}
-
-void AppController::selectArtistTrack(
-    int index)
-{
-    if (
-        m_artistController == nullptr
-    ) {
-        return;
-    }
-
-    m_artistController
-        ->selectTrack(
-            index);
-}
-
-void AppController::selectSimilarArtist(
-    int index)
-{
-    if (
-        m_artistController == nullptr
-    ) {
-        return;
-    }
-
-    m_artistController
-        ->selectSimilarArtist(
-            index);
-}
-
-// =============================================================
-// Playback
-// =============================================================
-
-void AppController::play()
-{
-    m_playerService
-        ->play();
-}
-
-void AppController::pause()
-{
-    m_playerService
-        ->pause();
-}
-
-void AppController::stop()
-{
-    m_playerService
-        ->stop();
-}
-
-void AppController::next()
-{
-    if (
-        !m_playbackController
-            ->next()
-    ) {
-        emit statusChanged(
-            "Следующего трека нет");
-    }
-}
-
-void AppController::previous()
-{
-    if (
-        !m_playbackController
-            ->previous()
-    ) {
-        emit statusChanged(
-            "Предыдущего трека нет");
-    }
-}
-
-void AppController::cycleRepeat()
-{
-    m_playbackController
-        ->cycleRepeatMode();
-}
-
-void AppController::setRepeatMode(
-    int mode)
-{
-    if (
-        mode < QueueService::RepeatOff ||
-        mode > QueueService::RepeatOne
-    ) {
-        return;
-    }
-
-    m_playbackController
-        ->setRepeatMode(
-            static_cast<
-                QueueService::RepeatMode>(
-                mode));
-}
-
-void AppController::toggleShuffle()
-{
-    m_playbackController
-        ->toggleShuffle();
-}
-
-void AppController::setShuffle(
-    bool enabled)
-{
-    m_playbackController
-        ->setShuffleEnabled(
-            enabled);
-}
-
-void AppController::seek(
-    qint64 position)
-{
-    m_playerService
-        ->seek(
-            position);
-}
 
 // =============================================================
 // Models
@@ -832,12 +652,14 @@ AppController::searchModel() const
         ->model();
 }
 
+
 MyWaveModel *
 AppController::myWaveModel() const
 {
     return m_personalController
         ->myWaveModel();
 }
+
 
 PersonalPlaylistsModel *
 AppController::personalPlaylistsModel() const
@@ -846,12 +668,14 @@ AppController::personalPlaylistsModel() const
         ->personalPlaylistsModel();
 }
 
+
 PlaylistModel *
 AppController::playlistModel() const
 {
     return m_libraryController
         ->playlistModel();
 }
+
 
 RecentListeningModel *
 AppController::recentListeningModel() const
@@ -860,11 +684,13 @@ AppController::recentListeningModel() const
         ->recentListeningModel();
 }
 
+
 AlbumController *
 AppController::albumController() const
 {
     return m_albumController;
 }
+
 
 ArtistController *
 AppController::artistController() const
@@ -872,8 +698,9 @@ AppController::artistController() const
     return m_artistController;
 }
 
+
 // =============================================================
-// State
+// Loading state
 // =============================================================
 
 bool
@@ -883,12 +710,14 @@ AppController::isSearching() const
         ->isSearching();
 }
 
+
 bool
 AppController::isPlaying() const
 {
     return m_playerService
         ->isPlaying();
 }
+
 
 bool
 AppController::isLoadingMyWave() const
@@ -897,12 +726,14 @@ AppController::isLoadingMyWave() const
         ->isLoadingMyWave();
 }
 
+
 bool
 AppController::isLoadingMoreMyWave() const
 {
     return m_personalController
         ->isLoadingMoreMyWave();
 }
+
 
 bool
 AppController::isLoadingRecommendations() const
@@ -911,6 +742,7 @@ AppController::isLoadingRecommendations() const
         ->isLoadingRecommendations();
 }
 
+
 bool
 AppController::isLoadingPlaylist() const
 {
@@ -918,31 +750,38 @@ AppController::isLoadingPlaylist() const
         ->isLoadingPlaylist();
 }
 
+
 bool
 AppController::isLoadingAlbum() const
 {
     if (
         m_albumController == nullptr
-    ) {
+    )
+    {
         return false;
     }
+
 
     return m_albumController
         ->isLoading();
 }
+
 
 bool
 AppController::isLoadingArtist() const
 {
     if (
         m_artistController == nullptr
-    ) {
+    )
+    {
         return false;
     }
+
 
     return m_artistController
         ->isLoading();
 }
+
 
 // =============================================================
 // Current playlist
@@ -955,12 +794,6 @@ AppController::currentPlaylistTitle() const
         ->currentPlaylistTitle();
 }
 
-int
-AppController::currentPlaylistTrackCount() const
-{
-    return m_libraryController
-        ->currentPlaylistTrackCount();
-}
 
 QString
 AppController::currentPlaylistCoverUri() const
@@ -968,6 +801,15 @@ AppController::currentPlaylistCoverUri() const
     return m_libraryController
         ->currentPlaylistCoverUri();
 }
+
+
+int
+AppController::currentPlaylistTrackCount() const
+{
+    return m_libraryController
+        ->currentPlaylistTrackCount();
+}
+
 
 // =============================================================
 // Current album
@@ -978,39 +820,48 @@ AppController::currentAlbumTitle() const
 {
     if (
         m_albumController == nullptr
-    ) {
+    )
+    {
         return {};
     }
+
 
     return m_albumController
         ->albumTitle();
 }
+
 
 int
 AppController::currentAlbumTrackCount() const
 {
     if (
         m_albumController == nullptr
-    ) {
+    )
+    {
         return 0;
     }
+
 
     return m_albumController
         ->albumTrackCount();
 }
+
 
 QString
 AppController::currentAlbumCoverUri() const
 {
     if (
         m_albumController == nullptr
-    ) {
+    )
+    {
         return {};
     }
+
 
     return m_albumController
         ->albumCoverUri();
 }
+
 
 // =============================================================
 // Current artist
@@ -1021,53 +872,65 @@ AppController::currentArtistName() const
 {
     if (
         m_artistController == nullptr
-    ) {
+    )
+    {
         return {};
     }
+
 
     return m_artistController
         ->artistName();
 }
+
 
 QString
 AppController::currentArtistCoverUri() const
 {
     if (
         m_artistController == nullptr
-    ) {
+    )
+    {
         return {};
     }
+
 
     return m_artistController
         ->artistCoverUri();
 }
+
 
 QString
 AppController::currentArtistGenres() const
 {
     if (
         m_artistController == nullptr
-    ) {
+    )
+    {
         return {};
     }
+
 
     return m_artistController
         ->artistGenres();
 }
+
 
 int
 AppController::currentArtistTrackCount() const
 {
     if (
         m_artistController == nullptr
-    ) {
+    )
+    {
         return 0;
     }
+
 
     return m_artistController
         ->artistModel()
         ->count();
 }
+
 
 // =============================================================
 // Current track
@@ -1081,6 +944,7 @@ AppController::currentTrackTitle() const
         .title;
 }
 
+
 QString
 AppController::currentTrackArtist() const
 {
@@ -1088,16 +952,20 @@ AppController::currentTrackArtist() const
         m_playbackController
             ->currentTrack();
 
+
     if (
         track.artists.isEmpty()
-    ) {
+    )
+    {
         return {};
     }
+
 
     return track.artists
         .first()
         .name;
 }
+
 
 QString
 AppController::currentTrackArtistId() const
@@ -1106,16 +974,20 @@ AppController::currentTrackArtistId() const
         m_playbackController
             ->currentTrack();
 
+
     if (
         track.artists.isEmpty()
-    ) {
+    )
+    {
         return {};
     }
+
 
     return track.artists
         .first()
         .id;
 }
+
 
 QString
 AppController::currentTrackAlbumTitle() const
@@ -1124,16 +996,20 @@ AppController::currentTrackAlbumTitle() const
         m_playbackController
             ->currentTrack();
 
+
     if (
         track.albums.isEmpty()
-    ) {
+    )
+    {
         return {};
     }
+
 
     return track.albums
         .first()
         .title;
 }
+
 
 QString
 AppController::currentTrackAlbumId() const
@@ -1142,16 +1018,20 @@ AppController::currentTrackAlbumId() const
         m_playbackController
             ->currentTrack();
 
+
     if (
         track.albums.isEmpty()
-    ) {
+    )
+    {
         return {};
     }
+
 
     return track.albums
         .first()
         .id;
 }
+
 
 QString
 AppController::currentTrackCoverUri() const
@@ -1160,6 +1040,7 @@ AppController::currentTrackCoverUri() const
         ->currentTrack()
         .coverUri;
 }
+
 
 // =============================================================
 // Playback state
@@ -1172,12 +1053,14 @@ AppController::position() const
         ->position();
 }
 
+
 qint64
 AppController::duration() const
 {
     return m_playerService
         ->duration();
 }
+
 
 PlaybackController::PlaybackState
 AppController::playbackState() const
@@ -1186,6 +1069,7 @@ AppController::playbackState() const
         ->state();
 }
 
+
 int
 AppController::repeatMode() const
 {
@@ -1193,6 +1077,7 @@ AppController::repeatMode() const
         m_playbackController
             ->repeatMode());
 }
+
 
 bool
 AppController::shuffleEnabled() const

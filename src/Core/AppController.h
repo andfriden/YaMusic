@@ -3,13 +3,14 @@
 #include <QObject>
 #include <QString>
 
+#include "AlbumController.h"
+#include "ArtistController.h"
 #include "LibraryController.h"
 #include "PersonalController.h"
 #include "SearchController.h"
-#include "AlbumController.h"
-#include "ArtistController.h"
 
 #include "../Playback/PlaybackController.h"
+
 
 class AccountService;
 class AlbumService;
@@ -24,9 +25,15 @@ class TrackService;
 class YandexAuth;
 class YandexPersonal;
 
+
 class AppController : public QObject
 {
     Q_OBJECT
+
+
+    // =============================================================
+    // General state
+    // =============================================================
 
     Q_PROPERTY(
         bool searching
@@ -37,6 +44,11 @@ class AppController : public QObject
         bool playing
         READ isPlaying
         NOTIFY playingChanged)
+
+
+    // =============================================================
+    // Personal state
+    // =============================================================
 
     Q_PROPERTY(
         bool loadingMyWave
@@ -53,20 +65,32 @@ class AppController : public QObject
         READ isLoadingRecommendations
         NOTIFY loadingRecommendationsChanged)
 
+
+    // =============================================================
+    // Library state
+    // =============================================================
+
     Q_PROPERTY(
         bool loadingPlaylist
         READ isLoadingPlaylist
         NOTIFY loadingPlaylistChanged)
+
 
     Q_PROPERTY(
         bool loadingAlbum
         READ isLoadingAlbum
         NOTIFY loadingAlbumChanged)
 
+
     Q_PROPERTY(
         bool loadingArtist
         READ isLoadingArtist
         NOTIFY loadingArtistChanged)
+
+
+    // =============================================================
+    // Models
+    // =============================================================
 
     Q_PROPERTY(
         SearchModel *searchModel
@@ -103,15 +127,30 @@ class AppController : public QObject
         READ artistController
         CONSTANT)
 
+
+    // =============================================================
+    // Current playlist
+    // =============================================================
+
     Q_PROPERTY(
         QString currentPlaylistTitle
         READ currentPlaylistTitle
         NOTIFY currentPlaylistChanged)
 
     Q_PROPERTY(
+        QString currentPlaylistCoverUri
+        READ currentPlaylistCoverUri
+        NOTIFY currentPlaylistChanged)
+
+    Q_PROPERTY(
         int currentPlaylistTrackCount
         READ currentPlaylistTrackCount
         NOTIFY currentPlaylistChanged)
+
+
+    // =============================================================
+    // Current album
+    // =============================================================
 
     Q_PROPERTY(
         QString currentAlbumTitle
@@ -127,6 +166,11 @@ class AppController : public QObject
         QString currentAlbumCoverUri
         READ currentAlbumCoverUri
         NOTIFY currentAlbumChanged)
+
+
+    // =============================================================
+    // Current artist
+    // =============================================================
 
     Q_PROPERTY(
         QString currentArtistName
@@ -148,9 +192,10 @@ class AppController : public QObject
         READ currentArtistTrackCount
         NOTIFY currentArtistChanged)
 
-    /*
-     * Current track
-     */
+
+    // =============================================================
+    // Current track
+    // =============================================================
 
     Q_PROPERTY(
         QString currentTrackTitle
@@ -182,9 +227,10 @@ class AppController : public QObject
         READ currentTrackCoverUri
         NOTIFY currentTrackChanged)
 
-    /*
-     * Playback
-     */
+
+    // =============================================================
+    // Playback
+    // =============================================================
 
     Q_PROPERTY(
         qint64 position
@@ -211,19 +257,16 @@ class AppController : public QObject
         READ shuffleEnabled
         NOTIFY shuffleChanged)
 
-    Q_PROPERTY(
-    QString currentPlaylistCoverUri
-    READ currentPlaylistCoverUri
-    NOTIFY currentPlaylistChanged)
-
 
 public:
+
     explicit AppController(
         QObject *parent = nullptr);
 
-    /*
-     * Tests
-     */
+
+    // =============================================================
+    // Tests
+    // =============================================================
 
     Q_INVOKABLE void testConnection();
 
@@ -232,9 +275,10 @@ public:
     Q_INVOKABLE void testSearch(
         const QString &query);
 
-    /*
-     * Catalog
-     */
+
+    // =============================================================
+    // Catalog
+    // =============================================================
 
     Q_INVOKABLE void loadArtist(
         const QString &id);
@@ -245,9 +289,10 @@ public:
     Q_INVOKABLE void playAlbum(
         const QString &id);
 
-    /*
-     * Personal
-     */
+
+    // =============================================================
+    // Personal
+    // =============================================================
 
     Q_INVOKABLE void loadMyWave();
 
@@ -255,9 +300,10 @@ public:
 
     Q_INVOKABLE void loadRecommendations();
 
-    /*
-     * Selection
-     */
+
+    // =============================================================
+    // Selection
+    // =============================================================
 
     Q_INVOKABLE void selectSearchResult(
         int index);
@@ -266,8 +312,8 @@ public:
         int index);
 
     Q_INVOKABLE void selectPersonalPlaylist(
-    const QString &uid,
-    int kind);
+        const QString &uid,
+        int kind);
 
     Q_INVOKABLE void selectPlaylistTrack(
         int index);
@@ -284,9 +330,10 @@ public:
     Q_INVOKABLE void selectSimilarArtist(
         int index);
 
-    /*
-     * Playback
-     */
+
+    // =============================================================
+    // Playback
+    // =============================================================
 
     Q_INVOKABLE void play();
 
@@ -311,36 +358,29 @@ public:
     Q_INVOKABLE void seek(
         qint64 position);
 
-    QString currentPlaylistCoverUri() const;
 
-    /*
-     * Models
-     */
+    // =============================================================
+    // Models
+    // =============================================================
 
-    SearchModel *
-    searchModel() const;
+    SearchModel *searchModel() const;
 
-    MyWaveModel *
-    myWaveModel() const;
+    MyWaveModel *myWaveModel() const;
 
-    PersonalPlaylistsModel *
-    personalPlaylistsModel() const;
+    PersonalPlaylistsModel *personalPlaylistsModel() const;
 
-    PlaylistModel *
-    playlistModel() const;
+    PlaylistModel *playlistModel() const;
 
-    RecentListeningModel *
-    recentListeningModel() const;
+    RecentListeningModel *recentListeningModel() const;
 
-    AlbumController *
-    albumController() const;
+    AlbumController *albumController() const;
 
-    ArtistController *
-    artistController() const;
+    ArtistController *artistController() const;
 
-    /*
-     * Loading state
-     */
+
+    // =============================================================
+    // Loading state
+    // =============================================================
 
     bool isSearching() const;
 
@@ -358,18 +398,21 @@ public:
 
     bool isLoadingArtist() const;
 
-    /*
-     * Current playlist
-     */
+
+    // =============================================================
+    // Current playlist
+    // =============================================================
 
     QString currentPlaylistTitle() const;
+
+    QString currentPlaylistCoverUri() const;
 
     int currentPlaylistTrackCount() const;
 
 
-    /*
-     * Current album
-     */
+    // =============================================================
+    // Current album
+    // =============================================================
 
     QString currentAlbumTitle() const;
 
@@ -377,9 +420,10 @@ public:
 
     QString currentAlbumCoverUri() const;
 
-    /*
-     * Current artist
-     */
+
+    // =============================================================
+    // Current artist
+    // =============================================================
 
     QString currentArtistName() const;
 
@@ -389,9 +433,10 @@ public:
 
     int currentArtistTrackCount() const;
 
-    /*
-     * Current track
-     */
+
+    // =============================================================
+    // Current track
+    // =============================================================
 
     QString currentTrackTitle() const;
 
@@ -405,28 +450,31 @@ public:
 
     QString currentTrackCoverUri() const;
 
-    /*
-     * Playback state
-     */
+
+    // =============================================================
+    // Playback state
+    // =============================================================
 
     qint64 position() const;
 
     qint64 duration() const;
 
-    PlaybackController::PlaybackState
-    playbackState() const;
+    PlaybackController::PlaybackState playbackState() const;
 
     int repeatMode() const;
 
     bool shuffleEnabled() const;
 
+
 signals:
+
     void statusChanged(
         const QString &message);
 
-    /*
-     * Navigation
-     */
+
+    // =============================================================
+    // Navigation
+    // =============================================================
 
     void artistPageRequested(
         const QString &artistId);
@@ -434,9 +482,12 @@ signals:
     void albumPageRequested(
         const QString &albumId);
 
-    /*
-     * State
-     */
+    void playlistPageRequested();
+
+
+    // =============================================================
+    // State
+    // =============================================================
 
     void searchingChanged();
 
@@ -474,20 +525,51 @@ signals:
 
     void shuffleChanged();
 
-    void playlistPageRequested();
 
 private:
-    YandexAuth *m_auth = nullptr;
 
-    AccountService *m_accountService = nullptr;
+    // =============================================================
+    // Connection setup
+    // =============================================================
 
-    SearchService *m_searchService = nullptr;
+    void connectAccount();
 
-    TrackService *m_trackService = nullptr;
+    void connectSearch();
 
-    YandexPersonal *m_yandexPersonal = nullptr;
+    void connectLibrary();
 
-    PersonalLanding *m_personalLanding = nullptr;
+    void connectAlbum();
+
+    void connectPersonal();
+
+    void connectArtist();
+
+    void connectPlayback();
+
+    void connectPlayer();
+
+
+    // =============================================================
+    // Services
+    // =============================================================
+
+    YandexAuth *
+        m_auth = nullptr;
+
+    AccountService *
+        m_accountService = nullptr;
+
+    SearchService *
+        m_searchService = nullptr;
+
+    TrackService *
+        m_trackService = nullptr;
+
+    YandexPersonal *
+        m_yandexPersonal = nullptr;
+
+    PersonalLanding *
+        m_personalLanding = nullptr;
 
     RecentListeningService *
         m_recentListeningService = nullptr;
@@ -495,13 +577,22 @@ private:
     PlaylistService *
         m_playlistService = nullptr;
 
-    AlbumService *m_albumService = nullptr;
+    AlbumService *
+        m_albumService = nullptr;
 
-    ArtistService *m_artistService = nullptr;
+    ArtistService *
+        m_artistService = nullptr;
 
-    PlayerService *m_playerService = nullptr;
+    PlayerService *
+        m_playerService = nullptr;
 
-    QueueService *m_queueService = nullptr;
+    QueueService *
+        m_queueService = nullptr;
+
+
+    // =============================================================
+    // Controllers
+    // =============================================================
 
     PlaybackController *
         m_playbackController = nullptr;
@@ -520,6 +611,11 @@ private:
 
     ArtistController *
         m_artistController = nullptr;
+
+
+    // =============================================================
+    // State
+    // =============================================================
 
     bool m_playAlbumAfterLoad = false;
 };

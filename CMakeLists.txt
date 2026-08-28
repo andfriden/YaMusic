@@ -224,6 +224,10 @@ qt_add_executable(
 
         src/Yandex/Personal/PlaylistModel.h
         src/Yandex/Personal/PlaylistModel.cpp
+        src/Core/AppController+Catalog.cpp
+        src/Core/AppController+Personal.cpp
+        src/Core/AppController+Selection.cpp
+        src/Core/AppController+Playback.cpp
 )
 
 
