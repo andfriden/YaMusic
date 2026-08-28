@@ -13,6 +13,7 @@
 #include "../Yandex/Catalog/SearchService.h"
 #include "../Yandex/Catalog/TrackService.h"
 
+#include "../Yandex/Personal/LikesService.h"
 #include "../Yandex/Personal/PersonalLanding.h"
 #include "../Yandex/Personal/PlaylistService.h"
 #include "../Yandex/Personal/RecentListeningService.h"
@@ -71,6 +72,11 @@ AppController::AppController(
               m_auth,
               this))
 
+    , m_likesService(
+          new LikesService(
+              m_auth,
+              this))
+
     , m_albumService(
           new AlbumService(
               m_auth,
@@ -82,12 +88,10 @@ AppController::AppController(
               this))
 
     , m_playerService(
-          new PlayerService(
-              this))
+          new PlayerService(this))
 
     , m_queueService(
-          new QueueService(
-              this))
+          new QueueService(this))
 
     // ---------------------------------------------------------
     // Controllers
@@ -104,6 +108,7 @@ AppController::AppController(
           new LibraryController(
               m_playlistService,
               m_artistService,
+              m_likesService,
               m_playbackController,
               this))
 
@@ -240,6 +245,13 @@ void AppController::connectLibrary()
         &LibraryController::loadingLibraryPlaylistsChanged,
         this,
         &AppController::loadingLibraryPlaylistsChanged);
+
+
+    connect(
+        m_libraryController,
+        &LibraryController::loadingLikedTracksChanged,
+        this,
+        &AppController::loadingLikedTracksChanged);
 
 
     connect(

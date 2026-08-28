@@ -9,8 +9,12 @@
 #include "../Yandex/Catalog/ArtistService.h"
 
 #include "../Yandex/Personal/LibraryPlaylistsModel.h"
+#include "../Yandex/Personal/LikedTracksModel.h"
 #include "../Yandex/Personal/PlaylistModel.h"
 #include "../Yandex/Personal/PlaylistService.h"
+
+
+class LikesService;
 
 
 class LibraryController : public QObject
@@ -27,10 +31,24 @@ class LibraryController : public QObject
         READ isLoadingLibraryPlaylists
         NOTIFY loadingLibraryPlaylistsChanged)
 
-
     Q_PROPERTY(
         LibraryPlaylistsModel *libraryPlaylistsModel
         READ libraryPlaylistsModel
+        CONSTANT)
+
+
+    // =============================================================
+    // Liked tracks
+    // =============================================================
+
+    Q_PROPERTY(
+        bool loadingLikedTracks
+        READ isLoadingLikedTracks
+        NOTIFY loadingLikedTracksChanged)
+
+    Q_PROPERTY(
+        LikedTracksModel *likedTracksModel
+        READ likedTracksModel
         CONSTANT)
 
 
@@ -43,24 +61,20 @@ class LibraryController : public QObject
         READ isLoadingPlaylist
         NOTIFY loadingPlaylistChanged)
 
-
     Q_PROPERTY(
         QString currentPlaylistTitle
         READ currentPlaylistTitle
         NOTIFY currentPlaylistChanged)
-
 
     Q_PROPERTY(
         QString currentPlaylistCoverUri
         READ currentPlaylistCoverUri
         NOTIFY currentPlaylistChanged)
 
-
     Q_PROPERTY(
         int currentPlaylistTrackCount
         READ currentPlaylistTrackCount
         NOTIFY currentPlaylistChanged)
-
 
     Q_PROPERTY(
         PlaylistModel *playlistModel
@@ -77,30 +91,25 @@ class LibraryController : public QObject
         READ isLoadingArtist
         NOTIFY loadingArtistChanged)
 
-
     Q_PROPERTY(
         QString currentArtistName
         READ currentArtistName
         NOTIFY currentArtistChanged)
-
 
     Q_PROPERTY(
         QString currentArtistCoverUri
         READ currentArtistCoverUri
         NOTIFY currentArtistChanged)
 
-
     Q_PROPERTY(
         QString currentArtistGenres
         READ currentArtistGenres
         NOTIFY currentArtistChanged)
 
-
     Q_PROPERTY(
         int currentArtistTrackCount
         READ currentArtistTrackCount
         NOTIFY currentArtistChanged)
-
 
     Q_PROPERTY(
         ArtistModel *artistModel
@@ -113,6 +122,7 @@ public:
     explicit LibraryController(
         PlaylistService *playlistService,
         ArtistService *artistService,
+        LikesService *likesService,
         PlaybackController *playbackController,
         QObject *parent = nullptr);
 
@@ -124,16 +134,29 @@ public:
     void loadUserPlaylists(
         const QString &uid);
 
-
     void selectLibraryPlaylist(
         int index);
-
 
     LibraryPlaylistsModel *
     libraryPlaylistsModel() const;
 
-
     bool isLoadingLibraryPlaylists() const;
+
+
+    // =============================================================
+    // Liked tracks
+    // =============================================================
+
+    void loadLikedTracks(
+        const QString &uid);
+
+    void selectLikedTrack(
+        int index);
+
+    LikedTracksModel *
+    likedTracksModel() const;
+
+    bool isLoadingLikedTracks() const;
 
 
     // =============================================================
@@ -144,17 +167,13 @@ public:
         const QString &uid,
         int kind);
 
-
     void selectPlaylistTrack(
         int index);
-
 
     PlaylistModel *
     playlistModel() const;
 
-
     bool isLoadingPlaylist() const;
-
 
     QString currentPlaylistTitle() const;
 
@@ -170,17 +189,13 @@ public:
     void loadArtist(
         const QString &id);
 
-
     void selectArtistTrack(
         int index);
-
 
     ArtistModel *
     artistModel() const;
 
-
     bool isLoadingArtist() const;
-
 
     QString currentArtistName() const;
 
@@ -206,6 +221,13 @@ signals:
     // =============================================================
 
     void loadingLibraryPlaylistsChanged();
+
+
+    // =============================================================
+    // Liked tracks
+    // =============================================================
+
+    void loadingLikedTracksChanged();
 
 
     // =============================================================
@@ -235,10 +257,11 @@ private:
     PlaylistService *
         m_playlistService = nullptr;
 
-
     ArtistService *
         m_artistService = nullptr;
 
+    LikesService *
+        m_likesService = nullptr;
 
     PlaybackController *
         m_playbackController = nullptr;
@@ -251,10 +274,11 @@ private:
     LibraryPlaylistsModel *
         m_libraryPlaylistsModel = nullptr;
 
+    LikedTracksModel *
+        m_likedTracksModel = nullptr;
 
     PlaylistModel *
         m_playlistModel = nullptr;
-
 
     ArtistModel *
         m_artistModel = nullptr;
@@ -267,6 +291,9 @@ private:
     bool m_loadingLibraryPlaylists =
         false;
 
+    bool m_loadingLikedTracks =
+        false;
+
 
     // =============================================================
     // Playlist state
@@ -274,7 +301,6 @@ private:
 
     bool m_loadingPlaylist =
         false;
-
 
     QString m_currentPlaylistTitle;
 
@@ -290,7 +316,6 @@ private:
 
     bool m_loadingArtist =
         false;
-
 
     QString m_currentArtistName;
 

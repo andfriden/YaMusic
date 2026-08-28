@@ -232,6 +232,10 @@ qt_add_executable(
         src/Yandex/Personal/LibraryPlaylistsModel.cpp
         src/Yandex/Personal/LibraryPlaylistsModel.h
         src/Core/AppController+Library.cpp
+        src/Yandex/Personal/LikesService.cpp
+        src/Yandex/Personal/LikesService.h
+        src/Yandex/Personal/LikedTracksModel.cpp
+        src/Yandex/Personal/LikedTracksModel.h
 )
 
 

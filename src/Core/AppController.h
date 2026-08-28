@@ -15,6 +15,7 @@
 class AccountService;
 class AlbumService;
 class ArtistService;
+class LikesService;
 class PersonalLanding;
 class PlayerService;
 class PlaylistService;
@@ -76,6 +77,11 @@ class AppController : public QObject
         NOTIFY loadingLibraryPlaylistsChanged)
 
     Q_PROPERTY(
+        bool loadingLikedTracks
+        READ isLoadingLikedTracks
+        NOTIFY loadingLikedTracksChanged)
+
+    Q_PROPERTY(
         bool loadingPlaylist
         READ isLoadingPlaylist
         NOTIFY loadingPlaylistChanged)
@@ -113,6 +119,11 @@ class AppController : public QObject
     Q_PROPERTY(
         LibraryPlaylistsModel *libraryPlaylistsModel
         READ libraryPlaylistsModel
+        CONSTANT)
+
+    Q_PROPERTY(
+        LikedTracksModel *likedTracksModel
+        READ likedTracksModel
         CONSTANT)
 
     Q_PROPERTY(
@@ -285,13 +296,6 @@ public:
 
 
     // =============================================================
-    // Media
-    // =============================================================
-
-    Q_INVOKABLE void selectLibraryPlaylist(
-    int index);
-
-    // =============================================================
     // Search
     // =============================================================
 
@@ -329,6 +333,14 @@ public:
     // =============================================================
 
     Q_INVOKABLE void loadLibrary();
+
+    Q_INVOKABLE void selectLibraryPlaylist(
+        int index);
+
+    Q_INVOKABLE void loadLikedTracks();
+
+    Q_INVOKABLE void selectLikedTrack(
+        int index);
 
 
     // =============================================================
@@ -403,6 +415,9 @@ public:
     LibraryPlaylistsModel *
     libraryPlaylistsModel() const;
 
+    LikedTracksModel *
+    likedTracksModel() const;
+
     PlaylistModel *playlistModel() const;
 
     RecentListeningModel *
@@ -428,6 +443,8 @@ public:
     bool isLoadingRecommendations() const;
 
     bool isLoadingLibraryPlaylists() const;
+
+    bool isLoadingLikedTracks() const;
 
     bool isLoadingPlaylist() const;
 
@@ -542,6 +559,8 @@ signals:
 
     void loadingLibraryPlaylistsChanged();
 
+    void loadingLikedTracksChanged();
+
     void loadingPlaylistChanged();
 
     void loadingAlbumChanged();
@@ -620,6 +639,9 @@ private:
     PlaylistService *
         m_playlistService = nullptr;
 
+    LikesService *
+        m_likesService = nullptr;
+
     AlbumService *
         m_albumService = nullptr;
 
@@ -657,10 +679,16 @@ private:
 
 
     // =============================================================
-    // State
+    // Account
     // =============================================================
 
     QString m_accountUid;
 
-    bool m_playAlbumAfterLoad = false;
+
+    // =============================================================
+    // State
+    // =============================================================
+
+    bool m_playAlbumAfterLoad =
+        false;
 };

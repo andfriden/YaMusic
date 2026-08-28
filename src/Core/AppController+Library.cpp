@@ -26,6 +26,10 @@ void AppController::loadLibrary()
     }
 
 
+    /*
+     * Load library playlists.
+     */
+
     m_libraryController
         ->loadUserPlaylists(
             m_accountUid);
@@ -33,7 +37,7 @@ void AppController::loadLibrary()
 
 
 // =============================================================
-// Select library playlist
+// Library playlists
 // =============================================================
 
 void AppController::selectLibraryPlaylist(
@@ -48,14 +52,14 @@ void AppController::selectLibraryPlaylist(
 
 
     /*
-     * Ask MainLayout to open PlaylistPage.
+     * Tell MainLayout to open PlaylistPage.
      */
 
     emit playlistPageRequested();
 
 
     /*
-     * Then load the selected playlist.
+     * Load the selected playlist.
      */
 
     m_libraryController
@@ -63,10 +67,6 @@ void AppController::selectLibraryPlaylist(
             index);
 }
 
-
-// =============================================================
-// Models
-// =============================================================
 
 LibraryPlaylistsModel *
 AppController::libraryPlaylistsModel() const
@@ -84,10 +84,6 @@ AppController::libraryPlaylistsModel() const
 }
 
 
-// =============================================================
-// State
-// =============================================================
-
 bool
 AppController::isLoadingLibraryPlaylists() const
 {
@@ -101,4 +97,84 @@ AppController::isLoadingLibraryPlaylists() const
 
     return m_libraryController
         ->isLoadingLibraryPlaylists();
+}
+
+
+// =============================================================
+// Liked tracks
+// =============================================================
+
+void AppController::loadLikedTracks()
+{
+    if (
+        m_libraryController == nullptr
+    )
+    {
+        return;
+    }
+
+
+    if (
+        m_accountUid.isEmpty()
+    )
+    {
+        emit statusChanged(
+            "Пользователь ещё не загружен");
+
+        return;
+    }
+
+
+    m_libraryController
+        ->loadLikedTracks(
+            m_accountUid);
+}
+
+
+void AppController::selectLikedTrack(
+    int index)
+{
+    if (
+        m_libraryController == nullptr
+    )
+    {
+        return;
+    }
+
+
+    m_libraryController
+        ->selectLikedTrack(
+            index);
+}
+
+
+LikedTracksModel *
+AppController::likedTracksModel() const
+{
+    if (
+        m_libraryController == nullptr
+    )
+    {
+        return nullptr;
+    }
+
+
+    return m_libraryController
+        ->likedTracksModel();
+}
+
+
+bool
+AppController::isLoadingLikedTracks() const
+{
+    if (
+        m_libraryController == nullptr
+    )
+    {
+        return false;
+    }
+
+
+    return m_libraryController
+        ->isLoadingLikedTracks();
 }
