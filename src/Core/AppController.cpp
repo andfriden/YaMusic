@@ -962,6 +962,13 @@ AppController::currentPlaylistTrackCount() const
         ->currentPlaylistTrackCount();
 }
 
+QString
+AppController::currentPlaylistCoverUri() const
+{
+    return m_libraryController
+        ->currentPlaylistCoverUri();
+}
+
 // =============================================================
 // Current album
 // =============================================================

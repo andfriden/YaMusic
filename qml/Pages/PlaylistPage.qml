@@ -6,7 +6,9 @@ Item {
 
     property var controller
 
-    readonly property int pageHeight: 700
+
+    readonly property int pageHeight:
+        700
 
 
     width:
@@ -46,91 +48,163 @@ Item {
 
 
         // =========================================================
-        // Header
+        // Playlist header
         // =========================================================
 
-        Column {
+        Row {
             width:
                 parent.width
+
+            height:
+                180
 
             spacing:
-                6
+                20
 
 
-            Label {
+            // -----------------------------------------------------
+            // Artwork
+            // -----------------------------------------------------
+
+            Rectangle {
                 width:
-                    parent.width
+                    180
 
-                text:
-                        root.controller !== null &&
-                    root.controller !== undefined &&
-                    root.controller.currentPlaylistTitle.length > 0
-                    ? root.controller.currentPlaylistTitle
-                    : "Плейлист"
+                height:
+                    180
+
+                radius:
+                    12
 
                 color:
-                    AppTheme.textPrimary
+                    AppTheme.panelSecondary
 
-                font.pixelSize:
-                    24
-
-                font.bold:
+                clip:
                     true
 
-                elide:
-                    Text.ElideRight
+
+                Image {
+                    id: playlistArtwork
+
+                    anchors.fill:
+                        parent
+
+                    source:
+                            root.controller !== null &&
+                        root.controller !== undefined &&
+                        root.controller.currentPlaylistCoverUri.length > 0
+                        ? "image://yandex/" +
+                        root.controller.currentPlaylistCoverUri
+                        : ""
+
+                    sourceSize:
+                        Qt.size(
+                            360,
+                            360
+                        )
+
+                    fillMode:
+                        Image.PreserveAspectCrop
+
+                    asynchronous:
+                        true
+
+                    cache:
+                        true
+
+                    smooth:
+                        true
+
+
+                    visible:
+                        status === Image.Ready
+                }
+
+
+                Label {
+                    anchors.centerIn:
+                        parent
+
+                    text:
+                        "♪"
+
+                    color:
+                        AppTheme.textSecondary
+
+                    font.pixelSize:
+                        48
+
+                    visible:
+                        playlistArtwork.status !==
+                        Image.Ready
+                }
             }
 
 
-            Label {
+            // -----------------------------------------------------
+            // Information
+            // -----------------------------------------------------
+
+            Column {
+                anchors.verticalCenter:
+                    parent.verticalCenter
+
                 width:
-                    parent.width
+                    parent.width -
+                    200
 
-                text:
-                        root.controller !== null &&
-                    root.controller !== undefined &&
-                    root.controller.currentPlaylistTrackCount > 0
-                    ? qsTr("%1 треков")
-                        .arg(
-                        root.controller.currentPlaylistTrackCount
-                    )
-                    : ""
+                spacing:
+                    8
 
-                color:
-                    AppTheme.textSecondary
 
-                font.pixelSize:
-                    13
+                Label {
+                    width:
+                        parent.width
+
+                    text:
+                            root.controller !== null &&
+                        root.controller !== undefined &&
+                        root.controller.currentPlaylistTitle.length > 0
+                        ? root.controller.currentPlaylistTitle
+                        : "Плейлист"
+
+                    color:
+                        AppTheme.textPrimary
+
+                    font.pixelSize:
+                        28
+
+                    font.bold:
+                        true
+
+                    elide:
+                        Text.ElideRight
+                }
+
+
+                Label {
+                    width:
+                        parent.width
+
+                    text:
+                            root.controller !== null &&
+                        root.controller !== undefined &&
+                        root.controller.loadingPlaylist
+                        ? "Загрузка..."
+                        : ""
+
+                    color:
+                        AppTheme.textSecondary
+
+                    font.pixelSize:
+                        13
+                }
             }
         }
 
 
         // =========================================================
-        // Loading
-        // =========================================================
-
-        Label {
-            width:
-                parent.width
-
-            text:
-                "Загрузка плейлиста..."
-
-            color:
-                AppTheme.textSecondary
-
-            font.pixelSize:
-                14
-
-            visible:
-                root.controller !== null &&
-                root.controller !== undefined &&
-                root.controller.loadingPlaylist
-        }
-
-
-        // =========================================================
-        // Playlist content
+        // Tracks
         // =========================================================
 
         PlaylistView {
@@ -142,8 +216,7 @@ Item {
             height:
                 Math.max(
                     0,
-                    parent.height
-                    - 90
+                    parent.height - 200
                 )
 
             controller:

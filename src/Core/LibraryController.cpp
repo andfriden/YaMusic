@@ -4,6 +4,7 @@
 
 #include <QDebug>
 
+
 LibraryController::LibraryController(
     PlaylistService *playlistService,
     ArtistService *artistService,
@@ -27,58 +28,66 @@ LibraryController::LibraryController(
 
     if (
         m_playlistService != nullptr
-    ) {
-
+    )
+    {
         connect(
             m_playlistService,
             &PlaylistService::playlistReceived,
             this,
             [this](
-                const Playlist &playlist) {
-
-                m_loadingPlaylist = false;
+                const Playlist &playlist)
+            {
+                m_loadingPlaylist =
+                    false;
 
                 emit loadingPlaylistChanged();
+
 
                 m_playlistModel
                     ->setPlaylist(
                         playlist);
 
+
                 m_currentPlaylistTitle =
                     playlist.title;
+
+
+                m_currentPlaylistCoverUri =
+                    playlist.coverUri;
+
 
                 m_currentPlaylistTrackCount =
                     playlist.trackCount;
 
+
                 emit currentPlaylistChanged();
+
 
                 qDebug()
                     << "Плейлист загружен:"
                     << playlist.title
                     << "| треков:"
                     << playlist.trackCount;
-
-                emit statusChanged(
-                    QString(
-                        "Загружен плейлист: %1")
-                    .arg(
-                        playlist.title));
             });
+
 
         connect(
             m_playlistService,
             &PlaylistService::errorOccurred,
             this,
             [this](
-                const QString &message) {
-
-                m_loadingPlaylist = false;
+                const QString &message)
+            {
+                m_loadingPlaylist =
+                    false;
 
                 emit loadingPlaylistChanged();
+
 
                 qDebug()
                     << "Playlist error:"
                     << message;
+
 
                 emit statusChanged(
                     QString(
@@ -88,43 +97,52 @@ LibraryController::LibraryController(
             });
     }
 
+
     // =============================================================
     // Artist
     // =============================================================
 
     if (
         m_artistService != nullptr
-    ) {
-
+    )
+    {
         connect(
             m_artistService,
             &ArtistService::artistReceived,
             this,
             [this](
-                const ArtistDetails &artist) {
-
-                m_loadingArtist = false;
+                const ArtistDetails &artist)
+            {
+                m_loadingArtist =
+                    false;
 
                 emit loadingArtistChanged();
+
 
                 m_artistModel
                     ->setArtist(
                         artist);
 
+
                 m_currentArtistName =
                     artist.name;
 
+
                 m_currentArtistCoverUri =
                     artist.coverUri;
+
 
                 m_currentArtistGenres =
                     artist.genres.join(
                         ", ");
 
+
                 m_currentArtistTrackCount =
                     artist.tracks.size();
 
+
                 emit currentArtistChanged();
+
 
                 qDebug()
                     << "Исполнитель загружен:"
@@ -133,28 +151,26 @@ LibraryController::LibraryController(
                     << artist.id
                     << "| треков:"
                     << artist.tracks.size();
-
-                emit statusChanged(
-                    QString(
-                        "Загружен исполнитель: %1")
-                    .arg(
-                        artist.name));
             });
+
 
         connect(
             m_artistService,
             &ArtistService::errorOccurred,
             this,
             [this](
-                const QString &message) {
-
-                m_loadingArtist = false;
+                const QString &message)
+            {
+                m_loadingArtist =
+                    false;
 
                 emit loadingArtistChanged();
+
 
                 qDebug()
                     << "Artist error:"
                     << message;
+
 
                 emit statusChanged(
                     QString(
@@ -164,6 +180,7 @@ LibraryController::LibraryController(
             });
     }
 }
+
 
 // =============================================================
 // Playlist
@@ -176,52 +193,57 @@ void LibraryController::loadPlaylist(
     const QString playlistUid =
         uid.trimmed();
 
+
     if (
         playlistUid.isEmpty() ||
         kind <= 0
-    ) {
-
+    )
+    {
         emit statusChanged(
             "Некорректный плейлист");
 
         return;
     }
 
+
     if (
         m_playlistService == nullptr
-    ) {
-
+    )
+    {
         emit statusChanged(
             "Сервис плейлистов недоступен");
 
         return;
     }
 
-    m_loadingPlaylist = true;
+
+    m_loadingPlaylist =
+        true;
 
     emit loadingPlaylistChanged();
+
 
     m_playlistModel
         ->clear();
 
+
     m_currentPlaylistTitle.clear();
 
-    m_currentPlaylistTrackCount = 0;
+    m_currentPlaylistCoverUri.clear();
+
+    m_currentPlaylistTrackCount =
+        0;
+
 
     emit currentPlaylistChanged();
 
-    qDebug()
-        << "Загрузка плейлиста:"
-        << "| uid:"
-        << playlistUid
-        << "| kind:"
-        << kind;
 
     m_playlistService
         ->loadPlaylist(
             playlistUid,
             kind);
 }
+
 
 // =============================================================
 // Artist
@@ -233,32 +255,38 @@ void LibraryController::loadArtist(
     const QString artistId =
         id.trimmed();
 
+
     if (
         artistId.isEmpty()
-    ) {
-
+    )
+    {
         emit statusChanged(
             "ID исполнителя не указан");
 
         return;
     }
 
+
     if (
         m_artistService == nullptr
-    ) {
-
+    )
+    {
         emit statusChanged(
             "Сервис исполнителя недоступен");
 
         return;
     }
 
-    m_loadingArtist = true;
+
+    m_loadingArtist =
+        true;
 
     emit loadingArtistChanged();
 
+
     m_artistModel
         ->clear();
+
 
     m_currentArtistName.clear();
 
@@ -266,24 +294,18 @@ void LibraryController::loadArtist(
 
     m_currentArtistGenres.clear();
 
-    m_currentArtistTrackCount = 0;
+    m_currentArtistTrackCount =
+        0;
+
 
     emit currentArtistChanged();
 
-    qDebug()
-        << "Загрузка исполнителя:"
-        << artistId;
-
-    emit statusChanged(
-        QString(
-            "Загрузка исполнителя: %1")
-        .arg(
-            artistId));
 
     m_artistService
         ->loadArtist(
             artistId);
 }
+
 
 // =============================================================
 // Playlist playback
@@ -294,69 +316,80 @@ void LibraryController::selectPlaylistTrack(
 {
     if (
         m_playbackController == nullptr
-    ) {
+    )
+    {
         emit statusChanged(
             "PlaybackController недоступен");
 
         return;
     }
 
-    const Track track =
-        m_playlistModel
-            ->trackAt(
-                index);
-
-    if (
-        track.id.isEmpty()
-    ) {
-
-        emit statusChanged(
-            "Некорректный трек плейлиста");
-
-        return;
-    }
-
-    QueueService *queue =
-        m_playbackController
-            ->queueService();
-
-    if (
-        queue == nullptr
-    ) {
-
-        emit statusChanged(
-            "Очередь воспроизведения недоступна");
-
-        return;
-    }
 
     const QList<Track> tracks =
         m_playlistModel
             ->tracks();
 
+
     if (
         index < 0 ||
         index >= tracks.size()
-    ) {
-
+    )
+    {
         emit statusChanged(
             "Некорректный индекс трека");
 
         return;
     }
 
+
+    const Track track =
+        tracks.at(
+            index);
+
+
+    if (
+        track.id.isEmpty()
+    )
+    {
+        emit statusChanged(
+            "Некорректный трек плейлиста");
+
+        return;
+    }
+
+
+    QueueService *queue =
+        m_playbackController
+            ->queueService();
+
+
+    if (
+        queue == nullptr
+    )
+    {
+        emit statusChanged(
+            "Очередь воспроизведения недоступна");
+
+        return;
+    }
+
+
     queue->clear();
+
 
     queue->addTracks(
         tracks);
 
+
     queue->setCurrentIndex(
         index);
+
 
     m_playbackController
         ->playTrack(
             track);
 }
+
 
 // =============================================================
 // Artist playback
@@ -367,69 +400,80 @@ void LibraryController::selectArtistTrack(
 {
     if (
         m_playbackController == nullptr
-    ) {
+    )
+    {
         emit statusChanged(
             "PlaybackController недоступен");
 
         return;
     }
 
-    const Track track =
+
+    const QList<Track> tracks =
         m_artistModel
-            ->trackAt(
-                index);
+            ->tracks();
+
+
+    if (
+        index < 0 ||
+        index >= tracks.size()
+    )
+    {
+        emit statusChanged(
+            "Некорректный индекс трека исполнителя");
+
+        return;
+    }
+
+
+    const Track track =
+        tracks.at(
+            index);
+
 
     if (
         track.id.isEmpty()
-    ) {
-
+    )
+    {
         emit statusChanged(
             "Некорректный трек исполнителя");
 
         return;
     }
 
+
     QueueService *queue =
         m_playbackController
             ->queueService();
 
+
     if (
         queue == nullptr
-    ) {
-
+    )
+    {
         emit statusChanged(
             "Очередь воспроизведения недоступна");
 
         return;
     }
 
-    const QList<Track> tracks =
-        m_artistModel
-            ->tracks();
-
-    if (
-        index < 0 ||
-        index >= tracks.size()
-    ) {
-
-        emit statusChanged(
-            "Некорректный индекс трека");
-
-        return;
-    }
 
     queue->clear();
+
 
     queue->addTracks(
         tracks);
 
+
     queue->setCurrentIndex(
         index);
+
 
     m_playbackController
         ->playTrack(
             track);
 }
+
 
 // =============================================================
 // Models
@@ -441,28 +485,34 @@ LibraryController::playlistModel() const
     return m_playlistModel;
 }
 
+
 ArtistModel *
 LibraryController::artistModel() const
 {
     return m_artistModel;
 }
 
+
 // =============================================================
 // Loading state
 // =============================================================
 
-bool LibraryController::isLoadingPlaylist() const
+bool
+LibraryController::isLoadingPlaylist() const
 {
     return m_loadingPlaylist;
 }
 
-bool LibraryController::isLoadingArtist() const
+
+bool
+LibraryController::isLoadingArtist() const
 {
     return m_loadingArtist;
 }
 
+
 // =============================================================
-// Playlist state
+// Current playlist
 // =============================================================
 
 QString
@@ -471,14 +521,23 @@ LibraryController::currentPlaylistTitle() const
     return m_currentPlaylistTitle;
 }
 
+
+QString
+LibraryController::currentPlaylistCoverUri() const
+{
+    return m_currentPlaylistCoverUri;
+}
+
+
 int
 LibraryController::currentPlaylistTrackCount() const
 {
     return m_currentPlaylistTrackCount;
 }
 
+
 // =============================================================
-// Artist state
+// Current artist
 // =============================================================
 
 QString
@@ -487,17 +546,20 @@ LibraryController::currentArtistName() const
     return m_currentArtistName;
 }
 
+
 QString
 LibraryController::currentArtistCoverUri() const
 {
     return m_currentArtistCoverUri;
 }
 
+
 QString
 LibraryController::currentArtistGenres() const
 {
     return m_currentArtistGenres;
 }
+
 
 int
 LibraryController::currentArtistTrackCount() const

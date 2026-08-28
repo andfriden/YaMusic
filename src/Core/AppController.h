@@ -211,6 +211,12 @@ class AppController : public QObject
         READ shuffleEnabled
         NOTIFY shuffleChanged)
 
+    Q_PROPERTY(
+    QString currentPlaylistCoverUri
+    READ currentPlaylistCoverUri
+    NOTIFY currentPlaylistChanged)
+
+
 public:
     explicit AppController(
         QObject *parent = nullptr);
@@ -305,6 +311,8 @@ public:
     Q_INVOKABLE void seek(
         qint64 position);
 
+    QString currentPlaylistCoverUri() const;
+
     /*
      * Models
      */
@@ -357,6 +365,7 @@ public:
     QString currentPlaylistTitle() const;
 
     int currentPlaylistTrackCount() const;
+
 
     /*
      * Current album
