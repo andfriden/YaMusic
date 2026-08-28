@@ -961,6 +961,14 @@ AppController::currentArtistTrackCount() const
 // =============================================================
 
 QString
+AppController::currentTrackId() const
+{
+    return m_playbackController
+        ->currentTrack()
+        .id;
+}
+
+QString
 AppController::currentTrackTitle() const
 {
     return m_playbackController

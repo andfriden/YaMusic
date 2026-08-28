@@ -6,329 +6,641 @@ Item {
 
     property var controller
 
+    signal expandedRequested()
+
+    readonly property bool hasTrack:
+        controller !== null &&
+        controller !== undefined &&
+        (
+            controller.currentTrackTitle || ""
+        ).length > 0
+
+    readonly property bool loading:
+        controller !== null &&
+        controller !== undefined &&
+        controller.playbackState === 1
+
+    readonly property bool playing:
+        controller !== null &&
+        controller !== undefined &&
+        controller.playing
+
+    readonly property bool paused:
+        controller !== null &&
+        controller !== undefined &&
+        controller.playbackState === 3
+
+
+    // =============================================================
+    // Main background
+    // =============================================================
+
     Rectangle {
-        anchors.fill: parent
+        id: panel
 
-        radius: 12
+        anchors.fill:
+            parent
 
-        color: AppTheme.panel
+        radius:
+            14
 
-        border.width: 1
-        border.color: "#d4d4d4"
+        color:
+            AppTheme.panel
 
-        Row {
-            id: contentRow
+        border.width:
+            1
 
-            anchors.fill: parent
-            anchors.margins: 12
+        border.color:
+            AppTheme.borderSubtle
+    }
 
-            spacing: 12
 
-            Image {
-                id: cover
+    // =============================================================
+    // Artwork
+    // =============================================================
 
-                width: 82
-                height: 82
+    Rectangle {
+        id: artworkFrame
 
-                anchors.verticalCenter:
-                    parent.verticalCenter
+        width:
+            72
 
-                source:
-                    root.controller.currentTrackCoverUri
-                        ? "image://yandex/" +
-                        root.controller.currentTrackCoverUri
-                        : ""
+        height:
+            72
 
-                fillMode:
-                    Image.PreserveAspectCrop
+        anchors.left:
+            parent.left
 
-                asynchronous: true
-                cache: true
+        anchors.leftMargin:
+            12
 
-                Rectangle {
-                    anchors.fill: parent
+        anchors.verticalCenter:
+            parent.verticalCenter
 
-                    radius: 8
+        radius:
+            10
 
-                    color: AppTheme.surface
+        color:
+            AppTheme.surface
 
-                    visible:
-                        cover.status !== Image.Ready
+        clip:
+            true
 
-                    Label {
-                        anchors.centerIn: parent
 
-                        text: "♪"
+        Image {
+            id: artwork
 
-                        color: AppTheme.textSecondary
+            anchors.fill:
+                parent
 
-                        font.pixelSize: 28
-                    }
-                }
+            source:
+                    root.hasTrack &&
+                (
+                    root.controller.currentTrackCoverUri ||
+                    ""
+                ).length > 0
+                ? "image://yandex/" +
+                root.controller.currentTrackCoverUri
+                : ""
+
+            sourceSize:
+                Qt.size(
+                    144,
+                    144
+                )
+
+            fillMode:
+                Image.PreserveAspectCrop
+
+            asynchronous:
+                true
+
+            cache:
+                true
+
+            smooth:
+                true
+
+            visible:
+                status === Image.Ready
+        }
+
+
+        Rectangle {
+            anchors.fill:
+                parent
+
+            color:
+                AppTheme.surface
+
+            visible:
+                artwork.status !== Image.Ready
+
+
+            Label {
+                anchors.centerIn:
+                    parent
+
+                text:
+                    root.loading
+                        ? "..."
+                        : "♪"
+
+                color:
+                    AppTheme.textSecondary
+
+                font.pixelSize:
+                    root.loading
+                        ? 18
+                        : 26
             }
+        }
+    }
 
-            Column {
-                id: trackInfo
 
+    // =============================================================
+    // Track information
+    // =============================================================
+
+    Item {
+        id: infoArea
+
+        anchors.left:
+            artworkFrame.right
+
+        anchors.leftMargin:
+            14
+
+        anchors.right:
+            controlsArea.left
+
+        anchors.rightMargin:
+            18
+
+        anchors.top:
+            parent.top
+
+        anchors.bottom:
+            parent.bottom
+
+
+        Column {
+            anchors.left:
+                parent.left
+
+            anchors.right:
+                parent.right
+
+            anchors.verticalCenter:
+                parent.verticalCenter
+
+            spacing:
+                3
+
+
+            // -----------------------------------------------------
+            // Title
+            // -----------------------------------------------------
+
+            Label {
                 width:
-                    Math.max(
-                        180,
-                        contentRow.width -
-                        cover.width -
-                        controls.width -
-                        48)
+                    parent.width
 
-                anchors.verticalCenter:
-                    parent.verticalCenter
+                text:
+                    root.hasTrack
+                        ? root.controller.currentTrackTitle
+                        : qsTr("Ничего не играет")
 
-                spacing: 4
+                color:
+                    AppTheme.textPrimary
 
-                Label {
-                    width: parent.width
+                font.pixelSize:
+                    14
 
-                    text:
-                        root.controller.currentTrackTitle ||
-                        "Ничего не играет"
+                font.bold:
+                    true
 
-                    color: AppTheme.textPrimary
-
-                    font.pixelSize: 15
-                    font.bold: true
-
-                    elide:
-                        Text.ElideRight
-                }
-
-                Label {
-                    width: parent.width
-
-                    text:
-                        root.controller.currentTrackArtist ||
-                        ""
-
-                    color: AppTheme.textSecondary
-
-                    font.pixelSize: 12
-
-                    elide:
-                        Text.ElideRight
-
-                    MouseArea {
-                        id: artistMouseArea
-
-                        anchors.fill: parent
-
-                        hoverEnabled: true
-
-                        enabled:
-                            (
-                                root.controller.currentTrackArtistId ||
-                                ""
-                            ).length > 0
-
-                        cursorShape:
-                            enabled
-                                ? Qt.PointingHandCursor
-                                : Qt.ArrowCursor
-
-                        onClicked: {
-                            var artistId =
-                                root.controller.currentTrackArtistId ||
-                                ""
-
-                            if (
-                                artistId.length > 0
-                            ) {
-
-                                root.controller
-                                    .loadArtist(
-                                    artistId)
-                            }
-                        }
-                    }
-                }
-
-                Row {
-                    width: parent.width
-
-                    spacing: 6
-
-                    Label {
-                        width: 32
-
-                        text:
-                            formatTime(
-                                root.controller.position)
-
-                        color: AppTheme.textMuted
-
-                        font.pixelSize: 10
-
-                        horizontalAlignment:
-                            Text.AlignLeft
-                    }
-
-                    Slider {
-                        id: progressSlider
-
-                        width:
-                            Math.max(
-                                80,
-                                parent.width - 82)
-
-                        from: 0
-
-                        to:
-                            Math.max(
-                                1,
-                                root.controller.duration)
-
-                        value:
-                            Math.min(
-                                root.controller.position,
-                                to)
-
-                        enabled:
-                            root.controller.duration > 0
-
-                        onMoved: {
-                            root.controller.seek(
-                                value)
-                        }
-                    }
-                }
+                elide:
+                    Text.ElideRight
             }
 
-            Row {
-                id: controls
 
-                width: 282
+            // -----------------------------------------------------
+            // Artist
+            // -----------------------------------------------------
 
-                anchors.verticalCenter:
-                    parent.verticalCenter
+            Item {
+                width:
+                    parent.width
 
-                spacing: 8
+                height:
+                    18
 
-                Button {
-                    width: 40
-                    height: 40
 
-                    text: "‹"
+                Label {
+                    id: artistLabel
 
-                    enabled:
-                        (
-                            root.controller.currentTrackTitle ||
-                            ""
-                        ).length > 0
+                    width:
+                        Math.min(
+                            implicitWidth,
+                            parent.width
+                        )
 
-                    onClicked:
-                        root.controller.previous()
-                }
-
-                Button {
-                    width: 48
-                    height: 40
+                    height:
+                        18
 
                     text:
-                        root.controller.playing
-                            ? "Ⅱ"
-                            : "▶"
+                        root.hasTrack
+                            ? (
+                                root.controller.currentTrackArtist ||
+                                ""
+                            )
+                            : ""
+
+                    color:
+                        artistArea.containsMouse
+                            ? AppTheme.accent
+                            : AppTheme.textSecondary
+
+                    font.pixelSize:
+                        11
+
+                    elide:
+                        Text.ElideRight
+                }
+
+
+                MouseArea {
+                    id: artistArea
+
+                    anchors.fill:
+                        artistLabel
+
+                    hoverEnabled:
+                        true
 
                     enabled:
+                        root.hasTrack &&
                         (
-                            root.controller.currentTrackTitle ||
+                            root.controller.currentTrackArtistId ||
                             ""
                         ).length > 0
+
+                    cursorShape:
+                        enabled
+                            ? Qt.PointingHandCursor
+                            : Qt.ArrowCursor
 
                     onClicked: {
+                        var artistId =
+                            root.controller.currentTrackArtistId ||
+                            ""
 
                         if (
-                            root.controller.playing
+                            artistId.length === 0
                         ) {
-
-                            root.controller.pause()
-
-                        } else {
-
-                            root.controller.play()
+                            return
                         }
+
+                        root.controller.loadArtist(
+                            artistId
+                        )
+                    }
+                }
+            }
+
+
+            // -----------------------------------------------------
+            // Progress
+            // -----------------------------------------------------
+
+            Row {
+                width:
+                    parent.width
+
+                height:
+                    18
+
+                spacing:
+                    6
+
+
+                Label {
+                    width:
+                        32
+
+                    anchors.verticalCenter:
+                        parent.verticalCenter
+
+                    text:
+                        root.hasTrack
+                            ? root.formatTime(
+                                root.controller.position
+                            )
+                            : "0:00"
+
+                    color:
+                        AppTheme.textMuted
+
+                    font.pixelSize:
+                        9
+
+                    horizontalAlignment:
+                        Text.AlignLeft
+                }
+
+
+                Slider {
+                    id: progressSlider
+
+                    width:
+                        Math.max(
+                            60,
+                            parent.width - 76
+                        )
+
+                    anchors.verticalCenter:
+                        parent.verticalCenter
+
+                    height:
+                        18
+
+                    from:
+                        0
+
+                    to:
+                        Math.max(
+                            1,
+                                root.controller !== null &&
+                                root.controller !== undefined
+                                ? root.controller.duration
+                                : 0
+                        )
+
+                    value:
+                        Math.min(
+                                root.controller !== null &&
+                                root.controller !== undefined
+                                ? root.controller.position
+                                : 0,
+                            to
+                        )
+
+                    enabled:
+                        root.hasTrack &&
+                        root.controller.duration > 0
+
+                    onMoved: {
+                        root.controller.seek(
+                            value
+                        )
                     }
                 }
 
-                Button {
-                    width: 40
-                    height: 40
 
-                    text: "›"
+                Label {
+                    width:
+                        32
 
-                    enabled:
-                        (
-                            root.controller.currentTrackTitle ||
-                            ""
-                        ).length > 0
-
-                    onClicked:
-                        root.controller.next()
-                }
-
-                Button {
-                    width: 40
-                    height: 40
+                    anchors.verticalCenter:
+                        parent.verticalCenter
 
                     text:
-                            root.controller.repeatMode === 0
-                        ? "↻"
-                        : root.controller.repeatMode === 1
-                            ? "↻A"
-                            : "↻1"
+                        root.hasTrack
+                            ? root.formatTime(
+                                root.controller.duration
+                            )
+                            : "0:00"
 
-                    enabled:
-                        (
-                            root.controller.currentTrackTitle ||
-                            ""
-                        ).length > 0
+                    color:
+                        AppTheme.textMuted
 
-                    onClicked:
-                        root.controller.cycleRepeat()
-                }
+                    font.pixelSize:
+                        9
 
-                Button {
-                    width: 40
-                    height: 40
-
-                    text:
-                        root.controller.shuffleEnabled
-                            ? "🔀"
-                            : "⇄"
-
-                    enabled:
-                        (
-                            root.controller.currentTrackTitle ||
-                            ""
-                        ).length > 0
-
-                    onClicked:
-                        root.controller.toggleShuffle()
-                }
-
-                Button {
-                    width: 40
-                    height: 40
-
-                    text: "■"
-
-                    enabled:
-                        (
-                            root.controller.currentTrackTitle ||
-                            ""
-                        ).length > 0
-
-                    onClicked:
-                        root.controller.stop()
+                    horizontalAlignment:
+                        Text.AlignRight
                 }
             }
         }
     }
+
+
+    // =============================================================
+    // Controls
+    // =============================================================
+
+    Row {
+        id: controlsArea
+
+        width:
+            300
+
+        anchors.right:
+            parent.right
+
+        anchors.rightMargin:
+            12
+
+        anchors.verticalCenter:
+            parent.verticalCenter
+
+        spacing:
+            6
+
+
+        // ---------------------------------------------------------
+        // Previous
+        // ---------------------------------------------------------
+
+        Button {
+            width:
+                38
+
+            height:
+                38
+
+            text:
+                "‹"
+
+            enabled:
+                root.hasTrack
+
+            onClicked:
+                root.controller.previous()
+        }
+
+
+        // ---------------------------------------------------------
+        // Play / Pause
+        // ---------------------------------------------------------
+
+        Button {
+            id: playButton
+
+            width:
+                44
+
+            height:
+                38
+
+            text:
+                root.loading
+                    ? "..."
+                    : root.playing
+                        ? "Ⅱ"
+                        : "▶"
+
+            enabled:
+                root.hasTrack &&
+                !root.loading
+
+            onClicked: {
+                if (
+                    root.playing
+                ) {
+                    root.controller.pause()
+                } else {
+                    root.controller.play()
+                }
+            }
+        }
+
+
+        // ---------------------------------------------------------
+        // Next
+        // ---------------------------------------------------------
+
+        Button {
+            width:
+                38
+
+            height:
+                38
+
+            text:
+                "›"
+
+            enabled:
+                root.hasTrack
+
+            onClicked:
+                root.controller.next()
+        }
+
+
+        // ---------------------------------------------------------
+        // Repeat
+        // ---------------------------------------------------------
+
+        Button {
+            id: repeatButton
+
+            width:
+                38
+
+            height:
+                38
+
+            text:
+                    root.controller.repeatMode === 0
+                ? "↻"
+                : root.controller.repeatMode === 1
+                    ? "↻A"
+                    : "↻1"
+
+            enabled:
+                root.hasTrack
+
+            opacity:
+                    root.controller.repeatMode === 0
+                ? 0.65
+                : 1.0
+
+            onClicked:
+                root.controller.cycleRepeat()
+        }
+
+
+        // ---------------------------------------------------------
+        // Shuffle
+        // ---------------------------------------------------------
+
+        Button {
+            id: shuffleButton
+
+            width:
+                38
+
+            height:
+                38
+
+            text:
+                root.controller.shuffleEnabled
+                    ? "🔀"
+                    : "⇄"
+
+            enabled:
+                root.hasTrack
+
+            opacity:
+                root.controller.shuffleEnabled
+                    ? 1.0
+                    : 0.65
+
+            onClicked:
+                root.controller.toggleShuffle()
+        }
+
+
+        // ---------------------------------------------------------
+        // Expanded Now Playing
+        // ---------------------------------------------------------
+
+        Button {
+            width:
+                38
+
+            height:
+                38
+
+            text:
+                "↗"
+
+            enabled:
+                root.hasTrack
+
+            onClicked:
+                root.expandedRequested()
+        }
+
+
+        // ---------------------------------------------------------
+        // Stop
+        // ---------------------------------------------------------
+
+        Button {
+            width:
+                38
+
+            height:
+                38
+
+            text:
+                "■"
+
+            enabled:
+                root.hasTrack
+
+            onClicked:
+                root.controller.stop()
+        }
+    }
+
+
+    // =============================================================
+    // Duration formatter
+    // =============================================================
 
     function formatTime(milliseconds)
     {
@@ -339,16 +651,22 @@ Item {
             return "0:00"
         }
 
+
         var totalSeconds =
             Math.floor(
-                milliseconds / 1000)
+                milliseconds / 1000
+            )
+
 
         var minutes =
             Math.floor(
-                totalSeconds / 60)
+                totalSeconds / 60
+            )
+
 
         var seconds =
             totalSeconds % 60
+
 
         return minutes +
             ":" +
