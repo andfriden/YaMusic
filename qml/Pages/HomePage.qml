@@ -5,7 +5,6 @@ Item {
 
     property var controller
 
-
     // =============================================================
     // Page contract
     // =============================================================
@@ -28,60 +27,12 @@ Item {
 
     Component.onCompleted: {
 
-        /*
-         * Home starts with My Wave, so load it immediately.
-         *
-         * AppController already protects against concurrent/redundant
-         * loading while a request is active.
-         */
-
         if (
             root.controller !== null &&
             root.controller !== undefined
         ) {
             root.controller.loadMyWave()
         }
-
-
-        // =========================================================
-        // Debug
-        // =========================================================
-
-        console.log(
-            "========================================"
-        )
-
-        console.log(
-            "HomePage CREATED"
-        )
-
-        console.log(
-            "controller:",
-            root.controller
-        )
-
-        console.log(
-            "width:",
-            root.width
-        )
-
-        console.log(
-            "height:",
-            root.height
-        )
-
-        console.log(
-            "pageHeight:",
-            root.pageHeight
-        )
-
-        console.log(
-            "My Wave loading requested"
-        )
-
-        console.log(
-            "========================================"
-        )
     }
 
 
@@ -146,12 +97,11 @@ Item {
                 content.width
 
             height:
-                190
+                340
 
             controller:
                 root.controller
         }
-
 
         // ---------------------------------------------------------
         // Recently listened
