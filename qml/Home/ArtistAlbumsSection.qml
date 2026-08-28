@@ -53,104 +53,165 @@ Item {
                 Flickable.StopAtBounds
 
             delegate: Rectangle {
+
+                id: albumCard
+
                 required property int index
                 required property string albumId
                 required property string title
                 required property string coverUri
                 required property int year
 
+
                 width: 150
                 height: 180
 
                 radius: 9
 
+
                 color:
-                    mouseArea.containsMouse
+                    albumMouseArea.containsMouse
                         ? "#e2e2e2"
                         : "#eeeeee"
+
 
                 border.width: 1
 
                 border.color:
-                    mouseArea.containsMouse
+                    albumMouseArea.containsMouse
                         ? "#c9c9c9"
                         : AppTheme.panelHover
 
+
+
                 Column {
+
                     anchors.fill: parent
 
                     spacing: 6
 
+
                     Image {
+
                         id: albumCover
+
 
                         width: 150
                         height: 150
 
+
                         source:
                                 coverUri.length > 0
-                            ? "image://yandex/" +
-                            coverUri
+                            ? "image://yandex/" + coverUri
                             : ""
+
 
                         fillMode:
                             Image.PreserveAspectCrop
 
+
                         asynchronous: true
                         cache: true
 
+
                         Rectangle {
+
                             anchors.fill: parent
 
                             radius: 9
 
-                            color: AppTheme.surface
+                            color:
+                                AppTheme.surface
+
 
                             visible:
                                 albumCover.status !== Image.Ready
                         }
                     }
 
+
                     Label {
-                        width: parent.width
 
-                        text: title
+                        id: albumTitle
 
-                        color: AppTheme.textPrimary
 
-                        font.pixelSize: 12
-                        font.bold: true
+                        width:
+                            parent.width
 
-                        elide: Text.ElideRight
+
+                        text:
+                            title
+
+
+                        color:
+                            AppTheme.textPrimary
+
+
+                        font.pixelSize:
+                            12
+
+
+                        font.bold:
+                            true
+
+
+                        elide:
+                            Text.ElideRight
                     }
 
+
                     Label {
-                        visible: year > 0
 
-                        text: year
+                        visible:
+                            year > 0
 
-                        color: AppTheme.textMuted
 
-                        font.pixelSize: 10
+                        text:
+                            year
+
+
+                        color:
+                            AppTheme.textMuted
+
+
+                        font.pixelSize:
+                            10
                     }
                 }
 
+
+
+                // Клик всей карточки
+
                 MouseArea {
-                    id: mouseArea
 
-                    anchors.fill: parent
+                    id: albumMouseArea
 
-                    hoverEnabled: true
+
+                    anchors.fill:
+                        parent
+
+
+                    hoverEnabled:
+                        true
+
+
+                    z:
+                        0
+
 
                     cursorShape:
                         Qt.PointingHandCursor
 
+
                     onClicked: {
+
                         if (
                             root.controller === null
                         ) {
                             return
                         }
+
 
                         root.controller.loadAlbum(
                             albumId
@@ -158,25 +219,6 @@ Item {
                     }
                 }
             }
-        }
-
-        Label {
-            width: parent.width
-
-            text:
-                qsTr("Альбомов нет")
-
-            color: AppTheme.textMuted
-
-            font.pixelSize: 13
-
-            horizontalAlignment:
-                Text.AlignHCenter
-
-            visible:
-                root.artistController !== null &&
-                root.artistController.albumsModel !== null &&
-                albumsView.count === 0
         }
     }
 }

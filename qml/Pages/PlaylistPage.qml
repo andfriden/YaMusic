@@ -44,17 +44,6 @@ Item {
         spacing: 20
 
 
-        Label {
-
-            text: "Плейлисты"
-
-            color: AppTheme.textPrimary
-
-            font.pixelSize: 26
-
-            font.bold: true
-        }
-
 
         Label {
 
