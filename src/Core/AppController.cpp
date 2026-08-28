@@ -82,11 +82,12 @@ AppController::AppController(
               this))
 
     , m_playerService(
-          new PlayerService(this))
+          new PlayerService(
+              this))
 
     , m_queueService(
-          new QueueService(this))
-
+          new QueueService(
+              this))
 
     // ---------------------------------------------------------
     // Controllers
@@ -162,14 +163,18 @@ void AppController::connectAccount()
         [this](
             const Account &account)
         {
+            m_accountUid =
+                QString::number(
+                    account.uid);
+
+
             if (
                 m_recentListeningService != nullptr
             )
             {
                 m_recentListeningService
                     ->setUserId(
-                        QString::number(
-                            account.uid));
+                        m_accountUid);
 
                 m_recentListeningService
                     ->load(
@@ -228,6 +233,13 @@ void AppController::connectLibrary()
         &LibraryController::statusChanged,
         this,
         &AppController::statusChanged);
+
+
+    connect(
+        m_libraryController,
+        &LibraryController::loadingLibraryPlaylistsChanged,
+        this,
+        &AppController::loadingLibraryPlaylistsChanged);
 
 
     connect(
@@ -425,7 +437,7 @@ void AppController::connectArtist()
 
 
 // =============================================================
-// Playback controller
+// Playback
 // =============================================================
 
 void AppController::connectPlayback()

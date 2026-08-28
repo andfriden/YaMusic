@@ -8,6 +8,7 @@
 #include "../Yandex/Catalog/ArtistModel.h"
 #include "../Yandex/Catalog/ArtistService.h"
 
+#include "../Yandex/Personal/LibraryPlaylistsModel.h"
 #include "../Yandex/Personal/PlaylistModel.h"
 #include "../Yandex/Personal/PlaylistService.h"
 
@@ -15,6 +16,22 @@
 class LibraryController : public QObject
 {
     Q_OBJECT
+
+
+    // =============================================================
+    // Library playlists
+    // =============================================================
+
+    Q_PROPERTY(
+        bool loadingLibraryPlaylists
+        READ isLoadingLibraryPlaylists
+        NOTIFY loadingLibraryPlaylistsChanged)
+
+
+    Q_PROPERTY(
+        LibraryPlaylistsModel *libraryPlaylistsModel
+        READ libraryPlaylistsModel
+        CONSTANT)
 
 
     // =============================================================
@@ -43,6 +60,12 @@ class LibraryController : public QObject
         int currentPlaylistTrackCount
         READ currentPlaylistTrackCount
         NOTIFY currentPlaylistChanged)
+
+
+    Q_PROPERTY(
+        PlaylistModel *playlistModel
+        READ playlistModel
+        CONSTANT)
 
 
     // =============================================================
@@ -79,16 +102,6 @@ class LibraryController : public QObject
         NOTIFY currentArtistChanged)
 
 
-    // =============================================================
-    // Models
-    // =============================================================
-
-    Q_PROPERTY(
-        PlaylistModel *playlistModel
-        READ playlistModel
-        CONSTANT)
-
-
     Q_PROPERTY(
         ArtistModel *artistModel
         READ artistModel
@@ -105,6 +118,25 @@ public:
 
 
     // =============================================================
+    // Library playlists
+    // =============================================================
+
+    void loadUserPlaylists(
+        const QString &uid);
+
+
+    void selectLibraryPlaylist(
+        int index);
+
+
+    LibraryPlaylistsModel *
+    libraryPlaylistsModel() const;
+
+
+    bool isLoadingLibraryPlaylists() const;
+
+
+    // =============================================================
     // Playlist
     // =============================================================
 
@@ -115,6 +147,20 @@ public:
 
     void selectPlaylistTrack(
         int index);
+
+
+    PlaylistModel *
+    playlistModel() const;
+
+
+    bool isLoadingPlaylist() const;
+
+
+    QString currentPlaylistTitle() const;
+
+    QString currentPlaylistCoverUri() const;
+
+    int currentPlaylistTrackCount() const;
 
 
     // =============================================================
@@ -129,38 +175,12 @@ public:
         int index);
 
 
-    // =============================================================
-    // Models
-    // =============================================================
+    ArtistModel *
+    artistModel() const;
 
-    PlaylistModel *playlistModel() const;
-
-    ArtistModel *artistModel() const;
-
-
-    // =============================================================
-    // Loading state
-    // =============================================================
-
-    bool isLoadingPlaylist() const;
 
     bool isLoadingArtist() const;
 
-
-    // =============================================================
-    // Current playlist
-    // =============================================================
-
-    QString currentPlaylistTitle() const;
-
-    QString currentPlaylistCoverUri() const;
-
-    int currentPlaylistTrackCount() const;
-
-
-    // =============================================================
-    // Current artist
-    // =============================================================
 
     QString currentArtistName() const;
 
@@ -173,21 +193,44 @@ public:
 
 signals:
 
+    // =============================================================
+    // Common
+    // =============================================================
+
     void statusChanged(
         const QString &message);
 
 
+    // =============================================================
+    // Library playlists
+    // =============================================================
+
+    void loadingLibraryPlaylistsChanged();
+
+
+    // =============================================================
+    // Playlist
+    // =============================================================
+
     void loadingPlaylistChanged();
 
-    void loadingArtistChanged();
-
-
     void currentPlaylistChanged();
+
+
+    // =============================================================
+    // Artist
+    // =============================================================
+
+    void loadingArtistChanged();
 
     void currentArtistChanged();
 
 
 private:
+
+    // =============================================================
+    // Services
+    // =============================================================
 
     PlaylistService *
         m_playlistService = nullptr;
@@ -201,6 +244,14 @@ private:
         m_playbackController = nullptr;
 
 
+    // =============================================================
+    // Models
+    // =============================================================
+
+    LibraryPlaylistsModel *
+        m_libraryPlaylistsModel = nullptr;
+
+
     PlaylistModel *
         m_playlistModel = nullptr;
 
@@ -210,28 +261,36 @@ private:
 
 
     // =============================================================
-    // Loading state
+    // Library state
     // =============================================================
 
-    bool m_loadingPlaylist = false;
-
-    bool m_loadingArtist = false;
+    bool m_loadingLibraryPlaylists =
+        false;
 
 
     // =============================================================
-    // Current playlist
+    // Playlist state
     // =============================================================
+
+    bool m_loadingPlaylist =
+        false;
+
 
     QString m_currentPlaylistTitle;
 
     QString m_currentPlaylistCoverUri;
 
-    int m_currentPlaylistTrackCount = 0;
+    int m_currentPlaylistTrackCount =
+        0;
 
 
     // =============================================================
-    // Current artist
+    // Artist state
     // =============================================================
+
+    bool m_loadingArtist =
+        false;
+
 
     QString m_currentArtistName;
 
@@ -239,5 +298,6 @@ private:
 
     QString m_currentArtistGenres;
 
-    int m_currentArtistTrackCount = 0;
+    int m_currentArtistTrackCount =
+        0;
 };

@@ -229,6 +229,9 @@ qt_add_executable(
         src/Core/AppController+Selection.cpp
         src/Core/AppController+Playback.cpp
         src/Core/AppController+Search.cpp
+        src/Yandex/Personal/LibraryPlaylistsModel.cpp
+        src/Yandex/Personal/LibraryPlaylistsModel.h
+        src/Core/AppController+Library.cpp
 )
 
 

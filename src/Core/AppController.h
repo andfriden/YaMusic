@@ -71,16 +71,19 @@ class AppController : public QObject
     // =============================================================
 
     Q_PROPERTY(
+        bool loadingLibraryPlaylists
+        READ isLoadingLibraryPlaylists
+        NOTIFY loadingLibraryPlaylistsChanged)
+
+    Q_PROPERTY(
         bool loadingPlaylist
         READ isLoadingPlaylist
         NOTIFY loadingPlaylistChanged)
-
 
     Q_PROPERTY(
         bool loadingAlbum
         READ isLoadingAlbum
         NOTIFY loadingAlbumChanged)
-
 
     Q_PROPERTY(
         bool loadingArtist
@@ -105,6 +108,11 @@ class AppController : public QObject
     Q_PROPERTY(
         PersonalPlaylistsModel *personalPlaylistsModel
         READ personalPlaylistsModel
+        CONSTANT)
+
+    Q_PROPERTY(
+        LibraryPlaylistsModel *libraryPlaylistsModel
+        READ libraryPlaylistsModel
         CONSTANT)
 
     Q_PROPERTY(
@@ -275,8 +283,21 @@ public:
     Q_INVOKABLE void testSearch(
         const QString &query);
 
+
+    // =============================================================
+    // Media
+    // =============================================================
+
+    Q_INVOKABLE void selectLibraryPlaylist(
+    int index);
+
+    // =============================================================
+    // Search
+    // =============================================================
+
     Q_INVOKABLE void search(
-    const QString &query);
+        const QString &query);
+
 
     // =============================================================
     // Catalog
@@ -301,6 +322,13 @@ public:
     Q_INVOKABLE void loadMoreMyWave();
 
     Q_INVOKABLE void loadRecommendations();
+
+
+    // =============================================================
+    // Library
+    // =============================================================
+
+    Q_INVOKABLE void loadLibrary();
 
 
     // =============================================================
@@ -369,11 +397,16 @@ public:
 
     MyWaveModel *myWaveModel() const;
 
-    PersonalPlaylistsModel *personalPlaylistsModel() const;
+    PersonalPlaylistsModel *
+    personalPlaylistsModel() const;
+
+    LibraryPlaylistsModel *
+    libraryPlaylistsModel() const;
 
     PlaylistModel *playlistModel() const;
 
-    RecentListeningModel *recentListeningModel() const;
+    RecentListeningModel *
+    recentListeningModel() const;
 
     AlbumController *albumController() const;
 
@@ -393,6 +426,8 @@ public:
     bool isLoadingMoreMyWave() const;
 
     bool isLoadingRecommendations() const;
+
+    bool isLoadingLibraryPlaylists() const;
 
     bool isLoadingPlaylist() const;
 
@@ -461,7 +496,8 @@ public:
 
     qint64 duration() const;
 
-    PlaybackController::PlaybackState playbackState() const;
+    PlaybackController::PlaybackState
+    playbackState() const;
 
     int repeatMode() const;
 
@@ -473,12 +509,6 @@ signals:
     void statusChanged(
         const QString &message);
 
-    // =============================================================
-    // Search
-    // =============================================================
-
-    void searchPageRequested(
-         const QString &query);
 
     // =============================================================
     // Navigation
@@ -491,6 +521,9 @@ signals:
         const QString &albumId);
 
     void playlistPageRequested();
+
+    void searchPageRequested(
+        const QString &query);
 
 
     // =============================================================
@@ -506,6 +539,8 @@ signals:
     void loadingMoreMyWaveChanged();
 
     void loadingRecommendationsChanged();
+
+    void loadingLibraryPlaylistsChanged();
 
     void loadingPlaylistChanged();
 
@@ -624,6 +659,8 @@ private:
     // =============================================================
     // State
     // =============================================================
+
+    QString m_accountUid;
 
     bool m_playAlbumAfterLoad = false;
 };
