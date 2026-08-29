@@ -10,83 +10,111 @@ Native-клиент Яндекс Музыки для desktop, написанны
 
 ### Аккаунт
 
-- Авторизация через токен Яндекс Музыки
-- Получение информации об аккаунте
-- Получение UID пользователя
-- Проверка соединения с API
+* Авторизация через токен Яндекс Музыки
+* Получение информации об аккаунте
+* Получение UID пользователя
+* Проверка соединения с API
 
 ### Поиск
 
-- Поиск музыки
-- Результаты поиска
-- Artwork треков
-- Название и исполнитель
-- Воспроизведение найденного трека
-- Переход к исполнителю
-- Переход к альбому
-- Состояния загрузки, ошибки и пустого результата
+* Поиск музыки
+* Результаты поиска
+* Artwork треков
+* Название и исполнитель
+* Воспроизведение найденного трека
+* Переход к исполнителю
+* Переход к альбому
+* Loading / Error / Empty states
 
 ### Моя волна
 
-- Загрузка My Wave
-- Догрузка следующих треков
-- Модель треков
-- Воспроизведение
-- Работа с очередью
+* Загрузка My Wave
+* Догрузка следующих партий
+* Модель треков
+* Воспроизведение
+* Автоматический переход к следующему треку
+* Работа с очередью
+* My Wave feedback
 
 ### Персональный контент
 
-- Персональные рекомендации
-- Недавно прослушанные треки
-- Персональные плейлисты
+* Персональные рекомендации
+* Недавно прослушанные треки
+* Персональные плейлисты
 
 ### Медиатека
 
-- Страница медиатеки
-- Пользовательские плейлисты
-- Artwork плейлистов
-- Открытие страницы плейлиста
-- Список треков плейлиста
-- Воспроизведение треков
-- Переход к исполнителю из трека
-- Переход к альбому из трека
+* Страница медиатеки
+* Пользовательские плейлисты
+* Artwork плейлистов
+* Открытие страницы плейлиста
+* Список треков
+* Воспроизведение плейлиста
+* Переход к исполнителю
+* Переход к альбому
+
+### Лайки
+
+* Список понравившихся треков
+* Прокрутка
+* Artist navigation
+* Album navigation
+* Воспроизведение списка лайков
 
 ### Альбомы
 
-- Страница альбома
-- Artwork
-- Список треков
-- Информация об исполнителе
-- Воспроизведение альбома
+* Страница альбома
+* Artwork
+* Список треков
+* Информация об исполнителе
+* Воспроизведение альбома
+* Другие альбомы исполнителя
 
 ### Исполнители
 
-- Страница исполнителя
-- Artwork
-- Популярные треки
-- Популярные альбомы
-- Похожие исполнители
-- Переход между исполнителями
+* Страница исполнителя
+* Artwork
+* Популярные треки
+* Популярные альбомы
+* Похожие исполнители
+* Переход между исполнителями
 
 ### Воспроизведение
 
-- Play
-- Pause
-- Stop
-- Next
-- Previous
-- Seek
-- Repeat
-- Shuffle
-- Очередь воспроизведения
-- Текущий трек
-- Состояние воспроизведения
-- Автоматический переход к следующему треку
-- Автоматическое заполнение очереди
+* Play
+* Pause
+* Stop
+* Next
+* Previous
+* Seek
+* Repeat
+* Shuffle
+* Громкость
+* Очередь воспроизведения
+* Текущий трек
+* Состояния воспроизведения
+* Auto-next
+* Автоматическое заполнение очереди
+* Разные источники воспроизведения
+
+### Now Playing
+
+* Mini Player
+* Dynamic Player Accent
+* Artwork
+* Прогресс воспроизведения
+* Управление громкостью
+* Expanded Now Playing
+* Предыдущий трек
+* Следующие треки
+* Источник воспроизведения
+* Queue
+
+---
 
 # Архитектура
 
-Проект использует слоистую архитектуру и избегает размещения всей бизнес-логики в `AppController`.
+Проект использует слоистую архитектуру.
 
 ```text
 QML
@@ -117,7 +145,7 @@ Yandex Services
 Yandex API
 ```
 
-Воспроизведение отделено от API-каталога и персональных сервисов:
+Воспроизведение отделено от API-каталога:
 
 ```text
 TrackService
@@ -135,61 +163,7 @@ PlayerService
 QMediaPlayer
 ```
 
-## Ответственность компонентов
-
-### AppController
-
-Фасад приложения и точка координации между QML и специализированными контроллерами.
-
-### LibraryController
-
-Отвечает за:
-
-- медиатеку;
-- пользовательские плейлисты;
-- лайкнутые треки;
-- состояние текущего плейлиста;
-- состояние текущего исполнителя в библиотечном контексте.
-
-### PersonalController
-
-Отвечает за персональный контент:
-
-- My Wave;
-- рекомендации;
-- Recent Listening;
-- персональные плейлисты.
-
-### SearchController
-
-Отвечает за поиск и взаимодействие QML с результатами поиска.
-
-### AlbumController
-
-Отвечает за состояние и содержимое страницы альбома.
-
-### ArtistController
-
-Отвечает за состояние и содержимое страницы исполнителя.
-
-### PlaybackController
-
-Оркестрирует:
-
-- текущий трек;
-- очередь;
-- переходы между треками;
-- repeat;
-- shuffle;
-- воспроизведение.
-
-### PlayerService
-
-Непосредственное управление `QMediaPlayer`.
-
-### QueueService
-
-Управление очередью воспроизведения.
+---
 
 # Структура проекта
 
@@ -237,47 +211,51 @@ YaMusic/
 └── README.md
 ```
 
+---
+
 # Roadmap
 
 ## v0.1 — Technical POC ✅
 
-**Цель:** получить рабочий фундамент приложения и первое реальное воспроизведение музыки.
+**Цель:** рабочий фундамент приложения и первое реальное воспроизведение музыки.
 
 ### Project Foundation
 
-- [x] C++17
-- [x] Qt 6
-- [x] Qt Quick / QML
-- [x] CMake
-- [x] Базовая структура проекта
-- [x] AppController
+* [x] C++17
+* [x] Qt 6
+* [x] Qt Quick / QML
+* [x] CMake
+* [x] Базовая структура проекта
+* [x] AppController
 
 ### Yandex API Foundation
 
-- [x] AccountService
-- [x] Проверка соединения с API
-- [x] Получение информации об аккаунте
-- [ ] Привести API-слой к стабильному виду
+* [x] AccountService
+* [x] Проверка соединения с API
+* [x] Получение информации об аккаунте
+* [ ] Привести API-слой к стабильному виду
 
 ### Player / Playback
 
-- [x] PlayerService
-- [x] QMediaPlayer
-- [x] play()
-- [x] playUrl()
-- [x] pause()
-- [x] resume()
-- [x] stop()
-- [x] togglePlayback()
-- [x] playingChanged
-- [x] playbackStarted
-- [x] playbackPaused
-- [x] playbackStopped
-- [x] currentUrlChanged
-- [x] Обработка ошибок
-- [x] Получение реального stream URL
-- [x] Связь TrackService → Playback
-- [x] Реальное воспроизведение найденного трека
+* [x] PlayerService
+* [x] QMediaPlayer
+* [x] play()
+* [x] playUrl()
+* [x] pause()
+* [x] resume()
+* [x] stop()
+* [x] togglePlayback()
+* [x] playingChanged
+* [x] playbackStarted
+* [x] playbackPaused
+* [x] playbackStopped
+* [x] currentUrlChanged
+* [x] Обработка ошибок
+* [x] Получение реального stream URL
+* [x] Связь TrackService → Playback
+* [x] Реальное воспроизведение найденного трека
+
+---
 
 ## v0.2 — Search ✅
 
@@ -285,25 +263,27 @@ YaMusic/
 
 ### Search
 
-- [x] SearchService
-- [x] SearchModel
-- [x] Результаты поиска
-- [x] Выбор результата
-- [x] Модель Track
-- [x] Загрузка полной информации о треке
-- [x] Получение stream URL
-- [x] Подключение к PlayerService
+* [x] SearchService
+* [x] SearchModel
+* [x] Результаты поиска
+* [x] Выбор результата
+* [x] Модель Track
+* [x] Загрузка полной информации о треке
+* [x] Получение stream URL
+* [x] Подключение к PlayerService
 
 ### UI
 
-- [x] Search field
-- [x] Список результатов
-- [x] Artwork
-- [x] Artist / Title
-- [x] Play по нажатию
-- [x] Loading
-- [x] Error
-- [x] Empty state
+* [x] Search field
+* [x] Список результатов
+* [x] Artwork
+* [x] Artist / Title
+* [x] Play по нажатию
+* [x] Loading
+* [x] Error
+* [x] Empty state
+
+---
 
 ## v0.3 — My Wave / Personal ✅
 
@@ -311,21 +291,22 @@ YaMusic/
 
 ### Personal
 
-- [x] YandexPersonal
-- [x] My Wave
-- [x] Персональные рекомендации
-- [x] Recent Listening
-- [x] Personal Playlists
-- [ ] Feed
-- [ ] Likes UI
+* [x] YandexPersonal
+* [x] My Wave
+* [x] Персональные рекомендации
+* [x] Recent Listening
+* [x] Personal Playlists
 
 ### Wave
 
-- [x] Получение треков Wave
-- [x] Модель треков
-- [x] Воспроизведение Wave
-- [x] Переключение треков
-- [ ] Автоматическое получение следующего трека
+* [x] Получение треков Wave
+* [x] Модель треков
+* [x] Воспроизведение Wave
+* [x] Переключение треков
+* [x] Автоматическая подгрузка следующих партий
+* [x] Feedback
+
+---
 
 ## v0.4 — Smart Queue & Playback ✅
 
@@ -333,20 +314,26 @@ YaMusic/
 
 ### Queue
 
-- [x] QueueService
-- [x] Current Track
-- [x] Up Next
-- [x] Добавление треков
-- [x] Очистка очереди
+* [x] QueueService
+* [x] Current Track
+* [x] Up Next
+* [x] Previous Track
+* [x] Добавление треков
+* [x] Удаление треков
+* [x] Перемещение треков
+* [x] Очистка очереди
 
 ### Playback
 
-- [x] Auto-next
-- [x] Next
-- [x] Previous
-- [x] Repeat
-- [x] Shuffle
-- [x] Автоматическое заполнение очереди
+* [x] Auto-next
+* [x] Next
+* [x] Previous
+* [x] Repeat
+* [x] Shuffle
+* [x] Автоматическое заполнение очереди
+* [x] Разные источники воспроизведения
+
+---
 
 ## v0.5 — Library & Playlists ✅
 
@@ -354,175 +341,284 @@ YaMusic/
 
 ### Library
 
-- [x] LibraryPage
-- [x] Пользовательские плейлисты
-- [x] LibraryPlaylistsModel
-- [x] Artwork плейлистов
-- [x] Открытие PlaylistPage
-- [x] Список треков
-- [x] Воспроизведение плейлиста
-- [x] Artist navigation
-- [x] Album navigation
+* [x] LibraryPage
+* [x] Пользовательские плейлисты
+* [x] LibraryPlaylistsModel
+* [x] Artwork плейлистов
+* [x] Открытие PlaylistPage
+* [x] Список треков
+* [x] Воспроизведение плейлиста
+* [x] Artist navigation
+* [x] Album navigation
 
 ### Architecture
 
-- [x] LibraryController
-- [x] Library service layer
-- [x] AppController → LibraryController
-- [x] AppController+Library.cpp
+* [x] LibraryController
+* [x] Library service layer
+* [x] AppController → LibraryController
+* [x] AppController+Library.cpp
 
-## v0.6 — Likes 🟡
+---
+
+## v0.6 — Likes ✅
 
 **Цель:** полноценная работа с понравившимися треками.
 
 ### Backend
 
-- [x] LikesService
-- [x] LikedTracksModel
-- [x] Получение ID лайкнутых треков
-- [x] Получение полной информации о Track
-- [x] LibraryController integration
-- [x] AppController integration
+* [x] LikesService
+* [x] LikedTracksModel
+* [x] Получение ID лайкнутых треков
+* [x] Получение полной информации о Track
+* [x] LibraryController integration
+* [x] AppController integration
 
 ### UI
 
-- [ ] Полный список лайкнутых треков
-- [ ] Корректная прокрутка
-- [ ] Artist navigation
-- [ ] Album navigation
-- [ ] Удобное воспроизведение списка лайков
+* [x] Полный список лайкнутых треков
+* [x] Корректное отображение списка
+* [x] Прокрутка списка
+* [x] Artist navigation
+* [x] Album navigation
+* [x] Воспроизведение списка лайков
 
-## v0.7 — Playback Polish / Now Playing 🔜
+---
+
+## v0.7 — Playback Polish / Now Playing ✅
 
 **Цель:** улучшить пользовательский опыт воспроизведения.
 
 ### Player UI
 
-- [ ] Переработать Mini Player
-- [ ] Улучшить Now Playing
-- [ ] Добавить управление громкостью
-- [ ] Улучшить playback controls
-- [ ] Улучшить отображение очереди
-- [ ] Улучшить состояния воспроизведения
+* [x] Переработан Mini Player
+* [x] Dynamic Player Accent
+* [x] Управление громкостью
+* [x] Playback controls
+* [x] Состояния воспроизведения
+* [x] Улучшенное отображение очереди
 
 ### Now Playing
 
-- [ ] Улучшенное отображение текущего трека
-- [ ] Улучшенное artwork
-- [ ] Улучшенные метаданные
+* [x] Текущий трек
+* [x] Исполнитель
+* [x] Альбом
+* [x] Artwork
+* [x] Прогресс воспроизведения
+* [x] Expanded Now Playing / Queue
+* [x] Кнопка открытия Expanded Now Playing
+* [x] Отображение источника воспроизведения
+* [x] Отображение текущего трека и очереди
+* [x] Предыдущий трек
+* [x] Следующие треки
+* [x] Улучшенное artwork
+* [x] Улучшенные метаданные
+
+---
 
 # Будущее
 
 ## Catalog
 
-- [ ] Genres
-- [ ] Charts
-- [ ] New Releases
+* [ ] Genres
+* [ ] Charts
+* [ ] New Releases
 
 ## Personal
 
-- [ ] Feed
-- [ ] Улучшенные рекомендации
-- [ ] Дальнейшее развитие Likes
+* [ ] Feed
+* [ ] Улучшенные рекомендации
+* [ ] Дальнейшее развитие Likes
 
 ## Radio
 
-- [ ] Rotor
-- [ ] Радиораздел
+* [ ] Rotor
+* [ ] Радиораздел
 
 ## Lyrics
 
-- [ ] Lyrics
-- [ ] Отображение текста песни
+* [ ] Lyrics
+* [ ] Отображение текста песни
 
 ## Infrastructure
 
-- [ ] Полноценное получение токена для новых пользователей
-- [ ] Установка и хранение токена
-- [ ] Logout
-- [ ] Смена аккаунта
-- [ ] Proxy configuration
-- [ ] Применение proxy к API-запросам
-- [ ] Тестирование авторизации через proxy
-- [ ] Тестирование API через proxy
-- [ ] Тестирование artwork через proxy
+* [ ] Полноценное получение токена для новых пользователей
+* [ ] UI для установки токена
+* [ ] Безопасное хранение токена
+* [ ] Logout
+* [ ] Смена аккаунта
+* [ ] Proxy configuration
+* [ ] Применение proxy к API-запросам
+* [ ] Тестирование авторизации через proxy
+* [ ] Тестирование API через proxy
+* [ ] Тестирование artwork через proxy
 
-# Принципы разработки
+---
 
-### Не смешивать бизнес-логику
+# Сборка и запуск
 
-```text
-QML
- ↓
-AppController
- ↓
-Specialized Controllers
- ↓
-Yandex Services
- ↓
-Yandex API
-```
+YaMusic использует C++17, Qt 6 и CMake.
 
-`AppController` не должен превращаться в единый класс со всей бизнес-логикой приложения.
+## Требования
 
-### Разделять ответственность
+* Qt 6
+* CMake
+* C++17 compiler
+* Qt Quick
+* Qt Multimedia
 
-- `AppController` — фасад и координация
-- `LibraryController` — медиатека
-- `PersonalController` — персональный контент
-- `SearchController` — поиск
-- `AlbumController` — альбом
-- `ArtistController` — исполнитель
-- `PlaybackController` — оркестрация воспроизведения
-- `PlayerService` — непосредственное воспроизведение
-- `QueueService` — очередь
-- Yandex Services — работа с API
+---
 
-# Сборка
+## Windows
 
-## Конфигурация
+### Конфигурация
 
-```bash
-cmake -S . -B cmake-build-debug \
+```powershell
+cmake -S . -B build `
     -DCMAKE_BUILD_TYPE=Debug
 ```
 
-## Сборка
+### Сборка
+
+```powershell
+cmake --build build --config Debug
+```
+
+### Запуск
+
+```powershell
+.\build\Debug\appYaMusic.exe
+```
+
+---
+
+## Linux
+
+### Конфигурация
 
 ```bash
-cmake --build cmake-build-debug \
+cmake -S . -B build \
+    -DCMAKE_BUILD_TYPE=Debug
+```
+
+### Сборка
+
+```bash
+cmake --build build \
     --target appYaMusic \
-    -j 10
+    -j$(nproc)
 ```
 
-## Запуск на macOS
+### Запуск
 
 ```bash
-./cmake-build-debug/appYaMusic.app/Contents/MacOS/appYaMusic
+./build/appYaMusic
 ```
+
+---
+
+## macOS
+
+### Конфигурация
+
+```bash
+cmake -S . -B build \
+    -DCMAKE_BUILD_TYPE=Debug
+```
+
+### Сборка
+
+```bash
+cmake --build build \
+    --target appYaMusic \
+    -j$(sysctl -n hw.ncpu)
+```
+
+### Запуск
+
+```bash
+./build/appYaMusic.app/Contents/MacOS/appYaMusic
+```
+
+---
+
+# Токен Яндекс Музыки
+
+Для доступа к персональному контенту и части API нужен токен Яндекс Музыки.
+
+Токен не должен находиться в Git, README или исходном коде.
+
+## Хранение
+
+YaMusic использует `QSettings`.
+
+Ключ:
+
+```text
+yandex/token
+```
+
+Хранилище предоставляет:
+
+```cpp
+YandexTokenStorage::load()
+YandexTokenStorage::saveToken()
+YandexTokenStorage::clearToken()
+```
+
+Токен сохраняется локально через `QSettings` и автоматически используется при последующем запуске приложения.
+
+## Пока нет UI ввода токена
+
+Сейчас отдельного интерфейса для первого ввода токена ещё нет.
+
+Для разработки токен можно сохранить через:
+
+```cpp
+YandexTokenStorage::saveToken(
+    "YOUR_YANDEX_MUSIC_TOKEN"
+);
+```
+
+После сохранения приложение сможет загрузить его через:
+
+```cpp
+YandexTokenStorage::load();
+```
+
+После появления полноценного UI этот раздел будет заменён инструкцией для пользователя.
+
+> Не коммитьте настоящий токен в репозиторий.
+
+---
 
 # Текущий статус
 
-**Текущая версия разработки: v0.6 — Likes 🟡**
+**Текущая версия: v0.7 — Playback Polish / Now Playing ✅**
 
-Основной фундамент приложения уже готов.
+Основной фундамент приложения и playback-инфраструктура реализованы.
 
 Работают:
 
-- поиск;
-- My Wave;
-- персональные рекомендации;
-- Recent Listening;
-- альбомы;
-- исполнители;
-- плейлисты;
-- медиатека;
-- воспроизведение;
-- очередь;
-- автоматический переход между треками;
-- автоматическое заполнение очереди;
-- навигация между сущностями.
+* аккаунт и подключение к Yandex API;
+* поиск;
+* My Wave;
+* персональные рекомендации;
+* Recent Listening;
+* персональные плейлисты;
+* медиатека;
+* лайкнутые треки;
+* плейлисты;
+* альбомы;
+* исполнители;
+* воспроизведение;
+* QueueService;
+* Auto-next;
+* Repeat;
+* Shuffle;
+* управление громкостью;
+* Dynamic Player Accent;
+* Mini Player;
+* Expanded Now Playing;
+* единая очередь для разных источников воспроизведения.
 
-Текущий незавершённый участок — **UI лайкнутых треков**.
-
-После завершения `v0.6` основной фокус перейдёт на **Playback Polish / Now Playing**.
+Следующий этап — развитие функциональности из раздела **«Будущее»**.
