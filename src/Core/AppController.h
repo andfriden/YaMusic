@@ -3,6 +3,7 @@
 #include <QColor>
 #include <QObject>
 #include <QString>
+#include <QVariantMap>
 
 #include "AlbumController.h"
 #include "ArtistController.h"
@@ -289,6 +290,26 @@ class AppController : public QObject
         WRITE setVolume
         NOTIFY volumeChanged)
 
+    Q_PROPERTY(
+        QString playbackSourceTitle
+        READ playbackSourceTitle
+        NOTIFY playbackSourceChanged)
+
+    Q_PROPERTY(
+        QString playbackSourceType
+        READ playbackSourceType
+        NOTIFY playbackSourceChanged)
+
+    Q_PROPERTY(
+        int queueCount
+        READ queueCount
+        NOTIFY queueChanged)
+
+    Q_PROPERTY(
+        int queueCurrentIndex
+        READ queueCurrentIndex
+        NOTIFY queueChanged)
+
 
     // =============================================================
     // Dynamic Player Accent
@@ -425,6 +446,22 @@ public:
 
     Q_INVOKABLE void setVolume(
         float volume);
+
+
+    // =============================================================
+    // Queue / playback source
+    // =============================================================
+
+    QString playbackSourceTitle() const;
+
+    QString playbackSourceType() const;
+
+    int queueCount() const;
+
+    int queueCurrentIndex() const;
+
+    Q_INVOKABLE QVariantMap queueTrackData(
+        int index) const;
 
 
     // =============================================================
@@ -625,6 +662,10 @@ signals:
     void shuffleChanged();
 
     void volumeChanged();
+
+    void playbackSourceChanged();
+
+    void queueChanged();
 
     void playerAccentChanged();
 

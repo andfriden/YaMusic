@@ -31,6 +31,10 @@ AppController::AppController(
     QObject *parent)
     : QObject(parent)
 
+    // ---------------------------------------------------------
+    // Services
+    // ---------------------------------------------------------
+
     , m_auth(
           new YandexAuth(this))
 
@@ -93,6 +97,10 @@ AppController::AppController(
     , m_playerAccentService(
           new PlayerAccentService(this))
 
+    // ---------------------------------------------------------
+    // Controllers
+    // ---------------------------------------------------------
+
     , m_playbackController(
           new PlaybackController(
               m_trackService,
@@ -153,12 +161,51 @@ AppController::AppController(
     connectPlayer();
 
 
+    // ---------------------------------------------------------
+    // Queue
+    // ---------------------------------------------------------
+
+    if (
+        m_queueService != nullptr
+    )
+    {
+        connect(
+            m_queueService,
+            &QueueService::queueChanged,
+            this,
+            [this]()
+            {
+                emit queueChanged();
+
+                emit playbackSourceChanged();
+            });
+
+
+        connect(
+            m_queueService,
+            &QueueService::currentChanged,
+            this,
+            [this]()
+            {
+                emit queueChanged();
+            });
+    }
+
+
+    // ---------------------------------------------------------
+    // Dynamic Player Accent
+    // ---------------------------------------------------------
+
     connect(
         m_playerAccentService,
         &PlayerAccentService::accentColorChanged,
         this,
         &AppController::playerAccentChanged);
 
+
+    // ---------------------------------------------------------
+    // Account
+    // ---------------------------------------------------------
 
     m_accountService
         ->loadAccount();
@@ -693,6 +740,156 @@ void AppController::testSearch(
 
 
 // =============================================================
+// Queue / playback source
+// =============================================================
+
+QString
+AppController::playbackSourceTitle() const
+{
+    if (
+        m_queueService == nullptr
+    )
+    {
+        return {};
+    }
+
+
+    return m_queueService
+        ->sourceTitle();
+}
+
+
+QString
+AppController::playbackSourceType() const
+{
+    if (
+        m_queueService == nullptr
+    )
+    {
+        return {};
+    }
+
+
+    return m_queueService
+        ->sourceType();
+}
+
+
+int
+AppController::queueCount() const
+{
+    if (
+        m_queueService == nullptr
+    )
+    {
+        return 0;
+    }
+
+
+    return m_queueService
+        ->count();
+}
+
+
+int
+AppController::queueCurrentIndex() const
+{
+    if (
+        m_queueService == nullptr
+    )
+    {
+        return -1;
+    }
+
+
+    return m_queueService
+        ->currentIndex();
+}
+
+
+QVariantMap
+AppController::queueTrackData(
+    int index) const
+{
+    QVariantMap result;
+
+
+    if (
+        m_queueService == nullptr
+    )
+    {
+        return result;
+    }
+
+
+    const Track track =
+        m_queueService
+            ->trackAt(
+                index);
+
+
+    if (
+        track.id.isEmpty()
+    )
+    {
+        return result;
+    }
+
+
+    result.insert(
+        "id",
+        track.id);
+
+
+    result.insert(
+        "title",
+        track.title);
+
+
+    result.insert(
+        "coverUri",
+        track.coverUri);
+
+
+    result.insert(
+        "durationMs",
+        track.durationMs);
+
+
+    if (
+        !track.artists.isEmpty()
+    )
+    {
+        result.insert(
+            "artist",
+            track.artists
+                .first()
+                .name);
+
+
+        result.insert(
+            "artistId",
+            track.artists
+                .first()
+                .id);
+
+    } else {
+
+        result.insert(
+            "artist",
+            "");
+
+        result.insert(
+            "artistId",
+            "");
+    }
+
+
+    return result;
+}
+
+
+// =============================================================
 // Models
 // =============================================================
 
@@ -1183,11 +1380,6 @@ AppController::setVolume(
     {
         return;
     }
-
-
-    qDebug()
-        << "AppController::setVolume:"
-        << volume;
 
 
     m_playerService

@@ -2,6 +2,7 @@
 
 #include <QList>
 #include <QObject>
+#include <QString>
 
 #include "../Models/Track.h"
 
@@ -10,6 +11,7 @@ class QueueService : public QObject
     Q_OBJECT
 
 public:
+
     enum RepeatMode {
         RepeatOff = 0,
         RepeatOne,
@@ -18,8 +20,14 @@ public:
 
     Q_ENUM(RepeatMode)
 
+
     explicit QueueService(
         QObject *parent = nullptr);
+
+
+    // =============================================================
+    // Queue
+    // =============================================================
 
     int count() const;
 
@@ -31,6 +39,26 @@ public:
         int index) const;
 
     QList<Track> tracks() const;
+
+
+    // =============================================================
+    // Source
+    // =============================================================
+
+    QString sourceTitle() const;
+
+    QString sourceType() const;
+
+    void setSource(
+        const QString &title,
+        const QString &type);
+
+    void clearSource();
+
+
+    // =============================================================
+    // Modification
+    // =============================================================
 
     void addTrack(
         const Track &track);
@@ -47,6 +75,11 @@ public:
 
     void clear();
 
+
+    // =============================================================
+    // Navigation
+    // =============================================================
+
     bool setCurrentIndex(
         int index);
 
@@ -58,12 +91,22 @@ public:
 
     bool hasPrevious() const;
 
+
+    // =============================================================
+    // Repeat
+    // =============================================================
+
     RepeatMode repeatMode() const;
 
     void setRepeatMode(
         RepeatMode mode);
 
     void cycleRepeatMode();
+
+
+    // =============================================================
+    // Shuffle
+    // =============================================================
 
     bool shuffleEnabled() const;
 
@@ -72,8 +115,10 @@ public:
 
     void toggleShuffle();
 
-    signals:
-        void queueChanged();
+
+signals:
+
+    void queueChanged();
 
     void currentChanged();
 
@@ -81,18 +126,41 @@ public:
 
     void shuffleChanged();
 
-private:
-    void rebuildShuffledQueue();
 
 private:
+
+    void rebuildShuffledQueue();
+
+
+private:
+
+    // =============================================================
+    // Tracks
+    // =============================================================
+
     QList<Track> m_tracks;
 
     QList<Track> m_originalTracks;
 
     int m_currentIndex = -1;
 
+
+    // =============================================================
+    // Source
+    // =============================================================
+
+    QString m_sourceTitle;
+
+    QString m_sourceType;
+
+
+    // =============================================================
+    // Playback options
+    // =============================================================
+
     RepeatMode m_repeatMode =
         RepeatOff;
 
-    bool m_shuffleEnabled = false;
+    bool m_shuffleEnabled =
+        false;
 };

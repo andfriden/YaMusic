@@ -5,12 +5,28 @@ Item {
     id: root
 
     property var controller
-    property string playbackSourceTitle: ""
-    property string playbackSourceType: ""
 
     signal closed()
 
     anchors.fill: parent
+
+
+    // ============================================================
+    // Player state
+    // ============================================================
+
+    readonly property bool hasTrack:
+        root.controller !== null &&
+        root.controller !== undefined &&
+        String(
+            root.controller.currentTrackTitle || ""
+        ).length > 0
+
+
+    readonly property bool playing:
+        root.controller !== null &&
+        root.controller !== undefined &&
+        root.controller.playing
 
 
     // ============================================================
@@ -24,10 +40,33 @@ Item {
         root.controller.playerAccent !== null &&
         root.controller.playerAccent.valid
 
+
     readonly property color playerAccent:
         root.hasPlayerAccent
             ? root.controller.playerAccent
             : AppTheme.accent
+
+
+    // ============================================================
+    // Playback source
+    // ============================================================
+
+    readonly property string playbackSourceTitle:
+            root.controller !== null &&
+        root.controller !== undefined
+        ? String(
+            root.controller.playbackSourceTitle || ""
+        )
+        : ""
+
+
+    readonly property string playbackSourceType:
+            root.controller !== null &&
+        root.controller !== undefined
+        ? String(
+            root.controller.playbackSourceType || ""
+        )
+        : ""
 
 
     // ============================================================
@@ -36,8 +75,11 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: AppTheme.background
+
+        color:
+            AppTheme.background
     }
+
 
     Rectangle {
         anchors.fill: parent
@@ -52,40 +94,60 @@ Item {
                 )
                 : "transparent"
 
+
         Behavior on color {
             ColorAnimation {
-                duration: 450
-                easing.type: Easing.OutCubic
+                duration:
+                    450
+
+                easing.type:
+                    Easing.OutCubic
             }
         }
     }
 
+
     Rectangle {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
+        anchors.left:
+            parent.left
 
-        height: parent.height * 0.45
+        anchors.right:
+            parent.right
 
-        gradient: Gradient {
-            GradientStop {
-                position: 0.0
-                color:
-                    root.hasPlayerAccent
-                        ? Qt.rgba(
-                            root.playerAccent.r,
-                            root.playerAccent.g,
-                            root.playerAccent.b,
-                            0.22
-                        )
-                        : "transparent"
+        anchors.top:
+            parent.top
+
+        height:
+            parent.height * 0.45
+
+
+        gradient:
+            Gradient {
+
+                GradientStop {
+                    position:
+                        0.0
+
+                    color:
+                        root.hasPlayerAccent
+                            ? Qt.rgba(
+                                root.playerAccent.r,
+                                root.playerAccent.g,
+                                root.playerAccent.b,
+                                0.22
+                            )
+                            : "transparent"
+                }
+
+
+                GradientStop {
+                    position:
+                        1.0
+
+                    color:
+                        "transparent"
+                }
             }
-
-            GradientStop {
-                position: 1.0
-                color: "transparent"
-            }
-        }
     }
 
 
@@ -96,35 +158,50 @@ Item {
     Item {
         id: header
 
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
+        anchors.left:
+            parent.left
 
-        anchors.leftMargin: 36
-        anchors.rightMargin: 36
-        anchors.topMargin: 22
+        anchors.right:
+            parent.right
 
-        height: 40
+        anchors.top:
+            parent.top
 
+        anchors.leftMargin:
+            36
 
-        // --------------------------------------------------------
-        // Collapse
-        // --------------------------------------------------------
+        anchors.rightMargin:
+            36
+
+        anchors.topMargin:
+            22
+
+        height:
+            40
+
 
         Item {
             id: closeButton
 
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.right:
+                parent.right
 
-            width: 42
-            height: 42
+            anchors.verticalCenter:
+                parent.verticalCenter
+
+            width:
+                42
+
+            height:
+                42
 
 
             Rectangle {
-                anchors.fill: parent
+                anchors.fill:
+                    parent
 
-                radius: width / 2
+                radius:
+                    width / 2
 
                 color:
                     closeMouseArea.containsMouse
@@ -141,20 +218,28 @@ Item {
                             0.12
                         )
 
+
                 Behavior on color {
                     ColorAnimation {
-                        duration: 140
-                        easing.type: Easing.OutCubic
+                        duration:
+                            140
+
+                        easing.type:
+                            Easing.OutCubic
                     }
                 }
             }
 
 
             Text {
-                anchors.centerIn: parent
-                anchors.verticalCenterOffset: -3
+                anchors.centerIn:
+                    parent
 
-                text: "⌄"
+                anchors.verticalCenterOffset:
+                    -3
+
+                text:
+                    "⌄"
 
                 color:
                     Qt.rgba(
@@ -164,19 +249,22 @@ Item {
                         0.85
                     )
 
-                font.pixelSize: 24
-                font.weight: Font.Normal
+                font.pixelSize:
+                    24
             }
 
 
             MouseArea {
                 id: closeMouseArea
 
-                anchors.fill: parent
+                anchors.fill:
+                    parent
 
-                hoverEnabled: true
+                hoverEnabled:
+                    true
 
-                cursorShape: Qt.PointingHandCursor
+                cursorShape:
+                    Qt.PointingHandCursor
 
                 onClicked:
                     root.closed()
@@ -192,17 +280,32 @@ Item {
     Row {
         id: mainRow
 
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: header.bottom
-        anchors.bottom: parent.bottom
+        anchors.left:
+            parent.left
 
-        anchors.leftMargin: 72
-        anchors.rightMargin: 72
-        anchors.topMargin: 20
-        anchors.bottomMargin: 38
+        anchors.right:
+            parent.right
 
-        spacing: 58
+        anchors.top:
+            header.bottom
+
+        anchors.bottom:
+            parent.bottom
+
+        anchors.leftMargin:
+            72
+
+        anchors.rightMargin:
+            72
+
+        anchors.topMargin:
+            20
+
+        anchors.bottomMargin:
+            38
+
+        spacing:
+            58
 
 
         // ========================================================
@@ -212,8 +315,11 @@ Item {
         Item {
             id: playerPanel
 
-            width: mainRow.width * 0.58
-            height: mainRow.height
+            width:
+                mainRow.width * 0.58
+
+            height:
+                mainRow.height
 
 
             // ----------------------------------------------------
@@ -223,8 +329,11 @@ Item {
             Image {
                 id: artwork
 
-                anchors.top: parent.top
-                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top:
+                    parent.top
+
+                anchors.horizontalCenter:
+                    parent.horizontalCenter
 
                 width:
                     Math.min(
@@ -233,17 +342,21 @@ Item {
                         parent.height * 0.58
                     )
 
-                height: width
+                height:
+                    width
 
-                fillMode: Image.PreserveAspectCrop
+                fillMode:
+                    Image.PreserveAspectCrop
 
-                asynchronous: true
-                cache: true
+                asynchronous:
+                    true
+
+                cache:
+                    true
 
                 source: {
                     if (
-                        root.controller === null ||
-                        root.controller === undefined
+                        !root.hasTrack
                     ) {
                         return ""
                     }
@@ -254,7 +367,9 @@ Item {
                             ""
                         )
 
-                    if (uri.length === 0) {
+                    if (
+                        uri.length === 0
+                    ) {
                         return ""
                     }
 
@@ -263,26 +378,31 @@ Item {
 
 
                 Rectangle {
-                    anchors.fill: parent
+                    anchors.fill:
+                        parent
 
                     visible:
                         artwork.status !== Image.Ready
 
-                    radius: 12
+                    radius:
+                        12
 
                     color:
                         AppTheme.artworkPlaceholder
 
 
                     Text {
-                        anchors.centerIn: parent
+                        anchors.centerIn:
+                            parent
 
-                        text: "♪"
+                        text:
+                            "♪"
 
                         color:
                             AppTheme.textMuted
 
-                        font.pixelSize: 52
+                        font.pixelSize:
+                            52
                     }
                 }
             }
@@ -295,29 +415,42 @@ Item {
             Column {
                 id: trackInfo
 
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: artwork.bottom
+                anchors.left:
+                    parent.left
 
-                anchors.topMargin: 18
+                anchors.right:
+                    parent.right
 
-                spacing: 4
+                anchors.top:
+                    artwork.bottom
+
+                anchors.topMargin:
+                    18
+
+                spacing:
+                    4
 
 
                 Text {
-                    width: parent.width
+                    width:
+                        parent.width
 
                     text:
-                            root.controller !== null &&
-                        root.controller !== undefined
-                        ? root.controller.currentTrackTitle
-                        : ""
+                        root.hasTrack
+                            ? String(
+                                root.controller.currentTrackTitle ||
+                                ""
+                            )
+                            : ""
 
                     color:
                         AppTheme.textPrimary
 
-                    font.pixelSize: 22
-                    font.weight: Font.DemiBold
+                    font.pixelSize:
+                        22
+
+                    font.weight:
+                        Font.DemiBold
 
                     horizontalAlignment:
                         Text.AlignHCenter
@@ -332,18 +465,23 @@ Item {
                         parent.horizontalCenter
 
                     text:
-                            root.controller !== null &&
-                        root.controller !== undefined
-                        ? root.controller.currentTrackArtist
-                        : ""
+                        root.hasTrack
+                            ? String(
+                                root.controller.currentTrackArtist ||
+                                ""
+                            )
+                            : ""
 
                     entityId:
-                            root.controller !== null &&
-                        root.controller !== undefined
-                        ? root.controller.currentTrackArtistId
-                        : ""
+                        root.hasTrack
+                            ? String(
+                                root.controller.currentTrackArtistId ||
+                                ""
+                            )
+                            : ""
 
-                    entityType: "artist"
+                    entityType:
+                        "artist"
 
                     controller:
                         root.controller
@@ -355,18 +493,23 @@ Item {
                         parent.horizontalCenter
 
                     text:
-                            root.controller !== null &&
-                        root.controller !== undefined
-                        ? root.controller.currentTrackAlbumTitle
-                        : ""
+                        root.hasTrack
+                            ? String(
+                                root.controller.currentTrackAlbumTitle ||
+                                ""
+                            )
+                            : ""
 
                     entityId:
-                            root.controller !== null &&
-                        root.controller !== undefined
-                        ? root.controller.currentTrackAlbumId
-                        : ""
+                        root.hasTrack
+                            ? String(
+                                root.controller.currentTrackAlbumId ||
+                                ""
+                            )
+                            : ""
 
-                    entityType: "album"
+                    entityType:
+                        "album"
 
                     controller:
                         root.controller
@@ -381,24 +524,39 @@ Item {
             Item {
                 id: progressArea
 
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: trackInfo.bottom
+                anchors.left:
+                    parent.left
 
-                anchors.topMargin: 14
+                anchors.right:
+                    parent.right
 
-                height: 30
+                anchors.top:
+                    trackInfo.bottom
+
+                anchors.topMargin:
+                    14
+
+                height:
+                    30
 
 
                 Rectangle {
                     id: progressBackground
 
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left:
+                        parent.left
 
-                    height: 4
-                    radius: 2
+                    anchors.right:
+                        parent.right
+
+                    anchors.verticalCenter:
+                        parent.verticalCenter
+
+                    height:
+                        4
+
+                    radius:
+                        2
 
                     color:
                         AppTheme.divider
@@ -416,26 +574,38 @@ Item {
                         if (
                             root.controller === null ||
                             root.controller === undefined ||
-                            Number(root.controller.duration) <= 0
+                            Number(
+                                root.controller.duration
+                            ) <= 0
                         ) {
                             return 0
                         }
 
                         var ratio =
-                            Number(root.controller.position) /
-                            Number(root.controller.duration)
+                            Number(
+                                root.controller.position
+                            ) /
+                            Number(
+                                root.controller.duration
+                            )
 
                         ratio =
                             Math.max(
                                 0,
-                                Math.min(1, ratio)
+                                Math.min(
+                                    1,
+                                    ratio
+                                )
                             )
 
                         return progressBackground.width * ratio
                     }
 
-                    height: 4
-                    radius: 2
+                    height:
+                        4
+
+                    radius:
+                        2
 
                     color:
                         root.playerAccent
@@ -443,7 +613,8 @@ Item {
 
 
                 MouseArea {
-                    anchors.fill: parent
+                    anchors.fill:
+                        parent
 
                     cursorShape:
                         Qt.PointingHandCursor
@@ -453,8 +624,18 @@ Item {
                         {
                             if (
                                 root.controller === null ||
-                                root.controller === undefined ||
-                                Number(root.controller.duration) <= 0
+                                root.controller === undefined
+                            ) {
+                                return
+                            }
+
+                            var duration =
+                                Number(
+                                    root.controller.duration
+                                )
+
+                            if (
+                                duration <= 0
                             ) {
                                 return
                             }
@@ -465,14 +646,15 @@ Item {
                             ratio =
                                 Math.max(
                                     0,
-                                    Math.min(1, ratio)
+                                    Math.min(
+                                        1,
+                                        ratio
+                                    )
                                 )
 
                             root.controller.seek(
                                 Math.round(
-                                    Number(
-                                        root.controller.duration
-                                    ) * ratio
+                                    duration * ratio
                                 )
                             )
                         }
@@ -480,12 +662,17 @@ Item {
 
 
                 Text {
-                    anchors.left: parent.left
-                    anchors.top: progressBackground.bottom
-                    anchors.topMargin: 5
+                    anchors.left:
+                        parent.left
+
+                    anchors.top:
+                        progressBackground.bottom
+
+                    anchors.topMargin:
+                        5
 
                     text:
-                        formatTime(
+                        root.formatTime(
                                 root.controller !== null &&
                                 root.controller !== undefined
                                 ? root.controller.position
@@ -495,17 +682,23 @@ Item {
                     color:
                         AppTheme.textMuted
 
-                    font.pixelSize: 11
+                    font.pixelSize:
+                        11
                 }
 
 
                 Text {
-                    anchors.right: parent.right
-                    anchors.top: progressBackground.bottom
-                    anchors.topMargin: 5
+                    anchors.right:
+                        parent.right
+
+                    anchors.top:
+                        progressBackground.bottom
+
+                    anchors.topMargin:
+                        5
 
                     text:
-                        formatTime(
+                        root.formatTime(
                                 root.controller !== null &&
                                 root.controller !== undefined
                                 ? root.controller.duration
@@ -515,7 +708,8 @@ Item {
                     color:
                         AppTheme.textMuted
 
-                    font.pixelSize: 11
+                    font.pixelSize:
+                        11
                 }
             }
 
@@ -533,16 +727,22 @@ Item {
                 anchors.top:
                     progressArea.bottom
 
-                anchors.topMargin: 14
+                anchors.topMargin:
+                    14
 
-                spacing: 14
+                spacing:
+                    14
 
 
                 ControlButton {
-                    width: 40
-                    height: 40
+                    width:
+                        40
 
-                    text: "↶"
+                    height:
+                        40
+
+                    text:
+                        "↶"
 
                     onClicked:
                     {
@@ -557,11 +757,17 @@ Item {
 
 
                 ControlButton {
-                    width: 44
-                    height: 44
+                    width:
+                        44
 
-                    text: "‹"
-                    fontSize: 26
+                    height:
+                        44
+
+                    text:
+                        "‹"
+
+                    fontSize:
+                        26
 
                     onClicked:
                     {
@@ -576,37 +782,45 @@ Item {
 
 
                 Rectangle {
-                    width: 56
-                    height: 56
+                    width:
+                        56
 
-                    radius: width / 2
+                    height:
+                        56
+
+                    radius:
+                        width / 2
 
                     color:
                         root.playerAccent
 
 
                     Text {
-                        anchors.centerIn: parent
+                        anchors.centerIn:
+                            parent
 
                         text:
-                                root.controller !== null &&
-                            root.controller !== undefined &&
-                            root.controller.playing
-                            ? "Ⅱ"
-                            : "▶"
+                            root.playing
+                                ? "Ⅱ"
+                                : "▶"
 
                         color:
                             AppTheme.background
 
-                        font.pixelSize: 21
+                        font.pixelSize:
+                            21
                     }
 
 
                     MouseArea {
-                        anchors.fill: parent
+                        anchors.fill:
+                            parent
 
                         cursorShape:
                             Qt.PointingHandCursor
+
+                        enabled:
+                            root.hasTrack
 
                         onClicked:
                         {
@@ -618,7 +832,7 @@ Item {
                             }
 
                             if (
-                                root.controller.playing
+                                root.playing
                             ) {
                                 root.controller.pause()
                             } else {
@@ -630,11 +844,17 @@ Item {
 
 
                 ControlButton {
-                    width: 44
-                    height: 44
+                    width:
+                        44
 
-                    text: "›"
-                    fontSize: 26
+                    height:
+                        44
+
+                    text:
+                        "›"
+
+                    fontSize:
+                        26
 
                     onClicked:
                     {
@@ -649,10 +869,14 @@ Item {
 
 
                 ControlButton {
-                    width: 40
-                    height: 40
+                    width:
+                        40
 
-                    text: "↻"
+                    height:
+                        40
+
+                    text:
+                        "↻"
 
                     onClicked:
                     {
@@ -675,8 +899,11 @@ Item {
         Item {
             id: queuePanel
 
-            width: mainRow.width * 0.42
-            height: mainRow.height
+            width:
+                mainRow.width * 0.42
+
+            height:
+                mainRow.height
 
 
             // ----------------------------------------------------
@@ -686,9 +913,14 @@ Item {
             Text {
                 id: sourceTitle
 
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
+                anchors.left:
+                    parent.left
+
+                anchors.right:
+                    parent.right
+
+                anchors.top:
+                    parent.top
 
                 text:
                     root.playbackSourceTitle
@@ -696,14 +928,17 @@ Item {
                 color:
                     AppTheme.textPrimary
 
-                font.pixelSize: 20
-                font.weight: Font.DemiBold
+                font.pixelSize:
+                    20
+
+                font.weight:
+                    Font.DemiBold
 
                 elide:
                     Text.ElideRight
 
                 visible:
-                    root.playbackSourceTitle.length > 0
+                    text.length > 0
             }
 
 
@@ -714,8 +949,11 @@ Item {
             Rectangle {
                 id: previousTrackCard
 
-                anchors.left: parent.left
-                anchors.right: parent.right
+                anchors.left:
+                    parent.left
+
+                anchors.right:
+                    parent.right
 
                 anchors.top:
                     sourceTitle.visible
@@ -727,9 +965,11 @@ Item {
                         ? 16
                         : 0
 
-                height: 68
+                height:
+                    68
 
-                radius: 10
+                radius:
+                    10
 
                 color:
                     Qt.rgba(
@@ -741,7 +981,8 @@ Item {
                             : 0.055
                     )
 
-                border.width: 1
+                border.width:
+                    1
 
                 border.color:
                     Qt.rgba(
@@ -751,31 +992,36 @@ Item {
                         0.10
                     )
 
-                opacity: 0.72
-
-                Behavior on color {
-                    ColorAnimation {
-                        duration: 140
-                        easing.type: Easing.OutCubic
-                    }
-                }
+                opacity:
+                    0.72
 
 
                 Image {
                     id: previousArtwork
 
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.leftMargin: 9
+                    anchors.left:
+                        parent.left
 
-                    width: 48
-                    height: 48
+                    anchors.verticalCenter:
+                        parent.verticalCenter
+
+                    anchors.leftMargin:
+                        9
+
+                    width:
+                        48
+
+                    height:
+                        48
 
                     fillMode:
                         Image.PreserveAspectCrop
 
-                    asynchronous: true
-                    cache: true
+                    asynchronous:
+                        true
+
+                    cache:
+                        true
 
                     source: {
                         var data =
@@ -793,27 +1039,32 @@ Item {
 
 
                     Rectangle {
-                        anchors.fill: parent
+                        anchors.fill:
+                            parent
 
                         visible:
                             previousArtwork.status !==
                             Image.Ready
 
-                        radius: 6
+                        radius:
+                            6
 
                         color:
                             AppTheme.artworkPlaceholder
 
 
                         Text {
-                            anchors.centerIn: parent
+                            anchors.centerIn:
+                                parent
 
-                            text: "♪"
+                            text:
+                                "♪"
 
                             color:
                                 AppTheme.textMuted
 
-                            font.pixelSize: 18
+                            font.pixelSize:
+                                18
                         }
                     }
                 }
@@ -823,26 +1074,35 @@ Item {
                     anchors.left:
                         previousArtwork.right
 
-                    anchors.right: parent.right
+                    anchors.right:
+                        parent.right
+
                     anchors.verticalCenter:
                         parent.verticalCenter
 
-                    anchors.leftMargin: 12
-                    anchors.rightMargin: 12
+                    anchors.leftMargin:
+                        12
 
-                    spacing: 2
+                    anchors.rightMargin:
+                        12
+
+                    spacing:
+                        2
 
 
                     Text {
-                        width: parent.width
+                        width:
+                            parent.width
 
                         text:
-                            root.previousTrackData().title || ""
+                            root.previousTrackData().title ||
+                            ""
 
                         color:
                             AppTheme.textSecondary
 
-                        font.pixelSize: 13
+                        font.pixelSize:
+                            13
 
                         elide:
                             Text.ElideRight
@@ -850,15 +1110,18 @@ Item {
 
 
                     Text {
-                        width: parent.width
+                        width:
+                            parent.width
 
                         text:
-                            root.previousTrackData().artist || ""
+                            root.previousTrackData().artist ||
+                            ""
 
                         color:
                             AppTheme.textMuted
 
-                        font.pixelSize: 12
+                        font.pixelSize:
+                            12
 
                         elide:
                             Text.ElideRight
@@ -869,30 +1132,23 @@ Item {
                 MouseArea {
                     id: previousMouseArea
 
-                    anchors.fill: parent
+                    anchors.fill:
+                        parent
 
-                    hoverEnabled: true
+                    hoverEnabled:
+                        true
 
                     cursorShape:
                         Qt.PointingHandCursor
 
+                    enabled:
+                        root.hasPreviousTrack()
+
                     onClicked:
                     {
-                        if (
-                            root.controller === null ||
-                            root.controller === undefined
-                        ) {
-                            return
-                        }
-
-                        var index =
-                            root.currentTrackIndex()
-
-                        if (index > 0) {
-                            root.controller.selectPlaylistTrack(
-                                index - 1
-                            )
-                        }
+                        root.selectQueueTrack(
+                            root.currentTrackIndex() - 1
+                        )
                     }
                 }
 
@@ -909,8 +1165,11 @@ Item {
             Text {
                 id: queueTitle
 
-                anchors.left: parent.left
-                anchors.right: parent.right
+                anchors.left:
+                    parent.left
+
+                anchors.right:
+                    parent.right
 
                 anchors.top:
                     previousTrackCard.visible
@@ -936,28 +1195,41 @@ Item {
                 color:
                     AppTheme.textPrimary
 
-                font.pixelSize: 19
-                font.weight: Font.DemiBold
+                font.pixelSize:
+                    19
+
+                font.weight:
+                    Font.DemiBold
             }
 
 
             // ----------------------------------------------------
-            // Up Next
+            // Up next
             // ----------------------------------------------------
 
             ListView {
                 id: queueView
 
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: queueTitle.bottom
-                anchors.bottom: parent.bottom
+                anchors.left:
+                    parent.left
 
-                anchors.topMargin: 10
+                anchors.right:
+                    parent.right
 
-                spacing: 5
+                anchors.top:
+                    queueTitle.bottom
 
-                clip: true
+                anchors.bottom:
+                    parent.bottom
+
+                anchors.topMargin:
+                    10
+
+                spacing:
+                    5
+
+                clip:
+                    true
 
                 model:
                     upNextModel
@@ -966,14 +1238,19 @@ Item {
                 delegate: Item {
                     id: queueItem
 
-                    width: queueView.width
-                    height: 60
+                    width:
+                        queueView.width
+
+                    height:
+                        60
 
 
                     Rectangle {
-                        anchors.fill: parent
+                        anchors.fill:
+                            parent
 
-                        radius: 8
+                        radius:
+                            8
 
                         color:
                             queueMouse.containsMouse
@@ -985,10 +1262,14 @@ Item {
                                 )
                                 : "transparent"
 
+
                         Behavior on color {
                             ColorAnimation {
-                                duration: 140
-                                easing.type: Easing.OutCubic
+                                duration:
+                                    140
+
+                                easing.type:
+                                    Easing.OutCubic
                             }
                         }
                     }
@@ -997,18 +1278,26 @@ Item {
                     Image {
                         id: queueArtwork
 
-                        anchors.left: parent.left
+                        anchors.left:
+                            parent.left
+
                         anchors.verticalCenter:
                             parent.verticalCenter
 
-                        width: 46
-                        height: 46
+                        width:
+                            46
+
+                        height:
+                            46
 
                         fillMode:
                             Image.PreserveAspectCrop
 
-                        asynchronous: true
-                        cache: true
+                        asynchronous:
+                            true
+
+                        cache:
+                            true
 
                         source:
                                 String(
@@ -1020,27 +1309,32 @@ Item {
 
 
                         Rectangle {
-                            anchors.fill: parent
+                            anchors.fill:
+                                parent
 
                             visible:
                                 queueArtwork.status !==
                                 Image.Ready
 
-                            radius: 6
+                            radius:
+                                6
 
                             color:
                                 AppTheme.artworkPlaceholder
 
 
                             Text {
-                                anchors.centerIn: parent
+                                anchors.centerIn:
+                                    parent
 
-                                text: "♪"
+                                text:
+                                    "♪"
 
                                 color:
                                     AppTheme.textMuted
 
-                                font.pixelSize: 18
+                                font.pixelSize:
+                                    18
                             }
                         }
                     }
@@ -1056,14 +1350,19 @@ Item {
                         anchors.verticalCenter:
                             parent.verticalCenter
 
-                        anchors.leftMargin: 12
-                        anchors.rightMargin: 8
+                        anchors.leftMargin:
+                            12
 
-                        spacing: 2
+                        anchors.rightMargin:
+                            8
+
+                        spacing:
+                            2
 
 
                         Text {
-                            width: parent.width
+                            width:
+                                parent.width
 
                             text:
                                 model.title || ""
@@ -1071,7 +1370,8 @@ Item {
                             color:
                                 AppTheme.textPrimary
 
-                            font.pixelSize: 13
+                            font.pixelSize:
+                                13
 
                             elide:
                                 Text.ElideRight
@@ -1097,13 +1397,17 @@ Item {
                     Text {
                         id: durationText
 
-                        anchors.right: parent.right
-                        anchors.rightMargin: 8
+                        anchors.right:
+                            parent.right
+
+                        anchors.rightMargin:
+                            8
+
                         anchors.verticalCenter:
                             parent.verticalCenter
 
                         text:
-                            formatTime(
+                            root.formatTime(
                                 Number(
                                     model.durationMs || 0
                                 )
@@ -1112,30 +1416,26 @@ Item {
                         color:
                             AppTheme.textMuted
 
-                        font.pixelSize: 11
+                        font.pixelSize:
+                            11
                     }
 
 
                     MouseArea {
                         id: queueMouse
 
-                        anchors.fill: parent
+                        anchors.fill:
+                            parent
 
-                        hoverEnabled: true
+                        hoverEnabled:
+                            true
 
                         cursorShape:
                             Qt.PointingHandCursor
 
                         onClicked:
                         {
-                            if (
-                                root.controller === null ||
-                                root.controller === undefined
-                            ) {
-                                return
-                            }
-
-                            root.controller.selectPlaylistTrack(
+                            root.selectQueueTrack(
                                 Number(
                                     model.sourceIndex
                                 )
@@ -1165,41 +1465,20 @@ Item {
         target:
             root.controller
 
+
         function onCurrentTrackChanged()
         {
             root.rebuildUpNext()
         }
 
-        function onCurrentPlaylistChanged()
-        {
-            root.rebuildUpNext()
-        }
-    }
 
-
-    Connections {
-        target:
-                root.controller !== null &&
-            root.controller !== undefined
-            ? root.controller.playlistModel
-            : null
-
-        function onRowsInserted()
+        function onQueueChanged()
         {
             root.rebuildUpNext()
         }
 
-        function onRowsRemoved()
-        {
-            root.rebuildUpNext()
-        }
 
-        function onModelReset()
-        {
-            root.rebuildUpNext()
-        }
-
-        function onDataChanged()
+        function onPlaybackSourceChanged()
         {
             root.rebuildUpNext()
         }
@@ -1225,47 +1504,9 @@ Item {
             return -1
         }
 
-        var playlist =
-            root.controller.playlistModel
-
-        if (
-            playlist === null ||
-            playlist === undefined
-        ) {
-            return -1
-        }
-
-        var count =
-            playlist.rowCount()
-
-        var currentId =
-            String(
-                root.controller.currentTrackId ||
-                ""
-            )
-
-        for (
-            var i = 0;
-            i < count;
-            ++i
-        ) {
-            var index =
-                playlist.index(i, 0)
-
-            var id =
-                String(
-                    playlist.data(
-                        index,
-                        Qt.UserRole + 1
-                    )
-                )
-
-            if (id === currentId) {
-                return i
-            }
-        }
-
-        return -1
+        return Number(
+            root.controller.queueCurrentIndex
+        )
     }
 
 
@@ -1278,6 +1519,7 @@ Item {
     function previousTrackData()
     {
         var empty = {
+            id: "",
             title: "",
             artist: "",
             artistId: "",
@@ -1285,79 +1527,48 @@ Item {
             durationMs: 0
         }
 
-        if (
-            !root.hasPreviousTrack()
-        ) {
-            return empty
-        }
 
-        var playlist =
-            root.controller.playlistModel
-
-        var index =
+        var currentIndex =
             root.currentTrackIndex()
 
+
         if (
-            playlist === null ||
-            playlist === undefined ||
-            index <= 0
+            currentIndex <= 0
         ) {
             return empty
         }
 
-        var modelIndex =
-            playlist.index(
-                index - 1,
-                0
+
+        if (
+            root.controller === null ||
+            root.controller === undefined
+        ) {
+            return empty
+        }
+
+
+        var data =
+            root.controller.queueTrackData(
+                currentIndex - 1
             )
 
-        return {
-            title:
-                String(
-                    playlist.data(
-                        modelIndex,
-                        Qt.UserRole + 2
-                    ) || ""
-                ),
 
-            artist:
-                String(
-                    playlist.data(
-                        modelIndex,
-                        Qt.UserRole + 3
-                    ) || ""
-                ),
-
-            artistId:
-                String(
-                    playlist.data(
-                        modelIndex,
-                        Qt.UserRole + 4
-                    ) || ""
-                ),
-
-            coverUri:
-                String(
-                    playlist.data(
-                        modelIndex,
-                        Qt.UserRole + 7
-                    ) || ""
-                ),
-
-            durationMs:
-                Number(
-                    playlist.data(
-                        modelIndex,
-                        Qt.UserRole + 8
-                    ) || 0
-                )
+        if (
+            data === null ||
+            data === undefined
+        ) {
+            return empty
         }
+
+
+        return data
     }
 
 
     function rebuildUpNext()
     {
         upNextModel.clear()
+
 
         if (
             root.controller === null ||
@@ -1366,90 +1577,152 @@ Item {
             return
         }
 
-        var playlist =
-            root.controller.playlistModel
-
-        if (
-            playlist === null ||
-            playlist === undefined
-        ) {
-            return
-        }
 
         var count =
-            playlist.rowCount()
+            Number(
+                root.controller.queueCount
+            )
 
-        if (
-            count <= 0
-        ) {
-            return
-        }
 
         var currentIndex =
-            root.currentTrackIndex()
+            Number(
+                root.controller.queueCurrentIndex
+            )
+
 
         if (
+            count <= 0 ||
             currentIndex < 0
         ) {
             return
         }
 
+
         for (
-            var j = currentIndex + 1;
-            j < count;
-            ++j
+            var i = currentIndex + 1;
+            i < count;
+            ++i
         ) {
-            var sourceIndex =
-                playlist.index(j, 0)
 
-            var title =
+            var track =
+                root.controller.queueTrackData(
+                    i
+                )
+
+
+            if (
+                track === null ||
+                track === undefined
+            ) {
+                continue
+            }
+
+
+            if (
                 String(
-                    playlist.data(
-                        sourceIndex,
-                        Qt.UserRole + 2
-                    ) || ""
-                )
+                    track.id || ""
+                ).length === 0
+            ) {
+                continue
+            }
 
-            var artist =
-                String(
-                    playlist.data(
-                        sourceIndex,
-                        Qt.UserRole + 3
-                    ) || ""
-                )
-
-            var artistId =
-                String(
-                    playlist.data(
-                        sourceIndex,
-                        Qt.UserRole + 4
-                    ) || ""
-                )
-
-            var coverUri =
-                String(
-                    playlist.data(
-                        sourceIndex,
-                        Qt.UserRole + 7
-                    ) || ""
-                )
-
-            var durationMs =
-                Number(
-                    playlist.data(
-                        sourceIndex,
-                        Qt.UserRole + 8
-                    ) || 0
-                )
 
             upNextModel.append({
-                sourceIndex: j,
-                title: title,
-                artist: artist,
-                artistId: artistId,
-                coverUri: coverUri,
-                durationMs: durationMs
+                sourceIndex: i,
+
+                title:
+                    String(
+                        track.title || ""
+                    ),
+
+                artist:
+                    String(
+                        track.artist || ""
+                    ),
+
+                artistId:
+                    String(
+                        track.artistId || ""
+                    ),
+
+                coverUri:
+                    String(
+                        track.coverUri || ""
+                    ),
+
+                durationMs:
+                    Number(
+                        track.durationMs || 0
+                    )
             })
+        }
+    }
+
+
+    function selectQueueTrack(
+        index)
+    {
+        if (
+            root.controller === null ||
+            root.controller === undefined
+        ) {
+            return
+        }
+
+
+        var sourceType =
+            String(
+                root.controller.playbackSourceType || ""
+            )
+
+
+        if (
+            sourceType === "myWave"
+        ) {
+
+            root.controller
+                .selectMyWaveTrack(
+                index)
+
+        } else if (
+            sourceType === "playlist"
+        ) {
+
+            root.controller
+                .selectPlaylistTrack(
+                index)
+
+        } else if (
+            sourceType === "likes"
+        ) {
+
+            root.controller
+                .selectLikedTrack(
+                index)
+
+        } else if (
+            sourceType === "album"
+        ) {
+
+            root.controller
+                .selectAlbumTrack(
+                index)
+
+        } else if (
+            sourceType === "artist"
+        ) {
+
+            root.controller
+                .selectArtistTrack(
+                index)
+
+        } else if (
+            sourceType === "search"
+        ) {
+
+            root.controller
+                .selectSearchResult(
+                index)
         }
     }
 
@@ -1458,27 +1731,38 @@ Item {
     // Helpers
     // ============================================================
 
-    function formatTime(milliseconds)
+    function formatTime(
+        milliseconds)
     {
-        var totalSeconds =
-            Math.floor(
-                Number(milliseconds) / 1000
+        var value =
+            Number(
+                milliseconds
             )
 
+
         if (
-            !isFinite(totalSeconds) ||
-            totalSeconds < 0
+            !isFinite(value) ||
+            value <= 0
         ) {
-            totalSeconds = 0
+            return "0:00"
         }
+
+
+        var totalSeconds =
+            Math.floor(
+                value / 1000
+            )
+
 
         var minutes =
             Math.floor(
                 totalSeconds / 60
             )
 
+
         var seconds =
             totalSeconds % 60
+
 
         return minutes +
             ":" +
@@ -1498,7 +1782,9 @@ Item {
     component ControlButton: Rectangle {
 
         property string text: ""
-        property int fontSize: 21
+
+        property int fontSize:
+            21
 
         signal clicked()
 
@@ -1516,16 +1802,21 @@ Item {
                 )
                 : "transparent"
 
+
         Behavior on color {
             ColorAnimation {
-                duration: 140
-                easing.type: Easing.OutCubic
+                duration:
+                    140
+
+                easing.type:
+                    Easing.OutCubic
             }
         }
 
 
         Text {
-            anchors.centerIn: parent
+            anchors.centerIn:
+                parent
 
             text:
                 parent.text
@@ -1541,9 +1832,11 @@ Item {
         MouseArea {
             id: mouseArea
 
-            anchors.fill: parent
+            anchors.fill:
+                parent
 
-            hoverEnabled: true
+            hoverEnabled:
+                true
 
             cursorShape:
                 Qt.PointingHandCursor

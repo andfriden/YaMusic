@@ -2,23 +2,34 @@
 
 #include <QRandomGenerator>
 
+
 QueueService::QueueService(
     QObject *parent)
     : QObject(parent)
 {
 }
 
-int QueueService::count() const
+
+// =============================================================
+// Queue
+// =============================================================
+
+int
+QueueService::count() const
 {
     return m_tracks.size();
 }
 
-int QueueService::currentIndex() const
+
+int
+QueueService::currentIndex() const
 {
     return m_currentIndex;
 }
 
-Track QueueService::currentTrack() const
+
+Track
+QueueService::currentTrack() const
 {
     if (
         m_currentIndex < 0 ||
@@ -31,7 +42,9 @@ Track QueueService::currentTrack() const
         m_currentIndex);
 }
 
-Track QueueService::trackAt(
+
+Track
+QueueService::trackAt(
     int index) const
 {
     if (
@@ -45,26 +58,102 @@ Track QueueService::trackAt(
         index);
 }
 
-QList<Track> QueueService::tracks() const
+
+QList<Track>
+QueueService::tracks() const
 {
     return m_tracks;
 }
 
-void QueueService::addTrack(
+
+// =============================================================
+// Source
+// =============================================================
+
+QString
+QueueService::sourceTitle() const
+{
+    return m_sourceTitle;
+}
+
+
+QString
+QueueService::sourceType() const
+{
+    return m_sourceType;
+}
+
+
+void
+QueueService::setSource(
+    const QString &title,
+    const QString &type)
+{
+    const QString trimmedTitle =
+        title.trimmed();
+
+    const QString trimmedType =
+        type.trimmed();
+
+    if (
+        m_sourceTitle ==
+            trimmedTitle &&
+        m_sourceType ==
+            trimmedType
+    ) {
+        return;
+    }
+
+    m_sourceTitle =
+        trimmedTitle;
+
+    m_sourceType =
+        trimmedType;
+
+    emit queueChanged();
+}
+
+
+void
+QueueService::clearSource()
+{
+    if (
+        m_sourceTitle.isEmpty() &&
+        m_sourceType.isEmpty()
+    ) {
+        return;
+    }
+
+    m_sourceTitle.clear();
+
+    m_sourceType.clear();
+
+    emit queueChanged();
+}
+
+
+// =============================================================
+// Modification
+// =============================================================
+
+void
+QueueService::addTrack(
     const Track &track)
 {
-    if (track.id.isEmpty()) {
+    if (
+        track.id.isEmpty()
+    ) {
         return;
     }
 
     m_originalTracks.append(
         track);
 
-    if (!m_shuffleEnabled) {
-
+    if (
+        !m_shuffleEnabled
+    ) {
         m_tracks.append(
             track);
-
     } else {
 
         m_tracks.append(
@@ -73,8 +162,9 @@ void QueueService::addTrack(
         rebuildShuffledQueue();
     }
 
-    if (m_currentIndex < 0) {
-
+    if (
+        m_currentIndex < 0
+    ) {
         m_currentIndex =
             0;
 
@@ -84,7 +174,9 @@ void QueueService::addTrack(
     emit queueChanged();
 }
 
-void QueueService::addTracks(
+
+void
+QueueService::addTracks(
     const QList<Track> &tracks)
 {
     QList<Track> validTracks;
@@ -94,30 +186,43 @@ void QueueService::addTracks(
         tracks
     ) {
 
-        if (!track.id.isEmpty()) {
-
+        if (
+            !track.id.isEmpty()
+        ) {
             validTracks.append(
                 track);
         }
     }
 
-    if (validTracks.isEmpty()) {
+    if (
+        validTracks.isEmpty()
+    ) {
         return;
     }
 
     m_originalTracks =
         validTracks;
 
-    if (!m_shuffleEnabled) {
+    if (
+        !m_shuffleEnabled
+    ) {
 
         m_tracks =
             validTracks;
 
-        m_currentIndex =
-            qBound(
-                0,
-                m_currentIndex,
-                m_tracks.size() - 1);
+        if (
+            m_currentIndex < 0
+        ) {
+            m_currentIndex =
+                0;
+        } else {
+
+            m_currentIndex =
+                qBound(
+                    0,
+                    m_currentIndex,
+                    m_tracks.size() - 1);
+        }
 
     } else {
 
@@ -129,9 +234,12 @@ void QueueService::addTracks(
 
         rebuildShuffledQueue();
 
-        m_currentIndex = 0;
+        m_currentIndex =
+            0;
 
-        if (!currentId.isEmpty()) {
+        if (
+            !currentId.isEmpty()
+        ) {
 
             for (
                 int i = 0;
@@ -153,9 +261,12 @@ void QueueService::addTracks(
         }
     }
 
-    if (m_currentIndex < 0) {
-
-        m_currentIndex = 0;
+    if (
+        m_currentIndex < 0 &&
+        !m_tracks.isEmpty()
+    ) {
+        m_currentIndex =
+            0;
     }
 
     emit currentChanged();
@@ -163,7 +274,9 @@ void QueueService::addTracks(
     emit queueChanged();
 }
 
-void QueueService::removeTrack(
+
+void
+QueueService::removeTrack(
     int index)
 {
     if (
@@ -201,7 +314,9 @@ void QueueService::removeTrack(
         }
     }
 
-    if (m_tracks.isEmpty()) {
+    if (
+        m_tracks.isEmpty()
+    ) {
 
         m_currentIndex =
             -1;
@@ -213,7 +328,9 @@ void QueueService::removeTrack(
         return;
     }
 
-    if (index < m_currentIndex) {
+    if (
+        index < m_currentIndex
+    ) {
 
         --m_currentIndex;
 
@@ -234,7 +351,9 @@ void QueueService::removeTrack(
     emit queueChanged();
 }
 
-void QueueService::moveTrack(
+
+void
+QueueService::moveTrack(
     int from,
     int to)
 {
@@ -249,20 +368,24 @@ void QueueService::moveTrack(
     }
 
     const Track track =
-        m_tracks
-            .takeAt(from);
+        m_tracks.takeAt(
+            from);
 
     m_tracks.insert(
         to,
         track);
 
-    if (!m_shuffleEnabled) {
-
+    if (
+        !m_shuffleEnabled
+    ) {
         m_originalTracks =
             m_tracks;
     }
 
-    if (m_currentIndex == from) {
+    if (
+        m_currentIndex ==
+        from
+    ) {
 
         m_currentIndex =
             to;
@@ -291,15 +414,14 @@ void QueueService::moveTrack(
     emit queueChanged();
 }
 
-void QueueService::clear()
+
+void
+QueueService::clear()
 {
-    if (
-        m_tracks.isEmpty() &&
-        m_originalTracks.isEmpty() &&
-        m_currentIndex == -1
-    ) {
-        return;
-    }
+    const bool hadQueue =
+        !m_tracks.isEmpty() ||
+        !m_originalTracks.isEmpty() ||
+        m_currentIndex != -1;
 
     m_tracks.clear();
 
@@ -308,12 +430,22 @@ void QueueService::clear()
     m_currentIndex =
         -1;
 
-    emit currentChanged();
+    if (
+        hadQueue
+    ) {
+        emit currentChanged();
 
-    emit queueChanged();
+        emit queueChanged();
+    }
 }
 
-bool QueueService::setCurrentIndex(
+
+// =============================================================
+// Navigation
+// =============================================================
+
+bool
+QueueService::setCurrentIndex(
     int index)
 {
     if (
@@ -323,7 +455,10 @@ bool QueueService::setCurrentIndex(
         return false;
     }
 
-    if (m_currentIndex == index) {
+    if (
+        m_currentIndex ==
+        index
+    ) {
         return true;
     }
 
@@ -335,9 +470,13 @@ bool QueueService::setCurrentIndex(
     return true;
 }
 
-bool QueueService::next()
+
+bool
+QueueService::next()
 {
-    if (!hasNext()) {
+    if (
+        !hasNext()
+    ) {
         return false;
     }
 
@@ -348,9 +487,13 @@ bool QueueService::next()
     return true;
 }
 
-bool QueueService::previous()
+
+bool
+QueueService::previous()
 {
-    if (!hasPrevious()) {
+    if (
+        !hasPrevious()
+    ) {
         return false;
     }
 
@@ -361,7 +504,9 @@ bool QueueService::previous()
     return true;
 }
 
-bool QueueService::hasNext() const
+
+bool
+QueueService::hasNext() const
 {
     return
         m_currentIndex >= 0 &&
@@ -369,7 +514,9 @@ bool QueueService::hasNext() const
             m_tracks.size();
 }
 
-bool QueueService::hasPrevious() const
+
+bool
+QueueService::hasPrevious() const
 {
     return
         m_currentIndex > 0 &&
@@ -377,16 +524,26 @@ bool QueueService::hasPrevious() const
             m_tracks.size();
 }
 
+
+// =============================================================
+// Repeat
+// =============================================================
+
 QueueService::RepeatMode
 QueueService::repeatMode() const
 {
     return m_repeatMode;
 }
 
-void QueueService::setRepeatMode(
+
+void
+QueueService::setRepeatMode(
     RepeatMode mode)
 {
-    if (m_repeatMode == mode) {
+    if (
+        m_repeatMode ==
+        mode
+    ) {
         return;
     }
 
@@ -396,9 +553,13 @@ void QueueService::setRepeatMode(
     emit repeatModeChanged();
 }
 
-void QueueService::cycleRepeatMode()
+
+void
+QueueService::cycleRepeatMode()
 {
-    switch (m_repeatMode) {
+    switch (
+        m_repeatMode
+    ) {
 
     case RepeatOff:
 
@@ -407,12 +568,14 @@ void QueueService::cycleRepeatMode()
 
         break;
 
+
     case RepeatAll:
 
         setRepeatMode(
             RepeatOne);
 
         break;
+
 
     case RepeatOne:
 
@@ -423,12 +586,20 @@ void QueueService::cycleRepeatMode()
     }
 }
 
-bool QueueService::shuffleEnabled() const
+
+// =============================================================
+// Shuffle
+// =============================================================
+
+bool
+QueueService::shuffleEnabled() const
 {
     return m_shuffleEnabled;
 }
 
-void QueueService::setShuffleEnabled(
+
+void
+QueueService::setShuffleEnabled(
     bool enabled)
 {
     if (
@@ -441,7 +612,9 @@ void QueueService::setShuffleEnabled(
     const QString currentId =
         currentTrack().id;
 
-    if (enabled) {
+    if (
+        enabled
+    ) {
 
         m_originalTracks =
             m_tracks;
@@ -463,7 +636,9 @@ void QueueService::setShuffleEnabled(
     m_currentIndex =
         -1;
 
-    if (!currentId.isEmpty()) {
+    if (
+        !currentId.isEmpty()
+    ) {
 
         for (
             int i = 0;
@@ -488,7 +663,6 @@ void QueueService::setShuffleEnabled(
         m_currentIndex < 0 &&
         !m_tracks.isEmpty()
     ) {
-
         m_currentIndex =
             0;
     }
@@ -500,15 +674,25 @@ void QueueService::setShuffleEnabled(
     emit queueChanged();
 }
 
-void QueueService::toggleShuffle()
+
+void
+QueueService::toggleShuffle()
 {
     setShuffleEnabled(
         !m_shuffleEnabled);
 }
 
-void QueueService::rebuildShuffledQueue()
+
+// =============================================================
+// Shuffle rebuild
+// =============================================================
+
+void
+QueueService::rebuildShuffledQueue()
 {
-    if (m_tracks.size() < 2) {
+    if (
+        m_tracks.size() < 2
+    ) {
         return;
     }
 
@@ -538,12 +722,14 @@ void QueueService::rebuildShuffledQueue()
         shuffled;
 
     /*
-     * Текущий трек не должен
-     * неожиданно поменяться
-     * при включении Shuffle.
+     * При включении Shuffle
+     * текущий трек сохраняется
+     * первым в очереди.
      */
 
-    if (!currentId.isEmpty()) {
+    if (
+        !currentId.isEmpty()
+    ) {
 
         for (
             int i = 0;

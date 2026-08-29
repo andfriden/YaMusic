@@ -537,6 +537,10 @@ void LibraryController::selectLikedTrack(
     queue->setCurrentIndex(
         index);
 
+    queue->setSource(
+        "Понравившиеся треки",
+        "likes");
+
 
     m_playbackController
         ->playTrack(
@@ -691,6 +695,10 @@ void LibraryController::selectPlaylistTrack(
 
     queue->setCurrentIndex(
         index);
+
+    queue->setSource(
+        m_currentPlaylistTitle,
+        "playlist");
 
 
     m_playbackController
@@ -866,6 +874,10 @@ void LibraryController::selectArtistTrack(
 
     queue->setCurrentIndex(
         index);
+
+    queue->setSource(
+        m_currentArtistName,
+        "artist");
 
 
     m_playbackController
