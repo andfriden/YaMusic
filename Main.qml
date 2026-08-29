@@ -5,44 +5,97 @@ import YaMusic.Core
 
 import "qml/Layout"
 import "qml/Home"
+import "qml/Components"
+
 
 ApplicationWindow {
     id: window
 
-    width: 1440
-    height: 900
+    width:
+        1440
 
-    minimumWidth: 1100
-    minimumHeight: 720
+    height:
+        900
 
-    visible: true
+    minimumWidth:
+        1100
 
-    title: "YaMusic"
+    minimumHeight:
+        720
 
-    color: "#f5f5f5"
+    visible:
+        true
+
+    title:
+        "YaMusic"
+
+    color:
+        AppTheme.background
+
+
+    property bool expandedNowPlayingVisible:
+        false
+
+
+    // =============================================================
+    // App Controller
+    // =============================================================
 
     AppController {
         id: appController
 
-        onStatusChanged: function(message) {
-            statusBar.message = message
+        onStatusChanged:
+                function(message) {
+            statusBar.message =
+                message
         }
     }
 
-    Component.onCompleted: {
-        console.log("========================================")
-        console.log("YaMusic Main.qml CREATED")
-        console.log("appController:", appController)
-        console.log("currentSection:", mainLayout.currentSection)
-        console.log("========================================")
+
+    // =============================================================
+    // Startup
+    // =============================================================
+
+    Component.onCompleted:
+    {
+        console.log(
+            "========================================"
+        )
+
+        console.log(
+            "YaMusic Main.qml CREATED"
+        )
+
+        console.log(
+            "appController:",
+            appController
+        )
+
+        console.log(
+            "currentSection:",
+            mainLayout.currentSection
+        )
+
+        console.log(
+            "========================================"
+        )
+
 
         appController.loadRecommendations()
     }
 
-    Connections {
-        target: appController
 
-        function onCurrentAlbumChanged() {
+    // =============================================================
+    // Controller connections
+    // =============================================================
+
+    Connections {
+        target:
+            appController
+
+
+        function onCurrentAlbumChanged()
+        {
             if (
                 appController.albumController !== null &&
                 String(
@@ -54,7 +107,9 @@ ApplicationWindow {
             }
         }
 
-        function onCurrentArtistChanged() {
+
+        function onCurrentArtistChanged()
+        {
             if (
                 appController.artistController !== null &&
                 String(
@@ -66,7 +121,9 @@ ApplicationWindow {
             }
         }
 
-        function onCurrentPlaylistChanged() {
+
+        function onCurrentPlaylistChanged()
+        {
             if (
                 String(
                     appController.currentPlaylistTitle
@@ -78,6 +135,11 @@ ApplicationWindow {
         }
     }
 
+
+    // =============================================================
+    // Main Layout
+    // =============================================================
+
     MainLayout {
         id: mainLayout
 
@@ -87,14 +149,23 @@ ApplicationWindow {
         controller:
             appController
 
+        visible:
+            !window.expandedNowPlayingVisible
+
         onSectionSelected:
-                function(section) {
-            console.log(
-                "Main section selected:",
-                section
-            )
-        }
+                function(section)
+            {
+                console.log(
+                    "Main section selected:",
+                    section
+                )
+            }
     }
+
+
+    // =============================================================
+    // Status Bar
+    // =============================================================
 
     StatusBar {
         id: statusBar
@@ -105,6 +176,11 @@ ApplicationWindow {
         message:
             "Готово"
     }
+
+
+    // =============================================================
+    // Mini Player
+    // =============================================================
 
     NowPlayingBar {
         id: nowPlayingBar
@@ -132,5 +208,38 @@ ApplicationWindow {
 
         controller:
             appController
+
+        visible:
+            !window.expandedNowPlayingVisible
+
+        onExpandedRequested:
+        {
+            window.expandedNowPlayingVisible =
+                true
+        }
+    }
+
+
+    // =============================================================
+    // Expanded Now Playing
+    // =============================================================
+
+    ExpandedNowPlaying {
+        id: expandedNowPlaying
+
+        anchors.fill:
+            parent
+
+        visible:
+            window.expandedNowPlayingVisible
+
+        controller:
+            appController
+
+        onClosed:
+        {
+            window.expandedNowPlayingVisible =
+                false
+        }
     }
 }

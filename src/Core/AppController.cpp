@@ -3,6 +3,7 @@
 #include "../Models/PersonalPlaylist.h"
 
 #include "../Player/PlayerService.h"
+#include "PlayerAccentService.h"
 #include "../Queue/QueueService.h"
 
 #include "../Yandex/Account/AccountService.h"
@@ -29,10 +30,6 @@
 AppController::AppController(
     QObject *parent)
     : QObject(parent)
-
-    // ---------------------------------------------------------
-    // Services
-    // ---------------------------------------------------------
 
     , m_auth(
           new YandexAuth(this))
@@ -93,9 +90,8 @@ AppController::AppController(
     , m_queueService(
           new QueueService(this))
 
-    // ---------------------------------------------------------
-    // Controllers
-    // ---------------------------------------------------------
+    , m_playerAccentService(
+          new PlayerAccentService(this))
 
     , m_playbackController(
           new PlaybackController(
@@ -141,13 +137,27 @@ AppController::AppController(
               this))
 {
     connectAccount();
+
     connectSearch();
+
     connectLibrary();
+
     connectAlbum();
+
     connectPersonal();
+
     connectArtist();
+
     connectPlayback();
+
     connectPlayer();
+
+
+    connect(
+        m_playerAccentService,
+        &PlayerAccentService::accentColorChanged,
+        this,
+        &AppController::playerAccentChanged);
 
 
     m_accountService
@@ -476,6 +486,16 @@ void AppController::connectPlayback()
             }
 
 
+            if (
+                m_playerAccentService != nullptr
+            )
+            {
+                m_playerAccentService
+                    ->updateForCover(
+                        track.coverUri);
+            }
+
+
             QString artistName;
 
 
@@ -586,6 +606,13 @@ void AppController::connectPlayer()
         {
             emit durationChanged();
         });
+
+
+    connect(
+        m_playerService,
+        &PlayerService::volumeChanged,
+        this,
+        &AppController::volumeChanged);
 
 
     connect(
@@ -765,6 +792,12 @@ AppController::isLoadingRecommendations() const
     return m_personalController
         ->isLoadingRecommendations();
 }
+
+
+// -------------------------------------------------------------
+// Library loading/model methods are implemented in
+// AppController+Library.cpp.
+// -------------------------------------------------------------
 
 
 bool
@@ -968,6 +1001,7 @@ AppController::currentTrackId() const
         .id;
 }
 
+
 QString
 AppController::currentTrackTitle() const
 {
@@ -1116,4 +1150,67 @@ AppController::shuffleEnabled() const
 {
     return m_playbackController
         ->shuffleEnabled();
+}
+
+
+// =============================================================
+// Volume
+// =============================================================
+
+float
+AppController::volume() const
+{
+    if (
+        m_playerService == nullptr
+    )
+    {
+        return 1.0f;
+    }
+
+
+    return m_playerService
+        ->volume();
+}
+
+
+void
+AppController::setVolume(
+    float volume)
+{
+    if (
+        m_playerService == nullptr
+    )
+    {
+        return;
+    }
+
+
+    qDebug()
+        << "AppController::setVolume:"
+        << volume;
+
+
+    m_playerService
+        ->setVolume(
+            volume);
+}
+
+
+// =============================================================
+// Dynamic Player Accent
+// =============================================================
+
+QColor
+AppController::playerAccent() const
+{
+    if (
+        m_playerAccentService == nullptr
+    )
+    {
+        return {};
+    }
+
+
+    return m_playerAccentService
+        ->accentColor();
 }

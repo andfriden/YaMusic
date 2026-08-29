@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QColor>
 #include <QObject>
 #include <QString>
 
@@ -17,6 +18,7 @@ class AlbumService;
 class ArtistService;
 class LikesService;
 class PersonalLanding;
+class PlayerAccentService;
 class PlayerService;
 class PlaylistService;
 class QueueService;
@@ -281,6 +283,22 @@ class AppController : public QObject
         READ shuffleEnabled
         NOTIFY shuffleChanged)
 
+    Q_PROPERTY(
+        float volume
+        READ volume
+        WRITE setVolume
+        NOTIFY volumeChanged)
+
+
+    // =============================================================
+    // Dynamic Player Accent
+    // =============================================================
+
+    Q_PROPERTY(
+        QColor playerAccent
+        READ playerAccent
+        NOTIFY playerAccentChanged)
+
 
 public:
 
@@ -405,6 +423,9 @@ public:
     Q_INVOKABLE void seek(
         qint64 position);
 
+    Q_INVOKABLE void setVolume(
+        float volume);
+
 
     // =============================================================
     // Models
@@ -527,6 +548,15 @@ public:
 
     bool shuffleEnabled() const;
 
+    float volume() const;
+
+
+    // =============================================================
+    // Dynamic Player Accent
+    // =============================================================
+
+    QColor playerAccent() const;
+
 
 signals:
 
@@ -594,6 +624,10 @@ signals:
 
     void shuffleChanged();
 
+    void volumeChanged();
+
+    void playerAccentChanged();
+
 
 private:
 
@@ -660,6 +694,9 @@ private:
 
     QueueService *
         m_queueService = nullptr;
+
+    PlayerAccentService *
+        m_playerAccentService = nullptr;
 
 
     // =============================================================

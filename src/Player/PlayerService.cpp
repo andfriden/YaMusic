@@ -2,17 +2,30 @@
 
 #include <QDebug>
 
+
 PlayerService::PlayerService(
     QObject *parent)
     : QObject(parent)
     , m_player(this)
     , m_audioOutput(this)
 {
+    // =========================================================
+    // Audio output
+    // =========================================================
+
     m_audioOutput.setVolume(
-        1.0);
+        1.0f);
+
+    m_audioOutput.setMuted(
+        false);
 
     m_player.setAudioOutput(
         &m_audioOutput);
+
+
+    // =========================================================
+    // Playback state
+    // =========================================================
 
     connect(
         &m_player,
@@ -38,6 +51,7 @@ PlayerService::PlayerService(
 
                 break;
 
+
             case QMediaPlayer::PausedState:
 
                 qDebug()
@@ -46,6 +60,7 @@ PlayerService::PlayerService(
                 emit playbackPaused();
 
                 break;
+
 
             case QMediaPlayer::StoppedState:
 
@@ -56,10 +71,17 @@ PlayerService::PlayerService(
 
                 break;
 
+
             default:
+
                 break;
             }
         });
+
+
+    // =========================================================
+    // Media status
+    // =========================================================
 
     connect(
         &m_player,
@@ -81,12 +103,14 @@ PlayerService::PlayerService(
 
                 break;
 
+
             case QMediaPlayer::LoadingMedia:
 
                 qDebug()
                     << "Media status: LoadingMedia";
 
                 break;
+
 
             case QMediaPlayer::LoadedMedia:
 
@@ -95,12 +119,14 @@ PlayerService::PlayerService(
 
                 break;
 
+
             case QMediaPlayer::BufferingMedia:
 
                 qDebug()
                     << "Media status: BufferingMedia";
 
                 break;
+
 
             case QMediaPlayer::BufferedMedia:
 
@@ -109,12 +135,14 @@ PlayerService::PlayerService(
 
                 break;
 
+
             case QMediaPlayer::StalledMedia:
 
                 qDebug()
                     << "Media status: StalledMedia";
 
                 break;
+
 
             case QMediaPlayer::EndOfMedia:
 
@@ -128,12 +156,14 @@ PlayerService::PlayerService(
 
                 break;
 
+
             case QMediaPlayer::InvalidMedia:
 
                 qDebug()
                     << "Media status: InvalidMedia";
 
                 break;
+
 
             default:
 
@@ -144,25 +174,42 @@ PlayerService::PlayerService(
             }
         });
 
+
+    // =========================================================
+    // Position
+    // =========================================================
+
     connect(
         &m_player,
         &QMediaPlayer::positionChanged,
         this,
-        [this](qint64 position)
+        [this](
+            qint64 position)
         {
             emit positionChanged(
                 position);
         });
 
+
+    // =========================================================
+    // Duration
+    // =========================================================
+
     connect(
         &m_player,
         &QMediaPlayer::durationChanged,
         this,
-        [this](qint64 duration)
+        [this](
+            qint64 duration)
         {
             emit durationChanged(
                 duration);
         });
+
+
+    // =========================================================
+    // Player errors
+    // =========================================================
 
     connect(
         &m_player,
@@ -180,7 +227,44 @@ PlayerService::PlayerService(
             emit errorOccurred(
                 errorString);
         });
+
+
+    // =========================================================
+    // Volume
+    // =========================================================
+
+    connect(
+        &m_audioOutput,
+        &QAudioOutput::volumeChanged,
+        this,
+        [this]()
+        {
+            qDebug()
+                << "QAudioOutput volume changed:"
+                << m_audioOutput.volume();
+
+            emit volumeChanged();
+        });
+
+
+    // =========================================================
+    // Mute
+    // =========================================================
+
+    connect(
+        &m_audioOutput,
+        &QAudioOutput::mutedChanged,
+        this,
+        [this]()
+        {
+            emit mutedChanged();
+        });
 }
+
+
+// =============================================================
+// Playback state
+// =============================================================
 
 bool PlayerService::isPlaying() const
 {
@@ -188,20 +272,44 @@ bool PlayerService::isPlaying() const
         == QMediaPlayer::PlayingState;
 }
 
+
 QString PlayerService::currentUrl() const
 {
     return m_currentUrl;
 }
+
 
 qint64 PlayerService::position() const
 {
     return m_player.position();
 }
 
+
 qint64 PlayerService::duration() const
 {
     return m_player.duration();
 }
+
+
+// =============================================================
+// Volume
+// =============================================================
+
+float PlayerService::volume() const
+{
+    return m_audioOutput.volume();
+}
+
+
+bool PlayerService::isMuted() const
+{
+    return m_audioOutput.isMuted();
+}
+
+
+// =============================================================
+// Playback
+// =============================================================
 
 void PlayerService::play()
 {
@@ -210,6 +318,7 @@ void PlayerService::play()
 
     m_player.play();
 }
+
 
 void PlayerService::playUrl(
     const QString &url)
@@ -227,9 +336,11 @@ void PlayerService::playUrl(
         << "PlayerService::playUrl:"
         << url;
 
+
     if (m_currentUrl != url) {
 
-        m_currentUrl = url;
+        m_currentUrl =
+            url;
 
         m_player.setSource(
             QUrl(url));
@@ -237,8 +348,10 @@ void PlayerService::playUrl(
         emit currentUrlChanged();
     }
 
+
     m_player.play();
 }
+
 
 void PlayerService::pause()
 {
@@ -248,6 +361,7 @@ void PlayerService::pause()
     m_player.pause();
 }
 
+
 void PlayerService::resume()
 {
     qDebug()
@@ -255,6 +369,7 @@ void PlayerService::resume()
 
     m_player.play();
 }
+
 
 void PlayerService::stop()
 {
@@ -264,17 +379,22 @@ void PlayerService::stop()
     m_player.stop();
 }
 
+
 void PlayerService::togglePlayback()
 {
     qDebug()
         << "PlayerService::togglePlayback";
 
     if (isPlaying()) {
+
         pause();
+
     } else {
+
         resume();
     }
 }
+
 
 void PlayerService::seek(
     qint64 position)
@@ -294,4 +414,59 @@ void PlayerService::seek(
 
     m_player.setPosition(
         clampedPosition);
+}
+
+
+// =============================================================
+// Volume
+// =============================================================
+
+void PlayerService::setVolume(
+    float volume)
+{
+    const float clampedVolume =
+        qBound(
+            0.0f,
+            volume,
+            1.0f);
+
+    qDebug()
+        << "PlayerService::setVolume:"
+        << clampedVolume;
+
+    m_audioOutput.setVolume(
+        clampedVolume);
+}
+
+
+void PlayerService::setMuted(
+    bool muted)
+{
+    if (
+        m_audioOutput.isMuted()
+        == muted
+    ) {
+        return;
+    }
+
+    qDebug()
+        << "PlayerService::setMuted:"
+        << muted;
+
+    m_audioOutput.setMuted(
+        muted);
+}
+
+
+void PlayerService::toggleMute()
+{
+    const bool muted =
+        m_audioOutput.isMuted();
+
+    qDebug()
+        << "PlayerService::toggleMute:"
+        << !muted;
+
+    m_audioOutput.setMuted(
+        !muted);
 }

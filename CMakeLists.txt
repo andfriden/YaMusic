@@ -236,6 +236,10 @@ qt_add_executable(
         src/Yandex/Personal/LikesService.h
         src/Yandex/Personal/LikedTracksModel.cpp
         src/Yandex/Personal/LikedTracksModel.h
+        src/Queue/QueueModel.cpp
+        src/Queue/QueueModel.h
+        src/Core/PlayerAccentService.cpp
+        src/Core/PlayerAccentService.h
 )
 
 
@@ -280,6 +284,7 @@ qt_add_qml_module(
         qml/Components/StatusBar.qml
         qml/Components/NowPlayingBar.qml
         qml/Components/EntityLink.qml
+        qml/Components/ExpandedNowPlaying.qml
 
 
         # =========================================================

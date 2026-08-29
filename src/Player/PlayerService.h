@@ -7,13 +7,20 @@
 #include <QAudioOutput>
 #include <QMediaPlayer>
 
+
 class PlayerService : public QObject
 {
     Q_OBJECT
 
 public:
+
     explicit PlayerService(
         QObject *parent = nullptr);
+
+
+    // =========================================================
+    // Playback state
+    // =========================================================
 
     bool isPlaying() const;
 
@@ -23,7 +30,22 @@ public:
 
     qint64 duration() const;
 
+
+    // =========================================================
+    // Volume
+    // =========================================================
+
+    float volume() const;
+
+    bool isMuted() const;
+
+
 public slots:
+
+    // =========================================================
+    // Playback
+    // =========================================================
+
     void play();
 
     void playUrl(
@@ -40,8 +62,27 @@ public slots:
     void seek(
         qint64 position);
 
-    signals:
-        void playingChanged();
+
+    // =========================================================
+    // Volume
+    // =========================================================
+
+    void setVolume(
+        float volume);
+
+    void setMuted(
+        bool muted);
+
+    void toggleMute();
+
+
+signals:
+
+    // =========================================================
+    // Playback
+    // =========================================================
+
+    void playingChanged();
 
     void playbackStarted();
 
@@ -62,7 +103,18 @@ public slots:
     void errorOccurred(
         const QString &message);
 
+
+    // =========================================================
+    // Volume
+    // =========================================================
+
+    void volumeChanged();
+
+    void mutedChanged();
+
+
 private:
+
     QMediaPlayer m_player;
 
     QAudioOutput m_audioOutput;
