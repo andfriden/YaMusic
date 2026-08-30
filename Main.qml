@@ -195,16 +195,16 @@ ApplicationWindow {
             parent.bottom
 
         anchors.leftMargin:
-            16
+            0
 
         anchors.rightMargin:
-            16
+           0
 
         anchors.bottomMargin:
-            12
+           0
 
         height:
-            110
+            124
 
         controller:
             appController

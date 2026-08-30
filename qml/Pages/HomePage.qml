@@ -10,23 +10,19 @@ Item {
     // Page size
     // =============================================================
 
-    readonly property real pageHeight:
-        content.implicitHeight
-
-
     width:
         parent
             ? parent.width
             : 0
 
-    height:
-        pageHeight
-
     implicitWidth:
         width
 
     implicitHeight:
-        pageHeight
+        content.implicitHeight
+
+    height:
+        implicitHeight
 
 
     // =============================================================
@@ -78,9 +74,6 @@ Item {
             width:
                 content.width
 
-            height:
-                190
-
             compactMode:
                 true
 
@@ -109,9 +102,6 @@ Item {
         RecentListeningSection {
             width:
                 content.width
-
-            height:
-                300
 
             controller:
                 root.controller

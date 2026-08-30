@@ -1,5 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Shapes
+
 
 Item {
     id: root
@@ -87,7 +89,7 @@ Item {
             parent
 
         radius:
-            16
+            17
 
         color:
             root.hasPlayerAccent
@@ -114,15 +116,21 @@ Item {
 
         Behavior on color {
             ColorAnimation {
-                duration: 350
-                easing.type: Easing.OutCubic
+                duration:
+                    350
+
+                easing.type:
+                    Easing.OutCubic
             }
         }
 
         Behavior on border.color {
             ColorAnimation {
-                duration: 350
-                easing.type: Easing.OutCubic
+                duration:
+                    350
+
+                easing.type:
+                    Easing.OutCubic
             }
         }
     }
@@ -136,10 +144,10 @@ Item {
         id: artworkFrame
 
         width:
-            58
+            62
 
         height:
-            58
+            62
 
         anchors.left:
             parent.left
@@ -151,7 +159,7 @@ Item {
             parent.verticalCenter
 
         radius:
-            10
+            11
 
         color:
             AppTheme.surface
@@ -177,8 +185,8 @@ Item {
 
             sourceSize:
                 Qt.size(
-                    116,
-                    116
+                    124,
+                    124
                 )
 
             fillMode:
@@ -410,7 +418,7 @@ Item {
             parent.verticalCenter
 
         anchors.verticalCenterOffset:
-            -10
+            -9
 
         spacing:
             5
@@ -442,10 +450,10 @@ Item {
             id: playButton
 
             width:
-                50
+                52
 
             height:
-                50
+                52
 
             radius:
                 16
@@ -926,10 +934,13 @@ Item {
             id: volumeArea
 
             width:
-                96
+                92
 
             height:
                 40
+
+            anchors.verticalCenter:
+                parent.verticalCenter
 
 
             PlayerButton {
@@ -940,12 +951,6 @@ Item {
 
                 height:
                     40
-
-                text:
-                    root.volumeIcon()
-
-                fontSize:
-                    17
 
                 enabled:
                     root.hasVolume
@@ -968,6 +973,24 @@ Item {
                             1.0
                         )
                     }
+                }
+
+
+                VolumeIcon {
+                    anchors.centerIn:
+                        parent
+
+                    width:
+                        20
+
+                    height:
+                        20
+
+                    volume:
+                        root.currentVolume
+
+                    enabled:
+                        root.hasVolume
                 }
             }
 
@@ -1217,6 +1240,9 @@ Item {
 
             font.weight:
                 Font.Normal
+
+            visible:
+                parent.text.length > 0
         }
 
 
@@ -1239,6 +1265,260 @@ Item {
 
             onClicked: {
                 parent.clicked()
+            }
+        }
+    }
+
+
+    // =============================================================
+    // Volume icon
+    // =============================================================
+
+    component VolumeIcon: Item {
+
+        property real volume: 1.0
+        property bool enabled: true
+
+        readonly property bool muted:
+            volume <= 0.001
+
+        readonly property bool low:
+            volume > 0.001 &&
+            volume < 0.5
+
+
+        // ---------------------------------------------------------
+        // Speaker body
+        // ---------------------------------------------------------
+
+        Shape {
+            anchors.fill:
+                parent
+
+            visible:
+                true
+
+            ShapePath {
+                fillColor:
+                    root.hasTrack
+                        ? root.playerAccent
+                        : AppTheme.textPrimary
+
+                strokeColor:
+                    "transparent"
+
+                strokeWidth:
+                    0
+
+                startX:
+                    2
+
+                startY:
+                    7
+
+                PathLine {
+                    x:
+                        6
+
+                    y:
+                        7
+                }
+
+                PathLine {
+                    x:
+                        11
+
+                    y:
+                        3
+                }
+
+                PathLine {
+                    x:
+                        11
+
+                    y:
+                        17
+                }
+
+                PathLine {
+                    x:
+                        6
+
+                    y:
+                        13
+                }
+
+                PathLine {
+                    x:
+                        2
+
+                    y:
+                        13
+                }
+
+                PathLine {
+                    x:
+                        2
+
+                    y:
+                        7
+                }
+            }
+        }
+
+
+        // ---------------------------------------------------------
+        // Sound waves
+        // ---------------------------------------------------------
+
+        Shape {
+            anchors.fill:
+                parent
+
+            visible:
+                !muted
+
+            ShapePath {
+                fillColor:
+                    "transparent"
+
+                strokeColor:
+                    root.hasTrack
+                        ? root.playerAccent
+                        : AppTheme.textPrimary
+
+                strokeWidth:
+                    1.5
+
+                capStyle:
+                    ShapePath.RoundCap
+
+                joinStyle:
+                    ShapePath.RoundJoin
+
+                startX:
+                    14
+
+                startY:
+                    7
+
+                PathCubic {
+                    control1X:
+                        17
+
+                    control1Y:
+                        9
+
+                    control2X:
+                        17
+
+                    control2Y:
+                        11
+
+                    x:
+                        14
+
+                    y:
+                        13
+                }
+            }
+        }
+
+
+        Shape {
+            anchors.fill:
+                parent
+
+            visible:
+                !muted &&
+                !low
+
+            ShapePath {
+                fillColor:
+                    "transparent"
+
+                strokeColor:
+                    root.hasTrack
+                        ? root.playerAccent
+                        : AppTheme.textPrimary
+
+                strokeWidth:
+                    1.5
+
+                capStyle:
+                    ShapePath.RoundCap
+
+                joinStyle:
+                    ShapePath.RoundJoin
+
+                startX:
+                    15.5
+
+                startY:
+                    4.5
+
+                PathCubic {
+                    control1X:
+                        20
+
+                    control1Y:
+                        7
+
+                    control2X:
+                        20
+
+                    control2Y:
+                        13
+
+                    x:
+                        15.5
+
+                    y:
+                        15.5
+                }
+            }
+        }
+
+
+        // ---------------------------------------------------------
+        // Mute slash
+        // ---------------------------------------------------------
+
+        Shape {
+            anchors.fill:
+                parent
+
+            visible:
+                muted
+
+            ShapePath {
+                fillColor:
+                    "transparent"
+
+                strokeColor:
+                    root.hasTrack
+                        ? root.playerAccent
+                        : AppTheme.textPrimary
+
+                strokeWidth:
+                    2
+
+                capStyle:
+                    ShapePath.RoundCap
+
+                startX:
+                    3
+
+                startY:
+                    4
+
+                PathLine {
+                    x:
+                        17
+
+                    y:
+                        16
+                }
             }
         }
     }
@@ -1289,33 +1569,6 @@ Item {
         }
 
         return "⇄"
-    }
-
-
-    function volumeIcon()
-    {
-        if (
-            !root.hasVolume
-        ) {
-            return "🔊"
-        }
-
-        var volume =
-            root.currentVolume
-
-        if (
-            volume <= 0
-        ) {
-            return "🔇"
-        }
-
-        if (
-            volume < 0.5
-        ) {
-            return "🔉"
-        }
-
-        return "🔊"
     }
 
 

@@ -5,24 +5,33 @@ Item {
 
     property var controller
 
-    readonly property int pageHeight: 700
+    anchors.fill:
+        parent
 
-    width: parent ? parent.width : 0
-    height: pageHeight
+    implicitWidth:
+        width
 
-    implicitWidth: width
-    implicitHeight: pageHeight
+    implicitHeight:
+        height
+
 
     MyWaveSection {
-        anchors.fill: parent
+        anchors.fill:
+            parent
 
-        controller: root.controller
+        controller:
+            root.controller
 
-        compactMode: false
+        compactMode:
+            false
     }
 
+
     Component.onCompleted: {
-        if (root.controller !== null) {
+        if (
+            root.controller !== null &&
+            root.controller !== undefined
+        ) {
             root.controller.loadMyWave()
         }
     }

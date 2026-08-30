@@ -40,6 +40,25 @@ Item {
 
 
     // =============================================================
+    // Layout constants
+    // =============================================================
+
+    readonly property int playerAreaBottomMargin:
+        126
+
+    readonly property int sidebarWidth:
+        205
+
+    readonly property int contextPanelWidth:
+        260
+
+
+    readonly property bool contextPanelVisible:
+        root.currentPageType !== "section" ||
+        root.currentSection !== "home"
+
+
+    // =============================================================
     // Context
     // =============================================================
 
@@ -85,10 +104,11 @@ Item {
             id: sidebar
 
             width:
-                205
+                root.sidebarWidth
 
             height:
-                parent.height
+                parent.height -
+                root.playerAreaBottomMargin
 
             currentSection:
                 root.currentSection
@@ -112,7 +132,8 @@ Item {
                 1
 
             height:
-                parent.height
+                parent.height -
+                root.playerAreaBottomMargin
 
             color:
                 AppTheme.divider
@@ -128,9 +149,13 @@ Item {
 
             width:
                 parent.width -
-                sidebar.width -
-                contextPanel.width -
-                2
+                root.sidebarWidth -
+                1 -
+                (
+                    root.contextPanelVisible
+                        ? root.contextPanelWidth + 1
+                        : 0
+                )
 
             height:
                 parent.height
@@ -159,7 +184,7 @@ Item {
                     20
 
                 anchors.bottomMargin:
-                    126
+                    root.playerAreaBottomMargin
 
                 clip:
                     true
@@ -177,7 +202,8 @@ Item {
 
                 contentHeight:
                     Math.max(
-                        pageLoader.height,
+                        pageLoader.height +
+                        bottomContentSpacer.height,
                         availableHeight
                     )
 
@@ -208,6 +234,24 @@ Item {
                         item.width =
                             pageLoader.width
                     }
+                }
+
+
+                // =================================================
+                // Bottom spacer
+                // =================================================
+
+                Item {
+                    id: bottomContentSpacer
+
+                    width:
+                        contentScrollView.availableWidth
+
+                    height:
+                        36
+
+                    y:
+                        pageLoader.height
                 }
             }
 
@@ -294,10 +338,13 @@ Item {
 
         Rectangle {
             width:
-                1
+                root.contextPanelVisible
+                    ? 1
+                    : 0
 
             height:
-                parent.height
+                parent.height -
+                root.playerAreaBottomMargin
 
             color:
                 AppTheme.divider
@@ -312,7 +359,9 @@ Item {
             id: contextPanel
 
             width:
-                260
+                root.contextPanelVisible
+                    ? root.contextPanelWidth
+                    : 0
 
             height:
                 parent.height
@@ -327,7 +376,7 @@ Item {
                 14
 
             anchors.bottomMargin:
-                126
+                root.playerAreaBottomMargin
 
             contextType:
                 root.contextType
