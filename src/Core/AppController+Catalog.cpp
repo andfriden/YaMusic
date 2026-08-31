@@ -1,5 +1,7 @@
 #include "AppController.h"
 
+#include "../Yandex/Catalog/ChartService.h"
+
 
 // =============================================================
 // Artist
@@ -122,4 +124,40 @@ void AppController::playAlbum(
     m_albumController
         ->loadAlbum(
             albumId);
+}
+
+
+// =============================================================
+// Chart
+// =============================================================
+
+void AppController::loadChart(
+    const QString &chartType)
+{
+    if (
+        m_chartController == nullptr
+    )
+    {
+        return;
+    }
+
+
+    m_chartController
+        ->loadChart(
+            chartType);
+}
+
+
+void AppController::loadCharts()
+{
+    if (
+        m_chartController == nullptr
+    )
+    {
+        return;
+    }
+
+
+    m_chartController
+        ->loadCharts();
 }

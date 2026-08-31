@@ -4,773 +4,228 @@ import QtQuick.Controls.Basic
 Item {
     id: root
 
-
     // =============================================================
-    // Controller
+    // 1. ОСНОВНЫЕ СВОЙСТВА
     // =============================================================
 
     property var controller
+    property string currentSection: "home"
+    property string contextType: contextTypeForSection(currentSection)
+
+    // Панель видна только для альбомов, исполнителей и плейлистов
+    readonly property bool showContextPanel:
+        root.currentSection === "albums" ||
+        root.currentSection === "artists" ||
+        root.currentSection === "playlists"
+
+    signal sectionSelected(string section)
 
 
     // =============================================================
-    // Current root section
+    // 2. ФОН
     // =============================================================
-
-    property string currentSection:
-        "home"
-
-
-    // =============================================================
-    // Current page
-    // =============================================================
-
-    property string currentPageType:
-        "section"
-
-    property string currentDetailId:
-        ""
-
-
-    // =============================================================
-    // Navigation stack
-    // =============================================================
-
-    property var navigationStack:
-        []
-
-
-    // =============================================================
-    // Layout constants
-    // =============================================================
-
-    readonly property int playerAreaBottomMargin:
-        126
-
-    readonly property int sidebarWidth:
-        205
-
-    readonly property int contextPanelWidth:
-        260
-
-
-    readonly property bool contextPanelVisible:
-        root.currentPageType !== "section" ||
-        root.currentSection !== "home"
-
-
-    // =============================================================
-    // Context
-    // =============================================================
-
-    readonly property string contextType:
-        contextTypeForCurrentPage()
-
-
-    signal sectionSelected(
-        string section
-    )
-
-
-    // =============================================================
-    // Background
-    // =============================================================
-
     Rectangle {
-        anchors.fill:
-            parent
-
-        color:
-            AppTheme.backgroundPrimary
+        anchors.fill: parent
+        color: AppTheme.backgroundPrimary
     }
 
 
     // =============================================================
-    // Main layout
+    // 3. РАСКЛАДКА
     // =============================================================
-
     Row {
-        anchors.fill:
-            parent
-
-        spacing:
-            0
+        anchors.fill: parent
 
 
-        // =========================================================
-        // Sidebar
-        // =========================================================
-
+        // ---------- Левая панель ----------
         Sidebar {
             id: sidebar
-
-            width:
-                root.sidebarWidth
-
-            height:
-                parent.height -
-                root.playerAreaBottomMargin
-
-            currentSection:
-                root.currentSection
-
-
-            onSectionSelected:
-                    function(section) {
-                root.selectSection(
-                    section
-                )
+            width: 205
+            height: parent.height
+            currentSection: root.currentSection
+            onSectionSelected: function(section) {
+                root.currentSection = section
+                root.sectionSelected(section)
             }
         }
 
 
-        // =========================================================
-        // Sidebar separator
-        // =========================================================
-
+        // Разделитель
         Rectangle {
-            width:
-                1
-
-            height:
-                parent.height -
-                root.playerAreaBottomMargin
-
-            color:
-                AppTheme.divider
+            width: 1
+            height: parent.height
+            color: "#22ffffff"
         }
 
 
-        // =========================================================
-        // Main area
-        // =========================================================
-
+        // ---------- Центральная область ----------
         Item {
             id: mainArea
-
-            width:
-                parent.width -
-                root.sidebarWidth -
-                1 -
-                (
-                    root.contextPanelVisible
-                        ? root.contextPanelWidth + 1
-                        : 0
-                )
-
-            height:
-                parent.height
-
-            clip:
-                true
+            width: parent.width - sidebar.width - 1 - (
+                root.showContextPanel ? contextPanel.width : 0
+            )
+            height: parent.height
+            clip: true
 
 
-            // =====================================================
-            // Scrollable page area
-            // =====================================================
-
+            // =========================================================
+            // ScrollView – с добавленным отступом внизу (126px)
+            // =========================================================
             ScrollView {
-                id: contentScrollView
+                id: pageScroll
 
-                anchors.fill:
-                    parent
+                anchors.fill: parent
+                anchors.leftMargin: 20
+                anchors.rightMargin: 20
+                anchors.topMargin: 10
+                anchors.bottomMargin: 10
 
-                anchors.topMargin:
-                    10
+                clip: true
 
-                anchors.leftMargin:
-                    20
-
-                anchors.rightMargin:
-                    20
-
-                anchors.bottomMargin:
-                    root.playerAreaBottomMargin
-
-                clip:
-                    true
-
-
-                ScrollBar.vertical:
-                    ScrollBar {
-                        policy:
-                            ScrollBar.AsNeeded
-                    }
-
-
-                contentWidth:
-                    availableWidth
-
-                contentHeight:
-                    Math.max(
-                        pageLoader.height +
-                        bottomContentSpacer.height,
-                        availableHeight
-                    )
-
-
-                Loader {
-                    id: pageLoader
-
-                    width:
-                        contentScrollView.availableWidth
-
-                    height:
-                            item !== null
-                        ? Math.max(
-                            item.implicitHeight,
-                            item.height
-                        )
-                        : 0
-
-
-                    onLoaded: {
-                        if (
-                            !item
-                        ) {
-                            return
-                        }
-
-
-                        item.width =
-                            pageLoader.width
-                    }
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
                 }
 
 
-                // =================================================
-                // Bottom spacer
-                // =================================================
-
+                // Контейнер содержимого – содержит Loader и пустой элемент для отступа
                 Item {
-                    id: bottomContentSpacer
+                    id: contentHost
 
-                    width:
-                        contentScrollView.availableWidth
+                    width: pageScroll.availableWidth
+                    implicitWidth: width
 
-                    height:
-                        36
-
-                    y:
-                        pageLoader.height
-                }
-            }
-
-
-            // =====================================================
-            // Back button
-            // =====================================================
-
-            ToolButton {
-                id: backButton
-
-                width:
-                    38
-
-                height:
-                    38
-
-                anchors.left:
-                    parent.left
-
-                anchors.top:
-                    parent.top
-
-                anchors.leftMargin:
-                    8
-
-                anchors.topMargin:
-                    8
-
-                z:
-                    1000
-
-                visible:
-                    root.currentPageType !== "section" &&
-                    root.navigationStack.length > 0
-
-                text:
-                    "‹"
+                    // Высота: если загружен элемент, берём его implicitHeight + 126,
+                    // иначе просто 126 (чтобы сохранить минимальный отступ)
+                    height: pageLoader.item !== null && pageLoader.item !== undefined
+                        ? pageLoader.item.implicitHeight + 126
+                        : 126
+                    implicitHeight: height
 
 
-                contentItem:
-                    Text {
-                        text:
-                            backButton.text
+                    // Загрузчик страниц
+                    Loader {
+                        id: pageLoader
 
-                        color:
-                            backButton.hovered
-                                ? AppTheme.accent
-                                : AppTheme.textPrimary
+                        width: parent.width
+                        height: item !== null && item !== undefined
+                            ? item.implicitHeight
+                            : 0
 
-                        font.pixelSize:
-                            30
-
-                        horizontalAlignment:
-                            Text.AlignHCenter
-
-                        verticalAlignment:
-                            Text.AlignVCenter
+                        onLoaded: {
+                            if (item !== null && item !== undefined) {
+                                item.width = pageLoader.width
+                            }
+                        }
                     }
 
 
-                background:
-                    Rectangle {
-                        radius:
-                            8
-
-                        color:
-                            backButton.hovered
-                                ? AppTheme.panelHover
-                                : "transparent"
+                    // Пустой элемент, создающий дополнительное пространство внизу (126px)
+                    Item {
+                        width: parent.width
+                        height: 126
                     }
-
-
-                onClicked: {
-                    root.goBack()
                 }
             }
         }
 
 
-        // =========================================================
-        // Context separator
-        // =========================================================
-
-        Rectangle {
-            width:
-                root.contextPanelVisible
-                    ? 1
-                    : 0
-
-            height:
-                parent.height -
-                root.playerAreaBottomMargin
-
-            color:
-                AppTheme.divider
-        }
-
-
-        // =========================================================
-        // Context panel
-        // =========================================================
-
-        ContextPanel {
-            id: contextPanel
-
-            width:
-                root.contextPanelVisible
-                    ? root.contextPanelWidth
-                    : 0
-
-            height:
-                parent.height
-
-            anchors.top:
-                parent.top
-
-            anchors.bottom:
-                parent.bottom
-
-            anchors.topMargin:
-                14
-
-            anchors.bottomMargin:
-                root.playerAreaBottomMargin
-
-            contextType:
-                root.contextType
-
-            controller:
-                root.controller
-        }
-    }
-
-
-    // =============================================================
-    // Root section navigation
-    // =============================================================
-
-    function selectSection(
-        section
-    ) {
-        root.navigationStack =
-            []
-
-        root.currentSection =
-            section
-
-        root.currentPageType =
-            "section"
-
-        root.currentDetailId =
-            ""
-
-
-        loadCurrentPage()
-
-
-        root.sectionSelected(
-            section
-        )
-    }
-
-
-    // =============================================================
-    // Open Artist
-    // =============================================================
-
-    function openArtistPage(
-        artistId
-    ) {
-        const id =
-            String(
-                artistId || ""
-            ).trim()
-
-
-        if (
-            id.length === 0
-        ) {
-            return
-        }
-
-
-        root.navigationStack =
-            root.navigationStack.concat(
-                [
-                    {
-                        type:
-                        root.currentPageType,
-
-                        section:
-                        root.currentSection,
-
-                        id:
-                        root.currentDetailId
-                    }
-                ]
-            )
-
-
-        root.currentPageType =
-            "artist"
-
-        root.currentDetailId =
-            id
-
-
-        loadCurrentPage()
-    }
-
-
-    // =============================================================
-    // Open Album
-    // =============================================================
-
-    function openAlbumPage(
-        albumId
-    ) {
-        const id =
-            String(
-                albumId || ""
-            ).trim()
-
-
-        if (
-            id.length === 0
-        ) {
-            return
-        }
-
-
-        root.navigationStack =
-            root.navigationStack.concat(
-                [
-                    {
-                        type:
-                        root.currentPageType,
-
-                        section:
-                        root.currentSection,
-
-                        id:
-                        root.currentDetailId
-                    }
-                ]
-            )
-
-
-        root.currentPageType =
-            "album"
-
-        root.currentDetailId =
-            id
-
-
-        loadCurrentPage()
-    }
-
-
-    // =============================================================
-    // Back
-    // =============================================================
-
-    function goBack() {
-        if (
-            root.navigationStack.length === 0
-        ) {
-            return
-        }
-
-
-        const stack =
-            root.navigationStack.slice()
-
-
-        const previous =
-            stack.pop()
-
-
-        root.navigationStack =
-            stack
-
-
-        root.currentPageType =
-            previous.type || "section"
-
-        root.currentSection =
-            previous.section || "home"
-
-        root.currentDetailId =
-            previous.id || ""
-
-
-        loadCurrentPage()
-    }
-
-
-    // =============================================================
-    // Load current page
-    // =============================================================
-
-    function loadCurrentPage() {
-        const source =
-            pageSourceForCurrentPage()
-
-
-        pageLoader.setSource(
-            source,
-            {
-                controller:
-                root.controller
+        // ---------- Правая контекстная панель ----------
+        Item {
+            id: contextArea
+            width: root.showContextPanel ? contextPanel.width : 0
+            height: parent.height
+            visible: root.showContextPanel
+
+
+            Rectangle {
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                width: 1
+                color: "#22ffffff"
             }
-        )
-    }
 
 
-    // =============================================================
-    // Page source
-    // =============================================================
-
-    function pageSourceForCurrentPage() {
-        switch (
-            root.currentPageType
-            ) {
-
-            case "artist":
-                return "../Pages/ArtistPage.qml"
-
-
-            case "album":
-                return "../Pages/AlbumPage.qml"
-
-
-            case "section":
-            default:
-                return pageSourceForSection(
-                    root.currentSection
-                )
-        }
-    }
-
-
-    function pageSourceForSection(
-        section
-    ) {
-        switch (
-            section
-            ) {
-
-            case "home":
-                return "../Pages/HomePage.qml"
-
-
-            case "search":
-                return "../Pages/SearchPage.qml"
-
-
-            case "wave":
-                return "../Pages/MyWavePage.qml"
-
-
-            case "library":
-                return "../Pages/LibraryPage.qml"
-
-
-            case "playlists":
-                return "../Pages/PlaylistPage.qml"
-
-
-            case "recent":
-                return "../Pages/RecentPage.qml"
-
-
-            case "liked":
-                return "../Pages/HomePage.qml"
-
-
-            default:
-                return "../Pages/HomePage.qml"
+            ContextPanel {
+                id: contextPanel
+                width: 260
+                height: parent.height
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.topMargin: 14
+                visible: root.showContextPanel
+                contextType: root.contextType
+                controller: root.controller
+            }
         }
     }
 
 
     // =============================================================
-    // Context
+    // 4. ОБРАБОТКА СОБЫТИЙ HOME -> CHART
     // =============================================================
-
-    function contextTypeForCurrentPage() {
-        switch (
-            root.currentPageType
-            ) {
-
-            case "artist":
-                return "artist"
-
-
-            case "album":
-                return "album"
-
-
-            case "section":
-            default:
-                return contextTypeForSection(
-                    root.currentSection
-                )
-        }
-    }
-
-
-    function contextTypeForSection(
-        section
-    ) {
-        switch (
-            section
-            ) {
-
-            case "home":
-                return "home"
-
-
-            case "search":
-                return "home"
-
-
-            case "wave":
-                return "mywave"
-
-
-            case "library":
-                return "library"
-
-
-            case "playlists":
-                return "playlist"
-
-
-            case "liked":
-                return "home"
-
-
-            case "recent":
-                return "home"
-
-
-            default:
-                return "home"
-        }
-    }
-
-
-    // =============================================================
-    // Navigation requests from AppController
-    // =============================================================
-
     Connections {
-        target:
-            root.controller
-
-
-        function onArtistPageRequested(
-            artistId
-        ) {
-            root.openArtistPage(
-                artistId
-            )
-        }
-
-
-        function onAlbumPageRequested(
-            albumId
-        ) {
-            root.openAlbumPage(
-                albumId
-            )
-        }
-
-
-        function onPlaylistPageRequested() {
-            root.selectSection(
-                "playlists"
-            )
-        }
-
-
-        function onSearchPageRequested(
-            query
-        ) {
-            root.selectSection(
-                "search"
-            )
+        target: root.currentSection === "home" ? pageLoader.item : null
+        function onChartRequested() {
+            root.currentSection = "chart"
         }
     }
 
 
     // =============================================================
-    // Controller
+    // 5. ЗАГРУЗКА СТРАНИЦ
     // =============================================================
+    function loadCurrentPage() {
+        pageLoader.setSource(
+            pageSourceForSection(root.currentSection),
+            { controller: root.controller }
+        )
+    }
+
+    onCurrentSectionChanged: {
+        root.contextType = contextTypeForSection(root.currentSection)
+        loadCurrentPage()
+    }
 
     onControllerChanged: {
-        if (
-            root.controller !== null &&
-            root.controller !== undefined
-        ) {
+        if (root.controller !== null && root.controller !== undefined) {
             loadCurrentPage()
+        }
+    }
+
+    Component.onCompleted: {
+        loadCurrentPage()
+    }
+
+
+    // =============================================================
+    // 6. МАРШРУТИЗАЦИЯ СТРАНИЦ
+    // =============================================================
+    function pageSourceForSection(section) {
+        switch (section) {
+            case "home":      return "../Pages/HomePage.qml"
+            case "search":    return "../Pages/SearchPage.qml"
+            case "wave":      return "../Pages/MyWavePage.qml"
+            case "library":   return "../Pages/LibraryPage.qml"
+            case "albums":    return "../Pages/AlbumPage.qml"
+            case "artists":   return "../Pages/ArtistPage.qml"
+            case "playlists": return "../Pages/PlaylistPage.qml"
+            case "recent":    return "../Pages/RecentPage.qml"
+            case "chart":     return "../Pages/ChartPage.qml"
+            default:          return "../Pages/HomePage.qml"
         }
     }
 
 
     // =============================================================
-    // Initial state
+    // 7. ТИП КОНТЕКСТА
     // =============================================================
-
-    Component.onCompleted: {
-        if (
-            root.controller !== null &&
-            root.controller !== undefined
-        ) {
-            loadCurrentPage()
+    function contextTypeForSection(section) {
+        switch (section) {
+            case "artists":   return "artist"
+            case "albums":    return "album"
+            case "playlists": return "playlist"
+            default:          return "home"
         }
     }
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+
 #include <QColor>
 #include <QObject>
 #include <QString>
@@ -7,6 +8,7 @@
 
 #include "AlbumController.h"
 #include "ArtistController.h"
+#include "ChartController.h"
 #include "LibraryController.h"
 #include "PersonalController.h"
 #include "SearchController.h"
@@ -17,6 +19,7 @@
 class AccountService;
 class AlbumService;
 class ArtistService;
+class ChartService;
 class LikesService;
 class PersonalLanding;
 class PlayerAccentService;
@@ -101,7 +104,7 @@ class AppController : public QObject
 
 
     // =============================================================
-    // Models
+    // Models / Controllers
     // =============================================================
 
     Q_PROPERTY(
@@ -147,6 +150,11 @@ class AppController : public QObject
     Q_PROPERTY(
         ArtistController *artistController
         READ artistController
+        CONSTANT)
+
+    Q_PROPERTY(
+        ChartController *chartController
+        READ chartController
         CONSTANT)
 
 
@@ -327,10 +335,6 @@ public:
         QObject *parent = nullptr);
 
 
-    // =============================================================
-    // Tests
-    // =============================================================
-
     Q_INVOKABLE void testConnection();
 
     Q_INVOKABLE void testYandexApi();
@@ -339,17 +343,9 @@ public:
         const QString &query);
 
 
-    // =============================================================
-    // Search
-    // =============================================================
-
     Q_INVOKABLE void search(
         const QString &query);
 
-
-    // =============================================================
-    // Catalog
-    // =============================================================
 
     Q_INVOKABLE void loadArtist(
         const QString &id);
@@ -360,10 +356,11 @@ public:
     Q_INVOKABLE void playAlbum(
         const QString &id);
 
+    Q_INVOKABLE void loadChart(
+        const QString &chartType);
 
-    // =============================================================
-    // Personal
-    // =============================================================
+    Q_INVOKABLE void loadCharts();
+
 
     Q_INVOKABLE void loadMyWave();
 
@@ -371,10 +368,6 @@ public:
 
     Q_INVOKABLE void loadRecommendations();
 
-
-    // =============================================================
-    // Library
-    // =============================================================
 
     Q_INVOKABLE void loadLibrary();
 
@@ -386,10 +379,6 @@ public:
     Q_INVOKABLE void selectLikedTrack(
         int index);
 
-
-    // =============================================================
-    // Selection
-    // =============================================================
 
     Q_INVOKABLE void selectSearchResult(
         int index);
@@ -416,10 +405,6 @@ public:
     Q_INVOKABLE void selectSimilarArtist(
         int index);
 
-
-    // =============================================================
-    // Playback
-    // =============================================================
 
     Q_INVOKABLE void play();
 
@@ -448,10 +433,6 @@ public:
         float volume);
 
 
-    // =============================================================
-    // Queue / playback source
-    // =============================================================
-
     QString playbackSourceTitle() const;
 
     QString playbackSourceType() const;
@@ -463,10 +444,6 @@ public:
     Q_INVOKABLE QVariantMap queueTrackData(
         int index) const;
 
-
-    // =============================================================
-    // Models
-    // =============================================================
 
     SearchModel *searchModel() const;
 
@@ -481,19 +458,21 @@ public:
     LikedTracksModel *
     likedTracksModel() const;
 
-    PlaylistModel *playlistModel() const;
+    PlaylistModel *
+    playlistModel() const;
 
     RecentListeningModel *
     recentListeningModel() const;
 
-    AlbumController *albumController() const;
+    AlbumController *
+    albumController() const;
 
-    ArtistController *artistController() const;
+    ArtistController *
+    artistController() const;
 
+    ChartController *
+    chartController() const;
 
-    // =============================================================
-    // Loading state
-    // =============================================================
 
     bool isSearching() const;
 
@@ -516,10 +495,6 @@ public:
     bool isLoadingArtist() const;
 
 
-    // =============================================================
-    // Current playlist
-    // =============================================================
-
     QString currentPlaylistTitle() const;
 
     QString currentPlaylistCoverUri() const;
@@ -527,20 +502,12 @@ public:
     int currentPlaylistTrackCount() const;
 
 
-    // =============================================================
-    // Current album
-    // =============================================================
-
     QString currentAlbumTitle() const;
 
     int currentAlbumTrackCount() const;
 
     QString currentAlbumCoverUri() const;
 
-
-    // =============================================================
-    // Current artist
-    // =============================================================
 
     QString currentArtistName() const;
 
@@ -550,10 +517,6 @@ public:
 
     int currentArtistTrackCount() const;
 
-
-    // =============================================================
-    // Current track
-    // =============================================================
 
     QString currentTrackId() const;
 
@@ -570,10 +533,6 @@ public:
     QString currentTrackCoverUri() const;
 
 
-    // =============================================================
-    // Playback state
-    // =============================================================
-
     qint64 position() const;
 
     qint64 duration() const;
@@ -588,10 +547,6 @@ public:
     float volume() const;
 
 
-    // =============================================================
-    // Dynamic Player Accent
-    // =============================================================
-
     QColor playerAccent() const;
 
 
@@ -599,11 +554,6 @@ signals:
 
     void statusChanged(
         const QString &message);
-
-
-    // =============================================================
-    // Navigation
-    // =============================================================
 
     void artistPageRequested(
         const QString &artistId);
@@ -615,11 +565,6 @@ signals:
 
     void searchPageRequested(
         const QString &query);
-
-
-    // =============================================================
-    // State
-    // =============================================================
 
     void searchingChanged();
 
@@ -672,10 +617,6 @@ signals:
 
 private:
 
-    // =============================================================
-    // Connection setup
-    // =============================================================
-
     void connectAccount();
 
     void connectSearch();
@@ -688,14 +629,12 @@ private:
 
     void connectArtist();
 
+    void connectChart();
+
     void connectPlayback();
 
     void connectPlayer();
 
-
-    // =============================================================
-    // Services
-    // =============================================================
 
     YandexAuth *
         m_auth = nullptr;
@@ -730,6 +669,9 @@ private:
     ArtistService *
         m_artistService = nullptr;
 
+    ChartService *
+        m_chartService = nullptr;
+
     PlayerService *
         m_playerService = nullptr;
 
@@ -739,10 +681,6 @@ private:
     PlayerAccentService *
         m_playerAccentService = nullptr;
 
-
-    // =============================================================
-    // Controllers
-    // =============================================================
 
     PlaybackController *
         m_playbackController = nullptr;
@@ -762,17 +700,11 @@ private:
     ArtistController *
         m_artistController = nullptr;
 
+    ChartController *
+        m_chartController = nullptr;
 
-    // =============================================================
-    // Account
-    // =============================================================
 
     QString m_accountUid;
-
-
-    // =============================================================
-    // State
-    // =============================================================
 
     bool m_playAlbumAfterLoad =
         false;

@@ -240,6 +240,14 @@ qt_add_executable(
         src/Queue/QueueModel.h
         src/Core/PlayerAccentService.cpp
         src/Core/PlayerAccentService.h
+        src/Core/ChartController.cpp
+        src/Core/ChartController.h
+        src/Yandex/Catalog/ChartService.cpp
+        src/Yandex/Catalog/ChartService.h
+        src/Yandex/Catalog/ChartModel.cpp
+        src/Yandex/Catalog/ChartModel.h
+        src/Yandex/Personal/PersonalChartModel.cpp
+        src/Yandex/Personal/PersonalChartModel.h
 )
 
 
@@ -285,6 +293,8 @@ qt_add_qml_module(
         qml/Components/NowPlayingBar.qml
         qml/Components/EntityLink.qml
         qml/Components/ExpandedNowPlaying.qml
+        qml/Components/ChartTrackRow.qml
+        qml/Components/PersonalChartSection.qml
 
 
         # =========================================================
@@ -299,6 +309,7 @@ qt_add_qml_module(
         qml/Pages/ArtistPage.qml
         qml/Pages/PlaylistPage.qml
         qml/Pages/RecentPage.qml
+        qml/Pages/ChartPage.qml
 
 
         # =========================================================

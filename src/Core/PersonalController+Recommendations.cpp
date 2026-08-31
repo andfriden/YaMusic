@@ -1,7 +1,12 @@
 #include "PersonalController.h"
 
-#include <QDebug>
+#include <QJsonArray>
+#include <QJsonObject>
 
+
+// =============================================================
+// Recommendations connections
+// =============================================================
 
 void PersonalController::connectRecommendations()
 {
@@ -34,21 +39,227 @@ void PersonalController::connectRecommendations()
                 playlists;
 
 
+            QList<PersonalChartItem>
+                chartItems;
+
+
+            // =====================================================
+            // Sections
+            // =====================================================
+
             for (
                 const PersonalLandingSection &section :
                 sections
             )
             {
+                // -------------------------------------------------
+                // Playlists
+                // -------------------------------------------------
+
                 for (
                     const PersonalPlaylist &playlist :
                     section.playlists
                 )
                 {
+                    if (
+                        playlist.uid.isEmpty()
+                    )
+                    {
+                        continue;
+                    }
+
                     playlists.append(
                         playlist);
                 }
+
+
+                // -------------------------------------------------
+                // Chart
+                // -------------------------------------------------
+
+                if (
+                    section.type != "chart"
+                )
+                {
+                    continue;
+                }
+
+
+                for (
+                    const PersonalLandingItem &landingItem :
+                    section.items
+                )
+                {
+                    if (
+                        landingItem.type !=
+                            "chart-item"
+                    )
+                    {
+                        continue;
+                    }
+
+
+                    const QJsonObject data =
+                        landingItem.data;
+
+
+                    const QJsonObject chart =
+                        data
+                            .value("chart")
+                            .toObject();
+
+
+                    const QJsonObject track =
+                        data
+                            .value("track")
+                            .toObject();
+
+
+                    if (
+                        track.isEmpty()
+                    )
+                    {
+                        continue;
+                    }
+
+
+                    PersonalChartItem item;
+
+
+                    // =================================================
+                    // Chart
+                    // =================================================
+
+                    item.position =
+                        chart
+                            .value("position")
+                            .toInt();
+
+
+                    item.listeners =
+                        chart
+                            .value("listeners")
+                            .toInt();
+
+
+                    item.progress =
+                        chart
+                            .value("progress")
+                            .toString();
+
+
+                    item.shift =
+                        chart
+                            .value("shift")
+                            .toInt();
+
+
+                    // =================================================
+                    // Track
+                    // =================================================
+
+                    item.id =
+                        track
+                            .value("id")
+                            .toString();
+
+
+                    if (
+                        item.id.isEmpty()
+                    )
+                    {
+                        item.id =
+                            track
+                                .value("realId")
+                                .toString();
+                    }
+
+
+                    if (
+                        item.id.isEmpty()
+                    )
+                    {
+                        item.id =
+                            landingItem.id;
+                    }
+
+
+                    item.title =
+                        track
+                            .value("title")
+                            .toString();
+
+
+                    item.coverUri =
+                        track
+                            .value("coverUri")
+                            .toString();
+
+
+                    item.durationMs =
+                        track
+                            .value("durationMs")
+                            .toInteger();
+
+
+                    // =================================================
+                    // Artists
+                    // =================================================
+
+                    const QJsonArray artists =
+                        track
+                            .value("artists")
+                            .toArray();
+
+
+                    for (
+                        const QJsonValue &artistValue :
+                        artists
+                    )
+                    {
+                        if (
+                            !artistValue.isObject()
+                        )
+                        {
+                            continue;
+                        }
+
+
+                        const QString artistName =
+                            artistValue
+                                .toObject()
+                                .value("name")
+                                .toString();
+
+
+                        if (
+                            !artistName.isEmpty()
+                        )
+                        {
+                            item.artists.append(
+                                artistName);
+                        }
+                    }
+
+
+                    if (
+                        item.id.isEmpty() ||
+                        item.title.isEmpty()
+                    )
+                    {
+                        continue;
+                    }
+
+
+                    chartItems.append(
+                        item);
+                }
             }
 
+
+            // =====================================================
+            // Playlists model
+            // =====================================================
 
             m_recommendationPlaylists =
                 playlists;
@@ -64,14 +275,18 @@ void PersonalController::connectRecommendations()
             }
 
 
-            qDebug()
-                << "Рекомендации: секций"
-                << sections.size();
+            // =====================================================
+            // Chart model
+            // =====================================================
 
-
-            qDebug()
-                << "Персональных плейлистов:"
-                << playlists.size();
+            if (
+                m_chartModel != nullptr
+            )
+            {
+                m_chartModel
+                    ->setItems(
+                        chartItems);
+            }
 
 
             emit recommendationsLoaded();
@@ -84,6 +299,10 @@ void PersonalController::connectRecommendations()
                     sections.size()));
         });
 
+
+    // =============================================================
+    // Error
+    // =============================================================
 
     connect(
         m_personalLanding,
@@ -112,9 +331,13 @@ void PersonalController::connectRecommendations()
             }
 
 
-            qDebug()
-                << "Recommendations error:"
-                << message;
+            if (
+                m_chartModel != nullptr
+            )
+            {
+                m_chartModel
+                    ->clear();
+            }
 
 
             emit statusChanged(
@@ -164,6 +387,15 @@ void PersonalController::loadRecommendations()
     )
     {
         m_personalPlaylistsModel
+            ->clear();
+    }
+
+
+    if (
+        m_chartModel != nullptr
+    )
+    {
+        m_chartModel
             ->clear();
     }
 

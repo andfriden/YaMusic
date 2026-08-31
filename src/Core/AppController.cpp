@@ -11,6 +11,7 @@
 
 #include "../Yandex/Catalog/AlbumService.h"
 #include "../Yandex/Catalog/ArtistService.h"
+#include "../Yandex/Catalog/ChartService.h"
 #include "../Yandex/Catalog/SearchService.h"
 #include "../Yandex/Catalog/TrackService.h"
 
@@ -88,6 +89,11 @@ AppController::AppController(
               m_auth,
               this))
 
+    , m_chartService(
+          new ChartService(
+              m_auth,
+              this))
+
     , m_playerService(
           new PlayerService(this))
 
@@ -143,6 +149,12 @@ AppController::AppController(
               m_artistService,
               m_playbackController,
               this))
+
+    , m_chartController(
+          new ChartController(
+              m_chartService,
+              m_playbackController,
+              this))
 {
     connectAccount();
 
@@ -155,6 +167,8 @@ AppController::AppController(
     connectPersonal();
 
     connectArtist();
+
+    connectChart();
 
     connectPlayback();
 
@@ -502,6 +516,20 @@ void AppController::connectArtist()
             loadArtist(
                 artistId);
         });
+}
+
+
+// =============================================================
+// Chart
+// =============================================================
+
+void AppController::connectChart()
+{
+    connect(
+        m_chartController,
+        &ChartController::statusChanged,
+        this,
+        &AppController::statusChanged);
 }
 
 
@@ -916,7 +944,6 @@ AppController::personalPlaylistsModel() const
         ->personalPlaylistsModel();
 }
 
-
 PlaylistModel *
 AppController::playlistModel() const
 {
@@ -944,6 +971,13 @@ ArtistController *
 AppController::artistController() const
 {
     return m_artistController;
+}
+
+
+ChartController *
+AppController::chartController() const
+{
+    return m_chartController;
 }
 
 
