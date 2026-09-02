@@ -1,624 +1,391 @@
 # YaMusic
 
-Native-клиент Яндекс Музыки для desktop, написанный на **C++17**, **Qt 6**, **Qt Quick / QML** и **CMake**.
+[Русский](#русский) | [English](#english)
 
-Проект ориентирован на нативный интерфейс музыкального приложения с поиском, персональной музыкой, медиатекой, плейлистами, альбомами, исполнителями и полноценным воспроизведением.
+---
+
+<a id="русский"></a>
+
+## Русский
+
+Нативный desktop-клиент Яндекс Музыки, разработанный на **C++17**, **Qt 6**, **Qt Quick / QML** и **CMake**.
+
+YaMusic предоставляет интерфейс для поиска музыки, персональных рекомендаций, управления медиатекой и воспроизведения. Проект использует неофициальные интерфейсы Yandex Music API и находится в активной разработке.
 
 > Основной язык документации — русский.
 
 ## Возможности
 
-### Аккаунт
-
-* Авторизация через токен Яндекс Музыки
-* Получение информации об аккаунте
-* Получение UID пользователя
-* Проверка соединения с API
-
-### Поиск
-
-* Поиск музыки
-* Результаты поиска
-* Artwork треков
-* Название и исполнитель
-* Воспроизведение найденного трека
-* Переход к исполнителю
-* Переход к альбому
-* Loading / Error / Empty states
-
-### Моя волна
-
-* Загрузка My Wave
-* Догрузка следующих партий
-* Модель треков
-* Воспроизведение
-* Автоматический переход к следующему треку
-* Работа с очередью
-* My Wave feedback
-
-### Персональный контент
-
-* Персональные рекомендации
-* Недавно прослушанные треки
-* Персональные плейлисты
-
-### Медиатека
-
-* Страница медиатеки
-* Пользовательские плейлисты
-* Artwork плейлистов
-* Открытие страницы плейлиста
-* Список треков
-* Воспроизведение плейлиста
-* Переход к исполнителю
-* Переход к альбому
-
-### Лайки
-
-* Список понравившихся треков
-* Прокрутка
-* Artist navigation
-* Album navigation
-* Воспроизведение списка лайков
-
-### Альбомы
-
-* Страница альбома
-* Artwork
-* Список треков
-* Информация об исполнителе
-* Воспроизведение альбома
-* Другие альбомы исполнителя
-
-### Исполнители
-
-* Страница исполнителя
-* Artwork
-* Популярные треки
-* Популярные альбомы
-* Похожие исполнители
-* Переход между исполнителями
-
-### Воспроизведение
-
-* Play
-* Pause
-* Stop
-* Next
-* Previous
-* Seek
-* Repeat
-* Shuffle
-* Громкость
-* Очередь воспроизведения
-* Текущий трек
-* Состояния воспроизведения
-* Auto-next
-* Автоматическое заполнение очереди
-* Разные источники воспроизведения
-
-### Now Playing
-
-* Mini Player
-* Dynamic Player Accent
-* Artwork
-* Прогресс воспроизведения
-* Управление громкостью
-* Expanded Now Playing
-* Предыдущий трек
-* Следующие треки
-* Источник воспроизведения
-* Queue
-
----
-
-# Архитектура
-
-Проект использует слоистую архитектуру.
-
-```text
-QML
- │
- ▼
-AppController
- │
- ├── SearchController
- ├── PersonalController
- ├── LibraryController
- ├── AlbumController
- ├── ArtistController
- └── PlaybackController
- │
- ▼
-Yandex Services
- │
- ├── AccountService
- ├── SearchService
- ├── PlaylistService
- ├── LikesService
- ├── AlbumService
- ├── ArtistService
- ├── TrackService
- └── Personal Services
- │
- ▼
-Yandex API
-```
-
-Воспроизведение отделено от API-каталога:
-
-```text
-TrackService
-     │
-     ▼
-PlaybackController
-     │
-     ▼
-QueueService
-     │
-     ▼
-PlayerService
-     │
-     ▼
-QMediaPlayer
-```
-
----
-
-# Структура проекта
-
-```text
-YaMusic/
-│
-├── src/
-│   ├── Core/
-│   │   ├── AppController.*
-│   │   ├── AppController+Catalog.cpp
-│   │   ├── AppController+Library.cpp
-│   │   ├── AppController+Personal.cpp
-│   │   ├── AppController+Playback.cpp
-│   │   ├── AppController+Search.cpp
-│   │   ├── AppController+Selection.cpp
-│   │   ├── AlbumController.*
-│   │   ├── ArtistController.*
-│   │   ├── LibraryController.*
-│   │   ├── PersonalController.*
-│   │   ├── PlaybackController.*
-│   │   └── SearchController.*
-│   │
-│   ├── Models/
-│   ├── Player/
-│   ├── Playback/
-│   ├── Queue/
-│   └── Yandex/
-│       ├── Account/
-│       ├── Auth/
-│       ├── Catalog/
-│       └── Personal/
-│
-├── qml/
-│   ├── Components/
-│   ├── Context/
-│   ├── Home/
-│   ├── Layout/
-│   ├── MyWave/
-│   ├── Pages/
-│   ├── Search/
-│   └── Theme/
-│
-├── CMakeLists.txt
-├── main.cpp
-└── README.md
-```
-
----
-
-# Roadmap
-
-## v0.1 — Technical POC ✅
-
-**Цель:** рабочий фундамент приложения и первое реальное воспроизведение музыки.
-
-### Project Foundation
-
-* [x] C++17
-* [x] Qt 6
-* [x] Qt Quick / QML
-* [x] CMake
-* [x] Базовая структура проекта
-* [x] AppController
-
-### Yandex API Foundation
-
-* [x] AccountService
-* [x] Проверка соединения с API
-* [x] Получение информации об аккаунте
-* [ ] Привести API-слой к стабильному виду
-
-### Player / Playback
-
-* [x] PlayerService
-* [x] QMediaPlayer
-* [x] play()
-* [x] playUrl()
-* [x] pause()
-* [x] resume()
-* [x] stop()
-* [x] togglePlayback()
-* [x] playingChanged
-* [x] playbackStarted
-* [x] playbackPaused
-* [x] playbackStopped
-* [x] currentUrlChanged
-* [x] Обработка ошибок
-* [x] Получение реального stream URL
-* [x] Связь TrackService → Playback
-* [x] Реальное воспроизведение найденного трека
-
----
-
-## v0.2 — Search ✅
-
-**Цель:** полноценный поиск музыки.
-
-### Search
-
-* [x] SearchService
-* [x] SearchModel
-* [x] Результаты поиска
-* [x] Выбор результата
-* [x] Модель Track
-* [x] Загрузка полной информации о треке
-* [x] Получение stream URL
-* [x] Подключение к PlayerService
-
-### UI
-
-* [x] Search field
-* [x] Список результатов
-* [x] Artwork
-* [x] Artist / Title
-* [x] Play по нажатию
-* [x] Loading
-* [x] Error
-* [x] Empty state
-
----
-
-## v0.3 — My Wave / Personal ✅
-
-**Цель:** подключить персональную музыку пользователя.
-
-### Personal
-
-* [x] YandexPersonal
-* [x] My Wave
-* [x] Персональные рекомендации
-* [x] Recent Listening
-* [x] Personal Playlists
-
-### Wave
-
-* [x] Получение треков Wave
-* [x] Модель треков
-* [x] Воспроизведение Wave
-* [x] Переключение треков
-* [x] Автоматическая подгрузка следующих партий
-* [x] Feedback
-
----
-
-## v0.4 — Smart Queue & Playback ✅
-
-**Цель:** нормальная музыкальная очередь и надёжное управление воспроизведением.
-
-### Queue
-
-* [x] QueueService
-* [x] Current Track
-* [x] Up Next
-* [x] Previous Track
-* [x] Добавление треков
-* [x] Удаление треков
-* [x] Перемещение треков
-* [x] Очистка очереди
-
-### Playback
-
-* [x] Auto-next
-* [x] Next
-* [x] Previous
-* [x] Repeat
-* [x] Shuffle
-* [x] Автоматическое заполнение очереди
-* [x] Разные источники воспроизведения
-
----
-
-## v0.5 — Library & Playlists ✅
-
-**Цель:** полноценная персональная медиатека.
-
-### Library
-
-* [x] LibraryPage
-* [x] Пользовательские плейлисты
-* [x] LibraryPlaylistsModel
-* [x] Artwork плейлистов
-* [x] Открытие PlaylistPage
-* [x] Список треков
-* [x] Воспроизведение плейлиста
-* [x] Artist navigation
-* [x] Album navigation
-
-### Architecture
-
-* [x] LibraryController
-* [x] Library service layer
-* [x] AppController → LibraryController
-* [x] AppController+Library.cpp
-
----
-
-## v0.6 — Likes ✅
-
-**Цель:** полноценная работа с понравившимися треками.
-
-### Backend
-
-* [x] LikesService
-* [x] LikedTracksModel
-* [x] Получение ID лайкнутых треков
-* [x] Получение полной информации о Track
-* [x] LibraryController integration
-* [x] AppController integration
-
-### UI
-
-* [x] Полный список лайкнутых треков
-* [x] Корректное отображение списка
-* [x] Прокрутка списка
-* [x] Artist navigation
-* [x] Album navigation
-* [x] Воспроизведение списка лайков
-
----
-
-## v0.7 — Playback Polish / Now Playing ✅
-
-**Цель:** улучшить пользовательский опыт воспроизведения.
-
-### Player UI
-
-* [x] Переработан Mini Player
-* [x] Dynamic Player Accent
-* [x] Управление громкостью
-* [x] Playback controls
-* [x] Состояния воспроизведения
-* [x] Улучшенное отображение очереди
-
-### Now Playing
-
-* [x] Текущий трек
-* [x] Исполнитель
-* [x] Альбом
-* [x] Artwork
-* [x] Прогресс воспроизведения
-* [x] Expanded Now Playing / Queue
-* [x] Кнопка открытия Expanded Now Playing
-* [x] Отображение источника воспроизведения
-* [x] Отображение текущего трека и очереди
-* [x] Предыдущий трек
-* [x] Следующие треки
-* [x] Улучшенное artwork
-* [x] Улучшенные метаданные
-
----
-
-# Будущее
-
-## Catalog
-
-* [ ] Genres
-* [ ] Charts
-* [ ] New Releases
-
-## Personal
-
-* [ ] Feed
-* [ ] Улучшенные рекомендации
-* [ ] Дальнейшее развитие Likes
-
-## Radio
-
-* [ ] Rotor
-* [ ] Радиораздел
-
-## Lyrics
-
-* [ ] Lyrics
-* [ ] Отображение текста песни
-
-## Infrastructure
-
-* [ ] Полноценное получение токена для новых пользователей
-* [ ] UI для установки токена
-* [ ] Безопасное хранение токена
-* [ ] Logout
-* [ ] Смена аккаунта
-* [ ] Proxy configuration
-* [ ] Применение proxy к API-запросам
-* [ ] Тестирование авторизации через proxy
-* [ ] Тестирование API через proxy
-* [ ] Тестирование artwork через proxy
-
----
-
-# Сборка и запуск
-
-YaMusic использует C++17, Qt 6 и CMake.
-
-## Требования
-
-* Qt 6
-* CMake
-* C++17 compiler
-* Qt Quick
-* Qt Multimedia
-
----
-
-## Windows
-
-### Конфигурация
-
+- Авторизация по токену Яндекс Музыки
+- Поиск музыки
+- «Моя волна»
+- Персональные рекомендации
+- Персональные плейлисты
+- Недавно прослушанные треки
+- Пользовательские плейлисты
+- Понравившиеся треки
+- Чарты
+- Страницы плейлистов, альбомов и исполнителей
+- Единая очередь воспроизведения
+- Автоматический переход к следующему треку
+- Repeat и Shuffle
+- Управление громкостью
+- Mini Player
+- Expanded Now Playing
+- Dynamic Player Accent
+
+## Сборка и запуск
+
+### Требования
+
+- Qt 6
+- Qt Quick
+- Qt Multimedia
+- CMake
+- Компилятор с поддержкой C++17
+
+### Windows
+
+#### Конфигурация
 ```powershell
 cmake -S . -B build `
     -DCMAKE_BUILD_TYPE=Debug
 ```
 
-### Сборка
-
+#### Сборка
 ```powershell
 cmake --build build --config Debug
 ```
 
-### Запуск
-
+#### Запуск
 ```powershell
 .\build\Debug\appYaMusic.exe
 ```
 
----
+### Linux
 
-## Linux
-
-### Конфигурация
-
+#### Конфигурация
 ```bash
 cmake -S . -B build \
     -DCMAKE_BUILD_TYPE=Debug
 ```
 
-### Сборка
-
+#### Сборка
 ```bash
 cmake --build build \
     --target appYaMusic \
     -j$(nproc)
 ```
 
-### Запуск
-
+#### Запуск
 ```bash
 ./build/appYaMusic
 ```
 
----
+### macOS
 
-## macOS
-
-### Конфигурация
-
+#### Конфигурация
 ```bash
 cmake -S . -B build \
     -DCMAKE_BUILD_TYPE=Debug
 ```
 
-### Сборка
-
+#### Сборка
 ```bash
 cmake --build build \
     --target appYaMusic \
     -j$(sysctl -n hw.ncpu)
 ```
 
-### Запуск
-
+#### Запуск
 ```bash
 ./build/appYaMusic.app/Contents/MacOS/appYaMusic
 ```
 
+## Дорожная карта
+
+### v0.1 — Technical POC ✅
+
+- [x] Базовый проект на C++17, Qt 6 и CMake
+- [x] Интеграция с Yandex Music API
+- [x] Получение информации об аккаунте
+- [x] Базовое воспроизведение
+- [x] Получение stream URL
+
+### v0.2 — Search ✅
+
+- [x] Поиск музыки
+- [x] Отображение результатов
+- [x] Обложки и метаданные
+- [x] Воспроизведение найденного трека
+- [x] Состояния загрузки, ошибки и пустого результата
+
+### v0.3 — My Wave / Personal ✅
+
+- [x] «Моя волна»
+- [x] Автоматическая догрузка треков
+- [x] Персональные рекомендации
+- [x] Персональные плейлисты
+- [x] Недавно прослушанные треки
+
+### v0.4 — Smart Queue &amp; Playback ✅
+
+- [x] Единая очередь воспроизведения
+- [x] Добавление, удаление и перемещение треков
+- [x] Автоматический переход к следующему треку
+- [x] Repeat
+- [x] Shuffle
+- [x] Поддержка разных источников воспроизведения
+
+### v0.5 — Library &amp; Playlists ✅
+
+- [x] Страница медиатеки
+- [x] Пользовательские плейлисты
+- [x] Страница плейлиста
+- [x] Воспроизведение плейлистов
+- [x] Навигация к альбомам и исполнителям
+
+### v0.6 — Likes ✅
+
+- [x] Понравившиеся треки
+- [x] Воспроизведение списка
+- [x] Навигация к альбомам и исполнителям
+
+### v0.7 — Playback Polish / Now Playing ✅
+
+- [x] Переработанный Mini Player
+- [x] Expanded Now Playing
+- [x] Dynamic Player Accent
+- [x] Управление громкостью
+- [x] Улучшенное отображение очереди
+- [x] Улучшенные обложки и метаданные
+
+### v0.8 — Catalog &amp; Library Expansion 🚧
+
+#### Catalog
+
+- [x] Чарты
+- [ ] Единая страница каталога
+- [ ] Жанры
+- [ ] Новые релизы
+- [ ] Унифицированные состояния загрузки, ошибки и отсутствия данных
+
+#### Library
+
+- [x] Пользовательские плейлисты
+- [x] Понравившиеся треки
+- [x] Недавно прослушанные треки
+- [ ] Сохранённые альбомы
+- [ ] Любимые исполнители
+- [ ] Обновление данных
+
+### Дальнейшие планы
+
+- [ ] Feed
+- [ ] Расширенные персональные рекомендации
+- [ ] Радиораздел
+- [ ] Тексты песен
+- [ ] Интерфейс настройки токена
+- [ ] Выход из аккаунта и смена пользователя
+- [ ] Настройка proxy
+
+## Примечание
+
+YaMusic является независимым неофициальным проектом и не связан с Яндексом.
+
+Для доступа к персональному контенту необходим действующий токен Яндекс Музыки. Не публикуйте токен и не добавляйте его в исходный код или историю Git.
+
+&lt;p align="right"&gt;&lt;a href="#yamusic"&gt;Наверх ↑&lt;/a&gt;&lt;/p&gt;
+
 ---
 
-# Токен Яндекс Музыки
+&lt;a id="english"&gt;&lt;/a&gt;
 
-Для доступа к персональному контенту и части API нужен токен Яндекс Музыки.
+## English
 
-Токен не должен находиться в Git, README или исходном коде.
+A native Yandex Music desktop client built with **C++17**, **Qt 6**, **Qt Quick / QML**, and **CMake**.
 
-## Хранение
+YaMusic provides an interface for music search, personalized recommendations, library management, and playback. The project uses unofficial Yandex Music API interfaces and is under active development.
 
-YaMusic использует `QSettings`.
+## Features
 
-Ключ:
+- Authentication with a Yandex Music token
+- Music search
+- My Wave
+- Personalized recommendations
+- Personalized playlists
+- Recently played tracks
+- User playlists
+- Liked tracks
+- Charts
+- Playlist, album, and artist pages
+- Unified playback queue
+- Automatic playback of the next track
+- Repeat and Shuffle
+- Volume control
+- Mini Player
+- Expanded Now Playing
+- Dynamic Player Accent
 
-```text
-yandex/token
+## Build and run
+
+### Requirements
+
+- Qt 6
+- Qt Quick
+- Qt Multimedia
+- CMake
+- A compiler with C++17 support
+
+### Windows
+
+#### Configure
+```powershell
+cmake -S . -B build `
+    -DCMAKE_BUILD_TYPE=Debug
 ```
 
-Хранилище предоставляет:
-
-```cpp
-YandexTokenStorage::load()
-YandexTokenStorage::saveToken()
-YandexTokenStorage::clearToken()
+#### Build
+```powershell
+cmake --build build --config Debug
 ```
 
-Токен сохраняется локально через `QSettings` и автоматически используется при последующем запуске приложения.
-
-## Пока нет UI ввода токена
-
-Сейчас отдельного интерфейса для первого ввода токена ещё нет.
-
-Для разработки токен можно сохранить через:
-
-```cpp
-YandexTokenStorage::saveToken(
-    "YOUR_YANDEX_MUSIC_TOKEN"
-);
+#### Run
+```powershell
+.\build\Debug\appYaMusic.exe
 ```
 
-После сохранения приложение сможет загрузить его через:
+### Linux
 
-```cpp
-YandexTokenStorage::load();
+#### Configure
+```bash
+cmake -S . -B build \
+    -DCMAKE_BUILD_TYPE=Debug
 ```
 
-После появления полноценного UI этот раздел будет заменён инструкцией для пользователя.
+#### Build
+```bash
+cmake --build build \
+    --target appYaMusic \
+    -j$(nproc)
+```
 
-> Не коммитьте настоящий токен в репозиторий.
+#### Run
+```bash
+./build/appYaMusic
+```
 
----
+### macOS
 
-# Текущий статус
+#### Configure
+```bash
+cmake -S . -B build \
+    -DCMAKE_BUILD_TYPE=Debug
+```
 
-**Текущая версия: v0.7 — Playback Polish / Now Playing ✅**
+#### Build
+```bash
+cmake --build build \
+    --target appYaMusic \
+    -j$(sysctl -n hw.ncpu)
+```
 
-Основной фундамент приложения и playback-инфраструктура реализованы.
+#### Run
+```bash
+./build/appYaMusic.app/Contents/MacOS/appYaMusic
+```
 
-Работают:
+## Roadmap
 
-* аккаунт и подключение к Yandex API;
-* поиск;
-* My Wave;
-* персональные рекомендации;
-* Recent Listening;
-* персональные плейлисты;
-* медиатека;
-* лайкнутые треки;
-* плейлисты;
-* альбомы;
-* исполнители;
-* воспроизведение;
-* QueueService;
-* Auto-next;
-* Repeat;
-* Shuffle;
-* управление громкостью;
-* Dynamic Player Accent;
-* Mini Player;
-* Expanded Now Playing;
-* единая очередь для разных источников воспроизведения.
+### v0.1 — Technical POC ✅
 
-Следующий этап — развитие функциональности из раздела **«Будущее»**.
+- [x] Base project with C++17, Qt 6, and CMake
+- [x] Yandex Music API integration
+- [x] Account information
+- [x] Basic playback
+- [x] Stream URL retrieval
+
+### v0.2 — Search ✅
+
+- [x] Music search
+- [x] Search results
+- [x] Artwork and metadata
+- [x] Playback of a selected track
+- [x] Loading, error, and empty states
+
+### v0.3 — My Wave / Personal ✅
+
+- [x] My Wave
+- [x] Automatic loading of additional tracks
+- [x] Personalized recommendations
+- [x] Personalized playlists
+- [x] Recently played tracks
+
+### v0.4 — Smart Queue &amp; Playback ✅
+
+- [x] Unified playback queue
+- [x] Add, remove, and reorder tracks
+- [x] Automatic playback of the next track
+- [x] Repeat
+- [x] Shuffle
+- [x] Multiple playback sources
+
+### v0.5 — Library &amp; Playlists ✅
+
+- [x] Library page
+- [x] User playlists
+- [x] Playlist page
+- [x] Playlist playback
+- [x] Album and artist navigation
+
+### v0.6 — Likes ✅
+
+- [x] Liked tracks
+- [x] Liked tracks playback
+- [x] Album and artist navigation
+
+### v0.7 — Playback Polish / Now Playing ✅
+
+- [x] Redesigned Mini Player
+- [x] Expanded Now Playing
+- [x] Dynamic Player Accent
+- [x] Volume control
+- [x] Improved queue presentation
+- [x] Improved artwork and metadata
+
+### v0.8 — Catalog &amp; Library Expansion 🚧
+
+#### Catalog
+
+- [x] Charts
+- [ ] Unified catalog page
+- [ ] Genres
+- [ ] New releases
+- [ ] Unified loading, error, and empty states
+
+#### Library
+
+- [x] User playlists
+- [x] Liked tracks
+- [x] Recently played tracks
+- [ ] Saved albums
+- [ ] Favorite artists
+- [ ] Data refresh
+
+### Future plans
+
+- [ ] Feed
+- [ ] Advanced personalized recommendations
+- [ ] Radio
+- [ ] Lyrics
+- [ ] Token configuration interface
+- [ ] Sign out and account switching
+- [ ] Proxy configuration
+
+## Disclaimer
+
+YaMusic is an independent, unofficial project and is not affiliated with Yandex.
+
+A valid Yandex Music token is required to access personalized content. Do not publish your token or commit it to source code or Git history.
+
+&lt;p align="right"&gt;&lt;a href="#yamusic"&gt;Back to top ↑&lt;/a&gt;&lt;/p&gt;
