@@ -11,6 +11,7 @@ import "qml/Components"
 ApplicationWindow {
     id: window
 
+
     width:
         1440
 
@@ -80,13 +81,12 @@ ApplicationWindow {
             "========================================"
         )
 
-
         appController.loadRecommendations()
     }
 
 
     // =============================================================
-    // Controller connections
+    // Navigation
     // =============================================================
 
     Connections {
@@ -94,72 +94,117 @@ ApplicationWindow {
             appController
 
 
-        function onCurrentAlbumChanged()
+        // ---------------------------------------------------------
+        // Album
+        // ---------------------------------------------------------
+
+        function onAlbumPageRequested(
+            albumId
+        )
         {
-            if (
-                appController.albumController !== null &&
-                String(
-                    appController.albumController.albumTitle
-                ).length > 0
-            ) {
-                mainLayout.currentSection =
-                    "albums"
-            }
+            console.log(
+                "Album page requested:",
+                albumId
+            )
+
+            mainLayout.currentSection =
+                "albums"
         }
 
 
-        function onCurrentArtistChanged()
+        // ---------------------------------------------------------
+        // Artist
+        // ---------------------------------------------------------
+
+        function onArtistPageRequested(
+            artistId
+        )
         {
-            if (
-                appController.artistController !== null &&
-                String(
-                    appController.artistController.artistName
-                ).length > 0
-            ) {
-                mainLayout.currentSection =
-                    "artists"
-            }
+            console.log(
+                "Artist page requested:",
+                artistId
+            )
+
+            mainLayout.currentSection =
+                "artists"
         }
 
 
-        function onCurrentPlaylistChanged()
+        // ---------------------------------------------------------
+        // Playlist
+        // ---------------------------------------------------------
+
+        function onPlaylistPageRequested()
         {
-            if (
-                String(
-                    appController.currentPlaylistTitle
-                ).length > 0
-            ) {
-                mainLayout.currentSection =
-                    "playlists"
-            }
+            console.log(
+                "Playlist page requested"
+            )
+
+            mainLayout.currentSection =
+                "playlist"
         }
     }
 
 
     // =============================================================
-    // Main Layout
+    // Main Content + Mini Player
     // =============================================================
 
-    MainLayout {
-        id: mainLayout
+    Column {
+        id: applicationLayout
 
         anchors.fill:
             parent
 
-        controller:
-            appController
+        spacing:
+            0
 
         visible:
             !window.expandedNowPlayingVisible
 
-        onSectionSelected:
-                function(section)
+
+        // =========================================================
+        // Main Layout
+        // =========================================================
+
+        MainLayout {
+            id: mainLayout
+
+            width:
+                parent.width
+
+            height:
+                parent.height -
+                nowPlayingBar.height
+
+            controller:
+                appController
+        }
+
+
+        // =========================================================
+        // Mini Player
+        // =========================================================
+
+        NowPlayingBar {
+            id: nowPlayingBar
+
+            width:
+                parent.width
+
+            height:
+                124
+
+            controller:
+                appController
+
+
+            onExpandedRequested:
             {
-                console.log(
-                    "Main section selected:",
-                    section
-                )
+                window.expandedNowPlayingVisible =
+                    true
             }
+        }
     }
 
 
@@ -179,48 +224,6 @@ ApplicationWindow {
 
 
     // =============================================================
-    // Mini Player
-    // =============================================================
-
-    NowPlayingBar {
-        id: nowPlayingBar
-
-        anchors.left:
-            parent.left
-
-        anchors.right:
-            parent.right
-
-        anchors.bottom:
-            parent.bottom
-
-        anchors.leftMargin:
-            0
-
-        anchors.rightMargin:
-           0
-
-        anchors.bottomMargin:
-           0
-
-        height:
-            124
-
-        controller:
-            appController
-
-        visible:
-            !window.expandedNowPlayingVisible
-
-        onExpandedRequested:
-        {
-            window.expandedNowPlayingVisible =
-                true
-        }
-    }
-
-
-    // =============================================================
     // Expanded Now Playing
     // =============================================================
 
@@ -235,6 +238,7 @@ ApplicationWindow {
 
         controller:
             appController
+
 
         onClosed:
         {

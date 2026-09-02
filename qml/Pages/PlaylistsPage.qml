@@ -5,54 +5,94 @@ Item {
     id: root
 
     property var controller: null
-    property bool homeMode: false
+
 
     // =============================================================
-    // Layout
+    // Page size
     // =============================================================
 
-    readonly property int sectionSpacing:
-        24
+    width:
+        parent
+            ? parent.width
+            : 0
 
-    readonly property int titleSpacing:
-        10
-
-    readonly property int cardSpacing:
-        12
-
-    readonly property int cardHorizontalPadding:
-        8
-
-    readonly property int artworkTextSpacing:
-        7
-
-    readonly property int titleHeight:
-        18
-
-    readonly property int trackCountHeight:
-        16
-
-    // =============================================================
-    // Size
-    // =============================================================
+    implicitWidth:
+        width
 
     implicitHeight:
-        sectionsColumn.implicitHeight
+        contentColumn.implicitHeight + 40
+
+    height:
+        implicitHeight
 
 
     // =============================================================
-    // Sections
+    // Background
+    // =============================================================
+
+    Rectangle {
+        anchors.fill:
+            parent
+
+        color:
+            AppTheme.backgroundPrimary
+    }
+
+
+    // =============================================================
+    // Content
     // =============================================================
 
     Column {
-        id: sectionsColumn
+        id: contentColumn
 
         width:
             parent.width
 
-        spacing:
-            root.sectionSpacing
+        anchors.left:
+            parent.left
 
+        anchors.right:
+            parent.right
+
+        anchors.top:
+            parent.top
+
+        anchors.margins:
+            20
+
+        spacing:
+            28
+
+
+        // =========================================================
+        // Header
+        // =========================================================
+
+        Label {
+            width:
+                parent.width
+
+            text:
+                "Плейлисты"
+
+            color:
+                AppTheme.textPrimary
+
+            font.pixelSize:
+                28
+
+            font.bold:
+                true
+
+            elide:
+                Text.ElideRight
+        }
+
+
+        // =========================================================
+        // Sections
+        // =========================================================
 
         Repeater {
             model:
@@ -69,77 +109,18 @@ Item {
                 required property string type
                 required property var playlists
 
-                // =================================================
-                // Home filtering
-                // =================================================
-
-                readonly property bool allowedOnHome:
-                    !root.homeMode ||
-                    sectionItem.type === "personal-playlists" ||
-                    sectionItem.type === "new-playlists"
-
-
-                readonly property var visiblePlaylists:
-                    root.homeMode
-                        ? sectionItem.playlists.slice(0, 4)
-                        : sectionItem.playlists
-
 
                 width:
-                    sectionsColumn.width
+                    contentColumn.width
 
                 spacing:
-                    root.titleSpacing
+                    12
+
 
                 visible:
-                    sectionItem.allowedOnHome &&
-                    sectionItem.visiblePlaylists !== null &&
-                    sectionItem.visiblePlaylists !== undefined &&
-                    sectionItem.visiblePlaylists.length > 0
-
-
-                // =================================================
-                // Card geometry
-                // =================================================
-
-                readonly property real availableWidth:
-                    Math.max(
-                        0,
-                        sectionItem.width -
-                        (
-                            Math.max(
-                                0,
-                                sectionItem.visiblePlaylists.length - 1
-                            ) *
-                            root.cardSpacing
-                        )
-                    )
-
-
-                readonly property real cardWidth:
-                        sectionItem.visiblePlaylists.length > 0
-                    ? sectionItem.availableWidth /
-                    sectionItem.visiblePlaylists.length
-                    : 0
-
-
-                readonly property real artworkSize:
-                    Math.max(
-                        1,
-                        sectionItem.cardWidth -
-                        (
-                            root.cardHorizontalPadding * 2
-                        )
-                    )
-
-
-                readonly property real cardHeight:
-                    root.cardHorizontalPadding +
-                    sectionItem.artworkSize +
-                    root.artworkTextSpacing +
-                    root.titleHeight +
-                    root.trackCountHeight +
-                    8
+                    sectionItem.playlists !== null &&
+                    sectionItem.playlists !== undefined &&
+                    sectionItem.playlists.length > 0
 
 
                 // =================================================
@@ -151,7 +132,7 @@ Item {
                         parent.width
 
                     height:
-                        22
+                        24
 
                     text:
                         sectionItem.title
@@ -160,7 +141,7 @@ Item {
                         AppTheme.textPrimary
 
                     font.pixelSize:
-                        19
+                        20
 
                     font.bold:
                         true
@@ -177,25 +158,31 @@ Item {
 
 
                 // =================================================
-                // Playlist row
+                // Playlist grid
                 // =================================================
 
-                Row {
-                    id: playlistsRow
-
+                Grid {
                     width:
                         parent.width
 
-                    height:
-                        sectionItem.cardHeight
+                    columns:
+                        Math.max(
+                            1,
+                            Math.floor(
+                                width / 180
+                            )
+                        )
 
-                    spacing:
-                        root.cardSpacing
+                    rowSpacing:
+                        16
+
+                    columnSpacing:
+                        12
 
 
                     Repeater {
                         model:
-                            sectionItem.visiblePlaylists
+                            sectionItem.playlists
 
 
                         delegate: Rectangle {
@@ -203,11 +190,12 @@ Item {
 
                             required property var modelData
 
+
                             width:
-                                sectionItem.cardWidth
+                                180
 
                             height:
-                                sectionItem.cardHeight
+                                238
 
                             radius:
                                 10
@@ -245,16 +233,16 @@ Item {
                                 id: artworkBox
 
                                 x:
-                                    root.cardHorizontalPadding
+                                    8
 
                                 y:
-                                    root.cardHorizontalPadding
+                                    8
 
                                 width:
-                                    sectionItem.artworkSize
+                                    parent.width - 16
 
                                 height:
-                                    sectionItem.artworkSize
+                                    width
 
                                 radius:
                                     8
@@ -323,7 +311,7 @@ Item {
                                         AppTheme.textSecondary
 
                                     font.pixelSize:
-                                        28
+                                        42
 
                                     visible:
                                         cover.status !==
@@ -360,20 +348,19 @@ Item {
                                 id: titleLabel
 
                                 x:
-                                    root.cardHorizontalPadding
+                                    8
 
                                 width:
-                                    parent.width -
-                                    root.cardHorizontalPadding * 2
+                                    parent.width - 16
 
                                 anchors.top:
                                     artworkBox.bottom
 
                                 anchors.topMargin:
-                                    root.artworkTextSpacing
+                                    8
 
                                 height:
-                                    root.titleHeight
+                                    18
 
                                 text:
                                     String(
@@ -409,20 +396,19 @@ Item {
                                 id: trackCountLabel
 
                                 x:
-                                    root.cardHorizontalPadding
+                                    8
 
                                 width:
-                                    parent.width -
-                                    root.cardHorizontalPadding * 2
+                                    parent.width - 16
 
                                 anchors.top:
                                     titleLabel.bottom
 
                                 anchors.topMargin:
-                                    2
+                                    3
 
                                 height:
-                                    root.trackCountHeight
+                                    16
 
                                 text:
                                         Number(

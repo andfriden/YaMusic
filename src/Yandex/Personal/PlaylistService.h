@@ -1,7 +1,8 @@
 #pragma once
 
-#include <QObject>
 #include <QList>
+#include <QObject>
+#include <QPair>
 #include <QString>
 
 #include "../../Models/PersonalPlaylist.h"
@@ -33,6 +34,14 @@ public:
 
 
     // =============================================================
+    // Multiple playlists
+    // =============================================================
+
+    void loadPlaylists(
+        const QList<QPair<QString, int>> &playlists);
+
+
+    // =============================================================
     // User playlists
     // =============================================================
 
@@ -40,10 +49,14 @@ public:
         const QString &uid);
 
 
-    signals:
+signals:
 
-        void playlistReceived(
-            const Playlist &playlist);
+    void playlistReceived(
+        const Playlist &playlist);
+
+
+    void playlistsReceived(
+        const QList<Playlist> &playlists);
 
 
     void userPlaylistsReceived(
@@ -56,10 +69,38 @@ public:
 
 private:
 
+    void startNextPlaylistBatchRequests();
+
+    void finishPlaylistBatch();
+
+
+private:
+
     YandexAuth *
         m_auth = nullptr;
 
-
     YandexClient *
         m_yandexClient = nullptr;
+
+
+    // =============================================================
+    // Batch state
+    // =============================================================
+
+    QList<QPair<QString, int>>
+        m_playlistBatchQueue;
+
+    QList<Playlist>
+        m_playlistBatchResults;
+
+
+    int m_playlistBatchActive = 0;
+
+    int m_playlistBatchCompleted = 0;
+
+    bool m_playlistBatchError = false;
+
+
+    static constexpr int
+        MaxConcurrentPlaylistRequests = 5;
 };

@@ -1,5 +1,6 @@
 #include "PersonalController.h"
 
+#include <QDebug>
 #include <QJsonArray>
 #include <QJsonObject>
 
@@ -68,6 +69,7 @@ void PersonalController::connectRecommendations()
                         continue;
                     }
 
+
                     playlists.append(
                         playlist);
                 }
@@ -126,10 +128,6 @@ void PersonalController::connectRecommendations()
                     PersonalChartItem item;
 
 
-                    // =================================================
-                    // Chart
-                    // =================================================
-
                     item.position =
                         chart
                             .value("position")
@@ -153,10 +151,6 @@ void PersonalController::connectRecommendations()
                             .value("shift")
                             .toInt();
 
-
-                    // =================================================
-                    // Track
-                    // =================================================
 
                     item.id =
                         track
@@ -201,10 +195,6 @@ void PersonalController::connectRecommendations()
                             .value("durationMs")
                             .toInteger();
 
-
-                    // =================================================
-                    // Artists
-                    // =================================================
 
                     const QJsonArray artists =
                         track
@@ -258,12 +248,16 @@ void PersonalController::connectRecommendations()
 
 
             // =====================================================
-            // Playlists model
+            // Store playlists
             // =====================================================
 
             m_recommendationPlaylists =
                 playlists;
 
+
+            // =====================================================
+            // Playlists model
+            // =====================================================
 
             if (
                 m_personalPlaylistsModel != nullptr
@@ -406,6 +400,24 @@ void PersonalController::loadRecommendations()
 
     m_personalLanding
         ->load();
+
+
+    // =============================================================
+    // New playlists
+    // =============================================================
+
+    if (
+        m_newPlaylistsService != nullptr
+    )
+    {
+        qDebug()
+            << "PersonalController:"
+            << "loading new playlists";
+
+
+        m_newPlaylistsService
+            ->load();
+    }
 }
 
 

@@ -248,6 +248,8 @@ qt_add_executable(
         src/Yandex/Catalog/ChartModel.h
         src/Yandex/Personal/PersonalChartModel.cpp
         src/Yandex/Personal/PersonalChartModel.h
+        src/Yandex/Personal/NewPlaylistsService.cpp
+        src/Yandex/Personal/NewPlaylistsService.h
 )
 
 
@@ -310,6 +312,7 @@ qt_add_qml_module(
         qml/Pages/PlaylistPage.qml
         qml/Pages/RecentPage.qml
         qml/Pages/ChartPage.qml
+        qml/Pages/PlaylistsPage.qml
 
 
         # =========================================================

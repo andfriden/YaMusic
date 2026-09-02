@@ -14,6 +14,7 @@
 #include "SearchController.h"
 
 #include "../Playback/PlaybackController.h"
+#include "../Yandex/Personal/NewPlaylistsService.h"
 
 
 class AccountService;
@@ -659,6 +660,10 @@ private:
 
     PlaylistService *
         m_playlistService = nullptr;
+
+    NewPlaylistsService *
+        m_newPlaylistsService = nullptr;
+
 
     LikesService *
         m_likesService = nullptr;

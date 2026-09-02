@@ -9,11 +9,12 @@
 #include "../Models/Track.h"
 
 #include "../Yandex/Personal/MyWaveModel.h"
+#include "../Yandex/Personal/NewPlaylistsService.h"
+#include "../Yandex/Personal/PersonalChartModel.h"
 #include "../Yandex/Personal/PersonalLanding.h"
 #include "../Yandex/Personal/PersonalPlaylistsModel.h"
 #include "../Yandex/Personal/RecentListeningModel.h"
 #include "../Yandex/Personal/RecentListeningService.h"
-#include "../Yandex/Personal/PersonalChartModel.h"
 
 
 class PlayerService;
@@ -66,29 +67,47 @@ public:
     explicit PersonalController(
         YandexPersonal *yandexPersonal,
         PersonalLanding *personalLanding,
+        NewPlaylistsService *newPlaylistsService,
         RecentListeningService *recentListeningService,
         PlaybackController *playbackController,
         PlayerService *playerService,
         QObject *parent = nullptr);
 
 
+    // =============================================================
+    // My Wave
+    // =============================================================
+
     Q_INVOKABLE void loadMyWave();
 
     Q_INVOKABLE void loadMoreMyWave();
 
-    Q_INVOKABLE void loadRecommendations();
-
-
     Q_INVOKABLE void selectMyWaveTrack(
         int index);
+
+
+    // =============================================================
+    // Recommendations
+    // =============================================================
+
+    Q_INVOKABLE void loadRecommendations();
 
     Q_INVOKABLE void selectPersonalPlaylist(
         const QString &uid,
         int kind);
 
+
+    // =============================================================
+    // Recently played
+    // =============================================================
+
     Q_INVOKABLE void selectRecentListening(
         int index);
 
+
+    // =============================================================
+    // Models
+    // =============================================================
 
     MyWaveModel *
     myWaveModel() const;
@@ -102,6 +121,10 @@ public:
     PersonalChartModel *
     chartModel() const;
 
+
+    // =============================================================
+    // Loading state
+    // =============================================================
 
     bool isLoadingMyWave() const;
 
@@ -174,6 +197,9 @@ private:
     PersonalLanding *
         m_personalLanding = nullptr;
 
+    NewPlaylistsService *
+        m_newPlaylistsService = nullptr;
+
     RecentListeningService *
         m_recentListeningService = nullptr;
 
@@ -182,6 +208,7 @@ private:
 
     PlayerService *
         m_playerService = nullptr;
+
 
     MyWaveModel *
         m_myWaveModel = nullptr;
@@ -217,8 +244,7 @@ private:
     QHash<QString, QString>
         m_myWaveTrackBatches;
 
-    QString
-        m_currentMyWaveTrackId;
+    QString m_currentMyWaveTrackId;
 
     bool m_myWaveTrackStarted = false;
 };

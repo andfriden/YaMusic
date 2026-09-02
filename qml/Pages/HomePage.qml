@@ -6,6 +6,7 @@ Item {
     property var controller
 
     signal chartRequested()
+    signal playlistsRequested()
 
 
     // =============================================================
@@ -86,7 +87,7 @@ Item {
 
 
         // =========================================================
-        // Chart
+        // Charts / Playlists
         // =========================================================
 
         PersonalChartSection {
@@ -95,6 +96,9 @@ Item {
 
             onChartRequested:
                 root.chartRequested()
+
+            onPlaylistsRequested:
+                root.playlistsRequested()
         }
 
 
@@ -108,6 +112,9 @@ Item {
 
             controller:
                 root.controller
+
+            homeMode:
+                true
         }
 
 

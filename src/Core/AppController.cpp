@@ -20,6 +20,7 @@
 #include "../Yandex/Personal/PlaylistService.h"
 #include "../Yandex/Personal/RecentListeningService.h"
 #include "../Yandex/Personal/YandexPersonal.h"
+#include "../Yandex/Personal/NewPlaylistsService.h"
 
 #include <QDebug>
 
@@ -63,6 +64,12 @@ AppController::AppController(
           new PersonalLanding(
               m_auth,
               this))
+
+       , m_newPlaylistsService(
+           new NewPlaylistsService(
+               m_auth,
+               m_playlistService,
+                     this))
 
     , m_recentListeningService(
           new RecentListeningService(
@@ -126,6 +133,7 @@ AppController::AppController(
           new PersonalController(
               m_yandexPersonal,
               m_personalLanding,
+              m_newPlaylistsService,
               m_recentListeningService,
               m_playbackController,
               m_playerService,

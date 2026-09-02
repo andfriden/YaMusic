@@ -5,6 +5,8 @@ Item {
     id: root
 
     signal chartRequested()
+    signal playlistsRequested()
+
 
     width:
         parent
@@ -15,17 +17,127 @@ Item {
         42
 
 
-    Button {
-        anchors.left:
-            parent.left
+    Row {
+        anchors.fill:
+            parent
 
-        anchors.verticalCenter:
-            parent.verticalCenter
+        spacing:
+            12
 
-        text:
-            qsTr("Чарты")
 
-        onClicked:
-            root.chartRequested()
+        // =========================================================
+        // Charts
+        // =========================================================
+
+        Button {
+            width:
+                (parent.width - parent.spacing) / 2
+
+            height:
+                parent.height
+
+            text:
+                qsTr("Чарты")
+
+
+            background: Rectangle {
+                radius:
+                    height / 2
+
+                color:
+                    parent.hovered
+                        ? AppTheme.panelHover
+                        : AppTheme.panelSecondary
+
+                border.width:
+                    1
+
+                border.color:
+                    AppTheme.borderSubtle
+            }
+
+
+            contentItem: Text {
+                text:
+                    parent.text
+
+                color:
+                    AppTheme.textPrimary
+
+                font.pixelSize:
+                    13
+
+                font.bold:
+                    true
+
+                horizontalAlignment:
+                    Text.AlignHCenter
+
+                verticalAlignment:
+                    Text.AlignVCenter
+            }
+
+
+            onClicked:
+                root.chartRequested()
+        }
+
+
+        // =========================================================
+        // Playlists
+        // =========================================================
+
+        Button {
+            width:
+                (parent.width - parent.spacing) / 2
+
+            height:
+                parent.height
+
+            text:
+                qsTr("Плейлисты")
+
+
+            background: Rectangle {
+                radius:
+                    height / 2
+
+                color:
+                    parent.hovered
+                        ? AppTheme.panelHover
+                        : AppTheme.panelSecondary
+
+                border.width:
+                    1
+
+                border.color:
+                    AppTheme.borderSubtle
+            }
+
+
+            contentItem: Text {
+                text:
+                    parent.text
+
+                color:
+                    AppTheme.textPrimary
+
+                font.pixelSize:
+                    13
+
+                font.bold:
+                    true
+
+                horizontalAlignment:
+                    Text.AlignHCenter
+
+                verticalAlignment:
+                    Text.AlignVCenter
+            }
+
+
+            onClicked:
+                root.playlistsRequested()
+        }
     }
 }

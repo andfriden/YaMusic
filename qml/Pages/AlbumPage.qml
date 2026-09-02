@@ -421,7 +421,7 @@ Item {
                             color:
                                 rowMouseArea.containsMouse
                                     ? AppTheme.panelHover
-                                    : AppTheme.surfaceElevated
+                                    : AppTheme.panelSecondary
 
                             border.width:
                                 1
