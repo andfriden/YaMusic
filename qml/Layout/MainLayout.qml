@@ -111,11 +111,11 @@ Item {
 
 
             onSectionSelected:
-                    function(section) {
-                root.selectSection(
-                    section
-                )
-            }
+                function(section) {
+                    root.selectSection(
+                        section
+                    )
+                }
         }
 
 
@@ -210,13 +210,13 @@ Item {
                         contentScrollView.availableWidth
 
                     height:
-                            item !== null &&
+                        item !== null &&
                         item !== undefined
-                        ? Math.max(
-                            item.implicitHeight,
-                            item.height
-                        )
-                        : 0
+                            ? Math.max(
+                                item.implicitHeight,
+                                item.height
+                            )
+                            : 0
 
 
                     onLoaded: {
@@ -226,6 +226,7 @@ Item {
                         ) {
                             return
                         }
+
 
                         item.width =
                             pageLoader.width
@@ -385,15 +386,22 @@ Item {
 
     Connections {
         target:
-                root.currentPageType === "section" &&
+            root.currentPageType === "section" &&
             root.currentSection === "home"
-            ? pageLoader.item
-            : null
+                ? pageLoader.item
+                : null
 
 
         function onChartRequested() {
             root.selectSection(
                 "chart"
+            )
+        }
+
+
+        function onGenresRequested() {
+            root.selectSection(
+                "genres"
             )
         }
 
@@ -458,16 +466,20 @@ Item {
         root.navigationStack =
             []
 
+
         root.currentSection =
             String(
                 section || "home"
             )
 
+
         root.currentPageType =
             "section"
 
+
         root.currentDetailId =
             ""
+
 
         root.loadCurrentPage()
     }
@@ -498,13 +510,13 @@ Item {
                 [
                     {
                         type:
-                        root.currentPageType,
+                            root.currentPageType,
 
                         section:
-                        root.currentSection,
+                            root.currentSection,
 
                         id:
-                        root.currentDetailId
+                            root.currentDetailId
                     }
                 ]
             )
@@ -512,6 +524,7 @@ Item {
 
         root.currentPageType =
             "artist"
+
 
         root.currentDetailId =
             id
@@ -546,13 +559,13 @@ Item {
                 [
                     {
                         type:
-                        root.currentPageType,
+                            root.currentPageType,
 
                         section:
-                        root.currentSection,
+                            root.currentSection,
 
                         id:
-                        root.currentDetailId
+                            root.currentDetailId
                     }
                 ]
             )
@@ -560,6 +573,7 @@ Item {
 
         root.currentPageType =
             "album"
+
 
         root.currentDetailId =
             id
@@ -579,13 +593,13 @@ Item {
                 [
                     {
                         type:
-                        root.currentPageType,
+                            root.currentPageType,
 
                         section:
-                        root.currentSection,
+                            root.currentSection,
 
                         id:
-                        root.currentDetailId
+                            root.currentDetailId
                     }
                 ]
             )
@@ -593,6 +607,7 @@ Item {
 
         root.currentPageType =
             "playlist"
+
 
         root.currentDetailId =
             ""
@@ -629,8 +644,10 @@ Item {
         root.currentPageType =
             previous.type || "section"
 
+
         root.currentSection =
             previous.section || "home"
+
 
         root.currentDetailId =
             previous.id || ""
@@ -653,7 +670,7 @@ Item {
             source,
             {
                 controller:
-                root.controller
+                    root.controller
             }
         )
     }
@@ -666,25 +683,25 @@ Item {
     function pageSourceForCurrentPage() {
         switch (
             root.currentPageType
-            ) {
+        ) {
 
-            case "artist":
-                return "../Pages/ArtistPage.qml"
-
-
-            case "album":
-                return "../Pages/AlbumPage.qml"
+        case "artist":
+            return "../Pages/ArtistPage.qml"
 
 
-            case "playlist":
-                return "../Pages/PlaylistPage.qml"
+        case "album":
+            return "../Pages/AlbumPage.qml"
 
 
-            case "section":
-            default:
-                return root.pageSourceForSection(
-                    root.currentSection
-                )
+        case "playlist":
+            return "../Pages/PlaylistPage.qml"
+
+
+        case "section":
+        default:
+            return root.pageSourceForSection(
+                root.currentSection
+            )
         }
     }
 
@@ -698,50 +715,54 @@ Item {
     ) {
         switch (
             section
-            ) {
+        ) {
 
-            case "home":
-                return "../Pages/HomePage.qml"
-
-
-            case "search":
-                return "../Pages/SearchPage.qml"
+        case "home":
+            return "../Pages/HomePage.qml"
 
 
-            case "wave":
-                return "../Pages/MyWavePage.qml"
+        case "search":
+            return "../Pages/SearchPage.qml"
 
 
-            case "library":
-                return "../Pages/LibraryPage.qml"
+        case "wave":
+            return "../Pages/MyWavePage.qml"
 
 
-            case "playlists":
-                return "../Pages/PlaylistsPage.qml"
+        case "library":
+            return "../Pages/LibraryPage.qml"
 
 
-            case "recent":
-                return "../Pages/RecentPage.qml"
+        case "playlists":
+            return "../Pages/PlaylistsPage.qml"
 
 
-            case "chart":
-                return "../Pages/ChartPage.qml"
+        case "recent":
+            return "../Pages/RecentPage.qml"
 
 
-            case "liked":
-                return "../Pages/HomePage.qml"
+        case "chart":
+            return "../Pages/ChartPage.qml"
 
 
-            case "albums":
-                return "../Pages/AlbumPage.qml"
+        case "genres":
+            return "../Pages/GenresPage.qml"
 
 
-            case "artists":
-                return "../Pages/ArtistPage.qml"
+        case "liked":
+            return "../Pages/HomePage.qml"
 
 
-            default:
-                return "../Pages/HomePage.qml"
+        case "albums":
+            return "../Pages/AlbumPage.qml"
+
+
+        case "artists":
+            return "../Pages/ArtistPage.qml"
+
+
+        default:
+            return "../Pages/HomePage.qml"
         }
     }
 
@@ -753,25 +774,25 @@ Item {
     function contextTypeForCurrentPage() {
         switch (
             root.currentPageType
-            ) {
+        ) {
 
-            case "artist":
-                return "artist"
-
-
-            case "album":
-                return "album"
+        case "artist":
+            return "artist"
 
 
-            case "playlist":
-                return "playlist"
+        case "album":
+            return "album"
 
 
-            case "section":
-            default:
-                return root.contextTypeForSection(
-                    root.currentSection
-                )
+        case "playlist":
+            return "playlist"
+
+
+        case "section":
+        default:
+            return root.contextTypeForSection(
+                root.currentSection
+            )
         }
     }
 
@@ -781,42 +802,46 @@ Item {
     ) {
         switch (
             section
-            ) {
+        ) {
 
-            case "home":
-                return "home"
-
-
-            case "search":
-                return "home"
+        case "home":
+            return "home"
 
 
-            case "wave":
-                return "mywave"
+        case "search":
+            return "home"
 
 
-            case "library":
-                return "library"
+        case "wave":
+            return "mywave"
 
 
-            case "playlists":
-                return "home"
+        case "library":
+            return "library"
 
 
-            case "recent":
-                return "home"
+        case "playlists":
+            return "home"
 
 
-            case "chart":
-                return "home"
+        case "recent":
+            return "home"
 
 
-            case "liked":
-                return "home"
+        case "chart":
+            return "home"
 
 
-            default:
-                return "home"
+        case "genres":
+            return "home"
+
+
+        case "liked":
+            return "home"
+
+
+        default:
+            return "home"
         }
     }
 
@@ -843,14 +868,18 @@ Item {
         root.currentSection =
             "home"
 
+
         root.currentPageType =
             "section"
+
 
         root.currentDetailId =
             ""
 
+
         root.navigationStack =
             []
+
 
         if (
             root.controller !== null &&

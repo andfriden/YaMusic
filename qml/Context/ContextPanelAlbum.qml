@@ -311,37 +311,4 @@ Item {
             }
         }
     }
-
-    Component.onCompleted: {
-
-        console.log(
-            "========== ContextPanelAlbum =========="
-        )
-
-        console.log(
-            "controller:",
-            root.controller
-        )
-
-        console.log(
-            "albumController:",
-            root.albumController
-        )
-
-        console.log(
-            "otherAlbumsModel:",
-            root.otherAlbumsModel
-        )
-
-        console.log(
-            "albums count:",
-                root.otherAlbumsModel !== null
-                ? root.otherAlbumsModel.count
-                : -1
-        )
-
-        console.log(
-            "========================================"
-        )
-    }
 }

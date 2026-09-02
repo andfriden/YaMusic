@@ -3,9 +3,20 @@ import QtQuick
 Item {
     id: root
 
+
+    // =============================================================
+    // Controller
+    // =============================================================
+
     property var controller
 
+
+    // =============================================================
+    // Navigation requests
+    // =============================================================
+
     signal chartRequested()
+    signal genresRequested()
     signal playlistsRequested()
 
 
@@ -87,15 +98,21 @@ Item {
 
 
         // =========================================================
-        // Charts / Playlists
+        // Charts / Genres / Playlists
         // =========================================================
 
         PersonalChartSection {
             width:
                 content.width
 
+
             onChartRequested:
                 root.chartRequested()
+
+
+            onGenresRequested:
+                root.genresRequested()
+
 
             onPlaylistsRequested:
                 root.playlistsRequested()

@@ -146,13 +146,9 @@ Item {
                                 status === Image.Ready
 
                             onStatusChanged: {
-                                console.log(
-                                    "AlbumPage artwork:"
-                                    + " status =",
-                                    status,
-                                    "| uri =",
+
                                     root.albumArtworkUri
-                                )
+
                             }
                         }
 
@@ -834,88 +830,7 @@ Item {
             101
     }
 
-    /*
-     * ============================================================
-     * DEBUG
-     * ============================================================
-     */
-
-    Component.onCompleted: {
-        console.log(
-            "=================================================="
-        )
-
-        console.log(
-            "AlbumPage CREATED",
-            "| controller:",
-            root.controller,
-            "| albumController:",
-            root.albumController,
-            "| albumModel:",
-            root.albumModel,
-            "| count:",
-            root.trackCount,
-            "| artwork:",
-            root.albumArtworkUri
-        )
-
-        console.log(
-            "=================================================="
-        )
-    }
-
-    Connections {
-        target:
-            root.albumModel
-
-        function onModelReset() {
-            console.log(
-                "AlbumPage MODEL RESET",
-                "| count:",
-                root.trackCount,
-                "| artwork:",
-                root.albumArtworkUri
-            )
-        }
-
-        function onCountChanged() {
-            console.log(
-                "AlbumPage COUNT CHANGED:",
-                root.trackCount
-            )
-        }
-
-        function onAlbumChanged() {
-            console.log(
-                "AlbumPage ALBUM CHANGED",
-                "| title:",
-                root.hasAlbum
-                    ? root.albumController.currentAlbumTitle
-                    : "",
-                "| artwork:",
-                root.albumArtworkUri
-            )
-        }
-    }
-
-    Connections {
-        target:
-            root.albumController
-
-        function onAlbumChanged() {
-            console.log(
-                "AlbumPage CONTROLLER ALBUM CHANGED",
-                "| title:",
-                root.albumController.currentAlbumTitle,
-                "| artwork:",
-                root.albumArtworkUri,
-                "| track count:",
-                root.trackCount
-            )
-        }
-    }
-
-    function formatDuration(milliseconds) {
+       function formatDuration(milliseconds) {
         var value =
             Number(milliseconds)
 

@@ -5,6 +5,7 @@ Item {
     id: root
 
     signal chartRequested()
+    signal genresRequested()
     signal playlistsRequested()
 
 
@@ -31,7 +32,7 @@ Item {
 
         Button {
             width:
-                (parent.width - parent.spacing) / 2
+                (parent.width - 2 * parent.spacing) / 3
 
             height:
                 parent.height
@@ -84,12 +85,70 @@ Item {
 
 
         // =========================================================
+        // Genres
+        // =========================================================
+
+        Button {
+            width:
+                (parent.width - 2 * parent.spacing) / 3
+
+            height:
+                parent.height
+
+            text:
+                qsTr("Жанры")
+
+
+            background: Rectangle {
+                radius:
+                    height / 2
+
+                color:
+                    parent.hovered
+                        ? AppTheme.panelHover
+                        : AppTheme.panelSecondary
+
+                border.width:
+                    1
+
+                border.color:
+                    AppTheme.borderSubtle
+            }
+
+
+            contentItem: Text {
+                text:
+                    parent.text
+
+                color:
+                    AppTheme.textPrimary
+
+                font.pixelSize:
+                    13
+
+                font.bold:
+                    true
+
+                horizontalAlignment:
+                    Text.AlignHCenter
+
+                verticalAlignment:
+                    Text.AlignVCenter
+            }
+
+
+            onClicked:
+                root.genresRequested()
+        }
+
+
+        // =========================================================
         // Playlists
         // =========================================================
 
         Button {
             width:
-                (parent.width - parent.spacing) / 2
+                (parent.width - 2 * parent.spacing) / 3
 
             height:
                 parent.height

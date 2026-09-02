@@ -242,20 +242,4 @@ Item {
         }
     }
 
-    /*
-     * ============================================================
-     * Theme diagnostics
-     * ============================================================
-     */
-
-    Component.onCompleted: {
-        console.log("========================================")
-        console.log("ContextPanelArtist")
-        console.log("AppTheme.border =", AppTheme.border)
-        console.log("AppTheme.borderSubtle =", AppTheme.borderSubtle)
-        console.log("AppTheme.borderStrong =", AppTheme.borderStrong)
-        console.log("AppTheme.panel =", AppTheme.panel)
-        console.log("AppTheme.backgroundSecondary =", AppTheme.backgroundSecondary)
-        console.log("========================================")
-    }
 }

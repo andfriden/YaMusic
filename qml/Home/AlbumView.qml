@@ -822,17 +822,7 @@ Item {
      */
 
     Component.onCompleted: {
-        console.log(
-            "AlbumPage CREATED",
-            "| controller:",
-            root.controller,
-            "| albumController:",
-            root.albumController,
-            "| albumModel:",
-            root.albumModel,
-            "| count:",
-            root.trackCount
-        )
+
     }
 
     Connections {
@@ -840,18 +830,13 @@ Item {
             root.albumModel
 
         function onModelReset() {
-            console.log(
-                "AlbumPage MODEL RESET",
-                "| count:",
+
                 root.trackCount
-            )
+
         }
 
         function onCountChanged() {
-            console.log(
-                "AlbumPage COUNT CHANGED:",
                 root.trackCount
-            )
         }
     }
 

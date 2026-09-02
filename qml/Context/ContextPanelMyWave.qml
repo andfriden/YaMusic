@@ -452,17 +452,6 @@ Item {
                                     return
                                 }
 
-                                console.log(
-                                    "ContextPanelMyWave:"
-                                    + " recent track selected",
-                                    "| sourceIndex:",
-                                    trackDelegate.sourceIndex,
-                                    "| title:",
-                                    trackDelegate.title,
-                                    "| artist:",
-                                    trackDelegate.artist
-                                )
-
                                 root.controller
                                     .selectRecentListening(
                                     trackDelegate.sourceIndex
@@ -485,59 +474,25 @@ Item {
 
         randomTracksModel.clear()
 
-
-        console.log(
-            "========================================"
-        )
-
-        console.log(
-            "ContextPanelMyWave::rebuildRandomTracks"
-        )
-
-        console.log(
-            "controller:",
             root.controller
-        )
+
 
 
         if (
             root.controller === null ||
             root.controller === undefined
         ) {
-            console.log(
-                "controller is null"
-            )
-
-            console.log(
-                "========================================"
-            )
-
-            return
+                        return
         }
 
 
         var model =
             root.controller.recentListeningModel
 
-
-        console.log(
-            "controller.recentListeningModel:",
-            model
-        )
-
-
         if (
             model === null ||
             model === undefined
         ) {
-            console.log(
-                "recentListeningModel is null"
-            )
-
-            console.log(
-                "========================================"
-            )
-
             return
         }
 
@@ -554,32 +509,16 @@ Item {
             )
 
 
-        console.log(
-            "randomTrackData result:",
-            items
-        )
-
 
         if (
             items === null ||
             items === undefined
         ) {
-            console.log(
-                "randomTrackData returned null"
-            )
-
-            console.log(
-                "========================================"
-            )
-
             return
         }
 
-
-        console.log(
-            "random item count:",
             items.length
-        )
+
 
 
         for (
@@ -658,15 +597,6 @@ Item {
             )
         }
 
-
-        console.log(
-            "final randomTracksModel.count:",
-            randomTracksModel.count
-        )
-
-        console.log(
-            "========================================"
-        )
     }
 
 
@@ -686,10 +616,8 @@ Item {
 
         function onModelReset() {
 
-            console.log(
-                "ContextPanelMyWave:"
                 + " recent modelReset"
-            )
+
 
             rebuildRandomTracks()
         }
@@ -697,10 +625,9 @@ Item {
 
         function onRowsInserted() {
 
-            console.log(
-                "ContextPanelMyWave:"
+
                 + " recent rowsInserted"
-            )
+
 
             rebuildRandomTracks()
         }
@@ -708,10 +635,7 @@ Item {
 
         function onRowsRemoved() {
 
-            console.log(
-                "ContextPanelMyWave:"
                 + " recent rowsRemoved"
-            )
 
             rebuildRandomTracks()
         }
@@ -726,10 +650,7 @@ Item {
 
     onControllerChanged: {
 
-        console.log(
-            "ContextPanelMyWave:"
             + " controllerChanged"
-        )
 
         rebuildRandomTracks()
     }
@@ -743,23 +664,11 @@ Item {
 
     Component.onCompleted: {
 
-        console.log(
-            "========================================"
-        )
-
-        console.log(
-            "ContextPanelMyWave CREATED"
-        )
-
-        console.log(
-            "controller:",
             root.controller
-        )
+
 
         rebuildRandomTracks()
 
-        console.log(
-            "========================================"
-        )
+
     }
 }

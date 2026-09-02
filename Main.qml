@@ -58,31 +58,7 @@ ApplicationWindow {
     // =============================================================
 
     Component.onCompleted:
-    {
-        console.log(
-            "========================================"
-        )
-
-        console.log(
-            "YaMusic Main.qml CREATED"
-        )
-
-        console.log(
-            "appController:",
-            appController
-        )
-
-        console.log(
-            "currentSection:",
-            mainLayout.currentSection
-        )
-
-        console.log(
-            "========================================"
-        )
-
-        appController.loadRecommendations()
-    }
+    {}
 
 
     // =============================================================
@@ -102,11 +78,6 @@ ApplicationWindow {
             albumId
         )
         {
-            console.log(
-                "Album page requested:",
-                albumId
-            )
-
             mainLayout.currentSection =
                 "albums"
         }
@@ -120,10 +91,9 @@ ApplicationWindow {
             artistId
         )
         {
-            console.log(
-                "Artist page requested:",
+
                 artistId
-            )
+
 
             mainLayout.currentSection =
                 "artists"
@@ -136,10 +106,6 @@ ApplicationWindow {
 
         function onPlaylistPageRequested()
         {
-            console.log(
-                "Playlist page requested"
-            )
-
             mainLayout.currentSection =
                 "playlist"
         }

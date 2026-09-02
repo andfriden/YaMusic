@@ -250,6 +250,13 @@ qt_add_executable(
         src/Yandex/Personal/PersonalChartModel.h
         src/Yandex/Personal/NewPlaylistsService.cpp
         src/Yandex/Personal/NewPlaylistsService.h
+        src/Models/Genre.h
+        src/Yandex/Catalog/GenreService.cpp
+        src/Yandex/Catalog/GenreService.h
+        src/Yandex/Catalog/GenreModel.cpp
+        src/Yandex/Catalog/GenreModel.h
+        src/Core/GenreController.cpp
+        src/Core/GenreController.h
 )
 
 
@@ -313,6 +320,7 @@ qt_add_qml_module(
         qml/Pages/RecentPage.qml
         qml/Pages/ChartPage.qml
         qml/Pages/PlaylistsPage.qml
+        qml/Pages/GenresPage.qml
 
 
         # =========================================================

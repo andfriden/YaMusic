@@ -12,6 +12,7 @@
 #include "../Yandex/Catalog/AlbumService.h"
 #include "../Yandex/Catalog/ArtistService.h"
 #include "../Yandex/Catalog/ChartService.h"
+#include "../Yandex/Catalog/GenreService.h"
 #include "../Yandex/Catalog/SearchService.h"
 #include "../Yandex/Catalog/TrackService.h"
 
@@ -69,7 +70,7 @@ AppController::AppController(
            new NewPlaylistsService(
                m_auth,
                m_playlistService,
-                     this))
+               this))
 
     , m_recentListeningService(
           new RecentListeningService(
@@ -98,6 +99,11 @@ AppController::AppController(
 
     , m_chartService(
           new ChartService(
+              m_auth,
+              this))
+
+    , m_genreService(
+          new GenreService(
               m_auth,
               this))
 
@@ -163,6 +169,11 @@ AppController::AppController(
               m_chartService,
               m_playbackController,
               this))
+
+    , m_genreController(
+          new GenreController(
+              m_genreService,
+              this))
 {
     connectAccount();
 
@@ -177,6 +188,8 @@ AppController::AppController(
     connectArtist();
 
     connectChart();
+
+    connectGenre();
 
     connectPlayback();
 
@@ -536,6 +549,20 @@ void AppController::connectChart()
     connect(
         m_chartController,
         &ChartController::statusChanged,
+        this,
+        &AppController::statusChanged);
+}
+
+
+// =============================================================
+// Genre
+// =============================================================
+
+void AppController::connectGenre()
+{
+    connect(
+        m_genreController,
+        &GenreController::statusChanged,
         this,
         &AppController::statusChanged);
 }
@@ -952,6 +979,7 @@ AppController::personalPlaylistsModel() const
         ->personalPlaylistsModel();
 }
 
+
 PlaylistModel *
 AppController::playlistModel() const
 {
@@ -986,6 +1014,13 @@ ChartController *
 AppController::chartController() const
 {
     return m_chartController;
+}
+
+
+GenreController *
+AppController::genreController() const
+{
+    return m_genreController;
 }
 
 
@@ -1427,6 +1462,25 @@ AppController::setVolume(
     m_playerService
         ->setVolume(
             volume);
+}
+
+
+// =============================================================
+// Genres
+// =============================================================
+
+void AppController::loadGenres()
+{
+    if (
+        m_genreController == nullptr
+    )
+    {
+        return;
+    }
+
+
+    m_genreController
+        ->loadGenres();
 }
 
 

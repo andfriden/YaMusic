@@ -9,6 +9,7 @@
 #include "AlbumController.h"
 #include "ArtistController.h"
 #include "ChartController.h"
+#include "GenreController.h"
 #include "LibraryController.h"
 #include "PersonalController.h"
 #include "SearchController.h"
@@ -21,6 +22,7 @@ class AccountService;
 class AlbumService;
 class ArtistService;
 class ChartService;
+class GenreService;
 class LikesService;
 class PersonalLanding;
 class PlayerAccentService;
@@ -156,6 +158,11 @@ class AppController : public QObject
     Q_PROPERTY(
         ChartController *chartController
         READ chartController
+        CONSTANT)
+
+    Q_PROPERTY(
+        GenreController *genreController
+        READ genreController
         CONSTANT)
 
 
@@ -362,6 +369,8 @@ public:
 
     Q_INVOKABLE void loadCharts();
 
+    Q_INVOKABLE void loadGenres();
+
 
     Q_INVOKABLE void loadMyWave();
 
@@ -473,6 +482,9 @@ public:
 
     ChartController *
     chartController() const;
+
+    GenreController *
+    genreController() const;
 
 
     bool isSearching() const;
@@ -632,6 +644,8 @@ private:
 
     void connectChart();
 
+    void connectGenre();
+
     void connectPlayback();
 
     void connectPlayer();
@@ -677,6 +691,9 @@ private:
     ChartService *
         m_chartService = nullptr;
 
+    GenreService *
+        m_genreService = nullptr;
+
     PlayerService *
         m_playerService = nullptr;
 
@@ -707,6 +724,9 @@ private:
 
     ChartController *
         m_chartController = nullptr;
+
+    GenreController *
+        m_genreController = nullptr;
 
 
     QString m_accountUid;

@@ -19,11 +19,4 @@ Item {
         controller: root.controller
     }
 
-    Component.onCompleted: {
-        console.log("========== RecentPage ==========")
-        console.log("controller:", root.controller)
-        console.log("width:", root.width)
-        console.log("height:", root.height)
-        console.log("================================")
-    }
-}
+  }
