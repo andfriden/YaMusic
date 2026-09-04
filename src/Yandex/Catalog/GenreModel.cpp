@@ -1,5 +1,8 @@
 #include "GenreModel.h"
 
+#include <QVariantList>
+#include <QVariantMap>
+
 
 GenreModel::GenreModel(
     QObject *parent)
@@ -11,9 +14,7 @@ GenreModel::GenreModel(
 int GenreModel::rowCount(
     const QModelIndex &parent) const
 {
-    if (
-        parent.isValid()
-    )
+    if (parent.isValid())
     {
         return 0;
     }
@@ -26,19 +27,24 @@ QVariant GenreModel::data(
     const QModelIndex &index,
     int role) const
 {
+    if (!index.isValid())
+    {
+        return {};
+    }
+
+    const int row =
+        index.row();
+
     if (
-        !index.isValid() ||
-        index.row() < 0 ||
-        index.row() >= m_genres.size()
+        row < 0 ||
+        row >= m_genres.size()
     )
     {
         return {};
     }
 
-
     const Genre &genre =
-        m_genres.at(
-            index.row());
+        m_genres.at(row);
 
 
     switch (role)
@@ -77,6 +83,71 @@ QVariant GenreModel::data(
 
         case HasSubGenresRole:
             return !genre.subGenres.isEmpty();
+
+
+        case SubGenresRole:
+        {
+            QVariantList result;
+
+            result.reserve(
+                genre.subGenres.size()
+            );
+
+
+            for (
+                const Genre &subGenre :
+                genre.subGenres
+            )
+            {
+                QVariantMap item;
+
+                item.insert(
+                    "id",
+                    subGenre.id
+                );
+
+                item.insert(
+                    "title",
+                    subGenre.title
+                );
+
+                item.insert(
+                    "fullTitle",
+                    subGenre.fullTitle
+                );
+
+                item.insert(
+                    "urlPart",
+                    subGenre.urlPart
+                );
+
+                item.insert(
+                    "color",
+                    subGenre.color
+                );
+
+                item.insert(
+                    "image208",
+                    subGenre.image208
+                );
+
+                item.insert(
+                    "image300",
+                    subGenre.image300
+                );
+
+                item.insert(
+                    "showInMenu",
+                    subGenre.showInMenu
+                );
+
+                result.append(
+                    item
+                );
+            }
+
+            return result;
+        }
 
 
         default:
@@ -124,6 +195,10 @@ GenreModel::roleNames() const
         {
             HasSubGenresRole,
             "hasSubGenres"
+        },
+        {
+            SubGenresRole,
+            "subGenres"
         }
     };
 }
@@ -162,8 +237,7 @@ Genre GenreModel::genreAt(
         return {};
     }
 
-    return m_genres.at(
-        index);
+    return m_genres.at(index);
 }
 
 

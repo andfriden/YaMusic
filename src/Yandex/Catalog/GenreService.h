@@ -25,10 +25,19 @@ public:
     void loadGenres();
 
 
+    void loadTagPlaylistIds(
+        const QString &tagId);
+
+
     signals:
 
         void genresReceived(
             const QList<Genre> &genres);
+
+
+    void tagPlaylistIdsReceived(
+        const QString &tagId,
+        const QList<QPair<QString, int>> &playlists);
 
 
     void errorOccurred(

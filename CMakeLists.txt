@@ -321,6 +321,8 @@ qt_add_qml_module(
         qml/Pages/ChartPage.qml
         qml/Pages/PlaylistsPage.qml
         qml/Pages/GenresPage.qml
+        qml/Pages/GenrePage.qml
+        qml/Pages/SubGenrePage.qml
 
 
         # =========================================================

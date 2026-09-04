@@ -25,7 +25,8 @@ public:
         Image208Role,
         Image300Role,
         ShowInMenuRole,
-        HasSubGenresRole
+        HasSubGenresRole,
+        SubGenresRole
     };
 
     Q_ENUM(Roles)

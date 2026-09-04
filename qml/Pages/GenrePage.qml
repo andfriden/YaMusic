@@ -6,25 +6,25 @@ Item {
 
 
     // =============================================================
-    // Controller
+    // Properties
     // =============================================================
 
     property var controller
 
+    property string genreId:
+        ""
 
-    // =============================================================
-    // Genre controller / model
-    // =============================================================
+    property string genreTitle:
+        ""
 
-    readonly property var genreController:
-            controller && controller.genreController
-        ? controller.genreController
-        : null
+    property string genreImage:
+        ""
 
-    readonly property var genreModel:
-        root.genreController
-            ? root.genreController.model
-            : null
+    property string genreColor:
+        ""
+
+    property var genreSubGenres:
+        []
 
 
     // =============================================================
@@ -38,7 +38,7 @@ Item {
         220
 
     readonly property int cardHeight:
-        180
+        150
 
     readonly property int spacing:
         16
@@ -61,26 +61,24 @@ Item {
 
 
     height:
-        parent
-            ? Math.max(
-                parent.height,
-                contentColumn.height +
-                root.margin * 2
-            )
-            : contentColumn.height +
+        Math.max(
+            parent
+                ? parent.height
+                : 0,
+
+            contentColumn.height +
             root.margin * 2
+        )
 
 
     // =============================================================
     // Navigation
     // =============================================================
 
-    signal genreRequested(
-        string genreId,
+    signal subGenreRequested(
+        string subGenreId,
         string title,
-        string image,
-        string color,
-        var subGenres
+        string color
     )
 
 
@@ -118,11 +116,134 @@ Item {
             )
 
         spacing:
-            20
+            24
 
 
         // =========================================================
-        // Header
+        // Genre header
+        // =========================================================
+
+        Rectangle {
+            width:
+                parent.width
+
+            height:
+                220
+
+            radius:
+                16
+
+            clip:
+                true
+
+            color:
+                    root.genreColor.length > 0
+                ? root.genreColor
+                : AppTheme.panelSecondary
+
+
+            Image {
+                anchors.fill:
+                    parent
+
+                source:
+                        root.genreImage.length > 0
+                    ? root.genreImage
+                    : ""
+
+                fillMode:
+                    Image.PreserveAspectCrop
+
+                asynchronous:
+                    true
+
+                cache:
+                    true
+            }
+
+
+            Rectangle {
+                anchors.fill:
+                    parent
+
+                color:
+                    "#50000000"
+            }
+
+
+            Rectangle {
+                anchors.left:
+                    parent.left
+
+                anchors.right:
+                    parent.right
+
+                anchors.bottom:
+                    parent.bottom
+
+                height:
+                    120
+
+                gradient:
+                    Gradient {
+                        GradientStop {
+                            position:
+                                0.0
+
+                            color:
+                                "transparent"
+                        }
+
+                        GradientStop {
+                            position:
+                                1.0
+
+                            color:
+                                "#D9000000"
+                        }
+                    }
+            }
+
+
+            Label {
+                anchors.left:
+                    parent.left
+
+                anchors.right:
+                    parent.right
+
+                anchors.bottom:
+                    parent.bottom
+
+                anchors.leftMargin:
+                    20
+
+                anchors.rightMargin:
+                    20
+
+                anchors.bottomMargin:
+                    18
+
+                text:
+                    root.genreTitle
+
+                color:
+                    "#FFFFFF"
+
+                font.pixelSize:
+                    30
+
+                font.bold:
+                    true
+
+                elide:
+                    Text.ElideRight
+            }
+        }
+
+
+        // =========================================================
+        // Subgenres title
         // =========================================================
 
         Label {
@@ -130,54 +251,28 @@ Item {
                 parent.width
 
             text:
-                "Жанры"
+                "Поджанры"
 
             color:
                 AppTheme.textPrimary
 
             font.pixelSize:
-                30
+                24
 
             font.bold:
                 true
-        }
 
-
-        // =========================================================
-        // Empty / loading
-        // =========================================================
-
-        Label {
             visible:
-                genreRepeater.count === 0
-
-            width:
-                parent.width
-
-            text:
-                    root.genreController !== null &&
-                root.genreController !== undefined &&
-                root.genreController.loading
-                ? "Загрузка жанров..."
-                : "Жанры недоступны"
-
-            color:
-                AppTheme.textSecondary
-
-            font.pixelSize:
-                16
+                subGenreRepeater.count > 0
         }
 
 
         // =========================================================
-        // Genre grid
+        // Subgenres
         // =========================================================
 
         Grid {
-            id: genreGrid
-
-            visible:
-                genreRepeater.count > 0
+            id: subGenreGrid
 
             width:
                 parent.width
@@ -191,12 +286,15 @@ Item {
             columnSpacing:
                 root.spacing
 
+            visible:
+                subGenreRepeater.count > 0
+
 
             Repeater {
-                id: genreRepeater
+                id: subGenreRepeater
 
                 model:
-                    root.genreModel
+                    root.genreSubGenres
 
 
                 delegate:
@@ -214,9 +312,9 @@ Item {
                             true
 
                         color:
-                                model.color &&
-                            model.color.length > 0
-                            ? model.color
+                                modelData.color &&
+                            modelData.color.length > 0
+                            ? modelData.color
                             : AppTheme.panelSecondary
 
 
@@ -229,9 +327,9 @@ Item {
                                 parent
 
                             source:
-                                    model.image300 &&
-                                model.image300.length > 0
-                                ? model.image300
+                                    modelData.image300 &&
+                                modelData.image300.length > 0
+                                ? modelData.image300
                                 : ""
 
                             fillMode:
@@ -254,7 +352,7 @@ Item {
                                 parent
 
                             color:
-                                "#40000000"
+                                "#45000000"
                         }
 
 
@@ -269,7 +367,7 @@ Item {
                                 parent.bottom
 
                             height:
-                                90
+                                80
 
                             gradient:
                                 Gradient {
@@ -316,13 +414,13 @@ Item {
                                 12
 
                             text:
-                                model.title || ""
+                                modelData.title || ""
 
                             color:
                                 "#FFFFFF"
 
                             font.pixelSize:
-                                18
+                                17
 
                             font.bold:
                                 true
@@ -346,27 +444,6 @@ Item {
                             cursorShape:
                                 Qt.PointingHandCursor
 
-                            onClicked: {
-                                const id =
-                                    String(
-                                        model.genreId || ""
-                                    ).trim()
-
-                                if (
-                                    id.length === 0
-                                ) {
-                                    return
-                                }
-
-                                root.genreRequested(
-                                    id,
-                                    model.title || "",
-                                    model.image300 || "",
-                                    model.color || "",
-                                    model.subGenres || []
-                                )
-                            }
-
 
                             onEntered: {
                                 parent.opacity =
@@ -378,23 +455,67 @@ Item {
                                 parent.opacity =
                                     1.0
                             }
+
+
+                            onClicked: {
+                                const id =
+                                    String(
+                                        modelData.id || ""
+                                    ).trim()
+
+                                if (
+                                    id.length === 0
+                                ) {
+                                    return
+                                }
+
+
+                                root.subGenreRequested(
+                                    id,
+                                    modelData.title || "",
+                                    modelData.color || ""
+                                )
+                            }
                         }
                     }
             }
+        }
+
+
+        // =========================================================
+        // Empty state
+        // =========================================================
+
+        Label {
+            width:
+                parent.width
+
+            visible:
+                subGenreRepeater.count === 0
+
+            text:
+                "У этого жанра нет поджанров"
+
+            color:
+                AppTheme.textSecondary
+
+            font.pixelSize:
+                16
         }
     }
 
 
     // =============================================================
-    // Load
+    // Debug
     // =============================================================
 
     Component.onCompleted: {
-        if (
-            root.genreController !== null &&
-            root.genreController !== undefined
-        ) {
-            root.genreController.loadGenres()
-        }
+        console.log(
+            "GenrePage:",
+            root.genreId,
+            root.genreTitle,
+            "subGenres:",
+            root.genreSubGenres.length
+        )
     }
 }

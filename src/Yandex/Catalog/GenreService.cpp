@@ -47,8 +47,7 @@ Genre parseGenre(
     genre.showInMenu =
         object
             .value("showInMenu")
-            .toBool(
-                false);
+            .toBool(false);
 
 
     const QJsonObject images =
@@ -83,7 +82,9 @@ Genre parseGenre(
         subGenres
     )
     {
-        if (!value.isObject())
+        if (
+            !value.isObject()
+        )
         {
             continue;
         }
@@ -125,7 +126,9 @@ QList<Genre> parseGenres(
         genresArray
     )
     {
-        if (!value.isObject())
+        if (
+            !value.isObject()
+        )
         {
             continue;
         }
@@ -155,6 +158,10 @@ QList<Genre> parseGenres(
 }
 
 
+// =============================================================
+// Constructor
+// =============================================================
+
 GenreService::GenreService(
     YandexAuth *auth,
     QObject *parent)
@@ -165,6 +172,10 @@ GenreService::GenreService(
 {
 }
 
+
+// =============================================================
+// Genres
+// =============================================================
 
 void GenreService::loadGenres()
 {
@@ -187,6 +198,17 @@ void GenreService::loadGenres()
     QNetworkReply *reply =
         m_yandexClient->get(
             "/genres");
+
+
+    if (
+        reply == nullptr
+    )
+    {
+        emit errorOccurred(
+            "Не удалось загрузить жанры");
+
+        return;
+    }
 
 
     connect(
@@ -237,13 +259,10 @@ void GenreService::loadGenres()
             }
 
 
-            const QJsonObject root =
-                document.object();
-
-
             const QJsonValue resultValue =
-                root.value(
-                    "result");
+                document
+                    .object()
+                    .value("result");
 
 
             if (
@@ -259,17 +278,198 @@ void GenreService::loadGenres()
             }
 
 
-            const QJsonArray genresArray =
-                resultValue.toArray();
-
-
             const QList<Genre> genres =
                 parseGenres(
-                    genresArray);
+                    resultValue.toArray());
 
 
             emit genresReceived(
                 genres);
+
+
+            reply->deleteLater();
+        });
+}
+
+
+// =============================================================
+// Tag playlists
+// =============================================================
+
+void GenreService::loadTagPlaylistIds(
+    const QString &tagId)
+{
+    if (
+        m_auth == nullptr ||
+        !m_auth->isAuthenticated()
+    )
+    {
+        emit errorOccurred(
+            "Токен Яндекс Музыки не установлен");
+
+        return;
+    }
+
+
+    const QString trimmedTagId =
+        tagId.trimmed();
+
+
+    if (
+        trimmedTagId.isEmpty()
+    )
+    {
+        emit errorOccurred(
+            "Идентификатор поджанра не указан");
+
+        return;
+    }
+
+
+    m_yandexClient->setToken(
+        m_auth->token());
+
+
+    const QString path =
+        QString(
+            "/tags/%1/playlist-ids")
+        .arg(
+            trimmedTagId);
+
+
+    QNetworkReply *reply =
+        m_yandexClient->get(
+            path);
+
+
+    if (
+        reply == nullptr
+    )
+    {
+        emit errorOccurred(
+            "Не удалось загрузить плейлисты поджанра");
+
+        return;
+    }
+
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply, trimmedTagId]()
+        {
+            const QByteArray data =
+                reply->readAll();
+
+
+            if (
+                reply->error() !=
+                QNetworkReply::NoError
+            )
+            {
+                emit errorOccurred(
+                    reply->errorString());
+
+                reply->deleteLater();
+
+                return;
+            }
+
+
+            QJsonParseError parseError;
+
+
+            const QJsonDocument document =
+                QJsonDocument::fromJson(
+                    data,
+                    &parseError);
+
+
+            if (
+                parseError.error !=
+                    QJsonParseError::NoError ||
+                !document.isObject()
+            )
+            {
+                emit errorOccurred(
+                    "Некорректный ответ плейлистов поджанра");
+
+                reply->deleteLater();
+
+                return;
+            }
+
+
+            const QJsonObject result =
+                document
+                    .object()
+                    .value("result")
+                    .toObject();
+
+
+            const QJsonArray ids =
+                result
+                    .value("ids")
+                    .toArray();
+
+
+            QList<QPair<QString, int>>
+                playlists;
+
+
+            playlists.reserve(
+                ids.size());
+
+
+            for (
+                const QJsonValue &value :
+                ids
+            )
+            {
+                if (
+                    !value.isObject()
+                )
+                {
+                    continue;
+                }
+
+
+                const QJsonObject object =
+                    value.toObject();
+
+
+                const qint64 uid =
+                    object
+                        .value("uid")
+                        .toInteger();
+
+
+                const int kind =
+                    object
+                        .value("kind")
+                        .toInt();
+
+
+                if (
+                    uid <= 0 ||
+                    kind <= 0
+                )
+                {
+                    continue;
+                }
+
+
+                playlists.append(
+                    qMakePair(
+                        QString::number(uid),
+                        kind));
+            }
+
+
+            emit tagPlaylistIdsReceived(
+                trimmedTagId,
+                playlists);
 
 
             reply->deleteLater();

@@ -13,7 +13,7 @@ Item {
 
 
     // =============================================================
-    // Current root section
+    // Current section
     // =============================================================
 
     property string currentSection:
@@ -32,6 +32,37 @@ Item {
 
 
     // =============================================================
+    // Current genre
+    // =============================================================
+
+    property string currentGenreTitle:
+        ""
+
+    property string currentGenreImage:
+        ""
+
+    property string currentGenreColor:
+        ""
+
+    property var currentGenreSubGenres:
+        []
+
+
+    // =============================================================
+    // Current subgenre
+    // =============================================================
+
+    property string currentSubGenreId:
+        ""
+
+    property string currentSubGenreTitle:
+        ""
+
+    property string currentSubGenreColor:
+        ""
+
+
+    // =============================================================
     // Navigation stack
     // =============================================================
 
@@ -40,7 +71,7 @@ Item {
 
 
     // =============================================================
-    // Layout constants
+    // Layout
     // =============================================================
 
     readonly property int sidebarWidth:
@@ -51,7 +82,7 @@ Item {
 
 
     // =============================================================
-    // Context panel visibility
+    // Context panel
     // =============================================================
 
     readonly property bool contextPanelVisible:
@@ -60,12 +91,8 @@ Item {
         root.currentPageType === "playlist"
 
 
-    // =============================================================
-    // Context type
-    // =============================================================
-
     readonly property string contextType:
-        contextTypeForCurrentPage()
+        root.contextTypeForCurrentPage()
 
 
     // =============================================================
@@ -109,13 +136,12 @@ Item {
             currentSection:
                 root.currentSection
 
-
             onSectionSelected:
-                function(section) {
-                    root.selectSection(
-                        section
-                    )
-                }
+                    function(section) {
+                root.selectSection(
+                    section
+                )
+            }
         }
 
 
@@ -160,7 +186,7 @@ Item {
 
 
             // =====================================================
-            // Scrollable page area
+            // Scrollable content
             // =====================================================
 
             ScrollView {
@@ -203,6 +229,10 @@ Item {
                     )
 
 
+                // =================================================
+                // Page loader
+                // =================================================
+
                 Loader {
                     id: pageLoader
 
@@ -210,14 +240,13 @@ Item {
                         contentScrollView.availableWidth
 
                     height:
-                        item !== null &&
+                            item !== null &&
                         item !== undefined
-                            ? Math.max(
-                                item.implicitHeight,
-                                item.height
-                            )
-                            : 0
-
+                        ? Math.max(
+                            item.implicitHeight,
+                            item.height
+                        )
+                        : 0
 
                     onLoaded: {
                         if (
@@ -226,7 +255,6 @@ Item {
                         ) {
                             return
                         }
-
 
                         item.width =
                             pageLoader.width
@@ -288,7 +316,6 @@ Item {
                 text:
                     "‹"
 
-
                 contentItem:
                     Text {
                         text:
@@ -309,7 +336,6 @@ Item {
                             Text.AlignVCenter
                     }
 
-
                 background:
                     Rectangle {
                         radius:
@@ -320,7 +346,6 @@ Item {
                                 ? AppTheme.panelHover
                                 : "transparent"
                     }
-
 
                 onClicked: {
                     root.goBack()
@@ -386,11 +411,13 @@ Item {
 
     Connections {
         target:
-            root.currentPageType === "section" &&
+                root.currentPageType === "section" &&
             root.currentSection === "home"
-                ? pageLoader.item
-                : null
+            ? pageLoader.item
+            : null
 
+        ignoreUnknownSignals:
+            true
 
         function onChartRequested() {
             root.selectSection(
@@ -398,13 +425,11 @@ Item {
             )
         }
 
-
         function onGenresRequested() {
             root.selectSection(
                 "genres"
             )
         }
-
 
         function onPlaylistsRequested() {
             root.selectSection(
@@ -415,13 +440,74 @@ Item {
 
 
     // =============================================================
-    // Navigation requests from AppController
+    // Genres navigation
+    // =============================================================
+
+    Connections {
+        target:
+                root.currentPageType === "section" &&
+            root.currentSection === "genres"
+            ? pageLoader.item
+            : null
+
+        ignoreUnknownSignals:
+            true
+
+        function onGenreRequested(
+            genreId,
+            title,
+            image,
+            color,
+            subGenres
+        ) {
+            root.openGenrePage(
+                genreId,
+                title,
+                image,
+                color,
+                subGenres
+            )
+        }
+    }
+
+
+    // =============================================================
+    // Genre page navigation
+    // =============================================================
+
+    Connections {
+        target:
+                root.currentPageType === "genre"
+            ? pageLoader.item
+            : null
+
+        ignoreUnknownSignals:
+            true
+
+        function onSubGenreRequested(
+            subGenreId,
+            title,
+            color
+        ) {
+            root.openSubGenrePage(
+                subGenreId,
+                title,
+                color
+            )
+        }
+    }
+
+
+    // =============================================================
+    // Navigation from AppController
     // =============================================================
 
     Connections {
         target:
             root.controller
 
+        ignoreUnknownSignals:
+            true
 
         function onArtistPageRequested(
             artistId
@@ -431,7 +517,6 @@ Item {
             )
         }
 
-
         function onAlbumPageRequested(
             albumId
         ) {
@@ -440,11 +525,9 @@ Item {
             )
         }
 
-
         function onPlaylistPageRequested() {
             root.openPlaylistPage()
         }
-
 
         function onSearchPageRequested(
             query
@@ -457,7 +540,7 @@ Item {
 
 
     // =============================================================
-    // Root section navigation
+    // Select root section
     // =============================================================
 
     function selectSection(
@@ -466,20 +549,37 @@ Item {
         root.navigationStack =
             []
 
-
         root.currentSection =
             String(
                 section || "home"
             )
 
-
         root.currentPageType =
             "section"
-
 
         root.currentDetailId =
             ""
 
+        root.currentGenreTitle =
+            ""
+
+        root.currentGenreImage =
+            ""
+
+        root.currentGenreColor =
+            ""
+
+        root.currentGenreSubGenres =
+            []
+
+        root.currentSubGenreId =
+            ""
+
+        root.currentSubGenreTitle =
+            ""
+
+        root.currentSubGenreColor =
+            ""
 
         root.loadCurrentPage()
     }
@@ -497,7 +597,6 @@ Item {
                 artistId || ""
             ).trim()
 
-
         if (
             id.length === 0
         ) {
@@ -510,13 +609,13 @@ Item {
                 [
                     {
                         type:
-                            root.currentPageType,
+                        root.currentPageType,
 
                         section:
-                            root.currentSection,
+                        root.currentSection,
 
                         id:
-                            root.currentDetailId
+                        root.currentDetailId
                     }
                 ]
             )
@@ -525,10 +624,8 @@ Item {
         root.currentPageType =
             "artist"
 
-
         root.currentDetailId =
             id
-
 
         root.loadCurrentPage()
     }
@@ -546,7 +643,6 @@ Item {
                 albumId || ""
             ).trim()
 
-
         if (
             id.length === 0
         ) {
@@ -559,13 +655,13 @@ Item {
                 [
                     {
                         type:
-                            root.currentPageType,
+                        root.currentPageType,
 
                         section:
-                            root.currentSection,
+                        root.currentSection,
 
                         id:
-                            root.currentDetailId
+                        root.currentDetailId
                     }
                 ]
             )
@@ -574,10 +670,8 @@ Item {
         root.currentPageType =
             "album"
 
-
         root.currentDetailId =
             id
-
 
         root.loadCurrentPage()
     }
@@ -593,13 +687,13 @@ Item {
                 [
                     {
                         type:
-                            root.currentPageType,
+                        root.currentPageType,
 
                         section:
-                            root.currentSection,
+                        root.currentSection,
 
                         id:
-                            root.currentDetailId
+                        root.currentDetailId
                     }
                 ]
             )
@@ -608,10 +702,129 @@ Item {
         root.currentPageType =
             "playlist"
 
-
         root.currentDetailId =
             ""
 
+        root.loadCurrentPage()
+    }
+
+
+    // =============================================================
+    // Open Genre
+    // =============================================================
+
+    function openGenrePage(
+        genreId,
+        title,
+        image,
+        color,
+        subGenres
+    ) {
+        const id =
+            String(
+                genreId || ""
+            ).trim()
+
+        if (
+            id.length === 0
+        ) {
+            return
+        }
+
+
+        root.navigationStack =
+            root.navigationStack.concat(
+                [
+                    {
+                        type:
+                        root.currentPageType,
+
+                        section:
+                        root.currentSection,
+
+                        id:
+                        root.currentDetailId
+                    }
+                ]
+            )
+
+
+        root.currentGenreTitle =
+            title || ""
+
+        root.currentGenreImage =
+            image || ""
+
+        root.currentGenreColor =
+            color || ""
+
+        root.currentGenreSubGenres =
+            subGenres || []
+
+
+        root.currentPageType =
+            "genre"
+
+        root.currentDetailId =
+            id
+
+        root.loadCurrentPage()
+    }
+
+
+    // =============================================================
+    // Open SubGenre
+    // =============================================================
+
+    function openSubGenrePage(
+        subGenreId,
+        title,
+        color
+    ) {
+        const id =
+            String(
+                subGenreId || ""
+            ).trim()
+
+        if (
+            id.length === 0
+        ) {
+            return
+        }
+
+
+        root.navigationStack =
+            root.navigationStack.concat(
+                [
+                    {
+                        type:
+                        root.currentPageType,
+
+                        section:
+                        root.currentSection,
+
+                        id:
+                        root.currentDetailId
+                    }
+                ]
+            )
+
+
+        root.currentSubGenreId =
+            id
+
+        root.currentSubGenreTitle =
+            title || ""
+
+        root.currentSubGenreColor =
+            color || ""
+
+
+        root.currentPageType =
+            "subgenre"
+
+        root.currentDetailId =
+            id
 
         root.loadCurrentPage()
     }
@@ -632,7 +845,6 @@ Item {
         const stack =
             root.navigationStack.slice()
 
-
         const previous =
             stack.pop()
 
@@ -640,14 +852,11 @@ Item {
         root.navigationStack =
             stack
 
-
         root.currentPageType =
             previous.type || "section"
 
-
         root.currentSection =
             previous.section || "home"
-
 
         root.currentDetailId =
             previous.id || ""
@@ -666,11 +875,65 @@ Item {
             root.pageSourceForCurrentPage()
 
 
+        if (
+            root.currentPageType === "genre"
+        ) {
+            pageLoader.setSource(
+                source,
+                {
+                    controller:
+                    root.controller,
+
+                    genreId:
+                    root.currentDetailId,
+
+                    genreTitle:
+                    root.currentGenreTitle,
+
+                    genreImage:
+                    root.currentGenreImage,
+
+                    genreColor:
+                    root.currentGenreColor,
+
+                    genreSubGenres:
+                    root.currentGenreSubGenres
+                }
+            )
+
+            return
+        }
+
+
+        if (
+            root.currentPageType === "subgenre"
+        ) {
+            pageLoader.setSource(
+                source,
+                {
+                    controller:
+                    root.controller,
+
+                    subGenreId:
+                    root.currentSubGenreId,
+
+                    subGenreTitle:
+                    root.currentSubGenreTitle,
+
+                    subGenreColor:
+                    root.currentSubGenreColor
+                }
+            )
+
+            return
+        }
+
+
         pageLoader.setSource(
             source,
             {
                 controller:
-                    root.controller
+                root.controller
             }
         )
     }
@@ -683,25 +946,27 @@ Item {
     function pageSourceForCurrentPage() {
         switch (
             root.currentPageType
-        ) {
+            ) {
+            case "artist":
+                return "../Pages/ArtistPage.qml"
 
-        case "artist":
-            return "../Pages/ArtistPage.qml"
+            case "album":
+                return "../Pages/AlbumPage.qml"
 
+            case "playlist":
+                return "../Pages/PlaylistPage.qml"
 
-        case "album":
-            return "../Pages/AlbumPage.qml"
+            case "genre":
+                return "../Pages/GenrePage.qml"
 
+            case "subgenre":
+                return "../Pages/SubGenrePage.qml"
 
-        case "playlist":
-            return "../Pages/PlaylistPage.qml"
-
-
-        case "section":
-        default:
-            return root.pageSourceForSection(
-                root.currentSection
-            )
+            case "section":
+            default:
+                return root.pageSourceForSection(
+                    root.currentSection
+                )
         }
     }
 
@@ -715,54 +980,42 @@ Item {
     ) {
         switch (
             section
-        ) {
+            ) {
+            case "home":
+                return "../Pages/HomePage.qml"
 
-        case "home":
-            return "../Pages/HomePage.qml"
+            case "search":
+                return "../Pages/SearchPage.qml"
 
+            case "wave":
+                return "../Pages/MyWavePage.qml"
 
-        case "search":
-            return "../Pages/SearchPage.qml"
+            case "library":
+                return "../Pages/LibraryPage.qml"
 
+            case "playlists":
+                return "../Pages/PlaylistsPage.qml"
 
-        case "wave":
-            return "../Pages/MyWavePage.qml"
+            case "recent":
+                return "../Pages/RecentPage.qml"
 
+            case "chart":
+                return "../Pages/ChartPage.qml"
 
-        case "library":
-            return "../Pages/LibraryPage.qml"
+            case "genres":
+                return "../Pages/GenresPage.qml"
 
+            case "liked":
+                return "../Pages/HomePage.qml"
 
-        case "playlists":
-            return "../Pages/PlaylistsPage.qml"
+            case "albums":
+                return "../Pages/AlbumPage.qml"
 
+            case "artists":
+                return "../Pages/ArtistPage.qml"
 
-        case "recent":
-            return "../Pages/RecentPage.qml"
-
-
-        case "chart":
-            return "../Pages/ChartPage.qml"
-
-
-        case "genres":
-            return "../Pages/GenresPage.qml"
-
-
-        case "liked":
-            return "../Pages/HomePage.qml"
-
-
-        case "albums":
-            return "../Pages/AlbumPage.qml"
-
-
-        case "artists":
-            return "../Pages/ArtistPage.qml"
-
-
-        default:
-            return "../Pages/HomePage.qml"
+            default:
+                return "../Pages/HomePage.qml"
         }
     }
 
@@ -774,25 +1027,27 @@ Item {
     function contextTypeForCurrentPage() {
         switch (
             root.currentPageType
-        ) {
+            ) {
+            case "artist":
+                return "artist"
 
-        case "artist":
-            return "artist"
+            case "album":
+                return "album"
 
+            case "playlist":
+                return "playlist"
 
-        case "album":
-            return "album"
+            case "genre":
+                return "home"
 
+            case "subgenre":
+                return "home"
 
-        case "playlist":
-            return "playlist"
-
-
-        case "section":
-        default:
-            return root.contextTypeForSection(
-                root.currentSection
-            )
+            case "section":
+            default:
+                return root.contextTypeForSection(
+                    root.currentSection
+                )
         }
     }
 
@@ -802,46 +1057,36 @@ Item {
     ) {
         switch (
             section
-        ) {
+            ) {
+            case "home":
+                return "home"
 
-        case "home":
-            return "home"
+            case "search":
+                return "home"
 
+            case "wave":
+                return "mywave"
 
-        case "search":
-            return "home"
+            case "library":
+                return "library"
 
+            case "playlists":
+                return "home"
 
-        case "wave":
-            return "mywave"
+            case "recent":
+                return "home"
 
+            case "chart":
+                return "home"
 
-        case "library":
-            return "library"
+            case "genres":
+                return "home"
 
+            case "liked":
+                return "home"
 
-        case "playlists":
-            return "home"
-
-
-        case "recent":
-            return "home"
-
-
-        case "chart":
-            return "home"
-
-
-        case "genres":
-            return "home"
-
-
-        case "liked":
-            return "home"
-
-
-        default:
-            return "home"
+            default:
+                return "home"
         }
     }
 
@@ -868,14 +1113,32 @@ Item {
         root.currentSection =
             "home"
 
-
         root.currentPageType =
             "section"
-
 
         root.currentDetailId =
             ""
 
+        root.currentGenreTitle =
+            ""
+
+        root.currentGenreImage =
+            ""
+
+        root.currentGenreColor =
+            ""
+
+        root.currentGenreSubGenres =
+            []
+
+        root.currentSubGenreId =
+            ""
+
+        root.currentSubGenreTitle =
+            ""
+
+        root.currentSubGenreColor =
+            ""
 
         root.navigationStack =
             []
