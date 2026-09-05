@@ -65,9 +65,6 @@ qt_add_executable(
         src/Core/ArtistController.h
         src/Core/ArtistController.cpp
 
-        src/Core/PlaybackController.h
-        src/Core/PlaybackController.cpp
-
         src/Core/PersonalController.h
         src/Core/PersonalController.cpp
 
@@ -385,10 +382,6 @@ qt_add_qml_module(
         qml/Home/PersonalPlaylistsSection.qml
         qml/Home/PlaylistView.qml
         qml/Home/RecentListeningSection.qml
-        qml/Home/AlbumView.qml
-        qml/Home/ArtistView.qml
-        qml/Home/ArtistAlbumsSection.qml
-
 
         # =========================================================
         # My Wave
