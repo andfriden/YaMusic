@@ -347,7 +347,7 @@ Item {
 
                     height:
                             root.trackCount > 0
-                        ? root.trackCount * 74
+                        ? root.trackCount * 82
                         : 0
 
                     visible:
@@ -361,6 +361,9 @@ Item {
 
                     clip:
                         true
+
+                    spacing:
+                        8
 
 
                     delegate: Item {
@@ -390,8 +393,8 @@ Item {
 
                             color:
                                 trackMouseArea.containsMouse
-                                    ? AppTheme.surfaceVariant
-                                    : "transparent"
+                                    ? AppTheme.panelActive
+                                    : AppTheme.panelSecondary
 
 
                             Row {
