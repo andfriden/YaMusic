@@ -4,7 +4,6 @@ import QtQuick.Controls.Basic
 Item {
     id: root
 
-
     // =============================================================
     // Controller
     // =============================================================
@@ -12,14 +11,12 @@ Item {
     property var controller
 
 
-    // =============================================================
-    // Genre controller / model
-    // =============================================================
-
     readonly property var genreController:
-            controller && controller.genreController
-        ? controller.genreController
+            root.controller &&
+        root.controller.genreController
+        ? root.controller.genreController
         : null
+
 
     readonly property var genreModel:
         root.genreController
@@ -34,41 +31,45 @@ Item {
     readonly property int margin:
         24
 
-    readonly property int cardWidth:
-        220
-
-    readonly property int cardHeight:
-        180
-
     readonly property int spacing:
         16
 
     readonly property int columns:
-        Math.max(
-            1,
-            Math.floor(
-                (
-                    width -
-                    root.margin * 2 +
-                    root.spacing
-                ) /
-                (
-                    root.cardWidth +
-                    root.spacing
-                )
-            )
+        5
+
+    readonly property int cardHeight:
+        180
+
+    readonly property int cardWidth:
+        Math.floor(
+            (
+                root.width -
+                root.margin * 2 -
+                root.spacing *
+                (root.columns - 1)
+            ) /
+            root.columns
         )
 
 
-    height:
+    // =============================================================
+    // Page size
+    // =============================================================
+
+    width:
         parent
-            ? Math.max(
-                parent.height,
-                contentColumn.height +
-                root.margin * 2
-            )
-            : contentColumn.height +
-            root.margin * 2
+            ? parent.width
+            : 0
+
+    implicitWidth:
+        width
+
+    implicitHeight:
+        contentColumn.implicitHeight +
+        root.margin * 2
+
+    height:
+        implicitHeight
 
 
     // =============================================================
@@ -136,10 +137,13 @@ Item {
                 AppTheme.textPrimary
 
             font.pixelSize:
-                30
+                28
 
             font.bold:
                 true
+
+            elide:
+                Text.ElideRight
         }
 
 
@@ -166,6 +170,9 @@ Item {
 
             font.pixelSize:
                 16
+
+            horizontalAlignment:
+                Text.AlignHCenter
         }
 
 
@@ -231,7 +238,8 @@ Item {
                             source:
                                     model.image300 &&
                                 model.image300.length > 0
-                                ? model.image300
+                                ? "image://yandex/" +
+                                model.image300
                                 : ""
 
                             fillMode:
@@ -246,7 +254,7 @@ Item {
 
 
                         // =================================================
-                        // Overlay
+                        // Dark overlay
                         // =================================================
 
                         Rectangle {
@@ -257,6 +265,10 @@ Item {
                                 "#40000000"
                         }
 
+
+                        // =================================================
+                        // Bottom gradient
+                        // =================================================
 
                         Rectangle {
                             anchors.left:
@@ -293,7 +305,7 @@ Item {
 
 
                         // =================================================
-                        // Title
+                        // Genre title
                         // =================================================
 
                         Label {
@@ -306,20 +318,14 @@ Item {
                             anchors.bottom:
                                 parent.bottom
 
-                            anchors.leftMargin:
+                            anchors.margins:
                                 14
-
-                            anchors.rightMargin:
-                                14
-
-                            anchors.bottomMargin:
-                                12
 
                             text:
                                 model.title || ""
 
                             color:
-                                "#FFFFFF"
+                                "white"
 
                             font.pixelSize:
                                 18
@@ -329,6 +335,12 @@ Item {
 
                             elide:
                                 Text.ElideRight
+
+                            maximumLineCount:
+                                2
+
+                            wrapMode:
+                                Text.Wrap
                         }
 
 
@@ -367,17 +379,11 @@ Item {
                                 )
                             }
 
+                            onEntered:
+                                parent.opacity = 0.85
 
-                            onEntered: {
-                                parent.opacity =
-                                    0.85
-                            }
-
-
-                            onExited: {
-                                parent.opacity =
-                                    1.0
-                            }
+                            onExited:
+                                parent.opacity = 1.0
                         }
                     }
             }
@@ -386,7 +392,7 @@ Item {
 
 
     // =============================================================
-    // Load
+    // Load genres
     // =============================================================
 
     Component.onCompleted: {

@@ -1,19 +1,18 @@
 #pragma once
 
 #include <QAbstractListModel>
+#include <QList>
 #include <QObject>
 #include <QString>
 #include <QVariantList>
 
 #include "../Yandex/Catalog/GenreModel.h"
 
-#include "../Models/Track.h"
 #include "../Models/Playlist.h"
 
 
 class GenreService;
 class PlaylistService;
-class PlaybackController;
 
 
 class GenreController : public QObject
@@ -31,19 +30,14 @@ class GenreController : public QObject
         CONSTANT)
 
     Q_PROPERTY(
-        bool subGenreLoading
-        READ isSubGenreLoading
-        NOTIFY subGenreLoadingChanged)
+        bool genreLoading
+        READ isGenreLoading
+        NOTIFY genreLoadingChanged)
 
     Q_PROPERTY(
-        QVariantList subGenreTracks
-        READ subGenreTracks
-        NOTIFY subGenreContentChanged)
-
-    Q_PROPERTY(
-        QVariantList subGenrePlaylists
-        READ subGenrePlaylists
-        NOTIFY subGenreContentChanged)
+        QVariantList genrePlaylists
+        READ genrePlaylists
+        NOTIFY genreContentChanged)
 
 
 public:
@@ -51,19 +45,14 @@ public:
     explicit GenreController(
         GenreService *genreService,
         PlaylistService *playlistService,
-        PlaybackController *playbackController,
         QObject *parent = nullptr);
 
 
     Q_INVOKABLE void loadGenres();
 
 
-    Q_INVOKABLE void loadSubGenre(
+    Q_INVOKABLE void loadGenre(
         const QString &genreId);
-
-
-    Q_INVOKABLE void playSubGenreTrack(
-        int index);
 
 
     GenreModel *
@@ -75,15 +64,11 @@ public:
 
 
     bool
-    isSubGenreLoading() const;
+    isGenreLoading() const;
 
 
     QVariantList
-    subGenreTracks() const;
-
-
-    QVariantList
-    subGenrePlaylists() const;
+    genrePlaylists() const;
 
 
 signals:
@@ -96,9 +81,9 @@ signals:
         const QString &message);
 
 
-    void subGenreLoadingChanged();
+    void genreLoadingChanged();
 
-    void subGenreContentChanged();
+    void genreContentChanged();
 
 
 private:
@@ -111,24 +96,16 @@ private:
         m_playlistService = nullptr;
 
 
-    PlaybackController *
-        m_playbackController = nullptr;
-
-
     GenreModel *
         m_model = nullptr;
 
 
-    QList<Track>
-        m_subGenreTracks;
-
-
     QList<Playlist>
-        m_subGenrePlaylists;
+        m_genrePlaylists;
 
 
     QString
-        m_loadingSubGenreId;
+        m_loadingGenreId;
 
 
     bool
@@ -136,15 +113,30 @@ private:
 
 
     bool
-        m_subGenreLoading = false;
+        m_genreLoading = false;
 
 
     bool
-        m_waitingForTagPlaylists = false;
+        m_waitingForPlaylists = false;
 
 
-    void clearSubGenreContent();
+    void clearGenreContent();
 
 
-    void finishSubGenreLoading();
+    void finishGenreLoading();
+
+
+    QList<QPair<QString, int>>
+    loadPlaylistIdsFromCsv(
+        const QString &genreId) const;
+
+
+    static bool
+    isDisplayedGenre(
+        const QString &genreId);
+
+
+    static QList<Genre>
+    filterDisplayedGenres(
+        const QList<Genre> &genres);
 };

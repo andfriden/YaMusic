@@ -44,23 +44,6 @@ Item {
     property string currentGenreColor:
         ""
 
-    property var currentGenreSubGenres:
-        []
-
-
-    // =============================================================
-    // Current subgenre
-    // =============================================================
-
-    property string currentSubGenreId:
-        ""
-
-    property string currentSubGenreTitle:
-        ""
-
-    property string currentSubGenreColor:
-        ""
-
 
     // =============================================================
     // Navigation stack
@@ -242,10 +225,7 @@ Item {
                     height:
                             item !== null &&
                         item !== undefined
-                        ? Math.max(
-                            item.implicitHeight,
-                            item.height
-                        )
+                        ? item.implicitHeight
                         : 0
 
                     onLoaded: {
@@ -260,7 +240,6 @@ Item {
                             pageLoader.width
                     }
                 }
-
 
                 // =================================================
                 // Bottom spacer
@@ -464,34 +443,6 @@ Item {
                 genreId,
                 title,
                 image,
-                color,
-                subGenres
-            )
-        }
-    }
-
-
-    // =============================================================
-    // Genre page navigation
-    // =============================================================
-
-    Connections {
-        target:
-                root.currentPageType === "genre"
-            ? pageLoader.item
-            : null
-
-        ignoreUnknownSignals:
-            true
-
-        function onSubGenreRequested(
-            subGenreId,
-            title,
-            color
-        ) {
-            root.openSubGenrePage(
-                subGenreId,
-                title,
                 color
             )
         }
@@ -569,17 +520,6 @@ Item {
         root.currentGenreColor =
             ""
 
-        root.currentGenreSubGenres =
-            []
-
-        root.currentSubGenreId =
-            ""
-
-        root.currentSubGenreTitle =
-            ""
-
-        root.currentSubGenreColor =
-            ""
 
         root.loadCurrentPage()
     }
@@ -717,8 +657,7 @@ Item {
         genreId,
         title,
         image,
-        color,
-        subGenres
+        color
     ) {
         const id =
             String(
@@ -758,70 +697,9 @@ Item {
         root.currentGenreColor =
             color || ""
 
-        root.currentGenreSubGenres =
-            subGenres || []
-
 
         root.currentPageType =
             "genre"
-
-        root.currentDetailId =
-            id
-
-        root.loadCurrentPage()
-    }
-
-
-    // =============================================================
-    // Open SubGenre
-    // =============================================================
-
-    function openSubGenrePage(
-        subGenreId,
-        title,
-        color
-    ) {
-        const id =
-            String(
-                subGenreId || ""
-            ).trim()
-
-        if (
-            id.length === 0
-        ) {
-            return
-        }
-
-
-        root.navigationStack =
-            root.navigationStack.concat(
-                [
-                    {
-                        type:
-                        root.currentPageType,
-
-                        section:
-                        root.currentSection,
-
-                        id:
-                        root.currentDetailId
-                    }
-                ]
-            )
-
-
-        root.currentSubGenreId =
-            id
-
-        root.currentSubGenreTitle =
-            title || ""
-
-        root.currentSubGenreColor =
-            color || ""
-
-
-        root.currentPageType =
-            "subgenre"
 
         root.currentDetailId =
             id
@@ -894,34 +772,7 @@ Item {
                     root.currentGenreImage,
 
                     genreColor:
-                    root.currentGenreColor,
-
-                    genreSubGenres:
-                    root.currentGenreSubGenres
-                }
-            )
-
-            return
-        }
-
-
-        if (
-            root.currentPageType === "subgenre"
-        ) {
-            pageLoader.setSource(
-                source,
-                {
-                    controller:
-                    root.controller,
-
-                    subGenreId:
-                    root.currentSubGenreId,
-
-                    subGenreTitle:
-                    root.currentSubGenreTitle,
-
-                    subGenreColor:
-                    root.currentSubGenreColor
+                    root.currentGenreColor
                 }
             )
 
@@ -958,9 +809,6 @@ Item {
 
             case "genre":
                 return "../Pages/GenrePage.qml"
-
-            case "subgenre":
-                return "../Pages/SubGenrePage.qml"
 
             case "section":
             default:
@@ -1038,9 +886,6 @@ Item {
                 return "playlist"
 
             case "genre":
-                return "home"
-
-            case "subgenre":
                 return "home"
 
             case "section":
@@ -1126,18 +971,6 @@ Item {
             ""
 
         root.currentGenreColor =
-            ""
-
-        root.currentGenreSubGenres =
-            []
-
-        root.currentSubGenreId =
-            ""
-
-        root.currentSubGenreTitle =
-            ""
-
-        root.currentSubGenreColor =
             ""
 
         root.navigationStack =

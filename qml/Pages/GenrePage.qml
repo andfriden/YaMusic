@@ -6,80 +6,48 @@ Item {
 
 
     // =============================================================
-    // Properties
+    // Controller
     // =============================================================
 
-    property var controller
+    property var controller: null
 
-    property string genreId:
-        ""
 
-    property string genreTitle:
-        ""
-
-    property string genreImage:
-        ""
-
-    property string genreColor:
-        ""
-
-    property var genreSubGenres:
-        []
+    readonly property var genreController:
+            root.controller !== null &&
+        root.controller !== undefined &&
+        root.controller.genreController !== null &&
+        root.controller.genreController !== undefined
+        ? root.controller.genreController
+        : null
 
 
     // =============================================================
-    // Layout
+    // Genre
     // =============================================================
 
-    readonly property int margin:
-        24
+    property string genreId: ""
+    property string genreTitle: ""
+    property string genreImage: ""
+    property string genreColor: ""
 
-    readonly property int cardWidth:
-        220
 
-    readonly property int cardHeight:
-        150
+    // =============================================================
+    // Page size
+    // =============================================================
 
-    readonly property int spacing:
-        16
+    width:
+        parent
+            ? parent.width
+            : 0
 
-    readonly property int columns:
-        Math.max(
-            1,
-            Math.floor(
-                (
-                    width -
-                    root.margin * 2 +
-                    root.spacing
-                ) /
-                (
-                    root.cardWidth +
-                    root.spacing
-                )
-            )
-        )
+    implicitWidth:
+        width
 
+    implicitHeight:
+        contentColumn.implicitHeight + 40
 
     height:
-        Math.max(
-            parent
-                ? parent.height
-                : 0,
-
-            contentColumn.height +
-            root.margin * 2
-        )
-
-
-    // =============================================================
-    // Navigation
-    // =============================================================
-
-    signal subGenreRequested(
-        string subGenreId,
-        string title,
-        string color
-    )
+        implicitHeight
 
 
     // =============================================================
@@ -96,154 +64,167 @@ Item {
 
 
     // =============================================================
+    // Layout
+    // =============================================================
+
+    readonly property int margin:
+        20
+
+    readonly property int spacing:
+        12
+
+    readonly property int columns:
+        5
+
+    readonly property int cardWidth:
+        Math.floor(
+            (
+                contentColumn.width -
+                spacing * (columns - 1)
+            ) /
+            columns
+        )
+
+
+    // =============================================================
     // Content
     // =============================================================
 
     Column {
         id: contentColumn
 
-        x:
-            root.margin
-
-        y:
-            root.margin
-
         width:
-            Math.max(
-                0,
-                root.width -
-                root.margin * 2
-            )
+            root.width -
+            root.margin * 2
+
+        anchors.left:
+            parent.left
+
+        anchors.right:
+            parent.right
+
+        anchors.top:
+            parent.top
+
+        anchors.margins:
+            root.margin
 
         spacing:
-            24
+            28
 
 
         // =========================================================
         // Genre header
         // =========================================================
 
-        Rectangle {
+        Row {
             width:
                 parent.width
 
             height:
-                220
+                180
 
-            radius:
-                16
-
-            clip:
-                true
-
-            color:
-                    root.genreColor.length > 0
-                ? root.genreColor
-                : AppTheme.panelSecondary
-
-
-            Image {
-                anchors.fill:
-                    parent
-
-                source:
-                        root.genreImage.length > 0
-                    ? root.genreImage
-                    : ""
-
-                fillMode:
-                    Image.PreserveAspectCrop
-
-                asynchronous:
-                    true
-
-                cache:
-                    true
-            }
+            spacing:
+                24
 
 
             Rectangle {
-                anchors.fill:
-                    parent
-
-                color:
-                    "#50000000"
-            }
-
-
-            Rectangle {
-                anchors.left:
-                    parent.left
-
-                anchors.right:
-                    parent.right
-
-                anchors.bottom:
-                    parent.bottom
+                width:
+                    180
 
                 height:
-                    120
+                    180
 
-                gradient:
-                    Gradient {
-                        GradientStop {
-                            position:
-                                0.0
+                radius:
+                    14
 
-                            color:
-                                "transparent"
-                        }
+                color:
+                        root.genreColor.length > 0
+                    ? root.genreColor
+                    : AppTheme.panel
 
-                        GradientStop {
-                            position:
-                                1.0
+                clip:
+                    true
 
-                            color:
-                                "#D9000000"
-                        }
-                    }
+
+                Image {
+                    anchors.fill:
+                        parent
+
+                    source:
+                            root.genreImage.length > 0
+                        ? "image://yandex/" +
+                        root.genreImage
+                        : ""
+
+                    fillMode:
+                        Image.PreserveAspectCrop
+
+                    asynchronous:
+                        true
+
+                    cache:
+                        true
+                }
             }
 
 
-            Label {
-                anchors.left:
-                    parent.left
+            Column {
+                anchors.verticalCenter:
+                    parent.verticalCenter
 
-                anchors.right:
-                    parent.right
+                width:
+                    parent.width - 204
 
-                anchors.bottom:
-                    parent.bottom
+                spacing:
+                    8
 
-                anchors.leftMargin:
-                    20
 
-                anchors.rightMargin:
-                    20
+                Label {
+                    width:
+                        parent.width
 
-                anchors.bottomMargin:
-                    18
+                    text:
+                        root.genreTitle
 
-                text:
-                    root.genreTitle
+                    color:
+                        AppTheme.textPrimary
 
-                color:
-                    "#FFFFFF"
+                    font.pixelSize:
+                        32
 
-                font.pixelSize:
-                    30
+                    font.bold:
+                        true
 
-                font.bold:
-                    true
+                    elide:
+                        Text.ElideRight
+                }
 
-                elide:
-                    Text.ElideRight
+
+                Label {
+                    text:
+                            root.genreController &&
+                        root.genreController.genreLoading
+                        ? "Загрузка плейлистов..."
+                        : root.genreController &&
+                            root.genreController.genrePlaylists &&
+                            root.genreController.genrePlaylists.length > 0
+                            ? root.genreController.genrePlaylists.length +
+                            " плейлистов"
+                            : ""
+
+                    color:
+                        AppTheme.textSecondary
+
+                    font.pixelSize:
+                        15
+                }
             }
         }
 
 
         // =========================================================
-        // Subgenres title
+        // Playlists title
         // =========================================================
 
         Label {
@@ -251,7 +232,7 @@ Item {
                 parent.width
 
             text:
-                "Поджанры"
+                "Плейлисты"
 
             color:
                 AppTheme.textPrimary
@@ -261,18 +242,15 @@ Item {
 
             font.bold:
                 true
-
-            visible:
-                subGenreRepeater.count > 0
         }
 
 
         // =========================================================
-        // Subgenres
+        // Playlists grid
         // =========================================================
 
         Grid {
-            id: subGenreGrid
+            id: playlistGrid
 
             width:
                 parent.width
@@ -280,113 +258,174 @@ Item {
             columns:
                 root.columns
 
-            rowSpacing:
-                root.spacing
-
             columnSpacing:
                 root.spacing
 
-            visible:
-                subGenreRepeater.count > 0
+            rowSpacing:
+                16
 
 
             Repeater {
-                id: subGenreRepeater
+                id: playlistRepeater
 
                 model:
-                    root.genreSubGenres
+                        root.genreController !== null
+                    ? root.genreController.genrePlaylists
+                    : []
 
 
                 delegate:
                     Rectangle {
+                        id: playlistCard
+
+                        required property var modelData
+
                         width:
                             root.cardWidth
 
                         height:
-                            root.cardHeight
+                            238
 
                         radius:
-                            14
-
-                        clip:
-                            true
+                            10
 
                         color:
-                                modelData.color &&
-                            modelData.color.length > 0
-                            ? modelData.color
-                            : AppTheme.panelSecondary
+                            playlistMouseArea.containsMouse
+                                ? AppTheme.panelActive
+                                : AppTheme.panelSecondary
+
+                        border.width:
+                            1
+
+                        border.color:
+                            playlistMouseArea.containsMouse
+                                ? AppTheme.border
+                                : AppTheme.borderSubtle
+
+
+                        Behavior on color {
+                            ColorAnimation {
+                                duration:
+                                    140
+
+                                easing.type:
+                                    Easing.OutCubic
+                            }
+                        }
 
 
                         // =================================================
                         // Artwork
                         // =================================================
 
-                        Image {
-                            anchors.fill:
-                                parent
-
-                            source:
-                                    modelData.image300 &&
-                                modelData.image300.length > 0
-                                ? modelData.image300
-                                : ""
-
-                            fillMode:
-                                Image.PreserveAspectCrop
-
-                            asynchronous:
-                                true
-
-                            cache:
-                                true
-                        }
-
-
-                        // =================================================
-                        // Overlay
-                        // =================================================
-
                         Rectangle {
-                            anchors.fill:
-                                parent
+                            id: artworkBox
 
-                            color:
-                                "#45000000"
-                        }
+                            x:
+                                8
 
+                            y:
+                                8
 
-                        Rectangle {
-                            anchors.left:
-                                parent.left
-
-                            anchors.right:
-                                parent.right
-
-                            anchors.bottom:
-                                parent.bottom
+                            width:
+                                parent.width - 16
 
                             height:
-                                80
+                                width
 
-                            gradient:
-                                Gradient {
-                                    GradientStop {
-                                        position:
-                                            0.0
+                            radius:
+                                8
 
-                                        color:
-                                            "transparent"
-                                    }
+                            color:
+                                AppTheme.panelHover
 
-                                    GradientStop {
-                                        position:
-                                            1.0
+                            clip:
+                                true
 
-                                        color:
-                                            "#CC000000"
-                                    }
-                                }
+
+                            Image {
+                                id: cover
+
+                                anchors.fill:
+                                    parent
+
+                                source:
+                                        playlistCard.modelData.coverUri &&
+                                    String(
+                                        playlistCard.modelData.coverUri
+                                    ).length > 0
+                                    ? "image://yandex/" +
+                                    String(
+                                        playlistCard.modelData.coverUri
+                                    )
+                                    : ""
+
+                                sourceSize:
+                                    Qt.size(
+                                        Math.max(
+                                            1,
+                                            artworkBox.width * 2
+                                        ),
+                                        Math.max(
+                                            1,
+                                            artworkBox.height * 2
+                                        )
+                                    )
+
+                                fillMode:
+                                    Image.PreserveAspectCrop
+
+                                asynchronous:
+                                    true
+
+                                cache:
+                                    true
+
+                                smooth:
+                                    true
+
+                                visible:
+                                    status === Image.Ready
+                            }
+
+
+                            Label {
+                                anchors.centerIn:
+                                    parent
+
+                                text:
+                                    "♪"
+
+                                color:
+                                    AppTheme.textSecondary
+
+                                font.pixelSize:
+                                    42
+
+                                visible:
+                                    cover.status !==
+                                    Image.Ready
+                            }
+
+
+                            Rectangle {
+                                anchors.fill:
+                                    parent
+
+                                radius:
+                                    8
+
+                                color:
+                                    "transparent"
+
+                                border.width:
+                                    1
+
+                                border.color:
+                                    playlistMouseArea.containsMouse
+                                        ? AppTheme.border
+                                        : AppTheme.borderSubtle
+                            }
                         }
 
 
@@ -395,38 +434,101 @@ Item {
                         // =================================================
 
                         Label {
-                            anchors.left:
-                                parent.left
+                            id: titleLabel
 
-                            anchors.right:
-                                parent.right
+                            x:
+                                8
 
-                            anchors.bottom:
-                                parent.bottom
+                            width:
+                                parent.width - 16
 
-                            anchors.leftMargin:
-                                14
+                            anchors.top:
+                                artworkBox.bottom
 
-                            anchors.rightMargin:
-                                14
+                            anchors.topMargin:
+                                8
 
-                            anchors.bottomMargin:
-                                12
+                            height:
+                                18
 
                             text:
-                                modelData.title || ""
+                                String(
+                                    playlistCard.modelData.title ||
+                                    ""
+                                )
 
                             color:
-                                "#FFFFFF"
+                                AppTheme.textPrimary
 
                             font.pixelSize:
-                                17
+                                13
 
                             font.bold:
                                 true
 
+                            verticalAlignment:
+                                Text.AlignVCenter
+
                             elide:
                                 Text.ElideRight
+
+                            maximumLineCount:
+                                1
+                        }
+
+
+                        // =================================================
+                        // Track count
+                        // =================================================
+
+                        Label {
+                            id: trackCountLabel
+
+                            x:
+                                8
+
+                            width:
+                                parent.width - 16
+
+                            anchors.top:
+                                titleLabel.bottom
+
+                            anchors.topMargin:
+                                3
+
+                            height:
+                                16
+
+                            text:
+                                    Number(
+                                        playlistCard.modelData.trackCount ||
+                                        0
+                                    ) > 0
+                                ? qsTr("%1 треков")
+                                    .arg(
+                                    Number(
+                                        playlistCard.modelData.trackCount
+                                    )
+                                )
+                                : ""
+
+                            color:
+                                AppTheme.textSecondary
+
+                            font.pixelSize:
+                                11
+
+                            verticalAlignment:
+                                Text.AlignVCenter
+
+                            elide:
+                                Text.ElideRight
+
+                            maximumLineCount:
+                                1
+
+                            visible:
+                                text.length > 0
                         }
 
 
@@ -435,6 +537,8 @@ Item {
                         // =================================================
 
                         MouseArea {
+                            id: playlistMouseArea
+
                             anchors.fill:
                                 parent
 
@@ -444,36 +548,40 @@ Item {
                             cursorShape:
                                 Qt.PointingHandCursor
 
-
-                            onEntered: {
-                                parent.opacity =
-                                    0.85
-                            }
-
-
-                            onExited: {
-                                parent.opacity =
-                                    1.0
-                            }
-
-
                             onClicked: {
-                                const id =
-                                    String(
-                                        modelData.id || ""
-                                    ).trim()
-
                                 if (
-                                    id.length === 0
+                                    root.controller === null ||
+                                    root.controller === undefined
                                 ) {
                                     return
                                 }
 
 
-                                root.subGenreRequested(
-                                    id,
-                                    modelData.title || "",
-                                    modelData.color || ""
+                                const uid =
+                                    String(
+                                        playlistCard.modelData.uid ||
+                                        ""
+                                    ).trim()
+
+
+                                const kind =
+                                    Number(
+                                        playlistCard.modelData.kind ||
+                                        0
+                                    )
+
+
+                                if (
+                                    uid.length === 0 ||
+                                    kind <= 0
+                                ) {
+                                    return
+                                }
+
+
+                                root.controller.selectPersonalPlaylist(
+                                    uid,
+                                    kind
                                 )
                             }
                         }
@@ -487,35 +595,70 @@ Item {
         // =========================================================
 
         Label {
+            visible:
+                root.genreController !== null &&
+                !root.genreController.genreLoading &&
+                (
+                    !root.genreController.genrePlaylists ||
+                    root.genreController.genrePlaylists.length === 0
+                )
+
             width:
                 parent.width
 
-            visible:
-                subGenreRepeater.count === 0
-
             text:
-                "У этого жанра нет поджанров"
+                "Плейлисты не найдены"
 
             color:
                 AppTheme.textSecondary
 
             font.pixelSize:
                 16
+
+            horizontalAlignment:
+                Text.AlignHCenter
+        }
+
+
+        // =========================================================
+        // Loading state
+        // =========================================================
+
+        Label {
+            visible:
+                root.genreController !== null &&
+                root.genreController.genreLoading
+
+            width:
+                parent.width
+
+            text:
+                "Загрузка плейлистов..."
+
+            color:
+                AppTheme.textSecondary
+
+            font.pixelSize:
+                16
+
+            horizontalAlignment:
+                Text.AlignHCenter
         }
     }
 
 
     // =============================================================
-    // Debug
+    // Load genre
     // =============================================================
 
-    Component.onCompleted: {
-        console.log(
-            "GenrePage:",
-            root.genreId,
-            root.genreTitle,
-            "subGenres:",
-            root.genreSubGenres.length
-        )
+    onGenreIdChanged: {
+        if (
+            root.genreController !== null &&
+            root.genreId.length > 0
+        ) {
+            root.genreController.loadGenre(
+                root.genreId
+            )
+        }
     }
 }

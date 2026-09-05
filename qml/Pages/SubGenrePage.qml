@@ -5,439 +5,767 @@ import QtQuick.Layouts
 Item {
     id: root
 
-    property var controller
-    property string subGenreId: ""
-    property string subGenreTitle: ""
-    property string subGenreColor: ""
 
-    property var genreController: controller
+    // =============================================================
+    // Controller
+    // =============================================================
+
+    property var controller
+
+
+    // =============================================================
+    // Subgenre
+    // =============================================================
+
+    property string subGenreId:
+        ""
+
+    property string subGenreTitle:
+        ""
+
+    property string subGenreColor:
+        ""
+
+
+    // =============================================================
+    // Genre controller
+    // =============================================================
+
+    readonly property var genreController:
+            controller && controller.genreController
         ? controller.genreController
         : null
 
+
+    // =============================================================
+    // Navigation
+    // =============================================================
+
     signal backRequested()
+
+
+    // =============================================================
+    // Layout
+    // =============================================================
+
+    implicitHeight:
+        contentColumn.y +
+        contentColumn.height +
+        48
+
+
+    // =============================================================
+    // Helpers
+    // =============================================================
 
     function coverSource(uri) {
         if (!uri)
             return ""
 
-        var value = String(uri)
+        var value =
+            String(uri)
 
-        if (value.indexOf("image://yandex/") === 0)
+        if (
+            value.indexOf(
+                "image://yandex/"
+            ) === 0
+        ) {
             return value
+        }
 
         return "image://yandex/" + value
     }
 
-    function formatDuration(ms) {
-        if (!ms || ms <= 0)
-            return ""
 
-        var totalSeconds = Math.floor(ms / 1000)
-        var minutes = Math.floor(totalSeconds / 60)
-        var seconds = totalSeconds % 60
+    function formatDuration(ms) {
+        if (
+            !ms ||
+            ms <= 0
+        ) {
+            return ""
+        }
+
+        var totalSeconds =
+            Math.floor(
+                ms / 1000
+            )
+
+        var minutes =
+            Math.floor(
+                totalSeconds / 60
+            )
+
+        var seconds =
+            totalSeconds % 60
 
         return minutes + ":" +
-            (seconds < 10 ? "0" : "") +
+            (
+                    seconds < 10
+                    ? "0"
+                    : ""
+            ) +
             seconds
     }
 
-    Rectangle {
-        anchors.fill: parent
-        color: Theme.background
+
+    function loadContent() {
+        if (
+            !root.genreController
+        ) {
+            return
+        }
+
+        if (
+            root.subGenreId.length === 0
+        ) {
+            return
+        }
+
+        root.genreController.loadSubGenre(
+            root.subGenreId
+        )
     }
+
+
+    // =============================================================
+    // Background
+    // =============================================================
+
+    Rectangle {
+        anchors.fill:
+            parent
+
+        color:
+            AppTheme.backgroundPrimary
+    }
+
+
+    // =============================================================
+    // Content
+    // =============================================================
 
     Flickable {
         id: flickable
 
-        anchors.fill: parent
+        anchors.fill:
+            parent
 
-        clip: true
+        clip:
+            true
 
-        interactive: true
+        interactive:
+            true
 
-        flickableDirection: Flickable.VerticalFlick
+        flickableDirection:
+            Flickable.VerticalFlick
 
-        boundsBehavior: Flickable.StopAtBounds
+        boundsBehavior:
+            Flickable.StopAtBounds
 
-        contentWidth: width
+        contentWidth:
+            width
 
-        contentHeight: contentColumn.y +
+        contentHeight:
+            contentColumn.y +
             contentColumn.height +
             48
+
+
+        // =========================================================
+        // Main column
+        // =========================================================
 
         Column {
             id: contentColumn
 
-            x: 30
-            y: 28
+            x:
+                30
 
-            width: Math.max(0, flickable.width - 60)
+            y:
+                28
 
-            spacing: 32
+            width:
+                Math.max(
+                    0,
+                    flickable.width - 60
+                )
+
+            spacing:
+                32
+
 
             // =====================================================
             // Header
             // =====================================================
 
             RowLayout {
-                width: parent.width
-                height: 48
+                width:
+                    parent.width
 
-                spacing: 16
+                height:
+                    48
+
+                spacing:
+                    16
+
 
                 Button {
-                    Layout.alignment: Qt.AlignVCenter
+                    Layout.alignment:
+                        Qt.AlignVCenter
 
-                    text: "‹"
+                    text:
+                        "‹"
 
-                    implicitWidth: 42
-                    implicitHeight: 42
+                    implicitWidth:
+                        42
 
-                    onClicked: root.backRequested()
+                    implicitHeight:
+                        42
+
+                    onClicked:
+                        root.backRequested()
                 }
+
 
                 Rectangle {
-                    Layout.alignment: Qt.AlignVCenter
+                    Layout.alignment:
+                        Qt.AlignVCenter
 
-                    width: 6
-                    height: 42
+                    width:
+                        6
 
-                    radius: 3
+                    height:
+                        42
 
-                    color: root.subGenreColor || Theme.accent
+                    radius:
+                        3
+
+                    color:
+                        root.subGenreColor ||
+                        AppTheme.accent
                 }
+
 
                 Text {
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
+                    Layout.fillWidth:
+                        true
 
-                    text: root.subGenreTitle
+                    Layout.alignment:
+                        Qt.AlignVCenter
 
-                    color: Theme.textPrimary
+                    text:
+                        root.subGenreTitle
 
-                    font.pixelSize: 32
-                    font.bold: true
+                    color:
+                        AppTheme.textPrimary
 
-                    elide: Text.ElideRight
+                    font.pixelSize:
+                        32
 
-                    maximumLineCount: 1
+                    font.bold:
+                        true
 
-                    clip: true
+                    elide:
+                        Text.ElideRight
+
+                    maximumLineCount:
+                        1
+
+                    clip:
+                        true
                 }
             }
+
 
             // =====================================================
             // Playlists
             // =====================================================
 
             Column {
-                width: parent.width
+                width:
+                    parent.width
 
-                spacing: 16
+                spacing:
+                    16
+
 
                 Text {
-                    width: parent.width
+                    width:
+                        parent.width
 
-                    text: "Плейлисты"
+                    text:
+                        "Плейлисты"
 
-                    color: Theme.textPrimary
+                    color:
+                        AppTheme.textPrimary
 
-                    font.pixelSize: 24
-                    font.bold: true
+                    font.pixelSize:
+                        24
+
+                    font.bold:
+                        true
                 }
 
-                Flow {
-                    width: parent.width
 
-                    spacing: 20
+                Flow {
+                    width:
+                        parent.width
+
+                    spacing:
+                        20
+
 
                     Repeater {
-                        model: root.genreController
-                            ? root.genreController.subGenrePlaylists
-                            : []
+                        model:
+                            root.genreController
+                                ? root.genreController.subGenrePlaylists
+                                : []
 
-                        delegate: Item {
-                            width: 180
-                            height: 238
 
-                            Rectangle {
-                                id: playlistCard
+                        delegate:
+                            Item {
+                                width:
+                                    180
 
-                                width: 180
-                                height: 180
+                                height:
+                                    238
 
-                                radius: 10
-
-                                color: Theme.panel
-
-                                clip: true
-
-                                Image {
-                                    anchors.fill: parent
-
-                                    source: root.coverSource(
-                                        modelData.coverUri)
-
-                                    fillMode: Image.PreserveAspectCrop
-
-                                    asynchronous: true
-
-                                    cache: true
-
-                                    visible: source !== ""
-                                }
 
                                 Rectangle {
-                                    anchors.fill: parent
+                                    id: playlistCard
 
-                                    color: Theme.accent
+                                    width:
+                                        180
 
-                                    opacity: playlistMouse.containsMouse
-                                        ? 0.12
-                                        : 0
+                                    height:
+                                        180
 
-                                    Behavior on opacity {
-                                        NumberAnimation {
-                                            duration: 120
+                                    radius:
+                                        10
+
+                                    color:
+                                        AppTheme.panel
+
+                                    clip:
+                                        true
+
+
+                                    Image {
+                                        anchors.fill:
+                                            parent
+
+                                        source:
+                                            root.coverSource(
+                                                modelData.coverUri
+                                            )
+
+                                        fillMode:
+                                            Image.PreserveAspectCrop
+
+                                        asynchronous:
+                                            true
+
+                                        cache:
+                                            true
+
+                                        visible:
+                                            source !== ""
+                                    }
+
+
+                                    Rectangle {
+                                        anchors.fill:
+                                            parent
+
+                                        color:
+                                            AppTheme.accent
+
+                                        opacity:
+                                            playlistMouse.containsMouse
+                                                ? 0.12
+                                                : 0
+
+                                        Behavior on opacity {
+                                            NumberAnimation {
+                                                duration:
+                                                    120
+                                            }
+                                        }
+                                    }
+                                }
+
+
+                                Column {
+                                    anchors.top:
+                                        playlistCard.bottom
+
+                                    anchors.topMargin:
+                                        8
+
+                                    width:
+                                        parent.width
+
+                                    spacing:
+                                        3
+
+
+                                    Text {
+                                        width:
+                                            parent.width
+
+                                        text:
+                                            modelData.title || ""
+
+                                        color:
+                                            AppTheme.textPrimary
+
+                                        font.pixelSize:
+                                            14
+
+                                        font.bold:
+                                            true
+
+                                        elide:
+                                            Text.ElideRight
+
+                                        maximumLineCount:
+                                            1
+                                    }
+
+
+                                    Text {
+                                        width:
+                                            parent.width
+
+                                        text:
+                                            (
+                                                modelData.trackCount ||
+                                                0
+                                            ) +
+                                            " треков"
+
+                                        color:
+                                            AppTheme.textSecondary
+
+                                        font.pixelSize:
+                                            13
+
+                                        elide:
+                                            Text.ElideRight
+
+                                        maximumLineCount:
+                                            1
+                                    }
+                                }
+
+
+                                MouseArea {
+                                    id: playlistMouse
+
+                                    anchors.fill:
+                                        parent
+
+                                    hoverEnabled:
+                                        true
+
+                                    cursorShape:
+                                        Qt.PointingHandCursor
+
+                                    onClicked: {
+                                        if (
+                                            root.controller
+                                        ) {
+                                            root.controller.selectPersonalPlaylist(
+                                                modelData.uid,
+                                                modelData.kind
+                                            )
                                         }
                                     }
                                 }
                             }
-
-                            Column {
-                                anchors.top: playlistCard.bottom
-
-                                anchors.topMargin: 8
-
-                                width: parent.width
-
-                                spacing: 3
-
-                                Text {
-                                    width: parent.width
-
-                                    text: modelData.title || ""
-
-                                    color: Theme.textPrimary
-
-                                    font.pixelSize: 14
-                                    font.bold: true
-
-                                    elide: Text.ElideRight
-
-                                    maximumLineCount: 1
-                                }
-
-                                Text {
-                                    width: parent.width
-
-                                    text: (modelData.trackCount || 0) +
-                                        " треков"
-
-                                    color: Theme.textSecondary
-
-                                    font.pixelSize: 13
-
-                                    elide: Text.ElideRight
-
-                                    maximumLineCount: 1
-                                }
-                            }
-
-                            MouseArea {
-                                id: playlistMouse
-
-                                anchors.fill: parent
-
-                                cursorShape: Qt.PointingHandCursor
-
-                                onClicked: {
-                                    if (root.controller) {
-                                        root.controller.selectPersonalPlaylist(
-                                            modelData.uid,
-                                            modelData.kind
-                                        )
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
 
+
                 Text {
-                    visible: root.genreController &&
+                    visible:
+                        root.genreController &&
                         root.genreController.subGenreLoading &&
-                        (!root.genreController.subGenrePlaylists ||
-                            root.genreController.subGenrePlaylists.length === 0)
+                        (
+                            !root.genreController.subGenrePlaylists ||
+                            root.genreController.subGenrePlaylists.length === 0
+                        )
 
-                    text: "Загрузка..."
+                    text:
+                        "Загрузка..."
 
-                    color: Theme.textSecondary
+                    color:
+                        AppTheme.textSecondary
 
-                    font.pixelSize: 14
+                    font.pixelSize:
+                        14
                 }
             }
+
 
             // =====================================================
             // Popular tracks
             // =====================================================
 
             Column {
-                width: parent.width
+                width:
+                    parent.width
 
-                spacing: 16
+                spacing:
+                    16
+
 
                 Text {
-                    width: parent.width
+                    width:
+                        parent.width
 
-                    text: "Популярные треки"
+                    text:
+                        "Популярные треки"
 
-                    color: Theme.textPrimary
+                    color:
+                        AppTheme.textPrimary
 
-                    font.pixelSize: 24
-                    font.bold: true
+                    font.pixelSize:
+                        24
+
+                    font.bold:
+                        true
                 }
 
-                Column {
-                    width: parent.width
 
-                    spacing: 2
+                Column {
+                    width:
+                        parent.width
+
+                    spacing:
+                        2
+
 
                     Repeater {
-                        model: root.genreController
-                            ? root.genreController.subGenreTracks
-                            : []
+                        model:
+                            root.genreController
+                                ? root.genreController.subGenreTracks
+                                : []
 
-                        delegate: Rectangle {
-                            width: parent.width
-                            height: 68
 
-                            radius: 8
+                        delegate:
+                            Rectangle {
+                                width:
+                                    parent.width
 
-                            color: trackMouse.containsMouse
-                                ? Theme.panelHover
-                                : "transparent"
+                                height:
+                                    68
 
-                            RowLayout {
-                                anchors.fill: parent
+                                radius:
+                                    8
 
-                                anchors.leftMargin: 8
-                                anchors.rightMargin: 12
+                                color:
+                                    trackMouse.containsMouse
+                                        ? AppTheme.panelHover
+                                        : "transparent"
 
-                                spacing: 12
 
-                                Rectangle {
-                                    Layout.alignment: Qt.AlignVCenter
+                                RowLayout {
+                                    anchors.fill:
+                                        parent
 
-                                    width: 52
-                                    height: 52
+                                    anchors.leftMargin:
+                                        8
 
-                                    radius: 6
+                                    anchors.rightMargin:
+                                        12
 
-                                    color: Theme.panel
+                                    spacing:
+                                        12
 
-                                    clip: true
 
-                                    Image {
-                                        anchors.fill: parent
+                                    Rectangle {
+                                        Layout.alignment:
+                                            Qt.AlignVCenter
 
-                                        source: root.coverSource(
-                                            modelData.coverUri)
+                                        width:
+                                            52
 
-                                        fillMode: Image.PreserveAspectCrop
+                                        height:
+                                            52
 
-                                        asynchronous: true
+                                        radius:
+                                            6
 
-                                        cache: true
+                                        color:
+                                            AppTheme.panel
 
-                                        visible: source !== ""
+                                        clip:
+                                            true
+
+
+                                        Image {
+                                            anchors.fill:
+                                                parent
+
+                                            source:
+                                                root.coverSource(
+                                                    modelData.coverUri
+                                                )
+
+                                            fillMode:
+                                                Image.PreserveAspectCrop
+
+                                            asynchronous:
+                                                true
+
+                                            cache:
+                                                true
+
+                                            visible:
+                                                source !== ""
+                                        }
                                     }
-                                }
 
-                                ColumnLayout {
-                                    Layout.fillWidth: true
 
-                                    spacing: 2
+                                    ColumnLayout {
+                                        Layout.fillWidth:
+                                            true
+
+                                        spacing:
+                                            2
+
+
+                                        Text {
+                                            Layout.fillWidth:
+                                                true
+
+                                            text:
+                                                modelData.title || ""
+
+                                            color:
+                                                AppTheme.textPrimary
+
+                                            font.pixelSize:
+                                                15
+
+                                            elide:
+                                                Text.ElideRight
+
+                                            maximumLineCount:
+                                                1
+                                        }
+
+
+                                        Text {
+                                            Layout.fillWidth:
+                                                true
+
+                                            text:
+                                                modelData.artist || ""
+
+                                            color:
+                                                AppTheme.textSecondary
+
+                                            font.pixelSize:
+                                                13
+
+                                            elide:
+                                                Text.ElideRight
+
+                                            maximumLineCount:
+                                                1
+                                        }
+                                    }
+
 
                                     Text {
-                                        Layout.fillWidth: true
+                                        Layout.alignment:
+                                            Qt.AlignVCenter
 
-                                        text: modelData.title || ""
+                                        text:
+                                            root.formatDuration(
+                                                modelData.durationMs
+                                            )
 
-                                        color: Theme.textPrimary
+                                        color:
+                                            AppTheme.textSecondary
 
-                                        font.pixelSize: 15
-
-                                        elide: Text.ElideRight
-
-                                        maximumLineCount: 1
-                                    }
-
-                                    Text {
-                                        Layout.fillWidth: true
-
-                                        text: modelData.artist || ""
-
-                                        color: Theme.textSecondary
-
-                                        font.pixelSize: 13
-
-                                        elide: Text.ElideRight
-
-                                        maximumLineCount: 1
+                                        font.pixelSize:
+                                            13
                                     }
                                 }
 
-                                Text {
-                                    Layout.alignment: Qt.AlignVCenter
 
-                                    text: root.formatDuration(
-                                        modelData.durationMs)
+                                MouseArea {
+                                    id: trackMouse
 
-                                    color: Theme.textSecondary
+                                    anchors.fill:
+                                        parent
 
-                                    font.pixelSize: 13
-                                }
-                            }
+                                    hoverEnabled:
+                                        true
 
-                            MouseArea {
-                                id: trackMouse
+                                    cursorShape:
+                                        Qt.PointingHandCursor
 
-                                anchors.fill: parent
-
-                                cursorShape: Qt.PointingHandCursor
-
-                                onClicked: {
-                                    if (root.genreController) {
-                                        root.genreController.playSubGenreTrack(
-                                            index
-                                        )
+                                    onClicked: {
+                                        if (
+                                            root.genreController
+                                        ) {
+                                            root.genreController.playSubGenreTrack(
+                                                index
+                                            )
+                                        }
                                     }
                                 }
                             }
-                        }
                     }
                 }
             }
+
 
             // =====================================================
             // Bottom spacing
             // =====================================================
 
             Item {
-                width: 1
-                height: 1
+                width:
+                    1
+
+                height:
+                    1
             }
         }
 
-        ScrollBar.vertical: ScrollBar {
-            policy: ScrollBar.AsNeeded
-        }
+
+        // =========================================================
+        // Scroll bar
+        // =========================================================
+
+        ScrollBar.vertical:
+            ScrollBar {
+                policy:
+                    ScrollBar.AsNeeded
+            }
     }
 
+
+    // =============================================================
+    // Load content
+    // =============================================================
+
+    onSubGenreIdChanged: {
+        root.loadContent()
+    }
+
+
+    onGenreControllerChanged: {
+        root.loadContent()
+    }
+
+
     Component.onCompleted: {
-        if (root.genreController) {
-            root.genreController.loadSubGenre(root.subGenreId)
-        }
+        root.loadContent()
     }
 }

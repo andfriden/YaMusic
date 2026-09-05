@@ -1,144 +1,186 @@
 #include "GenreController.h"
 
-#include "../Playback/PlaybackController.h"
-
 #include "../Yandex/Catalog/GenreService.h"
 #include "../Yandex/Personal/PlaylistService.h"
 
+#include <QCoreApplication>
+#include <QDir>
+#include <QFile>
+#include <QPair>
 #include <QSet>
+#include <QStringList>
+#include <QTextStream>
 #include <QVariantMap>
 
 
 namespace
 {
 
-QVariantMap trackToMap(
-    const Track &track)
-{
-    QVariantMap result;
-
-
-    result.insert(
-        "id",
-        track.id);
-
-
-    result.insert(
-        "title",
-        track.title);
-
-
-    result.insert(
-        "coverUri",
-        track.coverUri);
-
-
-    result.insert(
-        "durationMs",
-        track.durationMs);
-
-
-    if (
-        !track.artists.isEmpty()
-    )
-    {
-        result.insert(
-            "artist",
-            track.artists
-                .first()
-                .name);
-
-
-        result.insert(
-            "artistId",
-            track.artists
-                .first()
-                .id);
-    }
-    else
-    {
-        result.insert(
-            "artist",
-            "");
-
-        result.insert(
-            "artistId",
-            "");
-    }
-
-
-    if (
-        !track.albums.isEmpty()
-    )
-    {
-        result.insert(
-            "album",
-            track.albums
-                .first()
-                .title);
-
-
-        result.insert(
-            "albumId",
-            track.albums
-                .first()
-                .id);
-    }
-    else
-    {
-        result.insert(
-            "album",
-            "");
-
-        result.insert(
-            "albumId",
-            "");
-    }
-
-
-    return result;
-}
-
-
 QVariantMap playlistToMap(
     const Playlist &playlist)
 {
     QVariantMap result;
 
-
     result.insert(
         "uid",
         playlist.uid);
-
 
     result.insert(
         "kind",
         playlist.kind);
 
-
     result.insert(
         "title",
         playlist.title);
-
 
     result.insert(
         "description",
         playlist.description);
 
-
     result.insert(
         "trackCount",
         playlist.trackCount);
-
 
     result.insert(
         "coverUri",
         playlist.coverUri);
 
+    return result;
+}
+
+
+QStringList splitCsvLine(
+    const QString &line)
+{
+    QStringList result;
+
+    QString current;
+
+    bool quoted = false;
+
+
+    for (
+        int i = 0;
+        i < line.size();
+        ++i
+    )
+    {
+        const QChar ch =
+            line.at(i);
+
+
+        if (
+            ch == '"'
+        )
+        {
+            if (
+                quoted &&
+                i + 1 < line.size() &&
+                line.at(i + 1) == '"'
+            )
+            {
+                current += '"';
+
+                ++i;
+            }
+            else
+            {
+                quoted = !quoted;
+            }
+
+            continue;
+        }
+
+
+        if (
+            ch == ',' &&
+            !quoted
+        )
+        {
+            result.append(
+                current);
+
+            current.clear();
+
+            continue;
+        }
+
+
+        current += ch;
+    }
+
+
+    result.append(
+        current);
 
     return result;
 }
 
+}
+
+
+// =============================================================
+// Displayed genres
+// =============================================================
+
+bool GenreController::isDisplayedGenre(
+    const QString &genreId)
+{
+    static const QSet<QString> displayedGenres = {
+        "pop",
+        "allrock",
+        "rap",
+        "metal",
+        "electronics",
+        "dance",
+        "relax",
+        "folk",
+        "jazz",
+        "alternative",
+        "indie",
+        "rnb",
+        "classicalmusic",
+        "punk",
+        "country",
+        "ska",
+        "soundtrack",
+        "reggae",
+        "estrada",
+        "blues"
+    };
+
+
+    return displayedGenres.contains(
+        genreId);
+}
+
+
+QList<Genre> GenreController::filterDisplayedGenres(
+    const QList<Genre> &genres)
+{
+    QList<Genre> result;
+
+    result.reserve(
+        genres.size());
+
+
+    for (
+        const Genre &genre :
+        genres
+    )
+    {
+        if (
+            isDisplayedGenre(
+                genre.id)
+        )
+        {
+            result.append(
+                genre);
+        }
+    }
+
+
+    return result;
 }
 
 
@@ -149,12 +191,10 @@ QVariantMap playlistToMap(
 GenreController::GenreController(
     GenreService *genreService,
     PlaylistService *playlistService,
-    PlaybackController *playbackController,
     QObject *parent)
     : QObject(parent)
     , m_genreService(genreService)
     , m_playlistService(playlistService)
-    , m_playbackController(playbackController)
     , m_model(new GenreModel(this))
 {
     if (
@@ -168,62 +208,20 @@ GenreController::GenreController(
             [this](
                 const QList<Genre> &genres)
             {
-                m_model->setGenres(
-                    genres);
+                const QList<Genre>
+                    displayedGenres =
+                    filterDisplayedGenres(
+                        genres);
 
-                m_loading =
-                    false;
+
+                m_model->setGenres(
+                    displayedGenres);
+
+
+                m_loading = false;
 
                 emit loadingChanged();
                 emit genresChanged();
-            });
-
-
-        connect(
-            m_genreService,
-            &GenreService::tagPlaylistIdsReceived,
-            this,
-            [this](
-                const QString &tagId,
-                const QList<QPair<QString, int>>
-                    &playlists)
-            {
-                if (
-                    !m_subGenreLoading ||
-                    tagId != m_loadingSubGenreId
-                )
-                {
-                    return;
-                }
-
-
-                if (
-                    playlists.isEmpty()
-                )
-                {
-                    finishSubGenreLoading();
-
-                    return;
-                }
-
-
-                if (
-                    m_playlistService == nullptr
-                )
-                {
-                    finishSubGenreLoading();
-
-                    return;
-                }
-
-
-                m_waitingForTagPlaylists =
-                    true;
-
-
-                m_playlistService
-                    ->loadPlaylists(
-                        playlists);
             });
 
 
@@ -234,33 +232,31 @@ GenreController::GenreController(
             [this](
                 const QString &message)
             {
-                if (m_loading)
+                if (
+                    m_loading
+                )
                 {
                     m_loading = false;
 
                     emit loadingChanged();
 
-
                     emit statusChanged(
                         QString(
                             "Ошибка жанров: %1")
-                        .arg(
-                            message));
+                            .arg(message));
                 }
 
 
                 if (
-                    m_subGenreLoading
+                    m_genreLoading
                 )
                 {
-                    finishSubGenreLoading();
-
+                    finishGenreLoading();
 
                     emit statusChanged(
                         QString(
-                            "Ошибка поджанра: %1")
-                        .arg(
-                            message));
+                            "Ошибка жанра: %1")
+                            .arg(message));
                 }
             });
     }
@@ -278,84 +274,25 @@ GenreController::GenreController(
                 const QList<Playlist> &playlists)
             {
                 if (
-                    !m_subGenreLoading ||
-                    !m_waitingForTagPlaylists
+                    !m_genreLoading ||
+                    !m_waitingForPlaylists
                 )
                 {
                     return;
                 }
 
 
-                m_waitingForTagPlaylists =
-                    false;
+                m_waitingForPlaylists = false;
 
 
-                m_subGenrePlaylists =
+                m_genrePlaylists =
                     playlists;
 
 
-                QList<Track>
-                    tracks;
+                emit genreContentChanged();
 
 
-                QSet<QString>
-                    seenTracks;
-
-
-                for (
-                    const Playlist &playlist :
-                    playlists
-                )
-                {
-                    for (
-                        const Track &track :
-                        playlist.tracks
-                    )
-                    {
-                        if (
-                            track.id.isEmpty() ||
-                            seenTracks.contains(
-                                track.id)
-                        )
-                        {
-                            continue;
-                        }
-
-
-                        seenTracks.insert(
-                            track.id);
-
-
-                        tracks.append(
-                            track);
-
-
-                        if (
-                            tracks.size() >= 100
-                        )
-                        {
-                            break;
-                        }
-                    }
-
-
-                    if (
-                        tracks.size() >= 100
-                    )
-                    {
-                        break;
-                    }
-                }
-
-
-                m_subGenreTracks =
-                    tracks;
-
-
-                emit subGenreContentChanged();
-
-
-                finishSubGenreLoading();
+                finishGenreLoading();
             });
 
 
@@ -367,21 +304,20 @@ GenreController::GenreController(
                 const QString &message)
             {
                 if (
-                    !m_subGenreLoading
+                    !m_genreLoading
                 )
                 {
                     return;
                 }
 
 
-                finishSubGenreLoading();
+                finishGenreLoading();
 
 
                 emit statusChanged(
                     QString(
-                        "Ошибка контента поджанра: %1")
-                    .arg(
-                        message));
+                        "Ошибка контента жанра: %1")
+                        .arg(message));
             });
     }
 }
@@ -394,14 +330,7 @@ GenreController::GenreController(
 void GenreController::loadGenres()
 {
     if (
-        m_genreService == nullptr
-    )
-    {
-        return;
-    }
-
-
-    if (
+        m_genreService == nullptr ||
         m_loading
     )
     {
@@ -409,9 +338,7 @@ void GenreController::loadGenres()
     }
 
 
-    m_loading =
-        true;
-
+    m_loading = true;
 
     emit loadingChanged();
 
@@ -419,16 +346,298 @@ void GenreController::loadGenres()
     m_model->clear();
 
 
-    m_genreService
-        ->loadGenres();
+    m_genreService->loadGenres();
 }
 
 
 // =============================================================
-// Subgenre
+// CSV
 // =============================================================
 
-void GenreController::loadSubGenre(
+QList<QPair<QString, int>>
+GenreController::loadPlaylistIdsFromCsv(
+    const QString &genreId) const
+{
+    QList<QPair<QString, int>> result;
+
+
+    QString directory =
+        QCoreApplication::applicationDirPath();
+
+
+    QFile file;
+
+
+    // =============================================================
+    // Find data/genre_playlists.csv
+    // =============================================================
+
+    for (
+        int level = 0;
+        level < 8;
+        ++level
+    )
+    {
+        const QString candidate =
+            QDir(directory).filePath(
+                "data/genre_playlists.csv");
+
+
+        if (
+            QFile::exists(
+                candidate)
+        )
+        {
+            file.setFileName(
+                candidate);
+
+            break;
+        }
+
+
+        QDir currentDir(
+            directory);
+
+
+        if (
+            !currentDir.cdUp()
+        )
+        {
+            break;
+        }
+
+
+        const QString parentDirectory =
+            currentDir.absolutePath();
+
+
+        if (
+            parentDirectory == directory
+        )
+        {
+            break;
+        }
+
+
+        directory =
+            parentDirectory;
+    }
+
+
+    if (
+        file.fileName().isEmpty()
+    )
+    {
+        return result;
+    }
+
+
+    if (
+        !file.open(
+            QIODevice::ReadOnly |
+            QIODevice::Text)
+    )
+    {
+        return result;
+    }
+
+
+    QTextStream stream(
+        &file);
+
+    stream.setEncoding(
+        QStringConverter::Utf8);
+
+
+    if (
+        stream.atEnd()
+    )
+    {
+        return result;
+    }
+
+
+    // =============================================================
+    // Header
+    // =============================================================
+
+    const QString header =
+        stream.readLine();
+
+
+    const QStringList headerColumns =
+        splitCsvLine(
+            header);
+
+
+    int genreIdColumn = -1;
+    int uidColumn = -1;
+    int kindColumn = -1;
+
+
+    for (
+        int i = 0;
+        i < headerColumns.size();
+        ++i
+    )
+    {
+        const QString column =
+            headerColumns.at(i).trimmed();
+
+
+        if (
+            column == "genre_id"
+        )
+        {
+            genreIdColumn = i;
+        }
+        else if (
+            column == "uid"
+        )
+        {
+            uidColumn = i;
+        }
+        else if (
+            column == "kind"
+        )
+        {
+            kindColumn = i;
+        }
+    }
+
+
+    if (
+        genreIdColumn < 0 ||
+        uidColumn < 0 ||
+        kindColumn < 0
+    )
+    {
+        return result;
+    }
+
+
+    const int requiredColumn =
+        qMax(
+            genreIdColumn,
+            qMax(
+                uidColumn,
+                kindColumn));
+
+
+    QSet<QString> seen;
+
+
+    // =============================================================
+    // Playlists
+    // =============================================================
+
+    while (
+        !stream.atEnd()
+    )
+    {
+        const QString line =
+            stream.readLine();
+
+
+        if (
+            line.trimmed().isEmpty()
+        )
+        {
+            continue;
+        }
+
+
+        const QStringList columns =
+            splitCsvLine(
+                line);
+
+
+        if (
+            columns.size() <=
+            requiredColumn
+        )
+        {
+            continue;
+        }
+
+
+        const QString csvGenreId =
+            columns.at(
+                genreIdColumn)
+                .trimmed();
+
+
+        if (
+            csvGenreId != genreId
+        )
+        {
+            continue;
+        }
+
+
+        const QString uid =
+            columns.at(
+                uidColumn)
+                .trimmed();
+
+
+        bool ok = false;
+
+
+        const int kind =
+            columns.at(
+                kindColumn)
+                .trimmed()
+                .toInt(
+                    &ok);
+
+
+        if (
+            uid.isEmpty() ||
+            !ok ||
+            kind <= 0
+        )
+        {
+            continue;
+        }
+
+
+        const QString key =
+            uid +
+            ":" +
+            QString::number(
+                kind);
+
+
+        if (
+            seen.contains(
+                key)
+        )
+        {
+            continue;
+        }
+
+
+        seen.insert(
+            key);
+
+
+        result.append(
+            qMakePair(
+                uid,
+                kind));
+    }
+
+
+    return result;
+}
+
+
+// =============================================================
+// Genre content
+// =============================================================
+
+void GenreController::loadGenre(
     const QString &genreId)
 {
     const QString id =
@@ -437,86 +646,59 @@ void GenreController::loadSubGenre(
 
     if (
         id.isEmpty() ||
-        m_genreService == nullptr ||
-        m_playlistService == nullptr
+        m_playlistService == nullptr ||
+        m_genreLoading
     )
     {
         return;
     }
 
 
-    if (
-        m_subGenreLoading
-    )
-    {
-        return;
-    }
-
-
-    m_loadingSubGenreId =
+    m_loadingGenreId =
         id;
 
 
-    m_subGenreLoading =
+    m_genreLoading =
         true;
 
 
-    m_waitingForTagPlaylists =
+    m_waitingForPlaylists =
         false;
 
 
-    clearSubGenreContent();
+    clearGenreContent();
 
 
-    emit subGenreLoadingChanged();
+    emit genreLoadingChanged();
 
 
-    m_genreService
-        ->loadTagPlaylistIds(
+    const QList<QPair<QString, int>>
+        playlists =
+        loadPlaylistIdsFromCsv(
             id);
-}
 
 
-// =============================================================
-// Play subgenre track
-// =============================================================
-
-void GenreController::playSubGenreTrack(
-    int index)
-{
     if (
-        m_playbackController == nullptr
+        playlists.isEmpty()
     )
     {
+        finishGenreLoading();
+
+        emit statusChanged(
+            QString(
+                "Для жанра \"%1\" плейлисты не найдены")
+                .arg(id));
+
         return;
     }
 
 
-    if (
-        index < 0 ||
-        index >= m_subGenreTracks.size()
-    )
-    {
-        return;
-    }
+    m_waitingForPlaylists =
+        true;
 
 
-    const Track &track =
-        m_subGenreTracks.at(
-            index);
-
-
-    if (
-        track.id.isEmpty()
-    )
-    {
-        return;
-    }
-
-
-    m_playbackController
-        ->playTrack(
-            track);
+    m_playlistService->loadPlaylists(
+        playlists);
 }
 
 
@@ -535,62 +717,33 @@ GenreController::model() const
 // Loading
 // =============================================================
 
-bool
-GenreController::isLoading() const
+bool GenreController::isLoading() const
 {
     return m_loading;
 }
 
 
-bool
-GenreController::isSubGenreLoading() const
+bool GenreController::isGenreLoading() const
 {
-    return m_subGenreLoading;
+    return m_genreLoading;
 }
 
 
 // =============================================================
-// Subgenre data
+// Genre playlists
 // =============================================================
 
-QVariantList
-GenreController::subGenreTracks() const
+QVariantList GenreController::genrePlaylists() const
 {
     QVariantList result;
 
-
     result.reserve(
-        m_subGenreTracks.size());
-
-
-    for (
-        const Track &track :
-        m_subGenreTracks
-    )
-    {
-        result.append(
-            trackToMap(
-                track));
-    }
-
-
-    return result;
-}
-
-
-QVariantList
-GenreController::subGenrePlaylists() const
-{
-    QVariantList result;
-
-
-    result.reserve(
-        m_subGenrePlaylists.size());
+        m_genrePlaylists.size());
 
 
     for (
         const Playlist &playlist :
-        m_subGenrePlaylists
+        m_genrePlaylists
     )
     {
         result.append(
@@ -607,14 +760,11 @@ GenreController::subGenrePlaylists() const
 // Clear
 // =============================================================
 
-void GenreController::clearSubGenreContent()
+void GenreController::clearGenreContent()
 {
-    m_subGenreTracks.clear();
+    m_genrePlaylists.clear();
 
-    m_subGenrePlaylists.clear();
-
-
-    emit subGenreContentChanged();
+    emit genreContentChanged();
 }
 
 
@@ -622,23 +772,23 @@ void GenreController::clearSubGenreContent()
 // Finish loading
 // =============================================================
 
-void GenreController::finishSubGenreLoading()
+void GenreController::finishGenreLoading()
 {
     if (
-        !m_subGenreLoading
+        !m_genreLoading
     )
     {
         return;
     }
 
 
-    m_subGenreLoading =
+    m_genreLoading =
         false;
 
 
-    m_waitingForTagPlaylists =
+    m_waitingForPlaylists =
         false;
 
 
-    emit subGenreLoadingChanged();
+    emit genreLoadingChanged();
 }

@@ -79,6 +79,9 @@ qt_add_executable(
         src/Core/SearchController.h
         src/Core/SearchController.cpp
 
+        src/Core/GenreController.cpp
+        src/Core/GenreController.h
+
 
         # =========================================================
         # Player
@@ -119,6 +122,8 @@ qt_add_executable(
 
         src/Models/PersonalPlaylist.h
         src/Models/PersonalPlaylist.cpp
+
+        src/Models/Genre.h
 
 
         # =========================================================
@@ -202,6 +207,18 @@ qt_add_executable(
         src/Yandex/Catalog/SimilarArtistsModel.h
         src/Yandex/Catalog/SimilarArtistsModel.cpp
 
+        src/Yandex/Catalog/ChartService.cpp
+        src/Yandex/Catalog/ChartService.h
+
+        src/Yandex/Catalog/ChartModel.cpp
+        src/Yandex/Catalog/ChartModel.h
+
+        src/Yandex/Catalog/GenreService.cpp
+        src/Yandex/Catalog/GenreService.h
+
+        src/Yandex/Catalog/GenreModel.cpp
+        src/Yandex/Catalog/GenreModel.h
+
 
         # =========================================================
         # Personal
@@ -224,39 +241,62 @@ qt_add_executable(
 
         src/Yandex/Personal/PlaylistModel.h
         src/Yandex/Personal/PlaylistModel.cpp
+
+        src/Yandex/Personal/LibraryPlaylistsModel.cpp
+        src/Yandex/Personal/LibraryPlaylistsModel.h
+
+        src/Yandex/Personal/LikesService.cpp
+        src/Yandex/Personal/LikesService.h
+
+        src/Yandex/Personal/LikedTracksModel.cpp
+        src/Yandex/Personal/LikedTracksModel.h
+
+
+        # =========================================================
+        # AppController extensions
+        # =========================================================
+
         src/Core/AppController+Catalog.cpp
         src/Core/AppController+Personal.cpp
         src/Core/AppController+Selection.cpp
         src/Core/AppController+Playback.cpp
         src/Core/AppController+Search.cpp
-        src/Yandex/Personal/LibraryPlaylistsModel.cpp
-        src/Yandex/Personal/LibraryPlaylistsModel.h
         src/Core/AppController+Library.cpp
-        src/Yandex/Personal/LikesService.cpp
-        src/Yandex/Personal/LikesService.h
-        src/Yandex/Personal/LikedTracksModel.cpp
-        src/Yandex/Personal/LikedTracksModel.h
+
+
+        # =========================================================
+        # Queue
+        # =========================================================
+
         src/Queue/QueueModel.cpp
         src/Queue/QueueModel.h
+
+
+        # =========================================================
+        # Player accent
+        # =========================================================
+
         src/Core/PlayerAccentService.cpp
         src/Core/PlayerAccentService.h
+
+
+        # =========================================================
+        # Charts
+        # =========================================================
+
         src/Core/ChartController.cpp
         src/Core/ChartController.h
-        src/Yandex/Catalog/ChartService.cpp
-        src/Yandex/Catalog/ChartService.h
-        src/Yandex/Catalog/ChartModel.cpp
-        src/Yandex/Catalog/ChartModel.h
+
         src/Yandex/Personal/PersonalChartModel.cpp
         src/Yandex/Personal/PersonalChartModel.h
+
+
+        # =========================================================
+        # New playlists
+        # =========================================================
+
         src/Yandex/Personal/NewPlaylistsService.cpp
         src/Yandex/Personal/NewPlaylistsService.h
-        src/Models/Genre.h
-        src/Yandex/Catalog/GenreService.cpp
-        src/Yandex/Catalog/GenreService.h
-        src/Yandex/Catalog/GenreModel.cpp
-        src/Yandex/Catalog/GenreModel.h
-        src/Core/GenreController.cpp
-        src/Core/GenreController.h
 )
 
 
@@ -283,6 +323,19 @@ qt_add_qml_module(
 
         URI YaMusic
         VERSION 1.0
+
+        # =========================================================
+        # Application resources
+        # =========================================================
+
+        RESOURCES
+
+        data/genre_playlists.csv
+
+
+        # =========================================================
+        # QML files
+        # =========================================================
 
         QML_FILES
 

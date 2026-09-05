@@ -54,8 +54,7 @@ AppController::AppController(QObject *parent)
           m_artistService, m_playbackController, this))
     , m_chartController(new ChartController(
           m_chartService, m_playbackController, this))
-, m_genreController(new GenreController(m_genreService,  m_playlistService,
-    m_playbackController,   this))
+, m_genreController(new GenreController(m_genreService,  m_playlistService, this))
 {
     connectAccount();
     connectSearch();
