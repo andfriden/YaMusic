@@ -1,866 +1,653 @@
 import QtQuick
 import QtQuick.Controls.Basic
 
+import YaMusic.Core
+
+
 Item {
     id: root
 
+
+    // =============================================================
+    // Controller
+    // =============================================================
+
     property var controller
 
+
     readonly property var albumController:
-            controller !== null &&
-        controller.albumController !== undefined &&
-        controller.albumController !== null
-        ? controller.albumController
+            root.controller !== null &&
+        root.controller !== undefined &&
+        root.controller.albumController !== null &&
+        root.controller.albumController !== undefined
+        ? root.controller.albumController
         : null
+
 
     readonly property var albumModel:
-            albumController !== null &&
-        albumController.albumModel !== undefined &&
-        albumController.albumModel !== null
-        ? albumController.albumModel
+            root.albumController !== null &&
+        root.albumController.albumModel !== null &&
+        root.albumController.albumModel !== undefined
+        ? root.albumController.albumModel
         : null
 
-    readonly property int trackCount:
-            albumModel !== null &&
-        albumModel.count !== undefined
-        ? Number(albumModel.count)
-        : 0
+
+    // =============================================================
+    // Album state
+    // =============================================================
 
     readonly property bool loading:
-        albumController !== null &&
-        albumController.loading === true
+            root.albumController !== null
+        ? root.albumController.loading
+        : false
+
 
     readonly property bool hasAlbum:
-        albumController !== null &&
-        String(
-            albumController.currentAlbumTitle || ""
-        ).length > 0
+        root.albumController !== null &&
+        root.albumController.albumId !== ""
+
+
+    readonly property int trackCount:
+            root.albumModel !== null
+        ? root.albumModel.count
+        : 0
+
 
     readonly property string albumArtworkUri:
-            albumController !== null
-        ? String(
-            albumController.currentAlbumCoverUri || ""
-        )
+            root.albumController !== null
+        ? root.albumController.currentAlbumCoverUri
         : ""
 
-    Rectangle {
-        anchors.fill: parent
 
-        color: AppTheme.background
-    }
+    // =============================================================
+    // Page size
+    // =============================================================
 
-    ScrollView {
-        id: pageScroll
+    implicitHeight:
+        pageColumn.implicitHeight + 48
 
-        anchors.fill: parent
 
-        clip: true
+    width:
+            parent !== null
+        ? parent.width
+        : 0
 
-        ScrollBar.vertical: ScrollBar {
-            policy: ScrollBar.AsNeeded
-        }
 
-        Column {
-            id: pageColumn
+    // =============================================================
+    // Content
+    // =============================================================
+
+    Column {
+        id: pageColumn
+
+        x:
+            24
+
+        y:
+            24
+
+        width:
+            Math.max(
+                root.width - 48,
+                0
+            )
+
+        spacing:
+            20
+
+
+        // =========================================================
+        // Album header
+        // =========================================================
+
+        Rectangle {
+            id: albumHeader
 
             width:
-                pageScroll.availableWidth - 48
+                parent.width
 
-            x: 24
-            y: 24
+            height:
+                260
 
-            spacing: 20
+            radius:
+                16
 
-            /*
-             * ============================================================
-             * ALBUM HEADER
-             * ============================================================
-             */
+            color:
+                AppTheme.surface
 
-            Rectangle {
-                width: pageColumn.width
-                height: 220
 
-                radius: 14
+            Row {
+                anchors.fill:
+                    parent
 
-                color: AppTheme.backgroundSecondary
+                anchors.margins:
+                    24
 
-                border.width: 1
-                border.color: AppTheme.borderSubtle
+                spacing:
+                    24
 
-                Row {
-                    anchors.fill: parent
 
-                    anchors.margins: 20
+                // -------------------------------------------------
+                // Artwork
+                // -------------------------------------------------
 
-                    spacing: 24
+                Rectangle {
+                    width:
+                        212
 
-                    /*
-                     * ----------------------------------------------------
-                     * Cover
-                     * ----------------------------------------------------
-                     */
+                    height:
+                        212
 
-                    Rectangle {
-                        id: albumArtwork
+                    radius:
+                        12
 
-                        width: 180
-                        height: 180
+                    color:
+                        AppTheme.surfaceVariant
 
-                        anchors.verticalCenter:
-                            parent.verticalCenter
+                    clip:
+                        true
 
-                        radius: 12
 
-                        color: AppTheme.surface
+                    Image {
+                        anchors.fill:
+                            parent
 
-                        clip: true
+                        source:
+                                root.albumArtworkUri !== ""
+                            ? "image://yandex/" +
+                            root.albumArtworkUri
+                            : ""
 
-                        Image {
-                            id: albumCover
+                        fillMode:
+                            Image.PreserveAspectCrop
 
-                            anchors.fill: parent
+                        asynchronous:
+                            true
 
-                            source:
-                                    root.albumArtworkUri.length > 0
-                                ? "image://yandex/" +
-                                root.albumArtworkUri
-                                : ""
+                        cache:
+                            true
+                    }
+                }
 
-                            sourceSize:
-                                Qt.size(
-                                    180,
-                                    180
-                                )
 
-                            fillMode:
-                                Image.PreserveAspectCrop
+                // -------------------------------------------------
+                // Album information
+                // -------------------------------------------------
 
-                            asynchronous: true
+                Column {
+                    anchors.verticalCenter:
+                        parent.verticalCenter
 
-                            cache: true
+                    width:
+                        parent.width -
+                        212 -
+                        24
 
-                            smooth: true
+                    spacing:
+                        8
 
-                            visible:
-                                status === Image.Ready
 
-                            onStatusChanged: {
+                    Label {
+                        text:
+                            "АЛЬБОМ"
 
-                                    root.albumArtworkUri
+                        font.pixelSize:
+                            13
 
-                            }
-                        }
+                        font.bold:
+                            true
 
-                        Label {
-                            anchors.centerIn: parent
-
-                            text:
-                                    albumCover.status === Image.Error
-                                ? "!"
-                                : "♪"
-
-                            color: AppTheme.textMuted
-
-                            font.pixelSize: 44
-
-                            visible:
-                                albumCover.status !==
-                                Image.Ready
-                        }
-
-                        Rectangle {
-                            anchors.fill: parent
-
-                            radius: 12
-
-                            color: "transparent"
-
-                            border.width: 1
-                            border.color: AppTheme.border
-                        }
+                        color:
+                            AppTheme.secondaryText
                     }
 
-                    /*
-                     * ----------------------------------------------------
-                     * Album info
-                     * ----------------------------------------------------
-                     */
 
-                    Column {
+                    Label {
                         width:
-                            parent.width -
-                            albumArtwork.width -
-                            parent.spacing
+                            parent.width
 
-                        anchors.verticalCenter:
-                            parent.verticalCenter
+                        text:
+                                root.albumController !== null
+                            ? root.albumController.currentAlbumTitle
+                            : ""
 
-                        spacing: 10
+                        font.pixelSize:
+                            32
 
-                        Label {
-                            text:
-                                qsTr("АЛЬБОМ")
+                        font.bold:
+                            true
 
-                            color:
-                                AppTheme.textMuted
+                        color:
+                            AppTheme.primaryText
 
-                            font.pixelSize: 12
-                            font.bold: true
-                        }
+                        elide:
+                            Text.ElideRight
+                    }
 
-                        Label {
-                            width:
-                                parent.width
 
-                            text:
-                                root.hasAlbum
-                                    ? String(
-                                        root.albumController.currentAlbumTitle
-                                    )
-                                    : qsTr("Альбом")
+                    Label {
+                        width:
+                            parent.width
 
-                            color:
-                                AppTheme.textPrimary
-
-                            font.pixelSize: 30
-                            font.bold: true
-
-                            elide:
-                                Text.ElideRight
-
-                            maximumLineCount: 1
-                        }
-
-                        Label {
-                            text:
-                                    root.trackCount > 0
-                                ? qsTr("%1 треков")
-                                    .arg(root.trackCount)
-                                : ""
-
-                            color:
-                                AppTheme.textSecondary
-
-                            font.pixelSize: 13
-
-                            visible:
+                        text:
                                 root.trackCount > 0
-                        }
+                            ? root.trackCount +
+                            (
+                                    root.trackCount === 1
+                                    ? " трек"
+                                    : " трека"
+                            )
+                            : ""
 
-                        Button {
-                            width: 132
-                            height: 38
+                        font.pixelSize:
+                            15
 
-                            text:
-                                qsTr("▶  Слушать")
-
-                            enabled:
-                                root.albumController !== null &&
-                                root.trackCount > 0 &&
-                                !root.loading
-
-                            onClicked: {
-                                if (
-                                    root.albumController === null
-                                ) {
-                                    return
-                                }
-
-                                root.albumController
-                                    .playAlbum()
-                            }
-                        }
+                        color:
+                            AppTheme.secondaryText
                     }
                 }
             }
+        }
 
-            /*
-             * ============================================================
-             * TRACKS
-             * ============================================================
-             */
 
-            Rectangle {
-                id: tracksCard
+        // =========================================================
+        // Tracks
+        // =========================================================
+
+        Rectangle {
+            id: tracksCard
+
+            width:
+                parent.width
+
+            implicitHeight:
+                tracksColumn.implicitHeight + 32
+
+            radius:
+                16
+
+            color:
+                AppTheme.surface
+
+
+            Column {
+                id: tracksColumn
+
+                x:
+                    16
+
+                y:
+                    16
 
                 width:
-                    pageColumn.width
+                    parent.width - 32
 
-                radius: 12
+                spacing:
+                    8
 
-                color:
-                    AppTheme.backgroundSecondary
 
-                border.width: 1
-                border.color: AppTheme.borderSubtle
+                Label {
+                    text:
+                        "Треки"
 
-                implicitHeight:
-                    tracksColumn.implicitHeight + 32
+                    font.pixelSize:
+                        20
 
-                Column {
-                    id: tracksColumn
+                    font.bold:
+                        true
+
+                    color:
+                        AppTheme.primaryText
+                }
+
+
+                // -------------------------------------------------
+                // Empty state
+                // -------------------------------------------------
+
+                Item {
+                    width:
+                        parent.width
+
+                    height:
+                            root.trackCount === 0 &&
+                        !root.loading
+                        ? 68
+                        : 0
+
+                    visible:
+                        height > 0
+
+
+                    Label {
+                        anchors.centerIn:
+                            parent
+
+                        text:
+                            "Треки не найдены"
+
+                        font.pixelSize:
+                            15
+
+                        color:
+                            AppTheme.secondaryText
+                    }
+                }
+
+
+                // -------------------------------------------------
+                // Track list
+                // -------------------------------------------------
+
+                ListView {
+                    id: tracksView
 
                     width:
                         parent.width
 
-                    anchors.left:
-                        parent.left
+                    height:
+                            root.trackCount > 0
+                        ? root.trackCount * 74
+                        : 0
 
-                    anchors.right:
-                        parent.right
+                    visible:
+                        root.trackCount > 0
 
-                    anchors.top:
-                        parent.top
+                    model:
+                        root.albumModel
 
-                    anchors.margins: 16
+                    interactive:
+                        false
 
-                    spacing: 12
+                    clip:
+                        true
 
-                    /*
-                     * ----------------------------------------------------
-                     * Header
-                     * ----------------------------------------------------
-                     */
 
-                    Row {
-                        width:
-                            parent.width
+                    delegate: Item {
+                        id: trackDelegate
 
-                        height: 28
-
-                        spacing: 10
-
-                        Label {
-                            text:
-                                qsTr("Треки")
-
-                            color:
-                                AppTheme.textPrimary
-
-                            font.pixelSize: 22
-                            font.bold: true
-                        }
-
-                        Label {
-                            anchors.verticalCenter:
-                                parent.verticalCenter
-
-                            text:
-                                    root.trackCount > 0
-                                ? qsTr("%1")
-                                    .arg(root.trackCount)
-                                : ""
-
-                            color:
-                                AppTheme.textMuted
-
-                            font.pixelSize: 12
-                        }
-                    }
-
-                    /*
-                     * ----------------------------------------------------
-                     * List
-                     * ----------------------------------------------------
-                     */
-
-                    ListView {
-                        id: tracksView
+                        required property int index
+                        required property string trackId
+                        required property string title
+                        required property string artist
+                        required property string artistId
+                        required property string coverUri
+                        required property int durationMs
 
                         width:
-                            parent.width
+                            tracksView.width
 
                         height:
-                                root.trackCount > 0
-                            ? Math.min(
-                                root.trackCount * 74,
-                                520
-                            )
-                            : 68
+                            74
 
-                        model:
-                            root.albumModel
 
-                        clip: true
-
-                        spacing: 6
-
-                        boundsBehavior:
-                            Flickable.StopAtBounds
-
-                        ScrollBar.vertical: ScrollBar {
-                            policy:
-                                ScrollBar.AsNeeded
-                        }
-
-                        delegate: Rectangle {
-                            id: trackDelegate
-
-                            required property int index
-                            required property string trackId
-                            required property string title
-                            required property string artist
-                            required property string artistId
-                            required property string coverUri
-                            required property int durationMs
-
-                            width:
-                                tracksView.width - 8
-
-                            height:
-                                68
+                        Rectangle {
+                            anchors.fill:
+                                parent
 
                             radius:
-                                8
+                                10
 
                             color:
-                                rowMouseArea.containsMouse
-                                    ? AppTheme.panelHover
-                                    : AppTheme.panelSecondary
+                                trackMouseArea.containsMouse
+                                    ? AppTheme.surfaceVariant
+                                    : "transparent"
 
-                            border.width:
-                                1
 
-                            border.color:
-                                rowMouseArea.containsMouse
-                                    ? AppTheme.border
-                                    : AppTheme.borderSubtle
-
-                            /*
-                             * ------------------------------------------------
-                             * Track cover
-                             * ------------------------------------------------
-                             */
-
-                            Rectangle {
-                                id: trackCoverContainer
-
-                                x: 8
-
-                                width: 52
-                                height: 52
-
-                                anchors.verticalCenter:
-                                    parent.verticalCenter
-
-                                radius: 6
-
-                                color:
-                                    AppTheme.surface
-
-                                clip: true
-
-                                Image {
-                                    id: trackCover
-
-                                    anchors.fill:
-                                        parent
-
-                                    source:
-                                            trackDelegate.coverUri.length > 0
-                                        ? "image://yandex/" +
-                                        trackDelegate.coverUri
-                                        : ""
-
-                                    sourceSize:
-                                        Qt.size(
-                                            52,
-                                            52
-                                        )
-
-                                    fillMode:
-                                        Image.PreserveAspectCrop
-
-                                    asynchronous:
-                                        true
-
-                                    cache:
-                                        true
-
-                                    smooth:
-                                        true
-
-                                    visible:
-                                        status === Image.Ready
-                                }
-
-                                Label {
-                                    anchors.centerIn:
-                                        parent
-
-                                    text:
-                                        "♪"
-
-                                    color:
-                                        AppTheme.textMuted
-
-                                    font.pixelSize:
-                                        20
-
-                                    visible:
-                                        trackCover.status !==
-                                        Image.Ready
-                                }
-                            }
-
-                            /*
-                             * ------------------------------------------------
-                             * Track information
-                             * ------------------------------------------------
-                             */
-
-                            Column {
-                                id: trackInfo
-
-                                x:
-                                    trackCoverContainer.x +
-                                    trackCoverContainer.width +
-                                    12
-
-                                width:
-                                    parent.width -
-                                    x -
-                                    70
-
-                                anchors.verticalCenter:
-                                    parent.verticalCenter
-
-                                spacing:
-                                    2
-
-                                Label {
-                                    id: titleLabel
-
-                                    width:
-                                        parent.width
-
-                                    text:
-                                        trackDelegate.title
-
-                                    color:
-                                        AppTheme.textPrimary
-
-                                    font.pixelSize:
-                                        14
-
-                                    font.bold:
-                                        true
-
-                                    elide:
-                                        Text.ElideRight
-
-                                    maximumLineCount:
-                                        1
-                                }
-
-                                Label {
-                                    id: artistLabel
-
-                                    width:
-                                        parent.width
-
-                                    height:
-                                        18
-
-                                    text:
-                                        trackDelegate.artist
-
-                                    color:
-                                        artistMouseArea.containsMouse
-                                            ? AppTheme.accent
-                                            : AppTheme.textSecondary
-
-                                    font.pixelSize:
-                                        12
-
-                                    elide:
-                                        Text.ElideRight
-
-                                    maximumLineCount:
-                                        1
-                                }
-                            }
-
-                            /*
-                             * ------------------------------------------------
-                             * Duration
-                             * ------------------------------------------------
-                             */
-
-                            Label {
-                                id: durationLabel
-
-                                width:
-                                    44
-
-                                anchors.right:
-                                    parent.right
-
-                                anchors.rightMargin:
-                                    12
-
-                                anchors.verticalCenter:
-                                    parent.verticalCenter
-
-                                text:
-                                    root.formatDuration(
-                                        trackDelegate.durationMs
-                                    )
-
-                                color:
-                                    AppTheme.textSecondary
-
-                                font.pixelSize:
-                                    11
-
-                                horizontalAlignment:
-                                    Text.AlignRight
-                            }
-
-                            /*
-                             * ------------------------------------------------
-                             * Whole row
-                             * ------------------------------------------------
-
-                             */
-
-                            MouseArea {
-                                id: rowMouseArea
-
+                            Row {
                                 anchors.fill:
                                     parent
 
-                                hoverEnabled:
-                                    true
+                                anchors.leftMargin:
+                                    8
 
-                                cursorShape:
-                                    Qt.PointingHandCursor
+                                anchors.rightMargin:
+                                    8
 
-                                z:
-                                    0
+                                spacing:
+                                    14
 
-                                onClicked: {
-                                    if (
-                                        root.albumController === null
-                                    ) {
-                                        return
+
+                                // ---------------------------------
+                                // Cover
+                                // ---------------------------------
+
+                                Rectangle {
+                                    width:
+                                        56
+
+                                    height:
+                                        56
+
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+
+                                    radius:
+                                        8
+
+                                    color:
+                                        AppTheme.surfaceVariant
+
+                                    clip:
+                                        true
+
+
+                                    Image {
+                                        anchors.fill:
+                                            parent
+
+                                        source:
+                                                trackDelegate.coverUri !== ""
+                                            ? "image://yandex/" +
+                                            trackDelegate.coverUri
+                                            : ""
+
+                                        fillMode:
+                                            Image.PreserveAspectCrop
+
+                                        asynchronous:
+                                            true
+
+                                        cache:
+                                            true
+                                    }
+                                }
+
+
+                                // ---------------------------------
+                                // Track info
+                                // ---------------------------------
+
+                                Column {
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+
+                                    width:
+                                        parent.width -
+                                        56 -
+                                        14 -
+                                        70
+
+                                    spacing:
+                                        3
+
+
+                                    Label {
+                                        width:
+                                            parent.width
+
+                                        text:
+                                            trackDelegate.title
+
+                                        font.pixelSize:
+                                            15
+
+                                        font.bold:
+                                            true
+
+                                        color:
+                                            AppTheme.primaryText
+
+                                        elide:
+                                            Text.ElideRight
                                     }
 
+
+                                    Label {
+                                        width:
+                                            parent.width
+
+                                        text:
+                                            trackDelegate.artist
+
+                                        font.pixelSize:
+                                            13
+
+                                        color:
+                                            AppTheme.secondaryText
+
+                                        elide:
+                                            Text.ElideRight
+                                    }
+                                }
+
+
+                                // ---------------------------------
+                                // Duration
+                                // ---------------------------------
+
+                                Label {
+                                    width:
+                                        56
+
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+
+                                    text:
+                                        root.formatDuration(
+                                            trackDelegate.durationMs
+                                        )
+
+                                    horizontalAlignment:
+                                        Text.AlignRight
+
+                                    font.pixelSize:
+                                        13
+
+                                    color:
+                                        AppTheme.secondaryText
+                                }
+                            }
+                        }
+
+
+                        MouseArea {
+                            id: trackMouseArea
+
+                            anchors.fill:
+                                parent
+
+                            hoverEnabled:
+                                true
+
+                            cursorShape:
+                                Qt.PointingHandCursor
+
+                            onClicked:
+                            {
+                                if (
+                                    root.albumController !== null
+                                )
+                                {
                                     root.albumController
                                         .selectAlbumTrack(
                                         trackDelegate.index
                                     )
                                 }
                             }
-
-                            /*
-                             * ------------------------------------------------
-                             * Artist click
-                             * ------------------------------------------------
-                             */
-
-                            MouseArea {
-                                id: artistMouseArea
-
-                                x:
-                                    trackInfo.x
-
-                                y:
-                                    trackInfo.y +
-                                    titleLabel.height +
-                                    trackInfo.spacing
-
-                                width:
-                                    artistLabel.width
-
-                                height:
-                                    artistLabel.height
-
-                                z:
-                                    10
-
-                                enabled:
-                                    trackDelegate.artistId.length > 0
-
-                                hoverEnabled:
-                                    true
-
-                                cursorShape:
-                                    enabled
-                                        ? Qt.PointingHandCursor
-                                        : Qt.ArrowCursor
-
-                                onClicked: {
-                                    if (
-                                        root.controller === null
-                                    ) {
-                                        return
-                                    }
-
-                                    if (
-                                        trackDelegate.artistId.length === 0
-                                    ) {
-                                        return
-                                    }
-
-                                    root.controller
-                                        .loadArtist(
-                                        trackDelegate.artistId
-                                    )
-                                }
-                            }
-                        }
-
-                        Label {
-                            anchors.centerIn:
-                                parent
-
-                            width:
-                                parent.width - 20
-
-                            text:
-                                root.loading
-                                    ? qsTr("Загрузка альбома...")
-                                    : qsTr("В альбоме нет треков")
-
-                            color:
-                                AppTheme.textSecondary
-
-                            font.pixelSize:
-                                13
-
-                            horizontalAlignment:
-                                Text.AlignHCenter
-
-                            visible:
-                                root.loading ||
-                                root.trackCount === 0
                         }
                     }
                 }
             }
+        }
 
-            Item {
-                width: 1
-                height: 24
-            }
+
+        // =========================================================
+        // Bottom spacing
+        // =========================================================
+
+        Item {
+            width:
+                parent.width
+
+            height:
+                24
         }
     }
 
-    /*
-     * ============================================================
-     * FULL PAGE LOADING
-     * ============================================================
-     */
+
+    // =============================================================
+    // Loading
+    // =============================================================
 
     Rectangle {
         anchors.fill:
             parent
 
+        visible:
+            root.loading
+
         color:
             AppTheme.background
 
         opacity:
-            0.94
-
-        visible:
-            root.loading &&
-            !root.hasAlbum
+            0.92
 
         z:
             100
 
-        Column {
+
+        BusyIndicator {
             anchors.centerIn:
                 parent
 
-            spacing:
-                10
-
-            BusyIndicator {
-                width: 32
-                height: 32
-
-                anchors.horizontalCenter:
-                    parent.horizontalCenter
-
-                running:
-                    true
-            }
-
-            Label {
-                text:
-                    qsTr("Загрузка альбома...")
-
-                color:
-                    AppTheme.textSecondary
-
-                font.pixelSize:
-                    13
-            }
+            running:
+                root.loading
         }
     }
 
-    /*
-     * ============================================================
-     * NO ALBUM
-     * ============================================================
-     */
 
-    Label {
-        anchors.centerIn:
-            parent
+    // =============================================================
+    // Helpers
+    // =============================================================
 
-        visible:
-            root.albumController !== null &&
-            !root.loading &&
-            !root.hasAlbum
-
-        text:
-            qsTr("Выберите альбом")
-
-        color:
-            AppTheme.textMuted
-
-        font.pixelSize:
-            14
-
-        z:
-            101
-    }
-
-       function formatDuration(milliseconds) {
-        var value =
-            Number(milliseconds)
-
+    function formatDuration(durationMs)
+    {
         if (
-            !isFinite(value) ||
-            value <= 0
-        ) {
-            return "0:00"
+            durationMs === undefined ||
+            durationMs === null ||
+            durationMs <= 0
+        )
+        {
+            return ""
         }
+
 
         var totalSeconds =
-            Math.floor(
-                value / 1000
-            )
+            Math.floor(durationMs / 1000)
 
         var minutes =
-            Math.floor(
-                totalSeconds / 60
-            )
+            Math.floor(totalSeconds / 60)
 
         var seconds =
             totalSeconds % 60
 
-        return minutes +
+
+        return (
+            minutes +
             ":" +
-            (
-                    seconds < 10
-                    ? "0"
-                    : ""
-            ) +
+            (seconds < 10 ? "0" : "") +
             seconds
+        )
     }
 }
