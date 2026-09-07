@@ -373,6 +373,7 @@ qt_add_qml_module(
         qml/Pages/GenresPage.qml
         qml/Pages/GenrePage.qml
         qml/Pages/SubGenrePage.qml
+        qml/Pages/SportPage.qml
 
 
         # =========================================================

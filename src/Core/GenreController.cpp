@@ -8,6 +8,7 @@
 #include <QFile>
 #include <QPair>
 #include <QSet>
+#include <QStringConverter>
 #include <QStringList>
 #include <QTextStream>
 #include <QVariantMap>
@@ -16,38 +17,53 @@
 namespace
 {
 
+// =============================================================
+// Playlist -> QVariantMap
+// =============================================================
+
 QVariantMap playlistToMap(
     const Playlist &playlist)
 {
     QVariantMap result;
 
+
     result.insert(
         "uid",
         playlist.uid);
+
 
     result.insert(
         "kind",
         playlist.kind);
 
+
     result.insert(
         "title",
         playlist.title);
+
 
     result.insert(
         "description",
         playlist.description);
 
+
     result.insert(
         "trackCount",
         playlist.trackCount);
+
 
     result.insert(
         "coverUri",
         playlist.coverUri);
 
+
     return result;
 }
 
+
+// =============================================================
+// CSV parser
+// =============================================================
 
 QStringList splitCsvLine(
     const QString &line)
@@ -85,7 +101,8 @@ QStringList splitCsvLine(
             }
             else
             {
-                quoted = !quoted;
+                quoted =
+                    !quoted;
             }
 
             continue;
@@ -112,6 +129,7 @@ QStringList splitCsvLine(
 
     result.append(
         current);
+
 
     return result;
 }
@@ -155,10 +173,16 @@ bool GenreController::isDisplayedGenre(
 }
 
 
-QList<Genre> GenreController::filterDisplayedGenres(
+// =============================================================
+// Filter displayed genres
+// =============================================================
+
+QList<Genre>
+GenreController::filterDisplayedGenres(
     const QList<Genre> &genres)
 {
     QList<Genre> result;
+
 
     result.reserve(
         genres.size());
@@ -197,10 +221,18 @@ GenreController::GenreController(
     , m_playlistService(playlistService)
     , m_model(new GenreModel(this))
 {
+    // =============================================================
+    // Genre service
+    // =============================================================
+
     if (
         m_genreService != nullptr
     )
     {
+        // ---------------------------------------------------------
+        // Genres received
+        // ---------------------------------------------------------
+
         connect(
             m_genreService,
             &GenreService::genresReceived,
@@ -218,12 +250,87 @@ GenreController::GenreController(
                     displayedGenres);
 
 
-                m_loading = false;
+                m_loading =
+                    false;
+
 
                 emit loadingChanged();
+
                 emit genresChanged();
             });
 
+
+        // ---------------------------------------------------------
+        // Tag playlist IDs received
+        // ---------------------------------------------------------
+
+        connect(
+            m_genreService,
+            &GenreService::tagPlaylistIdsReceived,
+            this,
+            [this](
+                const QString &tagId,
+                const QList<QPair<QString, int>> &playlists)
+            {
+                if (
+                    !m_genreLoading ||
+                    !m_waitingForTagPlaylistIds ||
+                    tagId != m_loadingGenreId
+                )
+                {
+                    return;
+                }
+
+
+                m_waitingForTagPlaylistIds =
+                    false;
+
+
+                if (
+                    playlists.isEmpty()
+                )
+                {
+                    finishGenreLoading();
+
+
+                    emit statusChanged(
+                        QString(
+                            "Для тега \"%1\" плейлисты не найдены")
+                            .arg(
+                                tagId));
+
+
+                    return;
+                }
+
+
+                if (
+                    m_playlistService == nullptr
+                )
+                {
+                    finishGenreLoading();
+
+
+                    emit statusChanged(
+                        "Сервис плейлистов недоступен");
+
+
+                    return;
+                }
+
+
+                m_waitingForPlaylists =
+                    true;
+
+
+                m_playlistService->loadPlaylists(
+                    playlists);
+            });
+
+
+        // ---------------------------------------------------------
+        // Genre service errors
+        // ---------------------------------------------------------
 
         connect(
             m_genreService,
@@ -236,14 +343,18 @@ GenreController::GenreController(
                     m_loading
                 )
                 {
-                    m_loading = false;
+                    m_loading =
+                        false;
+
 
                     emit loadingChanged();
+
 
                     emit statusChanged(
                         QString(
                             "Ошибка жанров: %1")
-                            .arg(message));
+                            .arg(
+                                message));
                 }
 
 
@@ -253,19 +364,29 @@ GenreController::GenreController(
                 {
                     finishGenreLoading();
 
+
                     emit statusChanged(
                         QString(
-                            "Ошибка жанра: %1")
-                            .arg(message));
+                            "Ошибка контента: %1")
+                            .arg(
+                                message));
                 }
             });
     }
 
 
+    // =============================================================
+    // Playlist service
+    // =============================================================
+
     if (
         m_playlistService != nullptr
     )
     {
+        // ---------------------------------------------------------
+        // Playlists received
+        // ---------------------------------------------------------
+
         connect(
             m_playlistService,
             &PlaylistService::playlistsReceived,
@@ -282,7 +403,8 @@ GenreController::GenreController(
                 }
 
 
-                m_waitingForPlaylists = false;
+                m_waitingForPlaylists =
+                    false;
 
 
                 m_genrePlaylists =
@@ -295,6 +417,10 @@ GenreController::GenreController(
                 finishGenreLoading();
             });
 
+
+        // ---------------------------------------------------------
+        // Playlist service errors
+        // ---------------------------------------------------------
 
         connect(
             m_playlistService,
@@ -316,8 +442,9 @@ GenreController::GenreController(
 
                 emit statusChanged(
                     QString(
-                        "Ошибка контента жанра: %1")
-                        .arg(message));
+                        "Ошибка контента: %1")
+                        .arg(
+                            message));
             });
     }
 }
@@ -338,7 +465,9 @@ void GenreController::loadGenres()
     }
 
 
-    m_loading = true;
+    m_loading =
+        true;
+
 
     emit loadingChanged();
 
@@ -347,6 +476,187 @@ void GenreController::loadGenres()
 
 
     m_genreService->loadGenres();
+}
+
+
+// =============================================================
+// Load genre
+// =============================================================
+
+void GenreController::loadGenre(
+    const QString &genreId)
+{
+    const QString id =
+        genreId.trimmed();
+
+
+    if (
+        id.isEmpty() ||
+        m_playlistService == nullptr ||
+        m_genreLoading
+    )
+    {
+        return;
+    }
+
+
+    m_loadingGenreId =
+        id;
+
+
+    m_genreLoading =
+        true;
+
+
+    m_waitingForPlaylists =
+        false;
+
+
+    m_waitingForTagPlaylistIds =
+        false;
+
+
+    clearGenreContent();
+
+
+    emit genreLoadingChanged();
+
+
+    const QList<QPair<QString, int>>
+        playlists =
+        loadPlaylistIdsFromCsv(
+            id);
+
+
+    if (
+        playlists.isEmpty()
+    )
+    {
+        finishGenreLoading();
+
+
+        emit statusChanged(
+            QString(
+                "Для жанра \"%1\" плейлисты не найдены")
+                .arg(
+                    id));
+
+
+        return;
+    }
+
+
+    m_waitingForPlaylists =
+        true;
+
+
+    m_playlistService->loadPlaylists(
+        playlists);
+}
+
+
+// =============================================================
+// Load tag playlists
+// =============================================================
+
+void GenreController::loadTagPlaylists(
+    const QString &tagId)
+{
+    const QString id =
+        tagId.trimmed();
+
+
+    if (
+        id.isEmpty() ||
+        m_genreService == nullptr ||
+        m_playlistService == nullptr ||
+        m_genreLoading
+    )
+    {
+        return;
+    }
+
+
+    m_loadingGenreId =
+        id;
+
+
+    m_genreLoading =
+        true;
+
+
+    m_waitingForPlaylists =
+        false;
+
+
+    m_waitingForTagPlaylistIds =
+        true;
+
+
+    clearGenreContent();
+
+
+    emit genreLoadingChanged();
+
+
+    m_genreService->loadTagPlaylistIds(
+        id);
+}
+
+
+// =============================================================
+// Model
+// =============================================================
+
+GenreModel *
+GenreController::model() const
+{
+    return m_model;
+}
+
+
+// =============================================================
+// Loading
+// =============================================================
+
+bool GenreController::isLoading() const
+{
+    return m_loading;
+}
+
+
+bool GenreController::isGenreLoading() const
+{
+    return m_genreLoading;
+}
+
+
+// =============================================================
+// Genre playlists
+// =============================================================
+
+QVariantList
+GenreController::genrePlaylists() const
+{
+    QVariantList result;
+
+
+    result.reserve(
+        m_genrePlaylists.size());
+
+
+    for (
+        const Playlist &playlist :
+        m_genrePlaylists
+    )
+    {
+        result.append(
+            playlistToMap(
+                playlist));
+    }
+
+
+    return result;
 }
 
 
@@ -445,6 +755,7 @@ GenreController::loadPlaylistIdsFromCsv(
     QTextStream stream(
         &file);
 
+
     stream.setEncoding(
         QStringConverter::Utf8);
 
@@ -470,9 +781,14 @@ GenreController::loadPlaylistIdsFromCsv(
             header);
 
 
-    int genreIdColumn = -1;
-    int uidColumn = -1;
-    int kindColumn = -1;
+    int genreIdColumn =
+        -1;
+
+    int uidColumn =
+        -1;
+
+    int kindColumn =
+        -1;
 
 
     for (
@@ -482,26 +798,31 @@ GenreController::loadPlaylistIdsFromCsv(
     )
     {
         const QString column =
-            headerColumns.at(i).trimmed();
+            headerColumns
+                .at(i)
+                .trimmed();
 
 
         if (
             column == "genre_id"
         )
         {
-            genreIdColumn = i;
+            genreIdColumn =
+                i;
         }
         else if (
             column == "uid"
         )
         {
-            uidColumn = i;
+            uidColumn =
+                i;
         }
         else if (
             column == "kind"
         )
         {
-            kindColumn = i;
+            kindColumn =
+                i;
         }
     }
 
@@ -562,8 +883,9 @@ GenreController::loadPlaylistIdsFromCsv(
 
 
         const QString csvGenreId =
-            columns.at(
-                genreIdColumn)
+            columns
+                .at(
+                    genreIdColumn)
                 .trimmed();
 
 
@@ -576,17 +898,20 @@ GenreController::loadPlaylistIdsFromCsv(
 
 
         const QString uid =
-            columns.at(
-                uidColumn)
+            columns
+                .at(
+                    uidColumn)
                 .trimmed();
 
 
-        bool ok = false;
+        bool ok =
+            false;
 
 
         const int kind =
-            columns.at(
-                kindColumn)
+            columns
+                .at(
+                    kindColumn)
                 .trimmed()
                 .toInt(
                     &ok);
@@ -634,135 +959,13 @@ GenreController::loadPlaylistIdsFromCsv(
 
 
 // =============================================================
-// Genre content
-// =============================================================
-
-void GenreController::loadGenre(
-    const QString &genreId)
-{
-    const QString id =
-        genreId.trimmed();
-
-
-    if (
-        id.isEmpty() ||
-        m_playlistService == nullptr ||
-        m_genreLoading
-    )
-    {
-        return;
-    }
-
-
-    m_loadingGenreId =
-        id;
-
-
-    m_genreLoading =
-        true;
-
-
-    m_waitingForPlaylists =
-        false;
-
-
-    clearGenreContent();
-
-
-    emit genreLoadingChanged();
-
-
-    const QList<QPair<QString, int>>
-        playlists =
-        loadPlaylistIdsFromCsv(
-            id);
-
-
-    if (
-        playlists.isEmpty()
-    )
-    {
-        finishGenreLoading();
-
-        emit statusChanged(
-            QString(
-                "Для жанра \"%1\" плейлисты не найдены")
-                .arg(id));
-
-        return;
-    }
-
-
-    m_waitingForPlaylists =
-        true;
-
-
-    m_playlistService->loadPlaylists(
-        playlists);
-}
-
-
-// =============================================================
-// Model
-// =============================================================
-
-GenreModel *
-GenreController::model() const
-{
-    return m_model;
-}
-
-
-// =============================================================
-// Loading
-// =============================================================
-
-bool GenreController::isLoading() const
-{
-    return m_loading;
-}
-
-
-bool GenreController::isGenreLoading() const
-{
-    return m_genreLoading;
-}
-
-
-// =============================================================
-// Genre playlists
-// =============================================================
-
-QVariantList GenreController::genrePlaylists() const
-{
-    QVariantList result;
-
-    result.reserve(
-        m_genrePlaylists.size());
-
-
-    for (
-        const Playlist &playlist :
-        m_genrePlaylists
-    )
-    {
-        result.append(
-            playlistToMap(
-                playlist));
-    }
-
-
-    return result;
-}
-
-
-// =============================================================
 // Clear
 // =============================================================
 
 void GenreController::clearGenreContent()
 {
     m_genrePlaylists.clear();
+
 
     emit genreContentChanged();
 }
@@ -787,6 +990,10 @@ void GenreController::finishGenreLoading()
 
 
     m_waitingForPlaylists =
+        false;
+
+
+    m_waitingForTagPlaylistIds =
         false;
 
 

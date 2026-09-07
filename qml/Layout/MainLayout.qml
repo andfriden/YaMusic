@@ -241,6 +241,7 @@ Item {
                     }
                 }
 
+
                 // =================================================
                 // Bottom spacer
                 // =================================================
@@ -415,6 +416,12 @@ Item {
                 "playlists"
             )
         }
+
+        function onSportRequested() {
+            root.selectSection(
+                "sport"
+            )
+        }
     }
 
 
@@ -520,7 +527,6 @@ Item {
         root.currentGenreColor =
             ""
 
-
         root.loadCurrentPage()
     }
 
@@ -543,7 +549,6 @@ Item {
             return
         }
 
-
         root.navigationStack =
             root.navigationStack.concat(
                 [
@@ -559,7 +564,6 @@ Item {
                     }
                 ]
             )
-
 
         root.currentPageType =
             "artist"
@@ -589,7 +593,6 @@ Item {
             return
         }
 
-
         root.navigationStack =
             root.navigationStack.concat(
                 [
@@ -605,7 +608,6 @@ Item {
                     }
                 ]
             )
-
 
         root.currentPageType =
             "album"
@@ -638,7 +640,6 @@ Item {
                 ]
             )
 
-
         root.currentPageType =
             "playlist"
 
@@ -670,7 +671,6 @@ Item {
             return
         }
 
-
         root.navigationStack =
             root.navigationStack.concat(
                 [
@@ -687,7 +687,6 @@ Item {
                 ]
             )
 
-
         root.currentGenreTitle =
             title || ""
 
@@ -696,7 +695,6 @@ Item {
 
         root.currentGenreColor =
             color || ""
-
 
         root.currentPageType =
             "genre"
@@ -719,13 +717,11 @@ Item {
             return
         }
 
-
         const stack =
             root.navigationStack.slice()
 
         const previous =
             stack.pop()
-
 
         root.navigationStack =
             stack
@@ -739,7 +735,6 @@ Item {
         root.currentDetailId =
             previous.id || ""
 
-
         root.loadCurrentPage()
     }
 
@@ -751,7 +746,6 @@ Item {
     function loadCurrentPage() {
         const source =
             root.pageSourceForCurrentPage()
-
 
         if (
             root.currentPageType === "genre"
@@ -778,7 +772,6 @@ Item {
 
             return
         }
-
 
         pageLoader.setSource(
             source,
@@ -852,6 +845,9 @@ Item {
 
             case "genres":
                 return "../Pages/GenresPage.qml"
+
+            case "sport":
+                return "../Pages/SportPage.qml"
 
             case "liked":
                 return "../Pages/HomePage.qml"
@@ -927,6 +923,9 @@ Item {
             case "genres":
                 return "home"
 
+            case "sport":
+                return "home"
+
             case "liked":
                 return "home"
 
@@ -975,7 +974,6 @@ Item {
 
         root.navigationStack =
             []
-
 
         if (
             root.controller !== null &&

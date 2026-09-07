@@ -18,6 +18,7 @@ Item {
     signal chartRequested()
     signal genresRequested()
     signal playlistsRequested()
+    signal sportRequested()
 
 
     // =============================================================
@@ -98,24 +99,24 @@ Item {
 
 
         // =========================================================
-        // Charts / Genres / Playlists
+        // Charts / Genres / Playlists / Sport
         // =========================================================
 
         PersonalChartSection {
             width:
                 content.width
 
-
             onChartRequested:
                 root.chartRequested()
-
 
             onGenresRequested:
                 root.genresRequested()
 
-
             onPlaylistsRequested:
                 root.playlistsRequested()
+
+            onSportRequested:
+                root.sportRequested()
         }
 
 

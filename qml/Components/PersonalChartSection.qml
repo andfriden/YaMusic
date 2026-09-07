@@ -7,6 +7,7 @@ Item {
     signal chartRequested()
     signal genresRequested()
     signal playlistsRequested()
+    signal sportRequested()
 
 
     width:
@@ -32,7 +33,7 @@ Item {
 
         Button {
             width:
-                (parent.width - 2 * parent.spacing) / 3
+                (parent.width - 3 * parent.spacing) / 4
 
             height:
                 parent.height
@@ -90,7 +91,7 @@ Item {
 
         Button {
             width:
-                (parent.width - 2 * parent.spacing) / 3
+                (parent.width - 3 * parent.spacing) / 4
 
             height:
                 parent.height
@@ -148,7 +149,7 @@ Item {
 
         Button {
             width:
-                (parent.width - 2 * parent.spacing) / 3
+                (parent.width - 3 * parent.spacing) / 4
 
             height:
                 parent.height
@@ -197,6 +198,64 @@ Item {
 
             onClicked:
                 root.playlistsRequested()
+        }
+
+
+        // =========================================================
+        // Sport
+        // =========================================================
+
+        Button {
+            width:
+                (parent.width - 3 * parent.spacing) / 4
+
+            height:
+                parent.height
+
+            text:
+                qsTr("Спорт")
+
+
+            background: Rectangle {
+                radius:
+                    height / 2
+
+                color:
+                    parent.hovered
+                        ? AppTheme.panelHover
+                        : AppTheme.panelSecondary
+
+                border.width:
+                    1
+
+                border.color:
+                    AppTheme.borderSubtle
+            }
+
+
+            contentItem: Text {
+                text:
+                    parent.text
+
+                color:
+                    AppTheme.textPrimary
+
+                font.pixelSize:
+                    13
+
+                font.bold:
+                    true
+
+                horizontalAlignment:
+                    Text.AlignHCenter
+
+                verticalAlignment:
+                    Text.AlignVCenter
+            }
+
+
+            onClicked:
+                root.sportRequested()
         }
     }
 }
