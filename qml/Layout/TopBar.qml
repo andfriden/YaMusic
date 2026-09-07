@@ -1,99 +1,89 @@
 import QtQuick
 import QtQuick.Controls.Basic
 
-
 Item {
     id: root
 
+    property string currentSection: "home"
+    property bool canGoBack: false
 
-    // =============================================================
-    // Properties
-    // =============================================================
+    signal sectionSelected(string section)
+    signal backRequested()
 
-    property string currentSection:
-        "home"
-
-
-    // =============================================================
-    // Signals
-    // =============================================================
-
-    signal sectionSelected(
-        string section
-    )
-
-
-    // =============================================================
-    // Layout
-    // =============================================================
-
-    readonly property int barHeight:
-        82
-
-    implicitHeight:
-        root.barHeight
-
-
-    // =============================================================
-    // Background
-    // =============================================================
+    readonly property int barHeight: 82
+    implicitHeight: root.barHeight
 
     Rectangle {
-        anchors.fill:
-            parent
-
-        color:
-            AppTheme.backgroundPrimary
+        anchors.fill: parent
+        color: AppTheme.backgroundPrimary
     }
 
-
-    // =============================================================
-    // Content
-    // =============================================================
-
     Row {
-        anchors.fill:
-            parent
+        anchors.fill: parent
+        anchors.leftMargin: 24
+        anchors.rightMargin: 24
+        spacing: 10
 
-        anchors.leftMargin:
-            24
+        Item {
+            id: backArea
 
-        anchors.rightMargin:
-            24
+            width: root.canGoBack ? 42 : 0
+            height: parent.height
+            visible: root.canGoBack
 
-        spacing:
-            10
+            ToolButton {
+                id: backButton
 
+                width: 38
+                height: 38
 
-        // =========================================================
-        // Brand
-        // =========================================================
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+
+                text: "‹"
+
+                contentItem: Text {
+                    text: backButton.text
+
+                    color:
+                        backButton.hovered
+                            ? AppTheme.accent
+                            : AppTheme.textPrimary
+
+                    font.pixelSize: 30
+
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                background: Rectangle {
+                    radius: 8
+
+                    color:
+                        backButton.hovered
+                            ? AppTheme.panelHover
+                            : "transparent"
+                }
+
+                onClicked: {
+                    root.backRequested()
+                }
+            }
+        }
 
         Item {
             id: brand
 
-            width:
-                150
-
-            height:
-                parent.height
-
+            width: 150
+            height: parent.height
 
             Rectangle {
-                anchors.left:
-                    parent.left
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
 
-                anchors.verticalCenter:
-                    parent.verticalCenter
-
-                width:
-                    brandText.implicitWidth + 20
-
-                height:
-                    42
-
-                radius:
-                    12
+                width: brandText.implicitWidth + 20
+                height: 42
+                radius: 12
 
                 color:
                     brandMouseArea.containsMouse
@@ -101,118 +91,65 @@ Item {
                         : "transparent"
             }
 
-
             Text {
                 id: brandText
 
-                anchors.left:
-                    parent.left
+                anchors.left: parent.left
+                anchors.leftMargin: 10
+                anchors.verticalCenter: parent.verticalCenter
 
-                anchors.leftMargin:
-                    10
-
-                anchors.verticalCenter:
-                    parent.verticalCenter
-
-                text:
-                    "YaMusic"
+                text: "YaMusic"
 
                 color:
                     brandMouseArea.containsMouse
                         ? AppTheme.accent
                         : AppTheme.textPrimary
 
-                font.pixelSize:
-                    24
-
-                font.bold:
-                    true
+                font.pixelSize: 24
+                font.bold: true
             }
-
 
             MouseArea {
                 id: brandMouseArea
 
-                anchors.fill:
-                    parent
+                anchors.fill: parent
 
-                hoverEnabled:
-                    true
-
-                cursorShape:
-                    Qt.PointingHandCursor
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
 
                 onClicked: {
-                    root.sectionSelected(
-                        "home"
-                    )
+                    root.sectionSelected("home")
                 }
             }
         }
 
-        // =========================================================
-        // Navigation
-        // =========================================================
-
         Repeater {
             model: [
-                {
-                    title: "Чарты",
-                    section: "chart"
-                },
-                {
-                    title: "Жанры",
-                    section: "genres"
-                },
-                {
-                    title: "Плейлисты",
-                    section: "playlists"
-                },
-                {
-                    title: "Спорт",
-                    section: "sport"
-                },
-                {
-                    title: "Мне нравится",
-                    section: "liked"
-                }
+                { title: "Чарты", section: "chart" },
+                { title: "Жанры", section: "genres" },
+                { title: "Плейлисты", section: "playlists" },
+                { title: "Спорт", section: "sport" },
+                { title: "Мне нравится", section: "liked" }
             ]
-
 
             delegate: Item {
                 id: navigationItem
 
                 required property var modelData
 
-
-                width:
-                    navigationText.implicitWidth +
-                    32
-
-                height:
-                    parent.height
-
+                width: navigationText.implicitWidth + 32
+                height: parent.height
 
                 readonly property bool active:
-                    root.currentSection ===
-                    modelData.section
-
+                    root.currentSection === modelData.section
 
                 Rectangle {
-                    anchors.left:
-                        parent.left
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
 
-                    anchors.right:
-                        parent.right
-
-                    anchors.verticalCenter:
-                        parent.verticalCenter
-
-                    height:
-                        42
-
-                    radius:
-                        12
+                    height: 42
+                    radius: 12
 
                     color:
                         navigationItem.active
@@ -224,22 +161,13 @@ Item {
                             )
                 }
 
-
                 Rectangle {
-                    anchors.left:
-                        parent.left
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
 
-                    anchors.right:
-                        parent.right
-
-                    anchors.bottom:
-                        parent.bottom
-
-                    height:
-                        3
-
-                    radius:
-                        2
+                    height: 3
+                    radius: 2
 
                     color:
                         navigationItem.active
@@ -247,23 +175,19 @@ Item {
                             : "transparent"
                 }
 
-
                 Text {
                     id: navigationText
 
-                    anchors.centerIn:
-                        parent
+                    anchors.centerIn: parent
 
-                    text:
-                        navigationItem.modelData.title
+                    text: navigationItem.modelData.title
 
                     color:
                         navigationItem.active
                             ? AppTheme.textPrimary
                             : AppTheme.textSecondary
 
-                    font.pixelSize:
-                        15
+                    font.pixelSize: 15
 
                     font.weight:
                         navigationItem.active
@@ -271,18 +195,13 @@ Item {
                             : Font.Normal
                 }
 
-
                 MouseArea {
                     id: navigationMouseArea
 
-                    anchors.fill:
-                        parent
+                    anchors.fill: parent
 
-                    hoverEnabled:
-                        true
-
-                    cursorShape:
-                        Qt.PointingHandCursor
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
 
                     onClicked: {
                         root.sectionSelected(
