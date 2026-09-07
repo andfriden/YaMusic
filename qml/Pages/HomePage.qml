@@ -1,5 +1,6 @@
 import QtQuick
 
+
 Item {
     id: root
 
@@ -9,17 +10,6 @@ Item {
     // =============================================================
 
     property var controller
-
-
-    // =============================================================
-    // Navigation requests
-    // =============================================================
-
-    signal chartRequested()
-    signal genresRequested()
-    signal playlistsRequested()
-    signal sportRequested()
-    signal myPlaylistsRequested()
 
 
     // =============================================================
@@ -96,31 +86,6 @@ Item {
 
             controller:
                 root.controller
-        }
-
-
-        // =========================================================
-        // Charts / Genres / Playlists / Sport / My Playlists
-        // =========================================================
-
-        PersonalChartSection {
-            width:
-                content.width
-
-            onChartRequested:
-                root.chartRequested()
-
-            onGenresRequested:
-                root.genresRequested()
-
-            onPlaylistsRequested:
-                root.playlistsRequested()
-
-            onSportRequested:
-                root.sportRequested()
-
-            onMyPlaylistsRequested:
-                root.myPlaylistsRequested()
         }
 
 

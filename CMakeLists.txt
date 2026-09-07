@@ -417,6 +417,8 @@ qt_add_qml_module(
         qml/Layout/ContextPanel.qml
         qml/Layout/MainLayout.qml
         qml/Layout/Sidebar.qml
+        qml/Layout/TopBar.qml
+        qml/Layout/NavigationController.qml
 
 
         # =========================================================
