@@ -13,27 +13,17 @@ Item {
 
 
     // =============================================================
-    // Current section
+    // Navigation state
     // =============================================================
 
     property string currentSection:
         "home"
-
-
-    // =============================================================
-    // Current page
-    // =============================================================
 
     property string currentPageType:
         "section"
 
     property string currentDetailId:
         ""
-
-
-    // =============================================================
-    // Current genre
-    // =============================================================
 
     property string currentGenreTitle:
         ""
@@ -43,11 +33,6 @@ Item {
 
     property string currentGenreColor:
         ""
-
-
-    // =============================================================
-    // Navigation stack
-    // =============================================================
 
     property var navigationStack:
         []
@@ -63,10 +48,6 @@ Item {
     readonly property int contextPanelWidth:
         260
 
-
-    // =============================================================
-    // Context panel
-    // =============================================================
 
     readonly property bool contextPanelVisible:
         root.currentPageType === "artist" ||
@@ -128,10 +109,6 @@ Item {
         }
 
 
-        // =========================================================
-        // Sidebar separator
-        // =========================================================
-
         Rectangle {
             width:
                 1
@@ -167,10 +144,6 @@ Item {
             clip:
                 true
 
-
-            // =====================================================
-            // Scrollable content
-            // =====================================================
 
             ScrollView {
                 id: contentScrollView
@@ -212,10 +185,6 @@ Item {
                     )
 
 
-                // =================================================
-                // Page loader
-                // =================================================
-
                 Loader {
                     id: pageLoader
 
@@ -227,6 +196,7 @@ Item {
                         item !== undefined
                         ? item.implicitHeight
                         : 0
+
 
                     onLoaded: {
                         if (
@@ -241,10 +211,6 @@ Item {
                     }
                 }
 
-
-                // =================================================
-                // Bottom spacer
-                // =================================================
 
                 Item {
                     id: bottomContentSpacer
@@ -296,6 +262,7 @@ Item {
                 text:
                     "‹"
 
+
                 contentItem:
                     Text {
                         text:
@@ -316,6 +283,7 @@ Item {
                             Text.AlignVCenter
                     }
 
+
                 background:
                     Rectangle {
                         radius:
@@ -327,6 +295,7 @@ Item {
                                 : "transparent"
                     }
 
+
                 onClicked: {
                     root.goBack()
                 }
@@ -335,7 +304,7 @@ Item {
 
 
         // =========================================================
-        // Context separator
+        // Context divider
         // =========================================================
 
         Rectangle {
@@ -399,11 +368,13 @@ Item {
         ignoreUnknownSignals:
             true
 
+
         function onChartRequested() {
             root.selectSection(
                 "chart"
             )
         }
+
 
         function onGenresRequested() {
             root.selectSection(
@@ -411,22 +382,31 @@ Item {
             )
         }
 
+
         function onPlaylistsRequested() {
             root.selectSection(
                 "playlists"
             )
         }
 
+
         function onSportRequested() {
             root.selectSection(
                 "sport"
+            )
+        }
+
+
+        function onMyPlaylistsRequested() {
+            root.selectSection(
+                "library"
             )
         }
     }
 
 
     // =============================================================
-    // Genres navigation
+    // Genre navigation
     // =============================================================
 
     Connections {
@@ -438,6 +418,7 @@ Item {
 
         ignoreUnknownSignals:
             true
+
 
         function onGenreRequested(
             genreId,
@@ -457,7 +438,7 @@ Item {
 
 
     // =============================================================
-    // Navigation from AppController
+    // Controller navigation
     // =============================================================
 
     Connections {
@@ -467,6 +448,7 @@ Item {
         ignoreUnknownSignals:
             true
 
+
         function onArtistPageRequested(
             artistId
         ) {
@@ -474,6 +456,7 @@ Item {
                 artistId
             )
         }
+
 
         function onAlbumPageRequested(
             albumId
@@ -483,9 +466,11 @@ Item {
             )
         }
 
+
         function onPlaylistPageRequested() {
             root.openPlaylistPage()
         }
+
 
         function onSearchPageRequested(
             query
@@ -498,12 +483,13 @@ Item {
 
 
     // =============================================================
-    // Select root section
+    // Select section
     // =============================================================
 
     function selectSection(
         section
     ) {
+
         root.navigationStack =
             []
 
@@ -532,7 +518,7 @@ Item {
 
 
     // =============================================================
-    // Open Artist
+    // Artist
     // =============================================================
 
     function openArtistPage(
@@ -576,7 +562,7 @@ Item {
 
 
     // =============================================================
-    // Open Album
+    // Album
     // =============================================================
 
     function openAlbumPage(
@@ -620,7 +606,7 @@ Item {
 
 
     // =============================================================
-    // Open Playlist
+    // Playlist
     // =============================================================
 
     function openPlaylistPage() {
@@ -651,7 +637,7 @@ Item {
 
 
     // =============================================================
-    // Open Genre
+    // Genre
     // =============================================================
 
     function openGenrePage(
@@ -740,12 +726,13 @@ Item {
 
 
     // =============================================================
-    // Load current page
+    // Load page
     // =============================================================
 
     function loadCurrentPage() {
         const source =
             root.pageSourceForCurrentPage()
+
 
         if (
             root.currentPageType === "genre"
@@ -773,6 +760,7 @@ Item {
             return
         }
 
+
         pageLoader.setSource(
             source,
             {
@@ -784,7 +772,7 @@ Item {
 
 
     // =============================================================
-    // Current page source
+    // Page source
     // =============================================================
 
     function pageSourceForCurrentPage() {
@@ -813,7 +801,7 @@ Item {
 
 
     // =============================================================
-    // Root section source
+    // Section source
     // =============================================================
 
     function pageSourceForSection(
@@ -850,7 +838,7 @@ Item {
                 return "../Pages/SportPage.qml"
 
             case "liked":
-                return "../Pages/HomePage.qml"
+                return "../Pages/LibraryPage.qml"
 
             case "albums":
                 return "../Pages/AlbumPage.qml"
@@ -974,6 +962,7 @@ Item {
 
         root.navigationStack =
             []
+
 
         if (
             root.controller !== null &&

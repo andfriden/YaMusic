@@ -4,11 +4,21 @@ import QtQuick.Controls.Basic
 Item {
     id: root
 
+
+    // =============================================================
+    // Navigation requests
+    // =============================================================
+
     signal chartRequested()
     signal genresRequested()
     signal playlistsRequested()
     signal sportRequested()
+    signal myPlaylistsRequested()
 
+
+    // =============================================================
+    // Size
+    // =============================================================
 
     width:
         parent
@@ -19,7 +29,13 @@ Item {
         42
 
 
+    // =============================================================
+    // Buttons
+    // =============================================================
+
     Row {
+        id: buttonsRow
+
         anchors.fill:
             parent
 
@@ -33,52 +49,55 @@ Item {
 
         Button {
             width:
-                (parent.width - 3 * parent.spacing) / 4
+                (buttonsRow.width -
+                    buttonsRow.spacing * 4) / 5
 
             height:
-                parent.height
+                buttonsRow.height
 
             text:
                 qsTr("Чарты")
 
+            background:
+                Rectangle {
+                    radius:
+                        height / 2
 
-            background: Rectangle {
-                radius:
-                    height / 2
+                    color:
+                        parent.hovered
+                            ? AppTheme.panelHover
+                            : AppTheme.panelSecondary
 
-                color:
-                    parent.hovered
-                        ? AppTheme.panelHover
-                        : AppTheme.panelSecondary
+                    border.width:
+                        1
 
-                border.width:
-                    1
+                    border.color:
+                        AppTheme.borderSubtle
+                }
 
-                border.color:
-                    AppTheme.borderSubtle
-            }
+            contentItem:
+                Text {
+                    text:
+                        parent.text
 
+                    color:
+                        AppTheme.textPrimary
 
-            contentItem: Text {
-                text:
-                    parent.text
+                    font.pixelSize:
+                        13
 
-                color:
-                    AppTheme.textPrimary
+                    font.bold:
+                        true
 
-                font.pixelSize:
-                    13
+                    horizontalAlignment:
+                        Text.AlignHCenter
 
-                font.bold:
-                    true
+                    verticalAlignment:
+                        Text.AlignVCenter
 
-                horizontalAlignment:
-                    Text.AlignHCenter
-
-                verticalAlignment:
-                    Text.AlignVCenter
-            }
-
+                    elide:
+                        Text.ElideRight
+                }
 
             onClicked:
                 root.chartRequested()
@@ -91,52 +110,55 @@ Item {
 
         Button {
             width:
-                (parent.width - 3 * parent.spacing) / 4
+                (buttonsRow.width -
+                    buttonsRow.spacing * 4) / 5
 
             height:
-                parent.height
+                buttonsRow.height
 
             text:
                 qsTr("Жанры")
 
+            background:
+                Rectangle {
+                    radius:
+                        height / 2
 
-            background: Rectangle {
-                radius:
-                    height / 2
+                    color:
+                        parent.hovered
+                            ? AppTheme.panelHover
+                            : AppTheme.panelSecondary
 
-                color:
-                    parent.hovered
-                        ? AppTheme.panelHover
-                        : AppTheme.panelSecondary
+                    border.width:
+                        1
 
-                border.width:
-                    1
+                    border.color:
+                        AppTheme.borderSubtle
+                }
 
-                border.color:
-                    AppTheme.borderSubtle
-            }
+            contentItem:
+                Text {
+                    text:
+                        parent.text
 
+                    color:
+                        AppTheme.textPrimary
 
-            contentItem: Text {
-                text:
-                    parent.text
+                    font.pixelSize:
+                        13
 
-                color:
-                    AppTheme.textPrimary
+                    font.bold:
+                        true
 
-                font.pixelSize:
-                    13
+                    horizontalAlignment:
+                        Text.AlignHCenter
 
-                font.bold:
-                    true
+                    verticalAlignment:
+                        Text.AlignVCenter
 
-                horizontalAlignment:
-                    Text.AlignHCenter
-
-                verticalAlignment:
-                    Text.AlignVCenter
-            }
-
+                    elide:
+                        Text.ElideRight
+                }
 
             onClicked:
                 root.genresRequested()
@@ -149,52 +171,55 @@ Item {
 
         Button {
             width:
-                (parent.width - 3 * parent.spacing) / 4
+                (buttonsRow.width -
+                    buttonsRow.spacing * 4) / 5
 
             height:
-                parent.height
+                buttonsRow.height
 
             text:
                 qsTr("Плейлисты")
 
+            background:
+                Rectangle {
+                    radius:
+                        height / 2
 
-            background: Rectangle {
-                radius:
-                    height / 2
+                    color:
+                        parent.hovered
+                            ? AppTheme.panelHover
+                            : AppTheme.panelSecondary
 
-                color:
-                    parent.hovered
-                        ? AppTheme.panelHover
-                        : AppTheme.panelSecondary
+                    border.width:
+                        1
 
-                border.width:
-                    1
+                    border.color:
+                        AppTheme.borderSubtle
+                }
 
-                border.color:
-                    AppTheme.borderSubtle
-            }
+            contentItem:
+                Text {
+                    text:
+                        parent.text
 
+                    color:
+                        AppTheme.textPrimary
 
-            contentItem: Text {
-                text:
-                    parent.text
+                    font.pixelSize:
+                        13
 
-                color:
-                    AppTheme.textPrimary
+                    font.bold:
+                        true
 
-                font.pixelSize:
-                    13
+                    horizontalAlignment:
+                        Text.AlignHCenter
 
-                font.bold:
-                    true
+                    verticalAlignment:
+                        Text.AlignVCenter
 
-                horizontalAlignment:
-                    Text.AlignHCenter
-
-                verticalAlignment:
-                    Text.AlignVCenter
-            }
-
+                    elide:
+                        Text.ElideRight
+                }
 
             onClicked:
                 root.playlistsRequested()
@@ -207,55 +232,119 @@ Item {
 
         Button {
             width:
-                (parent.width - 3 * parent.spacing) / 4
+                (buttonsRow.width -
+                    buttonsRow.spacing * 4) / 5
 
             height:
-                parent.height
+                buttonsRow.height
 
             text:
                 qsTr("Спорт")
 
+            background:
+                Rectangle {
+                    radius:
+                        height / 2
 
-            background: Rectangle {
-                radius:
-                    height / 2
+                    color:
+                        parent.hovered
+                            ? AppTheme.panelHover
+                            : AppTheme.panelSecondary
 
-                color:
-                    parent.hovered
-                        ? AppTheme.panelHover
-                        : AppTheme.panelSecondary
+                    border.width:
+                        1
 
-                border.width:
-                    1
+                    border.color:
+                        AppTheme.borderSubtle
+                }
 
-                border.color:
-                    AppTheme.borderSubtle
-            }
+            contentItem:
+                Text {
+                    text:
+                        parent.text
 
+                    color:
+                        AppTheme.textPrimary
 
-            contentItem: Text {
-                text:
-                    parent.text
+                    font.pixelSize:
+                        13
 
-                color:
-                    AppTheme.textPrimary
+                    font.bold:
+                        true
 
-                font.pixelSize:
-                    13
+                    horizontalAlignment:
+                        Text.AlignHCenter
 
-                font.bold:
-                    true
+                    verticalAlignment:
+                        Text.AlignVCenter
 
-                horizontalAlignment:
-                    Text.AlignHCenter
-
-                verticalAlignment:
-                    Text.AlignVCenter
-            }
-
+                    elide:
+                        Text.ElideRight
+                }
 
             onClicked:
                 root.sportRequested()
+        }
+
+
+        // =========================================================
+        // My Playlists
+        // =========================================================
+
+        Button {
+            width:
+                (buttonsRow.width -
+                    buttonsRow.spacing * 4) / 5
+
+            height:
+                buttonsRow.height
+
+            text:
+                qsTr("Мои плейлисты")
+
+            background:
+                Rectangle {
+                    radius:
+                        height / 2
+
+                    color:
+                        parent.hovered
+                            ? AppTheme.panelHover
+                            : AppTheme.panelSecondary
+
+                    border.width:
+                        1
+
+                    border.color:
+                        AppTheme.borderSubtle
+                }
+
+            contentItem:
+                Text {
+                    text:
+                        parent.text
+
+                    color:
+                        AppTheme.textPrimary
+
+                    font.pixelSize:
+                        13
+
+                    font.bold:
+                        true
+
+                    horizontalAlignment:
+                        Text.AlignHCenter
+
+                    verticalAlignment:
+                        Text.AlignVCenter
+
+                    elide:
+                        Text.ElideRight
+                }
+
+            onClicked:
+                root.myPlaylistsRequested()
         }
     }
 }
