@@ -41,7 +41,7 @@ endif()
 
 
 # =============================================================
-# Resources / icons
+# Icons
 # =============================================================
 
 set(
@@ -56,25 +56,21 @@ set(
 
 
 # =============================================================
-# Windows icon
+# Windows icon resource
 # =============================================================
 
-if(WIN32)
+if(WIN32 AND EXISTS "${YAMUSIC_ICON_ICO}")
 
-    if(EXISTS "${YAMUSIC_ICON_ICO}")
+    set(
+            YAMUSIC_RC
+            "${CMAKE_CURRENT_BINARY_DIR}/YaMusic.rc"
+    )
 
-        set(
-                YAMUSIC_RC
-                "${CMAKE_CURRENT_BINARY_DIR}/YaMusic.rc"
-        )
-
-        file(
-                WRITE
-                "${YAMUSIC_RC}"
-                "IDI_ICON1 ICON DISCARDABLE \"${YAMUSIC_ICON_ICO}\"\n"
-        )
-
-    endif()
+    file(
+            WRITE
+            "${YAMUSIC_RC}"
+            "IDI_ICON1 ICON DISCARDABLE \"${YAMUSIC_ICON_ICO}\"\n"
+    )
 
 endif()
 
@@ -83,23 +79,19 @@ endif()
 # macOS icon
 # =============================================================
 
-if(APPLE)
+if(APPLE AND EXISTS "${YAMUSIC_ICON_ICNS}")
 
-    if(EXISTS "${YAMUSIC_ICON_ICNS}")
-
-        set_source_files_properties(
-                "${YAMUSIC_ICON_ICNS}"
-                PROPERTIES
-                MACOSX_PACKAGE_LOCATION "Resources"
-        )
-
-    endif()
+    set_source_files_properties(
+            "${YAMUSIC_ICON_ICNS}"
+            PROPERTIES
+            MACOSX_PACKAGE_LOCATION "Resources"
+    )
 
 endif()
 
 
 # =============================================================
-# Executable sources
+# C++ sources
 # =============================================================
 
 set(
@@ -107,6 +99,7 @@ set(
 
         main.cpp
 
+        # Core
         src/Core/AppController.cpp
         src/Core/AppController+Catalog.cpp
         src/Core/AppController+Library.cpp
@@ -128,26 +121,32 @@ set(
         src/Core/PlayerAccentService.cpp
         src/Core/SearchController.cpp
 
+        # Models
         src/Models/Account.cpp
         src/Models/PersonalPlaylist.cpp
         src/Models/Playlist.cpp
         src/Models/Track.cpp
 
+        # Player / playback
         src/Player/PlayerService.cpp
-
         src/Playback/PlaybackController.cpp
 
+        # Queue
         src/Queue/QueueModel.cpp
         src/Queue/QueueService.cpp
 
+        # Yandex
         src/Yandex/AccountParser.cpp
         src/Yandex/YandexClient.cpp
 
+        # Yandex Account
         src/Yandex/Account/AccountService.cpp
 
+        # Yandex Auth
         src/Yandex/Auth/YandexAuth.cpp
         src/Yandex/Auth/YandexTokenStorage.cpp
 
+        # Yandex Catalog
         src/Yandex/Catalog/AlbumModel.cpp
         src/Yandex/Catalog/AlbumService.cpp
         src/Yandex/Catalog/ArtistAlbumsModel.cpp
@@ -165,6 +164,7 @@ set(
         src/Yandex/Catalog/SimilarArtistsModel.cpp
         src/Yandex/Catalog/TrackService.cpp
 
+        # Yandex Personal
         src/Yandex/Personal/LikedTracksModel.cpp
         src/Yandex/Personal/LikesService.cpp
         src/Yandex/Personal/LibraryPlaylistsModel.cpp
@@ -191,6 +191,7 @@ qt_add_executable(
         ${YAMUSIC_SOURCES}
 
         $<$<AND:$<PLATFORM_ID:Windows>,$<BOOL:${YAMUSIC_RC}>>:${YAMUSIC_RC}>
+
         $<$<AND:$<PLATFORM_ID:Darwin>,$<BOOL:${YAMUSIC_ICON_ICNS}>>:${YAMUSIC_ICON_ICNS}>
 )
 
@@ -221,53 +222,53 @@ qt_add_qml_module(
 
         QML_FILES
 
-        Main.qml
+        qml/Main.qml
 
-        Components/SearchBar.qml
-        Components/StatusBar.qml
-        Components/NowPlayingBar.qml
-        Components/EntityLink.qml
-        Components/ExpandedNowPlaying.qml
-        Components/ChartTrackRow.qml
-        Components/PersonalChartSection.qml
+        qml/Components/SearchBar.qml
+        qml/Components/StatusBar.qml
+        qml/Components/NowPlayingBar.qml
+        qml/Components/EntityLink.qml
+        qml/Components/ExpandedNowPlaying.qml
+        qml/Components/ChartTrackRow.qml
+        qml/Components/PersonalChartSection.qml
 
-        Pages/HomePage.qml
-        Pages/SearchPage.qml
-        Pages/MyWavePage.qml
-        Pages/LibraryPage.qml
-        Pages/AlbumPage.qml
-        Pages/ArtistPage.qml
-        Pages/PlaylistPage.qml
-        Pages/RecentPage.qml
-        Pages/ChartPage.qml
-        Pages/PlaylistsPage.qml
-        Pages/GenresPage.qml
-        Pages/GenrePage.qml
-        Pages/SubGenrePage.qml
-        Pages/SportPage.qml
+        qml/Pages/HomePage.qml
+        qml/Pages/SearchPage.qml
+        qml/Pages/MyWavePage.qml
+        qml/Pages/LibraryPage.qml
+        qml/Pages/AlbumPage.qml
+        qml/Pages/ArtistPage.qml
+        qml/Pages/PlaylistPage.qml
+        qml/Pages/RecentPage.qml
+        qml/Pages/ChartPage.qml
+        qml/Pages/PlaylistsPage.qml
+        qml/Pages/GenresPage.qml
+        qml/Pages/GenrePage.qml
+        qml/Pages/SubGenrePage.qml
+        qml/Pages/SportPage.qml
 
-        Home/PersonalPlaylistsSection.qml
-        Home/PlaylistView.qml
-        Home/RecentListeningSection.qml
+        qml/Home/PersonalPlaylistsSection.qml
+        qml/Home/PlaylistView.qml
+        qml/Home/RecentListeningSection.qml
 
-        MyWave/MyWaveSection.qml
+        qml/MyWave/MyWaveSection.qml
 
-        Search/SearchResultsSection.qml
+        qml/Search/SearchResultsSection.qml
 
-        Context/ContextPanelHome.qml
-        Context/ContextPanelMyWave.qml
-        Context/ContextPanelArtist.qml
-        Context/ContextPanelAlbum.qml
-        Context/ContextPanelPlaylist.qml
-        Context/ContextPanelLibrary.qml
+        qml/Context/ContextPanelHome.qml
+        qml/Context/ContextPanelMyWave.qml
+        qml/Context/ContextPanelArtist.qml
+        qml/Context/ContextPanelAlbum.qml
+        qml/Context/ContextPanelPlaylist.qml
+        qml/Context/ContextPanelLibrary.qml
 
-        Layout/ContextPanel.qml
-        Layout/MainLayout.qml
-        Layout/Sidebar.qml
-        Layout/TopBar.qml
-        Layout/NavigationController.qml
+        qml/Layout/ContextPanel.qml
+        qml/Layout/MainLayout.qml
+        qml/Layout/Sidebar.qml
+        qml/Layout/TopBar.qml
+        qml/Layout/NavigationController.qml
 
-        Theme/AppTheme.qml
+        qml/Theme/AppTheme.qml
 )
 
 
@@ -275,22 +276,26 @@ qt_add_qml_module(
 # Output name
 #
 # Linux:
-#   executable = yamusic
+#   build/YaMusic/   = QML module directory
+#   build/yamusic    = executable
 #
 # macOS / Windows:
-#   executable/app bundle = YaMusic
-#
-# Linux uses a different binary name because Qt's QML module
-# directory is also named "YaMusic".
+#   YaMusic
 # =============================================================
 
 if(UNIX AND NOT APPLE)
 
-    set(YAMUSIC_OUTPUT_NAME "yamusic")
+    set(
+            YAMUSIC_OUTPUT_NAME
+            "yamusic"
+    )
 
 else()
 
-    set(YAMUSIC_OUTPUT_NAME "YaMusic")
+    set(
+            YAMUSIC_OUTPUT_NAME
+            "YaMusic"
+    )
 
 endif()
 
@@ -303,9 +308,11 @@ set_target_properties(
         appYaMusic
         PROPERTIES
 
-        OUTPUT_NAME "${YAMUSIC_OUTPUT_NAME}"
+        OUTPUT_NAME
+        "${YAMUSIC_OUTPUT_NAME}"
 
-        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE
+        TRUE
 
         MACOSX_BUNDLE_BUNDLE_NAME
         "YaMusic"
@@ -319,7 +326,8 @@ set_target_properties(
         MACOSX_BUNDLE_GUI_IDENTIFIER
         "my.appyamusic"
 
-        WIN32_EXECUTABLE TRUE
+        WIN32_EXECUTABLE
+        TRUE
 )
 
 
@@ -332,14 +340,15 @@ if(APPLE AND EXISTS "${YAMUSIC_ICON_ICNS}")
     set_target_properties(
             appYaMusic
             PROPERTIES
-            MACOSX_BUNDLE_ICON_FILE "YaMusic.icns"
+            MACOSX_BUNDLE_ICON_FILE
+            "YaMusic.icns"
     )
 
 endif()
 
 
 # =============================================================
-# Link libraries
+# Libraries
 # =============================================================
 
 target_link_libraries(
@@ -368,7 +377,7 @@ if(APPLE)
         target_link_libraries(
                 appYaMusic
                 PRIVATE
-                ${SECURITY_FRAMEWORK}
+                "${SECURITY_FRAMEWORK}"
         )
 
     endif()
@@ -377,13 +386,17 @@ endif()
 
 
 # =============================================================
-# Install executable / bundle
+# Install target
 # =============================================================
 
 install(
         TARGETS appYaMusic
-        BUNDLE DESTINATION .
-        RUNTIME DESTINATION bin
+
+        BUNDLE
+        DESTINATION .
+
+        RUNTIME
+        DESTINATION bin
 )
 
 
@@ -425,16 +438,20 @@ endif()
 # =============================================================
 # Qt deployment
 #
-# Copies Qt libraries, plugins and QML modules into the
-# installation directory so users do not need Qt installed.
+# Qt libraries, plugins and QML modules are copied into
+# the installation tree so the user does not need Qt installed.
 # =============================================================
 
 qt_generate_deploy_qml_app_script(
         TARGET appYaMusic
-        OUTPUT_SCRIPT deploy_script
+
+        OUTPUT_SCRIPT
+        deploy_script
+
         NO_UNSUPPORTED_PLATFORM_ERROR
 )
 
 install(
-        SCRIPT "${deploy_script}"
+        SCRIPT
+        "${deploy_script}"
 )
