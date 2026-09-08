@@ -58,7 +58,8 @@ jobs:
             -S . \
             -B build \
             -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/dist"
 
 
       - name: Build
@@ -69,7 +70,7 @@ jobs:
       - name: Install
         run: |
           rm -rf dist
-          cmake --install build --prefix dist
+          cmake --install build
 
 
       - name: Package
@@ -123,7 +124,8 @@ jobs:
             -S . \
             -B build \
             -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/dist"
 
 
       - name: Build
@@ -134,7 +136,7 @@ jobs:
       - name: Install
         run: |
           rm -rf dist
-          cmake --install build --prefix dist
+          cmake --install build
 
 
       - name: Create DMG
@@ -186,7 +188,8 @@ jobs:
             -S . `
             -B build `
             -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_INSTALL_PREFIX="$env:GITHUB_WORKSPACE\dist"
 
 
       - name: Build
@@ -202,7 +205,7 @@ jobs:
             Remove-Item dist -Recurse -Force
           }
 
-          cmake --install build --prefix dist
+          cmake --install build
 
 
       - name: Package
