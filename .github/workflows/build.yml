@@ -44,7 +44,7 @@ jobs:
           host: linux
           target: desktop
           arch: linux_gcc_64
-          modules: qtquick,qtmultimedia
+          modules: qtmultimedia
           cache: true
 
 
@@ -107,7 +107,7 @@ jobs:
           host: mac
           target: desktop
           arch: clang_64
-          modules: qtquick,qtmultimedia
+          modules: qtmultimedia
           cache: true
 
 
@@ -173,7 +173,7 @@ jobs:
           host: windows
           target: desktop
           arch: win64_msvc2022_64
-          modules: qtquick,qtmultimedia
+          modules: qtmultimedia
           cache: true
 
 
