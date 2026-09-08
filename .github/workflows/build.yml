@@ -12,10 +12,14 @@ on:
   workflow_dispatch:
 
 
+env:
+  QT_VERSION: 6.10.3
+
+
 jobs:
 
   # =============================================================
-  # Linux
+  # Linux x64
   # =============================================================
 
   linux:
@@ -23,15 +27,15 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
 
 
-      - name: Install dependencies
+      - name: Install build dependencies
         run: |
-          sudo apt update
-
-          sudo apt install -y \
+          sudo apt-get update
+          sudo apt-get install -y \
             build-essential \
             cmake \
             ninja-build
@@ -40,7 +44,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: "6.11.2"
+          version: ${{ env.QT_VERSION }}
           host: linux
           target: desktop
           arch: linux_gcc_64
@@ -59,28 +63,24 @@ jobs:
 
       - name: Build
         run: |
-          cmake \
-            --build build \
-            --parallel
+          cmake --build build --parallel
 
 
-      - name: Install / Deploy
+      - name: Install
         run: |
           rm -rf dist
-
-          cmake \
-            --install build \
-            --prefix dist
+          cmake --install build --prefix dist
 
 
       - name: Package
         run: |
-          tar -C dist \
+          tar \
+            -C dist \
             -czf YaMusic-Linux-x64.tar.gz \
             .
 
 
-      - name: Upload
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: YaMusic-Linux-x64
@@ -96,6 +96,7 @@ jobs:
     runs-on: macos-14
 
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -103,12 +104,17 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: "6.11.2"
+          version: ${{ env.QT_VERSION }}
           host: mac
           target: desktop
           arch: clang_64
           modules: qtmultimedia
           cache: true
+
+
+      - name: Install build tools
+        run: |
+          brew install cmake ninja
 
 
       - name: Configure
@@ -122,18 +128,13 @@ jobs:
 
       - name: Build
         run: |
-          cmake \
-            --build build \
-            --parallel
+          cmake --build build --parallel
 
 
-      - name: Install / Deploy
+      - name: Install
         run: |
           rm -rf dist
-
-          cmake \
-            --install build \
-            --prefix dist
+          cmake --install build --prefix dist
 
 
       - name: Create DMG
@@ -146,7 +147,7 @@ jobs:
             YaMusic-macOS.dmg
 
 
-      - name: Upload
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: YaMusic-macOS
@@ -154,7 +155,7 @@ jobs:
 
 
   # =============================================================
-  # Windows
+  # Windows x64
   # =============================================================
 
   windows:
@@ -162,6 +163,7 @@ jobs:
     runs-on: windows-2025
 
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -169,7 +171,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: "6.11.2"
+          version: ${{ env.QT_VERSION }}
           host: windows
           target: desktop
           arch: win64_msvc2022_64
@@ -179,7 +181,6 @@ jobs:
 
       - name: Configure
         shell: pwsh
-
         run: |
           cmake `
             -S . `
@@ -189,33 +190,30 @@ jobs:
 
 
       - name: Build
+        shell: pwsh
         run: |
-          cmake `
-            --build build `
-            --parallel
+          cmake --build build --parallel
 
 
-      - name: Install / Deploy
+      - name: Install
+        shell: pwsh
         run: |
           if (Test-Path dist) {
             Remove-Item dist -Recurse -Force
           }
 
-          cmake `
-            --install build `
-            --prefix dist
+          cmake --install build --prefix dist
 
 
       - name: Package
         shell: pwsh
-
         run: |
           Compress-Archive `
             -Path dist\* `
             -DestinationPath YaMusic-Windows-x64.zip
 
 
-      - name: Upload
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: YaMusic-Windows-x64
