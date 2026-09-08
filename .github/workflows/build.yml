@@ -176,9 +176,11 @@ jobs:
           version: ${{ env.QT_VERSION }}
           host: windows
           target: desktop
-          arch: win64_msvc2022_64
+          arch: win64_mingw
           modules: qtmultimedia
+          tools: tools_mingw1310
           cache: true
+          add-tools-to-path: true
 
 
       - name: Configure
@@ -189,7 +191,9 @@ jobs:
             -B build `
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_INSTALL_PREFIX="$env:GITHUB_WORKSPACE\dist"
+            -DCMAKE_INSTALL_PREFIX="$env:GITHUB_WORKSPACE\dist" `
+            -DCMAKE_C_COMPILER=gcc `
+            -DCMAKE_CXX_COMPILER=g++
 
 
       - name: Build
