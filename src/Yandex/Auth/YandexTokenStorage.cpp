@@ -2,33 +2,83 @@
 
 #include <QSettings>
 
-QString YandexTokenStorage::load()
-{
-    QSettings settings;
 
-    return settings.value("yandex/token").toString();
+namespace
+{
+    constexpr const char *OrganizationName =
+        "my.appyamusic";
+
+    constexpr const char *ApplicationName =
+        "appYaMusic";
+
+    constexpr const char *TokenKey =
+        "yandex/token";
 }
 
-bool YandexTokenStorage::saveToken(const QString &token)
+
+// =============================================================
+// Load
+// =============================================================
+
+QString YandexTokenStorage::load()
 {
-    if (token.isEmpty()) {
+    QSettings settings(
+        OrganizationName,
+        ApplicationName
+    );
+
+    return settings
+        .value(TokenKey)
+        .toString();
+}
+
+
+// =============================================================
+// Save
+// =============================================================
+
+bool YandexTokenStorage::saveToken(
+    const QString &token)
+{
+    if (token.isEmpty())
+    {
         return false;
     }
 
-    QSettings settings;
+    QSettings settings(
+        OrganizationName,
+        ApplicationName
+    );
 
-    settings.setValue("yandex/token", token);
+    settings.setValue(
+        TokenKey,
+        token
+    );
+
     settings.sync();
 
-    return settings.status() == QSettings::NoError;
+    return settings.status() ==
+        QSettings::NoError;
 }
+
+
+// =============================================================
+// Clear
+// =============================================================
 
 bool YandexTokenStorage::clearToken()
 {
-    QSettings settings;
+    QSettings settings(
+        OrganizationName,
+        ApplicationName
+    );
 
-    settings.remove("yandex/token");
+    settings.remove(
+        TokenKey
+    );
+
     settings.sync();
 
-    return settings.status() == QSettings::NoError;
+    return settings.status() ==
+        QSettings::NoError;
 }

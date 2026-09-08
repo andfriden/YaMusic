@@ -1,0 +1,55 @@
+{
+  "version": 6,
+
+  "configurePresets": [
+    {
+      "name": "linux",
+      "displayName": "Linux",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/linux",
+
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+
+    {
+      "name": "macos",
+      "displayName": "macOS",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/macos",
+
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+
+    {
+      "name": "windows",
+      "displayName": "Windows",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/windows",
+
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+
+  "buildPresets": [
+    {
+      "name": "build-linux",
+      "configurePreset": "linux"
+    },
+
+    {
+      "name": "build-macos",
+      "configurePreset": "macos"
+    },
+
+    {
+      "name": "build-windows",
+      "configurePreset": "windows"
+    }
+  ]
+}

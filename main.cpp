@@ -5,23 +5,63 @@
 #include "src/Core/AppController.h"
 #include "src/Yandex/Catalog/CoverImageProvider.h"
 
+
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    // Registers the application controller for use from QML.
+
+    // =============================================================
+    // Stable application identity
+    //
+    // This must be set before any QSettings object is created.
+    // =============================================================
+
+    QCoreApplication::setOrganizationName(
+        "YaMusic"
+    );
+
+    QCoreApplication::setOrganizationDomain(
+        "yandex.ru"
+    );
+
+    QCoreApplication::setApplicationName(
+        "YaMusic"
+    );
+
+
+    // =============================================================
+    // QML registration
+    // =============================================================
+
     qmlRegisterType<AppController>(
         "YaMusic.Core",
         1,
         0,
-        "AppController");
+        "AppController"
+    );
+
+
+    // =============================================================
+    // QML engine
+    // =============================================================
 
     QQmlApplicationEngine engine;
 
-    // Registers the Yandex Music artwork provider.
+
+    // =============================================================
+    // Yandex artwork provider
+    // =============================================================
+
     engine.addImageProvider(
         "yandex",
-        new CoverImageProvider());
+        new CoverImageProvider()
+    );
+
+
+    // =============================================================
+    // QML creation failure
+    // =============================================================
 
     QObject::connect(
         &engine,
@@ -30,11 +70,19 @@ int main(int argc, char *argv[])
         []() {
             QCoreApplication::exit(-1);
         },
-        Qt::QueuedConnection);
+        Qt::QueuedConnection
+    );
+
+
+    // =============================================================
+    // Main QML module
+    // =============================================================
 
     engine.loadFromModule(
         "YaMusic",
-        "Main");
+        "Main"
+    );
+
 
     return QGuiApplication::exec();
 }

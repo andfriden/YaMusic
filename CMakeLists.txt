@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.21)
 
 project(
         YaMusic
@@ -6,11 +6,23 @@ project(
         LANGUAGES CXX
 )
 
+
+# =============================================================
+# C++ standard
+# =============================================================
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+
+# =============================================================
+# Qt
+# =============================================================
 
 find_package(
         Qt6
+        6.10
         REQUIRED
         COMPONENTS
         Quick
@@ -18,9 +30,11 @@ find_package(
         Multimedia
 )
 
+
 qt_standard_project_setup(
         REQUIRES 6.10
 )
+
 
 # =============================================================
 # Imported Figma / design content
@@ -31,8 +45,42 @@ if (
         "${CMAKE_CURRENT_LIST_DIR}/importedcontent/CMakeLists.txt"
 )
     add_subdirectory(
-            ${CMAKE_CURRENT_LIST_DIR}/importedcontent
+            "${CMAKE_CURRENT_LIST_DIR}/importedcontent"
     )
+endif()
+
+
+# =============================================================
+# Platform resources
+# =============================================================
+
+set(YAMUSIC_ICON_ICNS
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/YaMusic.icns"
+)
+
+set(YAMUSIC_ICON_ICO
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/YaMusic.ico"
+)
+
+
+# =============================================================
+# Windows icon resource
+#
+# CMake generates the .rc file automatically.
+# =============================================================
+
+if (WIN32)
+
+    set(YAMUSIC_RC
+            "${CMAKE_CURRENT_BINARY_DIR}/YaMusic.rc"
+    )
+
+    file(
+            WRITE
+            "${YAMUSIC_RC}"
+            "IDI_ICON1 ICON DISCARDABLE \"${YAMUSIC_ICON_ICO}\"\n"
+    )
+
 endif()
 
 
@@ -48,6 +96,7 @@ qt_add_executable(
         # =========================================================
 
         main.cpp
+
 
         # =========================================================
         # Core
@@ -76,8 +125,8 @@ qt_add_executable(
         src/Core/SearchController.h
         src/Core/SearchController.cpp
 
-        src/Core/GenreController.cpp
         src/Core/GenreController.h
+        src/Core/GenreController.cpp
 
 
         # =========================================================
@@ -204,17 +253,17 @@ qt_add_executable(
         src/Yandex/Catalog/SimilarArtistsModel.h
         src/Yandex/Catalog/SimilarArtistsModel.cpp
 
-        src/Yandex/Catalog/ChartService.cpp
         src/Yandex/Catalog/ChartService.h
+        src/Yandex/Catalog/ChartService.cpp
 
-        src/Yandex/Catalog/ChartModel.cpp
         src/Yandex/Catalog/ChartModel.h
+        src/Yandex/Catalog/ChartModel.cpp
 
-        src/Yandex/Catalog/GenreService.cpp
         src/Yandex/Catalog/GenreService.h
+        src/Yandex/Catalog/GenreService.cpp
 
-        src/Yandex/Catalog/GenreModel.cpp
         src/Yandex/Catalog/GenreModel.h
+        src/Yandex/Catalog/GenreModel.cpp
 
 
         # =========================================================
@@ -239,14 +288,14 @@ qt_add_executable(
         src/Yandex/Personal/PlaylistModel.h
         src/Yandex/Personal/PlaylistModel.cpp
 
-        src/Yandex/Personal/LibraryPlaylistsModel.cpp
         src/Yandex/Personal/LibraryPlaylistsModel.h
+        src/Yandex/Personal/LibraryPlaylistsModel.cpp
 
-        src/Yandex/Personal/LikesService.cpp
         src/Yandex/Personal/LikesService.h
+        src/Yandex/Personal/LikesService.cpp
 
-        src/Yandex/Personal/LikedTracksModel.cpp
         src/Yandex/Personal/LikedTracksModel.h
+        src/Yandex/Personal/LikedTracksModel.cpp
 
 
         # =========================================================
@@ -262,39 +311,76 @@ qt_add_executable(
 
 
         # =========================================================
-        # Queue
+        # Queue model
         # =========================================================
 
-        src/Queue/QueueModel.cpp
         src/Queue/QueueModel.h
+        src/Queue/QueueModel.cpp
 
 
         # =========================================================
         # Player accent
         # =========================================================
 
-        src/Core/PlayerAccentService.cpp
         src/Core/PlayerAccentService.h
+        src/Core/PlayerAccentService.cpp
 
 
         # =========================================================
         # Charts
         # =========================================================
 
-        src/Core/ChartController.cpp
         src/Core/ChartController.h
+        src/Core/ChartController.cpp
 
-        src/Yandex/Personal/PersonalChartModel.cpp
         src/Yandex/Personal/PersonalChartModel.h
+        src/Yandex/Personal/PersonalChartModel.cpp
 
 
         # =========================================================
         # New playlists
         # =========================================================
 
-        src/Yandex/Personal/NewPlaylistsService.cpp
         src/Yandex/Personal/NewPlaylistsService.h
+        src/Yandex/Personal/NewPlaylistsService.cpp
 )
+
+
+# =============================================================
+# Windows resources
+# =============================================================
+
+if (WIN32)
+
+    target_sources(
+            appYaMusic
+            PRIVATE
+            "${YAMUSIC_RC}"
+    )
+
+endif()
+
+
+# =============================================================
+# macOS resources
+# =============================================================
+
+if (APPLE)
+
+    set_source_files_properties(
+            "${YAMUSIC_ICON_ICNS}"
+            PROPERTIES
+            MACOSX_PACKAGE_LOCATION
+            "Resources"
+    )
+
+    target_sources(
+            appYaMusic
+            PRIVATE
+            "${YAMUSIC_ICON_ICNS}"
+    )
+
+endif()
 
 
 # =============================================================
@@ -321,25 +407,20 @@ qt_add_qml_module(
         URI YaMusic
         VERSION 1.0
 
+
         # =========================================================
         # Application resources
         # =========================================================
 
         RESOURCES
-
         data/genre_playlists.csv
 
-
-        # =========================================================
-        # QML files
-        # =========================================================
-
-        QML_FILES
 
         # =========================================================
         # Root
         # =========================================================
 
+        QML_FILES
         Main.qml
 
 
@@ -383,6 +464,7 @@ qt_add_qml_module(
         qml/Home/PersonalPlaylistsSection.qml
         qml/Home/PlaylistView.qml
         qml/Home/RecentListeningSection.qml
+
 
         # =========================================================
         # My Wave
@@ -435,20 +517,44 @@ qt_add_qml_module(
 
 set_target_properties(
         appYaMusic
+
         PROPERTIES
+
+        OUTPUT_NAME
+        "YaMusic"
 
         MACOSX_BUNDLE
         TRUE
 
+        MACOSX_BUNDLE_BUNDLE_NAME
+        "YaMusic"
+
         MACOSX_BUNDLE_BUNDLE_VERSION
-        ${PROJECT_VERSION}
+        "${PROJECT_VERSION}"
 
         MACOSX_BUNDLE_SHORT_VERSION_STRING
-        ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+        "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
 
         WIN32_EXECUTABLE
         TRUE
 )
+
+
+# =============================================================
+# macOS application icon
+# =============================================================
+
+if (APPLE)
+
+    set_target_properties(
+            appYaMusic
+
+            PROPERTIES
+            MACOSX_BUNDLE_ICON_FILE
+            "YaMusic.icns"
+    )
+
+endif()
 
 
 # =============================================================
@@ -457,8 +563,8 @@ set_target_properties(
 
 target_link_libraries(
         appYaMusic
-        PRIVATE
 
+        PRIVATE
         Qt6::Quick
         Qt6::Network
         Qt6::Multimedia
@@ -480,8 +586,8 @@ if (APPLE)
 
         target_link_libraries(
                 appYaMusic
-                PRIVATE
 
+                PRIVATE
                 ${SECURITY_FRAMEWORK}
         )
 
@@ -500,14 +606,57 @@ install(
         TARGETS
         appYaMusic
 
-        BUNDLE DESTINATION .
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        BUNDLE
+        DESTINATION .
+
+        LIBRARY
+        DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}
+
+        RUNTIME
+        DESTINATION
+        ${CMAKE_INSTALL_BINDIR}
 )
 
 
 # =============================================================
-# QML deployment
+# Linux desktop integration
+# =============================================================
+
+if (UNIX AND NOT APPLE)
+
+    set(
+            YAMUSIC_DESKTOP_FILE
+            "${CMAKE_CURRENT_BINARY_DIR}/YaMusic.desktop"
+    )
+
+
+    file(
+            WRITE
+            "${YAMUSIC_DESKTOP_FILE}"
+            "[Desktop Entry]\n"
+            "Type=Application\n"
+            "Name=YaMusic\n"
+            "Comment=Yandex Music desktop client\n"
+            "Exec=YaMusic\n"
+            "Terminal=false\n"
+            "Categories=AudioVideo;Audio;Music;\n"
+    )
+
+
+    install(
+            FILES
+            "${YAMUSIC_DESKTOP_FILE}"
+
+            DESTINATION
+            "${CMAKE_INSTALL_DATADIR}/applications"
+    )
+
+endif()
+
+
+# =============================================================
+# Qt / QML deployment
 # =============================================================
 
 qt_generate_deploy_qml_app_script(
@@ -520,7 +669,8 @@ qt_generate_deploy_qml_app_script(
         NO_UNSUPPORTED_PLATFORM_ERROR
 )
 
+
 install(
         SCRIPT
-        ${deploy_script}
+        "${deploy_script}"
 )
