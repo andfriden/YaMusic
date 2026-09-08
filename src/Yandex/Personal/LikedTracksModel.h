@@ -23,7 +23,8 @@ public:
         AlbumRole,
         AlbumIdRole,
         CoverUriRole,
-        DurationMsRole
+        DurationMsRole,
+        LikedRole
     };
 
     Q_ENUM(Roles)
@@ -34,23 +35,16 @@ public:
 
 
     int rowCount(
-        const QModelIndex &parent =
-            QModelIndex()) const override;
+        const QModelIndex &parent = QModelIndex()) const override;
 
 
     QVariant data(
         const QModelIndex &index,
-        int role =
-            Qt::DisplayRole) const override;
+        int role = Qt::DisplayRole) const override;
 
 
-    QHash<int, QByteArray>
-    roleNames() const override;
+    QHash<int, QByteArray> roleNames() const override;
 
-
-    // =============================================================
-    // Data
-    // =============================================================
 
     void setTracks(
         const QList<Track> &tracks);
@@ -67,6 +61,15 @@ public:
 
 
     int count() const;
+
+
+    void setTrackLiked(
+        const QString &trackId,
+        bool liked);
+
+
+    void removeTrack(
+        const QString &trackId);
 
 
 private:

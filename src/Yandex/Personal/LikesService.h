@@ -1,9 +1,10 @@
 #pragma once
 
+#include <QList>
 #include <QObject>
+#include <QSet>
 #include <QString>
 #include <QStringList>
-#include <QList>
 
 #include "../../Models/Track.h"
 
@@ -27,6 +28,20 @@ public:
         const QString &uid);
 
 
+    void addLike(
+        const QString &uid,
+        const QString &trackId);
+
+
+    void removeLike(
+        const QString &uid,
+        const QString &trackId);
+
+
+    bool isLiked(
+        const QString &trackId) const;
+
+
     signals:
 
         void tracksReceived(
@@ -41,20 +56,27 @@ public:
         const QString &message);
 
 
+    void likeChanged(
+        const QString &trackId,
+        bool liked);
+
+
 private:
 
     void loadTracksByIds(
         const QStringList &trackIds);
 
 
-    YandexAuth *
-        m_auth = nullptr;
+    void changeLike(
+        const QString &uid,
+        const QString &trackId,
+        bool liked);
 
 
-    YandexClient *
-        m_yandexClient = nullptr;
+    YandexAuth *m_auth = nullptr;
+    YandexClient *m_yandexClient = nullptr;
 
+    bool m_loading = false;
 
-    bool m_loading =
-        false;
+    QSet<QString> m_likedTrackIds;
 };

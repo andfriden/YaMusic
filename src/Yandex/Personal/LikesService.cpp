@@ -1,12 +1,16 @@
 #include "LikesService.h"
 
-#include "../Auth/YandexAuth.h"
-#include "../YandexClient.h"
-
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonValue>
 #include <QNetworkReply>
+#include <QSet>
+#include <QUrlQuery>
+#include <memory>
+
+#include "../Auth/YandexAuth.h"
+#include "../YandexClient.h"
 
 
 LikesService::LikesService(
@@ -14,8 +18,7 @@ LikesService::LikesService(
     QObject *parent)
     : QObject(parent)
     , m_auth(auth)
-    , m_yandexClient(
-          new YandexClient(this))
+    , m_yandexClient(new YandexClient(this))
 {
 }
 
@@ -27,64 +30,53 @@ LikesService::LikesService(
 void LikesService::loadLikedTracks(
     const QString &uid)
 {
-    if (
-        m_auth == nullptr ||
-        !m_auth->isAuthenticated()
-    )
+    if (m_auth == nullptr)
     {
         emit errorOccurred(
-            "Токен Яндекс Музыки не установлен");
+            QStringLiteral("Сервис авторизации недоступен"));
 
         return;
     }
 
-
-    const QString userUid =
-        uid.trimmed();
-
-
-    if (
-        userUid.isEmpty()
-    )
+    if (uid.trimmed().isEmpty())
     {
         emit errorOccurred(
-            "UID пользователя не указан");
+            QStringLiteral("UID пользователя не указан"));
 
         return;
     }
 
+    if (m_loading)
+        return;
 
-    if (
-        m_loading
-    )
+    m_yandexClient->setToken(
+        m_auth->token());
+
+    if (!m_yandexClient->hasToken())
     {
+        emit errorOccurred(
+            QStringLiteral("Токен Яндекс Музыки не установлен"));
+
         return;
     }
 
+    m_loading = true;
 
-    m_loading =
-        true;
-
-    emit loadingChanged(
-        true);
-
-
-    m_yandexClient
-        ->setToken(
-            m_auth->token());
-
+    emit loadingChanged(true);
 
     const QString path =
-        QString(
-            "/users/%1/likes/tracks")
-        .arg(
-            userUid);
-
+        QStringLiteral("/users/%1/likes/tracks")
+            .arg(uid.trimmed());
 
     QNetworkReply *reply =
-        m_yandexClient
-            ->get(path);
+        m_yandexClient->get(path);
 
+    if (reply == nullptr)
+    {
+        m_loading = false;
+        emit loadingChanged(false);
+        return;
+    }
 
     connect(
         reply,
@@ -95,286 +87,392 @@ void LikesService::loadLikedTracks(
             const QByteArray data =
                 reply->readAll();
 
-
-            if (
-                reply->error() !=
-                QNetworkReply::NoError
-            )
+            if (reply->error() !=
+                QNetworkReply::NoError)
             {
-                m_loading =
-                    false;
-
-                emit loadingChanged(
-                    false);
-
-
-                emit errorOccurred(
-                    reply->errorString());
-
+                const QString error =
+                    reply->errorString();
 
                 reply->deleteLater();
+
+                m_loading = false;
+
+                emit loadingChanged(false);
+                emit errorOccurred(error);
 
                 return;
             }
 
-
             QJsonParseError parseError;
-
 
             const QJsonDocument document =
                 QJsonDocument::fromJson(
                     data,
                     &parseError);
 
-
-            if (
-                parseError.error !=
-                    QJsonParseError::NoError ||
-                !document.isObject()
-            )
+            if (parseError.error !=
+                QJsonParseError::NoError)
             {
-                m_loading =
-                    false;
-
-                emit loadingChanged(
-                    false);
-
-
-                emit errorOccurred(
-                    "Некорректный ответ списка лайков");
-
-
                 reply->deleteLater();
+
+                m_loading = false;
+
+                emit loadingChanged(false);
+                emit errorOccurred(
+                    QStringLiteral(
+                        "Не удалось разобрать список понравившихся треков"));
 
                 return;
             }
 
+            if (!document.isObject())
+            {
+                reply->deleteLater();
+
+                m_loading = false;
+
+                emit loadingChanged(false);
+                emit errorOccurred(
+                    QStringLiteral(
+                        "Некорректный ответ списка понравившихся треков"));
+
+                return;
+            }
 
             const QJsonObject root =
                 document.object();
 
-
-            QJsonObject result =
-                root.value("result")
+            const QJsonObject result =
+                root.value(QStringLiteral("result"))
                     .toObject();
-
-
-            if (
-                result.isEmpty()
-            )
-            {
-                result =
-                    root;
-            }
-
 
             const QJsonObject library =
-                result.value("library")
+                result.value(QStringLiteral("library"))
                     .toObject();
 
-
             const QJsonArray tracks =
-                library.value("tracks")
+                library.value(QStringLiteral("tracks"))
                     .toArray();
 
-
             QStringList trackIds;
+            QSet<QString> uniqueIds;
 
-
-            for (
-                const QJsonValue &value :
-                tracks
-            )
+            for (const QJsonValue &value : tracks)
             {
-                if (
-                    value.isObject()
-                )
+                QString trackId;
+
+                if (value.isObject())
                 {
                     const QJsonObject object =
                         value.toObject();
 
+                    const QJsonValue idValue =
+                        object.value(QStringLiteral("id"));
 
-                    QString id =
-                        object
-                            .value("id")
-                            .toString();
-
-
-                    if (
-                        id.isEmpty()
-                    )
+                    if (idValue.isString())
                     {
-                        const qint64 integerId =
-                            object
-                                .value("id")
-                                .toInteger();
-
-
-                        if (
-                            integerId > 0
-                        )
-                        {
-                            id =
-                                QString::number(
-                                    integerId);
-                        }
+                        trackId =
+                            idValue.toString();
                     }
-
-
-                    if (
-                        !id.isEmpty() &&
-                        !trackIds.contains(id)
-                    )
+                    else if (idValue.isDouble())
                     {
-                        trackIds.append(
-                            id);
-                    }
-                }
-                else if (
-                    value.isString()
-                )
-                {
-                    const QString id =
-                        value
-                            .toString()
-                            .trimmed();
-
-
-                    if (
-                        !id.isEmpty() &&
-                        !trackIds.contains(id)
-                    )
-                    {
-                        trackIds.append(
-                            id);
-                    }
-                }
-                else if (
-                    value.isDouble()
-                )
-                {
-                    const qint64 id =
-                        static_cast<qint64>(
-                            value.toDouble());
-
-
-                    if (
-                        id > 0
-                    )
-                    {
-                        const QString idString =
+                        trackId =
                             QString::number(
-                                id);
-
-
-                        if (
-                            !trackIds.contains(
-                                idString)
-                        )
-                        {
-                            trackIds.append(
-                                idString);
-                        }
+                                static_cast<qint64>(
+                                    idValue.toDouble()));
                     }
                 }
+                else if (value.isString())
+                {
+                    trackId =
+                        value.toString();
+                }
+                else if (value.isDouble())
+                {
+                    trackId =
+                        QString::number(
+                            static_cast<qint64>(
+                                value.toDouble()));
+                }
+
+                trackId = trackId.trimmed();
+
+                if (trackId.isEmpty())
+                    continue;
+
+                if (uniqueIds.contains(trackId))
+                    continue;
+
+                uniqueIds.insert(trackId);
+                trackIds.append(trackId);
             }
 
+            /*
+             * Replace the cached liked-track state only after
+             * the server response has been parsed successfully.
+             */
+            m_likedTrackIds.clear();
+
+            for (const QString &trackId : trackIds)
+                m_likedTrackIds.insert(trackId);
 
             reply->deleteLater();
 
-
-            if (
-                trackIds.isEmpty()
-            )
+            if (trackIds.isEmpty())
             {
-                m_loading =
-                    false;
+                m_loading = false;
 
-                emit loadingChanged(
-                    false);
-
-
-                emit tracksReceived(
-                    {});
-
+                emit loadingChanged(false);
+                emit tracksReceived({});
 
                 return;
             }
 
-
-            loadTracksByIds(
-                trackIds);
+            loadTracksByIds(trackIds);
         });
 }
 
 
 // =============================================================
-// Load full tracks
+// Load full track data by IDs
 // =============================================================
 
 void LikesService::loadTracksByIds(
     const QStringList &trackIds)
 {
-    if (
-        m_yandexClient == nullptr
-    )
+    if (m_yandexClient == nullptr)
     {
-        m_loading =
-            false;
+        m_loading = false;
 
-        emit loadingChanged(
-            false);
-
-
+        emit loadingChanged(false);
         emit errorOccurred(
-            "YandexClient недоступен");
-
+            QStringLiteral("YandexClient недоступен"));
 
         return;
     }
 
+    QNetworkReply *reply =
+        nullptr;
+
+    /*
+     * getTracks() emits either tracksReceived() or requestError().
+     * Use one-shot connections because every load creates a new
+     * request.
+     */
+
+    auto tracksConnection =
+        std::make_shared<QMetaObject::Connection>();
+
+    *tracksConnection =
+        connect(
+            m_yandexClient,
+            &YandexClient::tracksReceived,
+            this,
+            [this, tracksConnection](
+                const QList<Track> &tracks)
+            {
+                disconnect(*tracksConnection);
+
+                QList<Track> likedTracks =
+                    tracks;
+
+                for (Track &track : likedTracks)
+                    track.liked = true;
+
+                m_loading = false;
+
+                emit loadingChanged(false);
+                emit tracksReceived(likedTracks);
+            },
+            Qt::SingleShotConnection);
+
+    auto errorConnection =
+        std::make_shared<QMetaObject::Connection>();
+
+    *errorConnection =
+        connect(
+            m_yandexClient,
+            &YandexClient::requestError,
+            this,
+            [this, errorConnection](
+                const QString &message)
+            {
+                disconnect(*errorConnection);
+
+                m_loading = false;
+
+                emit loadingChanged(false);
+                emit errorOccurred(message);
+            },
+            Qt::SingleShotConnection);
+
+    Q_UNUSED(reply);
+
+    m_yandexClient->getTracks(trackIds);
+}
+
+
+// =============================================================
+// Add like
+// =============================================================
+
+void LikesService::addLike(
+    const QString &uid,
+    const QString &trackId)
+{
+    changeLike(
+        uid,
+        trackId,
+        true);
+}
+
+
+// =============================================================
+// Remove like
+// =============================================================
+
+void LikesService::removeLike(
+    const QString &uid,
+    const QString &trackId)
+{
+    changeLike(
+        uid,
+        trackId,
+        false);
+}
+
+
+// =============================================================
+// Like state
+// =============================================================
+
+bool LikesService::isLiked(
+    const QString &trackId) const
+{
+    const QString id =
+        trackId.trimmed();
+
+    if (id.isEmpty())
+        return false;
+
+    return m_likedTrackIds.contains(id);
+}
+
+
+// =============================================================
+// Change like
+// =============================================================
+
+void LikesService::changeLike(
+    const QString &uid,
+    const QString &trackId,
+    bool liked)
+{
+    if (m_auth == nullptr)
+    {
+        emit errorOccurred(
+            QStringLiteral("Сервис авторизации недоступен"));
+
+        return;
+    }
+
+    const QString userId =
+        uid.trimmed();
+
+    const QString id =
+        trackId.trimmed();
+
+    if (userId.isEmpty())
+    {
+        emit errorOccurred(
+            QStringLiteral("UID пользователя не указан"));
+
+        return;
+    }
+
+    if (id.isEmpty())
+    {
+        emit errorOccurred(
+            QStringLiteral("ID трека не указан"));
+
+        return;
+    }
+
+    if (m_yandexClient == nullptr)
+    {
+        emit errorOccurred(
+            QStringLiteral("YandexClient недоступен"));
+
+        return;
+    }
+
+    m_yandexClient->setToken(
+        m_auth->token());
+
+    if (!m_yandexClient->hasToken())
+    {
+        emit errorOccurred(
+            QStringLiteral("Токен Яндекс Музыки не установлен"));
+
+        return;
+    }
+
+    const QString path =
+        liked
+            ? QStringLiteral(
+                  "/users/%1/likes/tracks/add-multiple")
+                  .arg(userId)
+            : QStringLiteral(
+                  "/users/%1/likes/tracks/remove")
+                  .arg(userId);
+
+    QUrlQuery body;
+
+    body.addQueryItem(
+        QStringLiteral("track-ids"),
+        id);
+
+    QNetworkReply *reply =
+        m_yandexClient->postForm(
+            path,
+            body);
+
+    if (reply == nullptr)
+        return;
 
     connect(
-        m_yandexClient,
-        &YandexClient::tracksReceived,
+        reply,
+        &QNetworkReply::finished,
         this,
-        [this](
-            const QList<Track> &tracks)
+        [this, reply, id, liked]()
         {
-            m_loading =
-                false;
+            const QByteArray data =
+                reply->readAll();
 
-            emit loadingChanged(
-                false);
+            Q_UNUSED(data);
 
+            if (reply->error() !=
+                QNetworkReply::NoError)
+            {
+                const QString error =
+                    reply->errorString();
 
-            emit tracksReceived(
-                tracks);
-        },
-        Qt::SingleShotConnection);
+                reply->deleteLater();
 
+                emit errorOccurred(error);
 
-    connect(
-        m_yandexClient,
-        &YandexClient::requestError,
-        this,
-        [this](
-            const QString &message)
-        {
-            m_loading =
-                false;
+                return;
+            }
 
-            emit loadingChanged(
-                false);
+            if (liked)
+                m_likedTrackIds.insert(id);
+            else
+                m_likedTrackIds.remove(id);
 
+            reply->deleteLater();
 
-            emit errorOccurred(
-                message);
-        },
-        Qt::SingleShotConnection);
-
-
-    m_yandexClient
-        ->getTracks(
-            trackIds);
+            emit likeChanged(
+                id,
+                liked);
+        });
 }

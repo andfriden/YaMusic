@@ -131,6 +131,8 @@ public:
     Q_INVOKABLE void selectArtistTrack(int index);
     Q_INVOKABLE void selectSimilarArtist(int index);
 
+    Q_INVOKABLE void toggleLike(const QString &trackId,bool liked);
+
     Q_INVOKABLE void play();
     Q_INVOKABLE void pause();
     Q_INVOKABLE void stop();

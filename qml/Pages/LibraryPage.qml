@@ -589,6 +589,7 @@ Item {
                                 required property string albumId
                                 required property string coverUri
                                 required property int durationMs
+                                required property bool liked
 
 
                                 width:
@@ -940,10 +941,10 @@ Item {
                                     id: durationLabel
 
                                     anchors.right:
-                                        parent.right
+                                        likeButton.left
 
                                     anchors.rightMargin:
-                                        14
+                                        6
 
                                     anchors.verticalCenter:
                                         parent.verticalCenter
@@ -958,6 +959,76 @@ Item {
 
                                     font.pixelSize:
                                         11
+                                }
+
+
+                                // =============================================
+                                // Like button
+                                // =============================================
+
+                                Item {
+                                    id: likeButton
+
+                                    width:
+                                        36
+
+                                    height:
+                                        36
+
+                                    anchors.right:
+                                        parent.right
+
+                                    anchors.rightMargin:
+                                        8
+
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+
+                                    z:
+                                        20
+
+
+                                    Label {
+                                        anchors.centerIn:
+                                            parent
+
+                                        text:
+                                            likedTrackDelegate.liked
+                                                ? "♥"
+                                                : "♡"
+
+                                        color:
+                                            likedTrackDelegate.liked
+                                                ? AppTheme.accent
+                                                : AppTheme.textSecondary
+
+                                        font.pixelSize:
+                                            21
+                                    }
+
+
+                                    MouseArea {
+                                        anchors.fill:
+                                            parent
+
+                                        cursorShape:
+                                            Qt.PointingHandCursor
+
+                                        onClicked: {
+                                            if (
+                                                root.controller === null ||
+                                                root.controller === undefined
+                                            ) {
+                                                return
+                                            }
+
+
+                                            root.controller.toggleLike(
+                                                likedTrackDelegate.trackId,
+                                                likedTrackDelegate.liked
+                                            )
+                                        }
+                                    }
                                 }
                             }
 

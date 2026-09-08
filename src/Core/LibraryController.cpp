@@ -64,21 +64,41 @@ LibraryController::LibraryController(
                 emit loadingPlaylistChanged();
 
 
+                Playlist playlistWithLikes =
+                    playlist;
+
+
+                if (
+                    m_likesService != nullptr
+                )
+                {
+                    for (
+                        Track &track :
+                        playlistWithLikes.tracks
+                    )
+                    {
+                        track.liked =
+                            m_likesService->isLiked(
+                                track.id);
+                    }
+                }
+
+
                 m_playlistModel
                     ->setPlaylist(
-                        playlist);
+                        playlistWithLikes);
 
 
                 m_currentPlaylistTitle =
-                    playlist.title;
+                    playlistWithLikes.title;
 
 
                 m_currentPlaylistCoverUri =
-                    playlist.coverUri;
+                    playlistWithLikes.coverUri;
 
 
                 m_currentPlaylistTrackCount =
-                    playlist.trackCount;
+                    playlistWithLikes.trackCount;
 
 
                 emit currentPlaylistChanged();
@@ -86,9 +106,9 @@ LibraryController::LibraryController(
 
                 qDebug()
                     << "Плейлист загружен:"
-                    << playlist.title
+                    << playlistWithLikes.title
                     << "| треков:"
-                    << playlist.trackCount;
+                    << playlistWithLikes.trackCount;
             });
 
 
@@ -228,6 +248,20 @@ LibraryController::LibraryController(
                         "Ошибка лайков: %1")
                         .arg(
                             message));
+            });
+
+
+        connect(
+            m_likesService,
+            &LikesService::likeChanged,
+            this,
+            [this](
+                const QString &trackId,
+                bool liked)
+            {
+                setTrackLiked(
+                    trackId,
+                    liked);
             });
     }
 
@@ -925,4 +959,59 @@ int
 LibraryController::currentArtistTrackCount() const
 {
     return m_currentArtistTrackCount;
+}
+
+
+// =============================================================
+// Likes
+// =============================================================
+
+void LibraryController::setTrackLiked(
+    const QString &trackId,
+    bool liked)
+{
+    const QString id =
+        trackId.trimmed();
+
+
+    if (
+        id.isEmpty()
+    )
+    {
+        return;
+    }
+
+
+    if (
+        m_playlistModel != nullptr
+    )
+    {
+        m_playlistModel
+            ->setTrackLiked(
+                id,
+                liked);
+    }
+
+
+    if (
+        m_likedTracksModel == nullptr
+    )
+    {
+        return;
+    }
+
+
+    if (liked)
+    {
+        m_likedTracksModel
+            ->setTrackLiked(
+                id,
+                true);
+    }
+    else
+    {
+        m_likedTracksModel
+            ->removeTrack(
+                id);
+    }
 }

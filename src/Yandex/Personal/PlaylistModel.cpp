@@ -1,17 +1,30 @@
 #include "PlaylistModel.h"
 
-PlaylistModel::PlaylistModel(QObject *parent)
+#include <QDebug>
+
+
+PlaylistModel::PlaylistModel(
+    QObject *parent)
     : QAbstractListModel(parent)
 {
 }
 
 
+// =============================================================
+// Model
+// =============================================================
+
 int PlaylistModel::rowCount(
     const QModelIndex &parent) const
 {
-    Q_UNUSED(parent)
+    if (
+        parent.isValid()
+    )
+    {
+        return 0;
+    }
 
-    return m_tracks.count();
+    return m_tracks.size();
 }
 
 
@@ -19,19 +32,19 @@ QVariant PlaylistModel::data(
     const QModelIndex &index,
     int role) const
 {
-    if (!index.isValid())
-        return {};
-
-
-    if (index.row() < 0 ||
-        index.row() >= m_tracks.size())
+    if (
+        !index.isValid() ||
+        index.row() < 0 ||
+        index.row() >= m_tracks.size()
+    )
     {
         return {};
     }
 
 
     const Track &track =
-        m_tracks.at(index.row());
+        m_tracks.at(
+            index.row());
 
 
     switch (role)
@@ -39,53 +52,37 @@ QVariant PlaylistModel::data(
         case IdRole:
             return track.id;
 
-
         case TitleRole:
             return track.title;
 
-
         case ArtistRole:
-        {
-            if (!track.artists.isEmpty())
-                return track.artists.first().name;
-
-            return "";
-        }
-
+            return track.artists.isEmpty()
+                ? QString()
+                : track.artists.first().name;
 
         case ArtistIdRole:
-        {
-            if (!track.artists.isEmpty())
-                return track.artists.first().id;
-
-            return "";
-        }
-
+            return track.artists.isEmpty()
+                ? QString()
+                : track.artists.first().id;
 
         case AlbumRole:
-        {
-            if (!track.albums.isEmpty())
-                return track.albums.first().title;
-
-            return "";
-        }
-
+            return track.albums.isEmpty()
+                ? QString()
+                : track.albums.first().title;
 
         case AlbumIdRole:
-        {
-            if (!track.albums.isEmpty())
-                return track.albums.first().id;
-
-            return "";
-        }
-
+            return track.albums.isEmpty()
+                ? QString()
+                : track.albums.first().id;
 
         case CoverUriRole:
             return track.coverUri;
 
-
         case DurationMsRole:
             return track.durationMs;
+
+        case LikedRole:
+            return track.liked;
     }
 
 
@@ -96,50 +93,112 @@ QVariant PlaylistModel::data(
 QHash<int, QByteArray>
 PlaylistModel::roleNames() const
 {
-    QHash<int, QByteArray> roles;
-
-
-    roles[IdRole] =
-        "trackId";
-
-    roles[TitleRole] =
-        "title";
-
-    roles[ArtistRole] =
-        "artist";
-
-    roles[ArtistIdRole] =
-        "artistId";
-
-    roles[AlbumRole] =
-        "album";
-
-    roles[AlbumIdRole] =
-        "albumId";
-
-    roles[CoverUriRole] =
-        "coverUri";
-
-    roles[DurationMsRole] =
-        "durationMs";
-
-
-    return roles;
+    return {
+        { IdRole, "trackId" },
+        { TitleRole, "title" },
+        { ArtistRole, "artist" },
+        { ArtistIdRole, "artistId" },
+        { AlbumRole, "album" },
+        { AlbumIdRole, "albumId" },
+        { CoverUriRole, "coverUri" },
+        { DurationMsRole, "durationMs" },
+        { LikedRole, "liked" }
+    };
 }
 
+
+// =============================================================
+// Playlist
+// =============================================================
 
 void PlaylistModel::setPlaylist(
     const Playlist &playlist)
 {
     beginResetModel();
 
-
     m_playlist =
         playlist;
 
-
     m_tracks =
         playlist.tracks;
+
+
+    // =========================================================
+    // Debug
+    // =========================================================
+
+    qDebug()
+        << "========================================";
+
+    qDebug()
+        << "PlaylistModel::setPlaylist";
+
+    qDebug()
+        << "Playlist title:"
+        << playlist.title;
+
+    qDebug()
+        << "Tracks count:"
+        << m_tracks.size();
+
+
+    for (
+        int i = 0;
+        i < m_tracks.size();
+        ++i
+    )
+    {
+        const Track &track =
+            m_tracks.at(i);
+
+
+        qDebug()
+            << "Playlist track"
+            << i
+            << "| id:" << track.id
+            << "| title:" << track.title
+            << "| artist count:" << track.artists.size()
+            << "| album count:" << track.albums.size()
+            << "| liked:" << track.liked;
+
+
+        if (
+            !track.artists.isEmpty()
+        )
+        {
+            qDebug()
+                << "  artist:"
+                << track.artists.first().name
+                << "| artistId:"
+                << track.artists.first().id;
+        }
+        else
+        {
+            qDebug()
+                << "  artist: <EMPTY>";
+        }
+
+
+        if (
+            !track.albums.isEmpty()
+        )
+        {
+            qDebug()
+                << "  album:"
+                << track.albums.first().title
+                << "| albumId:"
+                << track.albums.first().id;
+        }
+        else
+        {
+            qDebug()
+                << "  album: <EMPTY>";
+        }
+    }
+
+
+    qDebug()
+        << "========================================";
 
 
     endResetModel();
@@ -148,10 +207,18 @@ void PlaylistModel::setPlaylist(
 
 void PlaylistModel::clear()
 {
+    if (
+        m_tracks.isEmpty()
+    )
+    {
+        return;
+    }
+
+
     beginResetModel();
 
     m_playlist =
-        Playlist();
+        Playlist{};
 
     m_tracks.clear();
 
@@ -162,18 +229,21 @@ void PlaylistModel::clear()
 Track PlaylistModel::trackAt(
     int index) const
 {
-    if (index < 0 ||
-        index >= m_tracks.size())
+    if (
+        index < 0 ||
+        index >= m_tracks.size()
+    )
     {
         return {};
     }
 
-
-    return m_tracks.at(index);
+    return m_tracks.at(
+        index);
 }
 
 
-QList<Track> PlaylistModel::tracks() const
+QList<Track>
+PlaylistModel::tracks() const
 {
     return m_tracks;
 }
@@ -181,17 +251,63 @@ QList<Track> PlaylistModel::tracks() const
 
 int PlaylistModel::count() const
 {
-    return m_tracks.count();
+    return m_tracks.size();
 }
 
 
-QString PlaylistModel::title() const
+QString
+PlaylistModel::title() const
 {
     return m_playlist.title;
 }
 
 
-int PlaylistModel::trackCount() const
+int
+PlaylistModel::trackCount() const
 {
-    return m_tracks.count();
+    return m_tracks.size();
+}
+
+
+// =============================================================
+// Like state
+// =============================================================
+
+void PlaylistModel::setTrackLiked(
+    const QString &trackId,
+    bool liked)
+{
+    for (
+        int i = 0;
+        i < m_tracks.size();
+        ++i
+    )
+    {
+        if (
+            m_tracks[i].id != trackId
+        )
+        {
+            continue;
+        }
+
+
+        if (
+            m_tracks[i].liked == liked
+        )
+        {
+            return;
+        }
+
+
+        m_tracks[i].liked =
+            liked;
+
+
+        emit dataChanged(
+            index(i),
+            index(i),
+            { LikedRole });
+
+        return;
+    }
 }

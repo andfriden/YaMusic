@@ -9,13 +9,15 @@
 
 #include "../../Models/Playlist.h"
 
+
 class PlaylistModel : public QAbstractListModel
 {
     Q_OBJECT
 
 public:
 
-    enum Roles {
+    enum Roles
+    {
         IdRole = Qt::UserRole + 1,
         TitleRole,
         ArtistRole,
@@ -23,7 +25,8 @@ public:
         AlbumRole,
         AlbumIdRole,
         CoverUriRole,
-        DurationMsRole
+        DurationMsRole,
+        LikedRole
     };
 
 
@@ -32,14 +35,12 @@ public:
 
 
     int rowCount(
-        const QModelIndex &parent =
-            QModelIndex()) const override;
+        const QModelIndex &parent = QModelIndex()) const override;
 
 
     QVariant data(
         const QModelIndex &index,
-        int role =
-            Qt::DisplayRole) const override;
+        int role = Qt::DisplayRole) const override;
 
 
     QHash<int, QByteArray>
@@ -67,6 +68,11 @@ public:
 
 
     int trackCount() const;
+
+
+    void setTrackLiked(
+        const QString &trackId,
+        bool liked);
 
 
 private:

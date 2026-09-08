@@ -44,7 +44,7 @@ Item {
         width
 
     implicitHeight:
-        contentColumn.implicitHeight + 40
+        contentColumn.implicitHeight + 48
 
     height:
         implicitHeight
@@ -280,11 +280,18 @@ Item {
 
                         required property var modelData
 
+
+                        // =================================================
+                        // Card geometry
+                        // =================================================
+
                         width:
                             root.cardWidth
 
                         height:
-                            238
+                            artworkBox.height +
+                            58
+
 
                         radius:
                             10

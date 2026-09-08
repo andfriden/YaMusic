@@ -16,11 +16,13 @@ constexpr auto YandexApiBaseUrl =
     "https://api.music.yandex.net";
 }
 
+
 YandexClient::YandexClient(
     QObject *parent)
     : QObject(parent)
 {
 }
+
 
 void YandexClient::setToken(
     const QString &token)
@@ -29,10 +31,12 @@ void YandexClient::setToken(
         token.trimmed();
 }
 
+
 bool YandexClient::hasToken() const
 {
     return !m_token.isEmpty();
 }
+
 
 QNetworkRequest
 YandexClient::createRequest(
@@ -77,6 +81,7 @@ YandexClient::createRequest(
     return request;
 }
 
+
 QNetworkReply *
 YandexClient::get(
     const QString &path)
@@ -84,6 +89,7 @@ YandexClient::get(
     return m_networkManager.get(
         createRequest(path));
 }
+
 
 QNetworkReply *
 YandexClient::post(
@@ -98,6 +104,27 @@ YandexClient::post(
         document.toJson(
             QJsonDocument::Compact));
 }
+
+
+QNetworkReply *
+YandexClient::postForm(
+    const QString &path,
+    const QUrlQuery &body)
+{
+    QNetworkRequest request =
+        createRequest(path);
+
+    request.setHeader(
+        QNetworkRequest::ContentTypeHeader,
+        "application/x-www-form-urlencoded");
+
+    return m_networkManager.post(
+        request,
+        body.query(
+            QUrl::FullyEncoded)
+            .toUtf8());
+}
+
 
 void YandexClient::getAccountStatus()
 {
@@ -158,6 +185,7 @@ void YandexClient::getAccountStatus()
             reply->deleteLater();
         });
 }
+
 
 void YandexClient::search(
     const QString &query)
@@ -262,6 +290,7 @@ void YandexClient::search(
             reply->deleteLater();
         });
 }
+
 
 void YandexClient::getTracks(
     const QStringList &trackIds)
@@ -423,6 +452,7 @@ void YandexClient::getTracks(
         });
 }
 
+
 QList<Track>
 YandexClient::parseTracks(
     const QJsonObject &object) const
@@ -460,15 +490,12 @@ YandexClient::parseTracks(
     return tracks;
 }
 
+
 Track YandexClient::parseTrack(
     const QJsonObject &trackObject) const
 {
     Track track;
 
-    /*
-     * Yandex may return ID as either
-     * a JSON string or a number.
-     */
     const QJsonValue idValue =
         trackObject.value("id");
 
