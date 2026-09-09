@@ -146,6 +146,7 @@ set(
         src/Core/PersonalController+Recommendations.cpp
         src/Core/PlayerAccentService.cpp
         src/Core/SearchController.cpp
+        src/Core/AuthController.cpp
 
         # Models
         src/Models/Account.cpp
@@ -204,6 +205,8 @@ set(
         src/Yandex/Personal/RecentListeningModel.cpp
         src/Yandex/Personal/RecentListeningService.cpp
         src/Yandex/Personal/YandexPersonal.cpp
+        src/Core/AuthController.cpp
+        src/Core/AuthController.h
 )
 
 
@@ -289,8 +292,8 @@ set(
         "${YAMUSIC_QML_ROOT}/Pages/PlaylistsPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/GenresPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/GenrePage.qml"
-        "${YAMUSIC_QML_ROOT}/Pages/SubGenrePage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/SportPage.qml"
+        "${YAMUSIC_QML_ROOT}/Pages/LoginPage.qml"
 
         # Home
         "${YAMUSIC_QML_ROOT}/Home/PersonalPlaylistsSection.qml"
@@ -462,13 +465,6 @@ set_source_files_properties(
 )
 
 set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Pages/SubGenrePage.qml"
-        PROPERTIES
-        QT_RESOURCE_ALIAS
-        "Pages/SubGenrePage.qml"
-)
-
-set_source_files_properties(
         "${YAMUSIC_QML_ROOT}/Pages/SportPage.qml"
         PROPERTIES
         QT_RESOURCE_ALIAS
@@ -592,6 +588,13 @@ set_source_files_properties(
         "Layout/NavigationController.qml"
 )
 
+
+set_source_files_properties(
+        "${YAMUSIC_QML_ROOT}/Pages/LoginPage.qml"
+        PROPERTIES
+        QT_RESOURCE_ALIAS
+        "Pages/LoginPage.qml"
+)
 
 # =============================================================
 # AppTheme singleton

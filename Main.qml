@@ -1,215 +1,123 @@
 import QtQuick
 import QtQuick.Controls.Basic
 
-import YaMusic.Core
-
 import "Layout"
 import "Home"
 import "Components"
-
+import "Pages"
 
 ApplicationWindow {
     id: window
 
+    width: 1440
+    height: 900
+    minimumWidth: 1100
+    minimumHeight: 720
+    visible: true
+    title: "YaMusic"
+    color: AppTheme.background
 
-    width:
-        1440
-
-    height:
-        900
-
-    minimumWidth:
-        1100
-
-    minimumHeight:
-        720
-
-    visible:
-        true
-
-    title:
-        "YaMusic"
-
-    color:
-        AppTheme.background
-
-
-    property bool expandedNowPlayingVisible:
-        false
-
-
-    // =============================================================
-    // App Controller
-    // =============================================================
-
-    AppController {
-        id: appController
-
-        onStatusChanged:
-                function(message) {
-            statusBar.message =
-                message
-        }
-    }
-
-
-    // =============================================================
-    // Startup
-    // =============================================================
-
-    Component.onCompleted:
-    {}
-
-
-    // =============================================================
-    // Navigation
-    // =============================================================
+    property bool expandedNowPlayingVisible: false
 
     Connections {
-        target:
-            appController
+        target: appController
 
-
-        // ---------------------------------------------------------
-        // Album
-        // ---------------------------------------------------------
-
-        function onAlbumPageRequested(
-            albumId
-        )
-        {
-            mainLayout.currentSection =
-                "albums"
+        function onStatusChanged(message) {
+            statusBar.message = message
         }
 
-
-        // ---------------------------------------------------------
-        // Artist
-        // ---------------------------------------------------------
-
-        function onArtistPageRequested(
-            artistId
-        )
-        {
-
-                artistId
-
-
-            mainLayout.currentSection =
-                "artists"
+        function onAlbumPageRequested(albumId) {
+            mainLayout.currentSection = "albums"
         }
 
+        function onArtistPageRequested(artistId) {
+            mainLayout.currentSection = "artists"
+        }
 
-        // ---------------------------------------------------------
-        // Playlist
-        // ---------------------------------------------------------
-
-        function onPlaylistPageRequested()
-        {
-            mainLayout.currentSection =
-                "playlist"
+        function onPlaylistPageRequested() {
+            mainLayout.currentSection = "playlist"
         }
     }
 
+    Button {
+        id: logoutButton
 
-    // =============================================================
-    // Main Content + Mini Player
-    // =============================================================
+        text: "Выйти"
+
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.margins: 12
+
+        visible: authController.authenticated
+
+        z: 100
+
+        onClicked: {
+            authController.logout()
+        }
+    }
+
+    Loader {
+        id: pageLoader
+
+        anchors.fill: parent
+
+        active: !authController.authenticated
+
+        source: "Pages/LoginPage.qml"
+    }
 
     Column {
         id: applicationLayout
 
-        anchors.fill:
-            parent
+        anchors.fill: parent
+        spacing: 0
 
-        spacing:
-            0
-
-        visible:
+        visible: authController.authenticated &&
             !window.expandedNowPlayingVisible
-
-
-        // =========================================================
-        // Main Layout
-        // =========================================================
 
         MainLayout {
             id: mainLayout
 
-            width:
-                parent.width
+            width: parent.width
+            height: parent.height - nowPlayingBar.height
 
-            height:
-                parent.height -
-                nowPlayingBar.height
-
-            controller:
-                appController
+            controller: appController
         }
-
-
-        // =========================================================
-        // Mini Player
-        // =========================================================
 
         NowPlayingBar {
             id: nowPlayingBar
 
-            width:
-                parent.width
+            width: parent.width
+            height: 124
 
-            height:
-                124
+            controller: appController
 
-            controller:
-                appController
-
-
-            onExpandedRequested:
-            {
-                window.expandedNowPlayingVisible =
-                    true
+            onExpandedRequested: {
+                window.expandedNowPlayingVisible = true
             }
         }
     }
 
-
-    // =============================================================
-    // Status Bar
-    // =============================================================
-
     StatusBar {
         id: statusBar
 
-        visible:
-            false
-
-        message:
-            "Готово"
+        visible: false
+        message: "Готово"
     }
-
-
-    // =============================================================
-    // Expanded Now Playing
-    // =============================================================
 
     ExpandedNowPlaying {
         id: expandedNowPlaying
 
-        anchors.fill:
-            parent
+        anchors.fill: parent
 
-        visible:
+        visible: authController.authenticated &&
             window.expandedNowPlayingVisible
 
-        controller:
-            appController
+        controller: appController
 
-
-        onClosed:
-        {
-            window.expandedNowPlayingVisible =
-                false
+        onClosed: {
+            window.expandedNowPlayingVisible = false
         }
     }
 }
