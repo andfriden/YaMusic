@@ -11,10 +11,6 @@ Item {
      * =============================================================
      * Page size
      * =============================================================
-     *
-     * MainLayout использует pageHeight для Loader.
-     * Контент внутри страницы продолжает прокручиваться
-     * независимо от этого значения.
      */
 
     readonly property int pageHeight: 900
@@ -639,12 +635,6 @@ Item {
                                             : AppTheme.borderSubtle
 
 
-                                    /*
-                                     * -----------------------------------------
-                                     * Cover
-                                     * -----------------------------------------
-                                     */
-
                                     Rectangle {
                                         id: trackCoverContainer
 
@@ -704,8 +694,7 @@ Item {
                                                 true
 
                                             visible:
-                                                status ===
-                                                Image.Ready
+                                                status === Image.Ready
                                         }
 
 
@@ -728,12 +717,6 @@ Item {
                                         }
                                     }
 
-
-                                    /*
-                                     * -----------------------------------------
-                                     * Track text
-                                     * -----------------------------------------
-                                     */
 
                                     Column {
                                         id: trackInfo
@@ -766,9 +749,7 @@ Item {
                                             text:
                                                     trackRow.title.length > 0
                                                 ? trackRow.title
-                                                : qsTr(
-                                                    "Без названия"
-                                                )
+                                                : qsTr("Без названия")
 
                                             color:
                                                 AppTheme.textPrimary
@@ -796,8 +777,6 @@ Item {
                                                     parent.width
                                                 )
 
-
-
                                             text:
                                                     trackRow.artist.length > 0
                                                 ? trackRow.artist
@@ -821,12 +800,6 @@ Item {
                                         }
                                     }
 
-
-                                    /*
-                                     * -----------------------------------------
-                                     * Duration
-                                     * -----------------------------------------
-                                     */
 
                                     Label {
                                         id: durationLabel
@@ -859,12 +832,6 @@ Item {
                                     }
 
 
-                                    /*
-                                     * -----------------------------------------
-                                     * Whole row click
-                                     * -----------------------------------------
-                                     */
-
                                     MouseArea {
                                         id: trackMouse
 
@@ -894,14 +861,6 @@ Item {
                                     }
 
 
-                                    /*
-                                     * -----------------------------------------
-                                     * Artist click
-                                     *
-                                     * Only the artist name is clickable.
-                                     * -----------------------------------------
-                                     */
-
                                     MouseArea {
                                         id: artistMouseArea
 
@@ -926,7 +885,17 @@ Item {
                                         cursorShape:
                                             Qt.PointingHandCursor
 
+                                        z:
+                                            1
+
                                         onClicked: {
+                                            if (
+                                                root.controller === null ||
+                                                root.controller === undefined
+                                            ) {
+                                                return
+                                            }
+
                                             root.controller.loadArtist(
                                                 trackRow.artistId
                                             )
@@ -1194,13 +1163,17 @@ Item {
                 width:
                     parent.width
 
+                /*
+                 * GridView uses cellHeight = 180.
+                 * Keep the panel height synchronized with it.
+                 */
                 height:
                         root.albumsModel !== null
                     ? 78 +
                     Math.max(
                         Math.ceil(
                             albumsView.count / 5
-                        ) * 210,
+                        ) * 180,
                         1
                     )
                     : 150
@@ -1257,7 +1230,7 @@ Item {
                             Math.max(
                                 Math.ceil(
                                     count / 5
-                                ) * 175,
+                                ) * 180,
                                 1
                             )
 
@@ -1498,7 +1471,11 @@ Item {
 
             /*
              * ====================================================
-             * Bottom spacing
+             * Bottom scroll space
+             *
+             * Important:
+             * This is inside Column, therefore it belongs to the
+             * scrollable content.
              * ====================================================
              */
 
@@ -1507,7 +1484,7 @@ Item {
                     1
 
                 height:
-                    40
+                    140
             }
         }
     }
@@ -1516,8 +1493,6 @@ Item {
     /*
      * ============================================================
      * Initial loading indicator
-     *
-     * Does NOT cover the entire page.
      * ============================================================
      */
 
@@ -1571,6 +1546,7 @@ Item {
         z:
             101
     }
+
 
     /*
      * ============================================================
