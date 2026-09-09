@@ -6,48 +6,82 @@ Item {
     property var controller
     property string contextType: "home"
 
+
+    // =============================================================
+    // Context panel loader
+    // =============================================================
+
     Loader {
         id: panelLoader
 
-        anchors.fill: parent
+        anchors.fill:
+            parent
 
-        source: root.sourceForContext(root.contextType)
+        source:
+            root.sourceForContext(
+                root.contextType
+            )
+
 
         onLoaded: {
-            if (!item) {
+            if (
+                item === null ||
+                item === undefined
+            ) {
                 return
             }
 
-            item.controller = root.controller
+            item.controller =
+                root.controller
         }
     }
 
+
+    // =============================================================
+    // Controller synchronization
+    // =============================================================
+
     onControllerChanged: {
-        if (panelLoader.item) {
-            panelLoader.item.controller = root.controller
+        if (
+            panelLoader.item !== null &&
+            panelLoader.item !== undefined
+        ) {
+            panelLoader.item.controller =
+                root.controller
         }
     }
+
+
+    // =============================================================
+    // Context source
+    // =============================================================
 
     function sourceForContext(type) {
         switch (type) {
-            case "artist":
-                return "qrc:/qt/qml/YaMusic/qml/Context/ContextPanelArtist.qml"
 
-            case "album":
-                return "qrc:/qt/qml/YaMusic/qml/Context/ContextPanelAlbum.qml"
+        case "artist":
+            return "qrc:/qt/qml/YaMusic/Context/ContextPanelArtist.qml"
 
-            case "playlist":
-                return "qrc:/qt/qml/YaMusic/qml/Context/ContextPanelPlaylist.qml"
 
-            case "library":
-                return "qrc:/qt/qml/YaMusic/qml/Context/ContextPanelLibrary.qml"
+        case "album":
+            return "qrc:/qt/qml/YaMusic/Context/ContextPanelAlbum.qml"
 
-            case "mywave":
-                return "qrc:/qt/qml/YaMusic/qml/Context/ContextPanelMyWave.qml"
 
-            case "home":
-            default:
-                return "qrc:/qt/qml/YaMusic/qml/Context/ContextPanelHome.qml"
+        case "playlist":
+            return "qrc:/qt/qml/YaMusic/Context/ContextPanelPlaylist.qml"
+
+
+        case "library":
+            return "qrc:/qt/qml/YaMusic/Context/ContextPanelLibrary.qml"
+
+
+        case "mywave":
+            return "qrc:/qt/qml/YaMusic/Context/ContextPanelMyWave.qml"
+
+
+        case "home":
+        default:
+            return "qrc:/qt/qml/YaMusic/Context/ContextPanelHome.qml"
         }
     }
 }

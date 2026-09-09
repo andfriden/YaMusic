@@ -3,9 +3,9 @@ import QtQuick.Controls.Basic
 
 import YaMusic.Core
 
-import "qml/Layout"
-import "qml/Home"
-import "qml/Components"
+import "Layout"
+import "Home"
+import "Components"
 
 
 ApplicationWindow {
