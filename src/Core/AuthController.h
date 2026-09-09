@@ -53,6 +53,8 @@ public:
 private:
     void loadAccount();
 
+    QString extractToken(const QString &input) const;
+
     YandexAuth *m_auth = nullptr;
     AccountService *m_accountService = nullptr;
 

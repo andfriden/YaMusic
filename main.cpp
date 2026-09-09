@@ -1,67 +1,54 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QtQml>
+#include <QQmlContext>
 
 #include "src/Core/AppController.h"
-#include "src/Yandex/Catalog/CoverImageProvider.h"
+#include "src/Core/AuthController.h"
 
+#include "src/Yandex/Account/AccountService.h"
+#include "src/Yandex/Auth/YandexAuth.h"
+#include "src/Yandex/Catalog/CoverImageProvider.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
+    QCoreApplication::setOrganizationName("YaMusic");
+    QCoreApplication::setOrganizationDomain("yandex.ru");
+    QCoreApplication::setApplicationName("YaMusic");
 
-    // =============================================================
-    // Stable application identity
-    //
-    // This must be set before any QSettings object is created.
-    // =============================================================
+    YandexAuth auth;
 
-    QCoreApplication::setOrganizationName(
-        "YaMusic"
+    AccountService accountService(
+        &auth
     );
 
-    QCoreApplication::setOrganizationDomain(
-        "yandex.ru"
+    AuthController authController(
+        &auth,
+        &accountService
     );
 
-    QCoreApplication::setApplicationName(
-        "YaMusic"
+    AppController appController(
+        &auth,
+        &accountService
     );
-
-
-    // =============================================================
-    // QML registration
-    // =============================================================
-
-    qmlRegisterType<AppController>(
-        "YaMusic.Core",
-        1,
-        0,
-        "AppController"
-    );
-
-
-    // =============================================================
-    // QML engine
-    // =============================================================
 
     QQmlApplicationEngine engine;
-
-
-    // =============================================================
-    // Yandex artwork provider
-    // =============================================================
 
     engine.addImageProvider(
         "yandex",
         new CoverImageProvider()
     );
 
+    engine.rootContext()->setContextProperty(
+        "authController",
+        &authController
+    );
 
-    // =============================================================
-    // QML creation failure
-    // =============================================================
+    engine.rootContext()->setContextProperty(
+        "appController",
+        &appController
+    );
 
     QObject::connect(
         &engine,
@@ -73,16 +60,10 @@ int main(int argc, char *argv[])
         Qt::QueuedConnection
     );
 
-
-    // =============================================================
-    // Main QML module
-    // =============================================================
-
     engine.loadFromModule(
         "YaMusic",
         "Main"
     );
-
 
     return QGuiApplication::exec();
 }

@@ -57,24 +57,51 @@ AuthController::AuthController(
     }
 }
 
-
 bool AuthController::authenticated() const
 {
     return m_authenticated;
 }
-
 
 QString AuthController::displayName() const
 {
     return m_account.displayName;
 }
 
-
 QString AuthController::login() const
 {
     return m_account.login;
 }
 
+QString AuthController::extractToken(
+    const QString &input) const
+{
+    const QString value = input.trimmed();
+
+    const QString marker = "access_token=";
+
+    const int start =
+        value.indexOf(marker);
+
+    // Обычный токен — оставляем как есть.
+    if (start < 0)
+        return value;
+
+    const int tokenStart =
+        start + marker.length();
+
+    const int tokenEnd =
+        value.indexOf('&', tokenStart);
+
+    if (tokenEnd < 0)
+        return value.mid(tokenStart).trimmed();
+
+    return value
+        .mid(
+            tokenStart,
+            tokenEnd - tokenStart
+        )
+        .trimmed();
+}
 
 void AuthController::loginWithToken(
     const QString &token)
@@ -86,7 +113,17 @@ void AuthController::loginWithToken(
         return;
     }
 
-    if (!m_auth->setToken(token)) {
+    const QString extractedToken =
+        extractToken(token);
+
+    if (extractedToken.isEmpty()) {
+        emit errorOccurred(
+            "Не удалось найти OAuth-токен");
+
+        return;
+    }
+
+    if (!m_auth->setToken(extractedToken)) {
         emit errorOccurred(
             "Не удалось сохранить токен");
 
@@ -95,7 +132,6 @@ void AuthController::loginWithToken(
 
     loadAccount();
 }
-
 
 void AuthController::logout()
 {
@@ -121,7 +157,6 @@ void AuthController::logout()
     if (wasAuthenticated != m_authenticated)
         emit authenticatedChanged();
 }
-
 
 void AuthController::loadAccount()
 {

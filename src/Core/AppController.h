@@ -99,7 +99,10 @@ class AppController : public QObject
     Q_PROPERTY(QColor playerAccent READ playerAccent NOTIFY playerAccentChanged)
 
 public:
-    explicit AppController(QObject *parent = nullptr);
+    explicit AppController(
+    YandexAuth *auth,
+    AccountService *accountService,
+    QObject *parent = nullptr);
 
     Q_INVOKABLE void testConnection();
     Q_INVOKABLE void testYandexApi();

@@ -21,7 +21,10 @@
 #include "../Yandex/Personal/YandexPersonal.h"
 
 
-AppController::AppController(QObject *parent)
+AppController::AppController(
+    YandexAuth *auth,
+    AccountService *accountService,
+    QObject *parent)
     : QObject(parent)
     , m_auth(new YandexAuth(this))
     , m_accountService(new AccountService(m_auth, this))
@@ -525,7 +528,6 @@ void AppController::testConnection()
 
 void AppController::testYandexApi()
 {
-    m_accountService->loadAccount();
 
     emit statusChanged(
         "Проверка аккаунта Яндекс Музыки...");
