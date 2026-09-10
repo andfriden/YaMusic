@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>YaMusic</title>
+  <rect x="84" y="78" width="856" height="868" rx="150" fill="#1C1F2A"/>
+  <path fill="#FFFFFF" d="M313 251c18-18 47-18 65 0l142 142-49 49-142-142c-18-18-18-47 0-65z"/>
+  <path fill="#FFFFFF" d="M654 251c18-18 47-18 65 0 18 18 18 47 0 65L542 493l-49-49 161-193z"/>
+  <path fill="#FFFFFF" d="M489 446h68v293h-68z"/>
+  <circle cx="493" cy="773" r="77" fill="#FFFFFF"/>
+</svg>

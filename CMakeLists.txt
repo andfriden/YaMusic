@@ -79,6 +79,10 @@ set(
         "${YAMUSIC_RESOURCES_ROOT}/YaMusic.ico"
 )
 
+set(
+        YAMUSIC_ICON_SVG
+        "${YAMUSIC_RESOURCES_ROOT}/YaMusic.svg"
+)
 
 # =============================================================
 # Windows icon resource
@@ -773,39 +777,55 @@ install(
 
 
 # =============================================================
-# Linux desktop entry
-# =============================================================
-
-if(UNIX AND NOT APPLE)
-
-    set(
-            YAMUSIC_DESKTOP_FILE
-            "${CMAKE_CURRENT_BINARY_DIR}/YaMusic.desktop"
-    )
-
-    file(
-            WRITE
-            "${YAMUSIC_DESKTOP_FILE}"
-
-            "[Desktop Entry]\n"
-            "Type=Application\n"
-            "Name=YaMusic\n"
-            "Comment=Yandex Music desktop client\n"
-            "Exec=yamusic\n"
-            "Terminal=false\n"
-            "Categories=AudioVideo;Audio;Music;\n"
-    )
-
-    install(
-            FILES
-            "${YAMUSIC_DESKTOP_FILE}"
-
-            DESTINATION
-            share/applications
-    )
-
-endif()
-
+## =============================================================
+## Linux desktop entry and icon
+## =============================================================
+#
+#if(UNIX AND NOT APPLE)
+#
+#    set(
+#            YAMUSIC_DESKTOP_FILE
+#            "${CMAKE_CURRENT_BINARY_DIR}/YaMusic.desktop"
+#    )
+#
+#    file(
+#            WRITE
+#            "${YAMUSIC_DESKTOP_FILE}"
+#
+#            "[Desktop Entry]\n"
+#            "Type=Application\n"
+#            "Name=YaMusic\n"
+#            "Comment=Yandex Music desktop client\n"
+#            "Exec=yamusic\n"
+#            "Icon=yamusic\n"
+#            "Terminal=false\n"
+#            "Categories=AudioVideo;Audio;Music;\n"
+#    )
+#
+#    install(
+#            FILES
+#            "${YAMUSIC_DESKTOP_FILE}"
+#
+#            DESTINATION
+#            share/applications
+#    )
+#
+#    if(EXISTS "${YAMUSIC_ICON_SVG}")
+#
+#        install(
+#                FILES
+#                "${YAMUSIC_ICON_SVG}"
+#
+#                DESTINATION
+#                share/icons/hicolor/scalable/apps
+#
+#                RENAME
+#                yamusic.svg
+#        )
+#
+#    endif()
+#
+#endif()
 
 # =============================================================
 # Qt deployment
