@@ -4,7 +4,7 @@ Item {
     id: root
 
     property var controller
-    property string contextType: "home"
+    property string contextType: ""
 
 
     // =============================================================
@@ -14,25 +14,16 @@ Item {
     Loader {
         id: panelLoader
 
-        anchors.fill:
-            parent
+        anchors.fill: parent
 
-        source:
-            root.sourceForContext(
-                root.contextType
-            )
-
+        source: root.sourceForContext(root.contextType)
 
         onLoaded: {
-            if (
-                item === null ||
-                item === undefined
-            ) {
+            if (item === null || item === undefined) {
                 return
             }
 
-            item.controller =
-                root.controller
+            item.controller = root.controller
         }
     }
 
@@ -46,8 +37,7 @@ Item {
             panelLoader.item !== null &&
             panelLoader.item !== undefined
         ) {
-            panelLoader.item.controller =
-                root.controller
+            panelLoader.item.controller = root.controller
         }
     }
 
@@ -59,29 +49,20 @@ Item {
     function sourceForContext(type) {
         switch (type) {
 
-        case "artist":
-            return "qrc:/qt/qml/YaMusic/Context/ContextPanelArtist.qml"
+            case "artist":
+                return "qrc:/qt/qml/YaMusic/Context/ContextPanelArtist.qml"
 
+            case "album":
+                return "qrc:/qt/qml/YaMusic/Context/ContextPanelAlbum.qml"
 
-        case "album":
-            return "qrc:/qt/qml/YaMusic/Context/ContextPanelAlbum.qml"
+            case "library":
+                return "qrc:/qt/qml/YaMusic/Context/ContextPanelLibrary.qml"
 
+            case "mywave":
+                return "qrc:/qt/qml/YaMusic/Context/ContextPanelMyWave.qml"
 
-        case "playlist":
-            return "qrc:/qt/qml/YaMusic/Context/ContextPanelPlaylist.qml"
-
-
-        case "library":
-            return "qrc:/qt/qml/YaMusic/Context/ContextPanelLibrary.qml"
-
-
-        case "mywave":
-            return "qrc:/qt/qml/YaMusic/Context/ContextPanelMyWave.qml"
-
-
-        case "home":
-        default:
-            return "qrc:/qt/qml/YaMusic/Context/ContextPanelHome.qml"
+            default:
+                return ""
         }
     }
 }

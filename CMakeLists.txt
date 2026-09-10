@@ -307,11 +307,9 @@ set(
         "${YAMUSIC_QML_ROOT}/Search/SearchResultsSection.qml"
 
         # Context
-        "${YAMUSIC_QML_ROOT}/Context/ContextPanelHome.qml"
         "${YAMUSIC_QML_ROOT}/Context/ContextPanelMyWave.qml"
         "${YAMUSIC_QML_ROOT}/Context/ContextPanelArtist.qml"
         "${YAMUSIC_QML_ROOT}/Context/ContextPanelAlbum.qml"
-        "${YAMUSIC_QML_ROOT}/Context/ContextPanelPlaylist.qml"
         "${YAMUSIC_QML_ROOT}/Context/ContextPanelLibrary.qml"
 
         # Layout
