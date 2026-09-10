@@ -832,7 +832,7 @@ void PlaylistService::startNextPlaylistBatchRequests()
 }
 
 
-// =============================================================
+/// =============================================================
 // Finish batch
 // =============================================================
 
@@ -846,19 +846,20 @@ void PlaylistService::finishPlaylistBatch()
         << m_playlistBatchResults.size();
 
 
-    emit playlistsReceived(
-        m_playlistBatchResults);
+    const QList<Playlist> results =
+        m_playlistBatchResults;
+
+    const bool hadError =
+        m_playlistBatchError;
 
 
-    if (
-        m_playlistBatchError
-    )
-    {
-        qDebug()
-            << "PlaylistService:"
-            << "some playlists failed";
-    }
-
+    // =============================================================
+    // Reset state BEFORE emitting the signal.
+    //
+    // playlistsReceived() can synchronously cause the next
+    // loadPlaylists() call. Therefore the old batch must already
+    // be completely reset at this point.
+    // =============================================================
 
     m_playlistBatchQueue.clear();
 
@@ -869,9 +870,21 @@ void PlaylistService::finishPlaylistBatch()
     m_playlistBatchCompleted = 0;
 
     m_playlistBatchError = false;
+
+
+    emit playlistsReceived(
+        results);
+
+
+    if (
+        hadError
+    )
+    {
+        qDebug()
+            << "PlaylistService:"
+            << "some playlists failed";
+    }
 }
-
-
 // =============================================================
 // User playlists
 // =============================================================

@@ -1,14 +1,14 @@
 #pragma once
 
-#include <QAbstractListModel>
 #include <QList>
 #include <QObject>
+#include <QPair>
 #include <QString>
+#include <QStringList>
 #include <QVariantList>
 
-#include "../Yandex/Catalog/GenreModel.h"
-
 #include "../Models/Playlist.h"
+#include "../Yandex/Catalog/GenreModel.h"
 
 
 class GenreService;
@@ -21,23 +21,27 @@ class GenreController : public QObject
 
     Q_PROPERTY(
         bool loading
-        READ isLoading
-        NOTIFY loadingChanged)
+        READ loading
+        NOTIFY loadingChanged
+    )
 
     Q_PROPERTY(
-        GenreModel *model
+        GenreModel* model
         READ model
-        CONSTANT)
+        CONSTANT
+    )
 
     Q_PROPERTY(
         bool genreLoading
-        READ isGenreLoading
-        NOTIFY genreLoadingChanged)
+        READ genreLoading
+        NOTIFY genreLoadingChanged
+    )
 
     Q_PROPERTY(
         QVariantList genrePlaylists
         READ genrePlaylists
-        NOTIFY genreContentChanged)
+        NOTIFY genreContentChanged
+    )
 
 
 public:
@@ -55,6 +59,10 @@ public:
     Q_INVOKABLE void loadGenres();
 
 
+    // =============================================================
+    // Selected genre
+    // =============================================================
+
     Q_INVOKABLE void loadGenre(
         const QString &genreId);
 
@@ -71,42 +79,75 @@ public:
     // Properties
     // =============================================================
 
-    GenreModel *
-    model() const;
+    bool loading() const;
 
+    GenreModel *model() const;
 
-    bool
-    isLoading() const;
+    bool genreLoading() const;
 
-
-    bool
-    isGenreLoading() const;
-
-
-    QVariantList
-    genrePlaylists() const;
+    QVariantList genrePlaylists() const;
 
 
 signals:
 
     void loadingChanged();
 
-    void genresChanged();
-
-    void statusChanged(
-        const QString &message);
-
-
     void genreLoadingChanged();
 
     void genreContentChanged();
+
+    void statusChanged(
+        const QString &status);
+
+    void errorOccurred(
+        const QString &message);
 
 
 private:
 
     // =============================================================
-    // Services
+    // Genre playlist loading
     // =============================================================
+
+    void startGenrePlaylistQueue(
+        const QList<QPair<QString, int>> &playlists);
+
+
+    void loadNextGenrePlaylistBatch();
+
+
+    void finishGenrePlaylistLoading();
+
+
+    void startApiFallback();
+
+
+    // =============================================================
+    // CSV
+    // =============================================================
+
+    QList<QPair<QString, int>>
+        loadPlaylistIdsFromCsv(
+            const QString &genreId);
+
+
+    // =============================================================
+    // Helpers
+    // =============================================================
+
+    static QStringList splitCsvLine(
+        const QString &line);
+
+
+    static bool isDisplayedGenre(
+        const QString &genreId);
+
+
+    static QString playlistKey(
+        const QPair<QString, int> &playlist);
+
+
+private:
 
     GenreService *
         m_genreService = nullptr;
@@ -116,17 +157,9 @@ private:
         m_playlistService = nullptr;
 
 
-    // =============================================================
-    // Model
-    // =============================================================
-
     GenreModel *
         m_model = nullptr;
 
-
-    // =============================================================
-    // Content
-    // =============================================================
 
     QList<Playlist>
         m_genrePlaylists;
@@ -137,7 +170,7 @@ private:
 
 
     // =============================================================
-    // Loading state
+    // Genre loading state
     // =============================================================
 
     bool
@@ -157,26 +190,29 @@ private:
 
 
     // =============================================================
-    // Helpers
+    // Playlist queue
     // =============================================================
 
-    void clearGenreContent();
-
-
-    void finishGenreLoading();
-
-
     QList<QPair<QString, int>>
-    loadPlaylistIdsFromCsv(
-        const QString &genreId) const;
+        m_genrePlaylistQueue;
 
 
-    static bool
-    isDisplayedGenre(
-        const QString &genreId);
+    int
+        m_genrePlaylistQueuePosition = 0;
 
 
-    static QList<Genre>
-    filterDisplayedGenres(
-        const QList<Genre> &genres);
+    bool
+        m_usingApiFallback = false;
+
+
+    bool
+        m_csvHadCandidates = false;
+
+
+    bool
+        m_loadedAnyGenrePlaylist = false;
+
+
+    static constexpr int
+        GenrePlaylistBatchSize = 12;
 };
