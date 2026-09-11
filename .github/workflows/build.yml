@@ -1,4 +1,4 @@
-name: Build YaMusic
+ame: Build YaMusic
 
 on:
   push:
@@ -39,8 +39,6 @@ jobs:
             build-essential \
             cmake \
             ninja-build
-
-
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
@@ -60,27 +58,19 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/dist"
-
-
       - name: Build
         run: |
           cmake --build build --parallel
-
-
       - name: Install
         run: |
           rm -rf dist
           cmake --install build
-
-
       - name: Package
         run: |
           tar \
             -C dist \
             -czf YaMusic-Linux-x64.tar.gz \
             .
-
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -116,8 +106,6 @@ jobs:
       - name: Install build tools
         run: |
           brew install cmake ninja
-
-
       - name: Configure
         run: |
           cmake \
@@ -126,19 +114,13 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/dist"
-
-
       - name: Build
         run: |
           cmake --build build --parallel
-
-
       - name: Install
         run: |
           rm -rf dist
           cmake --install build
-
-
       - name: Create DMG
         run: |
           hdiutil create \
@@ -147,8 +129,6 @@ jobs:
             -ov \
             -format UDZO \
             YaMusic-macOS.dmg
-
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -194,32 +174,23 @@ jobs:
             -DCMAKE_INSTALL_PREFIX="$env:GITHUB_WORKSPACE\dist" `
             -DCMAKE_C_COMPILER=gcc `
             -DCMAKE_CXX_COMPILER=g++
-
-
       - name: Build
         shell: pwsh
         run: |
           cmake --build build --parallel
-
-
       - name: Install
         shell: pwsh
         run: |
           if (Test-Path dist) {
             Remove-Item dist -Recurse -Force
           }
-
           cmake --install build
-
-
       - name: Package
         shell: pwsh
         run: |
           Compress-Archive `
             -Path dist\* `
             -DestinationPath YaMusic-Windows-x64.zip
-
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
