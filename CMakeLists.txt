@@ -40,11 +40,9 @@ qt_standard_project_setup(REQUIRES 6.10)
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/importedcontent/CMakeLists.txt")
 
-```
 add_subdirectory(
 importedcontent
 )
-```
 
 endif()
 
@@ -103,7 +101,6 @@ YAMUSIC_ICON_SVG
 
 if(WIN32 AND EXISTS "${YAMUSIC_ICON_ICO}")
 
-```
 set(
 YAMUSIC_RC
 "${CMAKE_CURRENT_BINARY_DIR}/YaMusic.rc"
@@ -114,7 +111,6 @@ WRITE
 "${YAMUSIC_RC}"
 "IDI_ICON1 ICON DISCARDABLE \"${YAMUSIC_ICON_ICO}\"\n"
 )
-```
 
 endif()
 
@@ -126,14 +122,12 @@ endif()
 
 if(APPLE AND EXISTS "${YAMUSIC_ICON_ICNS}")
 
-```
 set_source_files_properties(
 "${YAMUSIC_ICON_ICNS}"
 PROPERTIES
 MACOSX_PACKAGE_LOCATION
 "Resources"
 )
-```
 
 endif()
 
@@ -146,7 +140,6 @@ endif()
 set(
 YAMUSIC_SOURCES
 
-```
 main.cpp
 
 # Core
@@ -229,7 +222,6 @@ src/Yandex/Personal/PlaylistService.cpp
 src/Yandex/Personal/RecentListeningModel.cpp
 src/Yandex/Personal/RecentListeningService.cpp
 src/Yandex/Personal/YandexPersonal.cpp
-```
 
 )
 
@@ -252,25 +244,21 @@ ${YAMUSIC_SOURCES}
 
 if(WIN32 AND EXISTS "${YAMUSIC_RC}")
 
-```
 target_sources(
 appYaMusic
 PRIVATE
 "${YAMUSIC_RC}"
 )
-```
 
 endif()
 
 if(APPLE AND EXISTS "${YAMUSIC_ICON_ICNS}")
 
-```
 target_sources(
 appYaMusic
 PRIVATE
 "${YAMUSIC_ICON_ICNS}"
 )
-```
 
 endif()
 
@@ -300,7 +288,6 @@ QT_RESOURCE_ALIAS
 set(
 YAMUSIC_QML_FILES
 
-```
 # Main
 "${YAMUSIC_ROOT}/Main.qml"
 
@@ -355,7 +342,6 @@ YAMUSIC_QML_FILES
 
 # Theme
 "${YAMUSIC_QML_ROOT}/Theme/AppTheme.qml"
-```
 
 )
 
@@ -681,7 +667,6 @@ QT_RESOURCE_ALIAS
 qt_add_qml_module(
 appYaMusic
 
-```
 URI
 YaMusic
 
@@ -696,7 +681,6 @@ RESOURCES
 
 QML_FILES
 ${YAMUSIC_QML_FILES}
-```
 
 )
 
@@ -708,21 +692,17 @@ ${YAMUSIC_QML_FILES}
 
 if(UNIX AND NOT APPLE)
 
-```
 set(
 YAMUSIC_OUTPUT_NAME
 "yamusic"
 )
-```
 
 else()
 
-```
 set(
 YAMUSIC_OUTPUT_NAME
 "YaMusic"
 )
-```
 
 endif()
 
@@ -736,7 +716,6 @@ set_target_properties(
 appYaMusic
 PROPERTIES
 
-```
 OUTPUT_NAME
 "${YAMUSIC_OUTPUT_NAME}"
 
@@ -757,7 +736,6 @@ MACOSX_BUNDLE_GUI_IDENTIFIER
 
 WIN32_EXECUTABLE
 TRUE
-```
 
 )
 
@@ -769,7 +747,6 @@ TRUE
 
 if(APPLE AND EXISTS "${YAMUSIC_ICON_ICNS}")
 
-```
 set_target_properties(
 appYaMusic
 PROPERTIES
@@ -777,7 +754,6 @@ PROPERTIES
 MACOSX_BUNDLE_ICON_FILE
 "YaMusic.icns"
 )
-```
 
 endif()
 
@@ -791,11 +767,9 @@ target_link_libraries(
 appYaMusic
 PRIVATE
 
-```
 Qt6::Quick
 Qt6::Network
 Qt6::Multimedia
-```
 
 )
 
@@ -807,7 +781,6 @@ Qt6::Multimedia
 
 if(WIN32)
 
-```
 find_program(
 WINDEPLOYQT_EXECUTABLE
 windeployqt.exe
@@ -841,7 +814,6 @@ COMMAND
 COMMENT
 "Deploying Qt libraries and plugins with windeployqt..."
 )
-```
 
 endif()
 
@@ -853,7 +825,6 @@ endif()
 
 if(APPLE)
 
-```
 find_program(
 MACDEPLOYQT_EXECUTABLE
 macdeployqt
@@ -885,7 +856,6 @@ COMMAND
 COMMENT
 "Deploying Qt frameworks and plugins with macdeployqt..."
 )
-```
 
 endif()
 
@@ -899,7 +869,6 @@ install(
 TARGETS
 appYaMusic
 
-```
 BUNDLE
 DESTINATION
 .
@@ -907,7 +876,6 @@ DESTINATION
 RUNTIME
 DESTINATION
 bin
-```
 
 )
 
@@ -919,7 +887,6 @@ bin
 
 if(UNIX AND NOT APPLE)
 
-```
 set(
 YAMUSIC_DESKTOP_FILE
 "${CMAKE_CURRENT_BINARY_DIR}/YaMusic.desktop"
@@ -995,6 +962,5 @@ FILES
 DESTINATION
 bin
 )
-```
 
 endif()
