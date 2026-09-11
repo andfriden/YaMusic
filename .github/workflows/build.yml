@@ -1,4 +1,4 @@
-ame: Build YaMusic
+name: Build YaMusic
 
 on:
   push:
