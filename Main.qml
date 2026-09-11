@@ -19,25 +19,13 @@ ApplicationWindow {
 
     property bool expandedNowPlayingVisible: false
 
-    Connections {
-        target: appController
+   Connections {
+    target: appController
 
-        function onStatusChanged(message) {
-            statusBar.message = message
-        }
-
-        function onAlbumPageRequested(albumId) {
-            mainLayout.currentSection = "albums"
-        }
-
-        function onArtistPageRequested(artistId) {
-            mainLayout.currentSection = "artists"
-        }
-
-        function onPlaylistPageRequested() {
-            mainLayout.currentSection = "playlist"
-        }
+    function onStatusChanged(message) {
+        statusBar.message = message
     }
+}
 
     Button {
         id: logoutButton

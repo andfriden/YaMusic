@@ -125,6 +125,7 @@ Item {
 
         Repeater {
             model: [
+                { title: "Моя волна", section: "wave" },
                 { title: "Чарты", section: "chart" },
                 { title: "Жанры", section: "genres" },
                 { title: "Плейлисты", section: "playlists" },
