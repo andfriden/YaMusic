@@ -777,71 +777,77 @@ install(
 
 
 # =============================================================
-## =============================================================
-## Linux desktop entry and icon
-## =============================================================
-#
-#if(UNIX AND NOT APPLE)
-#
-#    set(
-#            YAMUSIC_DESKTOP_FILE
-#            "${CMAKE_CURRENT_BINARY_DIR}/YaMusic.desktop"
-#    )
-#
-#    file(
-#            WRITE
-#            "${YAMUSIC_DESKTOP_FILE}"
-#
-#            "[Desktop Entry]\n"
-#            "Type=Application\n"
-#            "Name=YaMusic\n"
-#            "Comment=Yandex Music desktop client\n"
-#            "Exec=yamusic\n"
-#            "Icon=yamusic\n"
-#            "Terminal=false\n"
-#            "Categories=AudioVideo;Audio;Music;\n"
-#    )
-#
-#    install(
-#            FILES
-#            "${YAMUSIC_DESKTOP_FILE}"
-#
-#            DESTINATION
-#            share/applications
-#    )
-#
-#    if(EXISTS "${YAMUSIC_ICON_SVG}")
-#
-#        install(
-#                FILES
-#                "${YAMUSIC_ICON_SVG}"
-#
-#                DESTINATION
-#                share/icons/hicolor/scalable/apps
-#
-#                RENAME
-#                yamusic.svg
-#        )
-#
-#    endif()
-#
-#endif()
-
-# =============================================================
-# Qt deployment
+# Linux desktop entry and icon
 # =============================================================
 
-qt_generate_deploy_qml_app_script(
-        TARGET
-        appYaMusic
+if(UNIX AND NOT APPLE)
 
-        OUTPUT_SCRIPT
-        deploy_script
+    set(
+            YAMUSIC_DESKTOP_FILE
+            "${CMAKE_CURRENT_BINARY_DIR}/YaMusic.desktop"
+    )
 
-        NO_UNSUPPORTED_PLATFORM_ERROR
+    file(
+            WRITE
+            "${YAMUSIC_DESKTOP_FILE}"
+
+            "[Desktop Entry]\n"
+            "Type=Application\n"
+            "Name=YaMusic\n"
+            "Comment=Yandex Music desktop client\n"
+            "Exec=yamusic\n"
+            "Icon=yamusic\n"
+            "Terminal=false\n"
+            "Categories=AudioVideo;Audio;Music;\n"
+    )
+
+    install(
+            FILES
+            "${YAMUSIC_DESKTOP_FILE}"
+
+            DESTINATION
+            share/applications
+    )
+
+    if(EXISTS "${YAMUSIC_ICON_SVG}")
+
+        install(
+                FILES
+                "${YAMUSIC_ICON_SVG}"
+
+                DESTINATION
+                share/icons/hicolor/scalable/apps
+
+                RENAME
+                yamusic.svg
+        )
+
+    endif()
+
+    # =========================================================
+    # Qt configuration
+    # =========================================================
+
+    set(
+            YAMUSIC_QT_CONF_FILE
+            "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+    )
+
+ file(
+        WRITE
+        "${YAMUSIC_QT_CONF_FILE}"
+
+        "[Paths]\n"
+        "Plugins = /usr/lib/qt6/plugins\n"
+        "Qml2Imports = /usr/lib/qt6/qml\n"
 )
 
-install(
-        SCRIPT
-        "${deploy_script}"
-)
+    install(
+            FILES
+            "${YAMUSIC_QT_CONF_FILE}"
+
+            DESTINATION
+            bin
+    )
+
+endif()
