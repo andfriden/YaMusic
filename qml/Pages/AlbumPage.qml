@@ -1,90 +1,158 @@
 import QtQuick
 import QtQuick.Controls.Basic
 
-import YaMusic.Core
-
 
 Item {
     id: root
-
-
-    // =============================================================
-    // Controller
-    // =============================================================
-
+    
     property var controller
 
-
     readonly property var albumController:
-            root.controller !== null &&
+        root.controller !== null &&
         root.controller !== undefined &&
         root.controller.albumController !== null &&
         root.controller.albumController !== undefined
         ? root.controller.albumController
         : null
 
-
     readonly property var albumModel:
-            root.albumController !== null &&
+        root.albumController !== null &&
         root.albumController.albumModel !== null &&
         root.albumController.albumModel !== undefined
         ? root.albumController.albumModel
         : null
 
-
-    // =============================================================
-    // Album state
-    // =============================================================
-
     readonly property bool loading:
-            root.albumController !== null
+        root.albumController !== null
         ? root.albumController.loading
         : false
-
 
     readonly property bool hasAlbum:
         root.albumController !== null &&
         root.albumController.albumId !== ""
 
-
     readonly property int trackCount:
-            root.albumModel !== null
+        root.albumModel !== null
         ? root.albumModel.count
         : 0
 
-
     readonly property string albumArtworkUri:
-            root.albumController !== null
+        root.albumController !== null
         ? root.albumController.currentAlbumCoverUri
         : ""
-
-
-    // =============================================================
-    // Page size
-    // =============================================================
 
     implicitHeight:
         pageColumn.implicitHeight + 48
 
-
     width:
-            parent !== null
+        parent !== null
         ? parent.width
         : 0
 
 
-    // =============================================================
-    // Content
-    // =============================================================
+    Component.onCompleted: {
+        console.log(
+            "========== AlbumPage CREATED =========="
+        )
+
+        console.log(
+            "AlbumPage controller:",
+            root.controller
+        )
+
+        console.log(
+            "AlbumPage albumController:",
+            root.albumController
+        )
+
+        console.log(
+            "AlbumPage albumModel:",
+            root.albumModel
+        )
+
+        console.log(
+            "AlbumPage albumModel.count:",
+            root.trackCount
+        )
+    }
+
+
+    onAlbumModelChanged: {
+        console.log(
+            "========== AlbumPage albumModelChanged =========="
+        )
+
+        console.log(
+            "albumModel:",
+            root.albumModel
+        )
+
+        console.log(
+            "count:",
+            root.trackCount
+        )
+    }
+
+
+    onTrackCountChanged: {
+        console.log(
+            "========== AlbumPage trackCountChanged =========="
+        )
+
+        console.log(
+            "trackCount:",
+            root.trackCount
+        )
+
+        console.log(
+            "albumModel:",
+            root.albumModel
+        )
+    }
+
+
+    Connections {
+        target: root.albumModel
+        ignoreUnknownSignals: true
+
+        function onCountChanged() {
+            console.log(
+                "========== AlbumPage albumModel.countChanged =========="
+            )
+
+            console.log(
+                "model:",
+                root.albumModel
+            )
+
+            console.log(
+                "model.count:",
+                root.albumModel !== null
+                    ? root.albumModel.count
+                    : -1
+            )
+        }
+
+        function onAlbumChanged() {
+            console.log(
+                "========== AlbumPage albumModel.albumChanged =========="
+            )
+
+            console.log(
+                "model.count:",
+                root.albumModel !== null
+                    ? root.albumModel.count
+                    : -1
+            )
+        }
+    }
+
 
     Column {
         id: pageColumn
 
-        x:
-            24
-
-        y:
-            24
+        x: 24
+        y: 24
 
         width:
             Math.max(
@@ -92,87 +160,55 @@ Item {
                 0
             )
 
-        spacing:
-            20
+        spacing: 20
 
-
-        // =========================================================
-        // Album header
-        // =========================================================
 
         Rectangle {
             id: albumHeader
 
-            width:
-                parent.width
+            width: parent.width
+            height: 260
 
-            height:
-                260
+            radius: 16
 
-            radius:
-                16
-
-            color:
-                AppTheme.surface
+            color: AppTheme.surface
 
 
             Row {
-                anchors.fill:
-                    parent
+                anchors.fill: parent
+                anchors.margins: 24
 
-                anchors.margins:
-                    24
+                spacing: 24
 
-                spacing:
-                    24
-
-
-                // -------------------------------------------------
-                // Artwork
-                // -------------------------------------------------
 
                 Rectangle {
-                    width:
-                        212
+                    width: 212
+                    height: 212
 
-                    height:
-                        212
+                    radius: 12
 
-                    radius:
-                        12
+                    color: AppTheme.surfaceVariant
 
-                    color:
-                        AppTheme.surfaceVariant
-
-                    clip:
-                        true
+                    clip: true
 
 
                     Image {
-                        anchors.fill:
-                            parent
+                        anchors.fill: parent
 
                         source:
-                                root.albumArtworkUri !== ""
+                            root.albumArtworkUri !== ""
                             ? "image://yandex/" +
-                            root.albumArtworkUri
+                              root.albumArtworkUri
                             : ""
 
                         fillMode:
                             Image.PreserveAspectCrop
 
-                        asynchronous:
-                            true
-
-                        cache:
-                            true
+                        asynchronous: true
+                        cache: true
                     }
                 }
 
-
-                // -------------------------------------------------
-                // Album information
-                // -------------------------------------------------
 
                 Column {
                     anchors.verticalCenter:
@@ -183,19 +219,14 @@ Item {
                         212 -
                         24
 
-                    spacing:
-                        8
+                    spacing: 8
 
 
                     Label {
-                        text:
-                            "АЛЬБОМ"
+                        text: "АЛЬБОМ"
 
-                        font.pixelSize:
-                            13
-
-                        font.bold:
-                            true
+                        font.pixelSize: 13
+                        font.bold: true
 
                         color:
                             AppTheme.secondaryText
@@ -203,19 +234,15 @@ Item {
 
 
                     Label {
-                        width:
-                            parent.width
+                        width: parent.width
 
                         text:
-                                root.albumController !== null
+                            root.albumController !== null
                             ? root.albumController.currentAlbumTitle
                             : ""
 
-                        font.pixelSize:
-                            32
-
-                        font.bold:
-                            true
+                        font.pixelSize: 32
+                        font.bold: true
 
                         color:
                             AppTheme.primaryText
@@ -226,21 +253,19 @@ Item {
 
 
                     Label {
-                        width:
-                            parent.width
+                        width: parent.width
 
                         text:
-                                root.trackCount > 0
+                            root.trackCount > 0
                             ? root.trackCount +
-                            (
-                                    root.trackCount === 1
-                                    ? " трек"
-                                    : " трека"
-                            )
+                              (
+                                  root.trackCount === 1
+                                  ? " трек"
+                                  : " трека"
+                              )
                             : ""
 
-                        font.pixelSize:
-                            15
+                        font.pixelSize: 15
 
                         color:
                             AppTheme.secondaryText
@@ -250,67 +275,65 @@ Item {
         }
 
 
-        // =========================================================
-        // Tracks
-        // =========================================================
-
         Rectangle {
-            id: tracksCard
-
-            width:
-                parent.width
+            width: parent.width
 
             implicitHeight:
                 tracksColumn.implicitHeight + 32
 
-            radius:
-                16
+            radius: 16
 
-            color:
-                AppTheme.surface
+            color: AppTheme.surface
 
 
             Column {
                 id: tracksColumn
 
-                x:
-                    16
-
-                y:
-                    16
+                x: 16
+                y: 16
 
                 width:
                     parent.width - 32
 
-                spacing:
-                    8
+                spacing: 8
 
 
                 Label {
-                    text:
-                        "Треки"
+                    text: "Треки"
 
-                    font.pixelSize:
-                        20
-
-                    font.bold:
-                        true
+                    font.pixelSize: 20
+                    font.bold: true
 
                     color:
                         AppTheme.primaryText
                 }
 
 
-                // -------------------------------------------------
-                // Empty state
-                // -------------------------------------------------
+                Label {
+                    width: parent.width
+
+                    text:
+                        "DEBUG: model=" +
+                        (
+                            root.albumModel !== null
+                            ? "true"
+                            : "false"
+                        ) +
+                        " | count=" +
+                        root.trackCount
+
+                    font.pixelSize: 13
+
+                    color:
+                        AppTheme.secondaryText
+                }
+
 
                 Item {
-                    width:
-                        parent.width
+                    width: parent.width
 
                     height:
-                            root.trackCount === 0 &&
+                        root.trackCount === 0 &&
                         !root.loading
                         ? 68
                         : 0
@@ -320,14 +343,11 @@ Item {
 
 
                     Label {
-                        anchors.centerIn:
-                            parent
+                        anchors.centerIn: parent
 
-                        text:
-                            "Треки не найдены"
+                        text: "Треки не найдены"
 
-                        font.pixelSize:
-                            15
+                        font.pixelSize: 15
 
                         color:
                             AppTheme.secondaryText
@@ -335,18 +355,13 @@ Item {
                 }
 
 
-                // -------------------------------------------------
-                // Track list
-                // -------------------------------------------------
-
                 ListView {
                     id: tracksView
 
-                    width:
-                        parent.width
+                    width: parent.width
 
                     height:
-                            root.trackCount > 0
+                        root.trackCount > 0
                         ? root.trackCount * 82
                         : 0
 
@@ -356,14 +371,55 @@ Item {
                     model:
                         root.albumModel
 
-                    interactive:
-                        false
+                    interactive: false
 
-                    clip:
-                        true
+                    clip: true
 
-                    spacing:
-                        8
+                    spacing: 8
+
+
+                    onCountChanged: {
+                        console.log(
+                            "========== AlbumPage tracksView.countChanged =========="
+                        )
+
+                        console.log(
+                            "ListView count:",
+                            tracksView.count
+                        )
+
+                        console.log(
+                            "ListView model:",
+                            tracksView.model
+                        )
+
+                        console.log(
+                            "Album model count:",
+                            root.trackCount
+                        )
+                    }
+
+
+                    Component.onCompleted: {
+                        console.log(
+                            "========== AlbumPage ListView CREATED =========="
+                        )
+
+                        console.log(
+                            "ListView model:",
+                            tracksView.model
+                        )
+
+                        console.log(
+                            "ListView count:",
+                            tracksView.count
+                        )
+
+                        console.log(
+                            "Album model count:",
+                            root.trackCount
+                        )
+                    }
 
 
                     delegate: Item {
@@ -377,89 +433,102 @@ Item {
                         required property string coverUri
                         required property int durationMs
 
+
+                        Component.onCompleted: {
+                            console.log(
+                                "========== Album track delegate CREATED =========="
+                            )
+
+                            console.log(
+                                "index:",
+                                trackDelegate.index
+                            )
+
+                            console.log(
+                                "trackId:",
+                                trackDelegate.trackId
+                            )
+
+                            console.log(
+                                "title:",
+                                trackDelegate.title
+                            )
+
+                            console.log(
+                                "artist:",
+                                trackDelegate.artist
+                            )
+
+                            console.log(
+                                "cover:",
+                                trackDelegate.coverUri
+                            )
+
+                            console.log(
+                                "duration:",
+                                trackDelegate.durationMs
+                            )
+                        }
+
+
                         width:
                             tracksView.width
 
-                        height:
-                            74
+                        height: 74
 
 
                         Rectangle {
-                            anchors.fill:
-                                parent
+                            anchors.fill: parent
 
-                            radius:
-                                10
+                            radius: 10
 
                             color:
                                 trackMouseArea.containsMouse
-                                    ? AppTheme.panelActive
-                                    : AppTheme.panelSecondary
+                                ? AppTheme.panelActive
+                                : AppTheme.panelSecondary
 
 
                             Row {
-                                anchors.fill:
-                                    parent
+                                anchors.fill: parent
 
-                                anchors.leftMargin:
-                                    8
+                                anchors.leftMargin: 8
+                                anchors.rightMargin: 8
 
-                                anchors.rightMargin:
-                                    8
+                                spacing: 14
 
-                                spacing:
-                                    14
-
-
-                                // ---------------------------------
-                                // Cover
-                                // ---------------------------------
 
                                 Rectangle {
-                                    width:
-                                        56
-
-                                    height:
-                                        56
+                                    width: 56
+                                    height: 56
 
                                     anchors.verticalCenter:
                                         parent.verticalCenter
 
-                                    radius:
-                                        8
+                                    radius: 8
 
                                     color:
                                         AppTheme.surfaceVariant
 
-                                    clip:
-                                        true
+                                    clip: true
 
 
                                     Image {
-                                        anchors.fill:
-                                            parent
+                                        anchors.fill: parent
 
                                         source:
-                                                trackDelegate.coverUri !== ""
+                                            trackDelegate.coverUri !== ""
                                             ? "image://yandex/" +
-                                            trackDelegate.coverUri
+                                              trackDelegate.coverUri
                                             : ""
 
                                         fillMode:
                                             Image.PreserveAspectCrop
 
-                                        asynchronous:
-                                            true
-
-                                        cache:
-                                            true
+                                        asynchronous: true
+                                        cache: true
                                     }
                                 }
 
-
-                                // ---------------------------------
-                                // Track info
-                                // ---------------------------------
 
                                 Column {
                                     anchors.verticalCenter:
@@ -471,22 +540,17 @@ Item {
                                         14 -
                                         70
 
-                                    spacing:
-                                        3
+                                    spacing: 3
 
 
                                     Label {
-                                        width:
-                                            parent.width
+                                        width: parent.width
 
                                         text:
                                             trackDelegate.title
 
-                                        font.pixelSize:
-                                            15
-
-                                        font.bold:
-                                            true
+                                        font.pixelSize: 15
+                                        font.bold: true
 
                                         color:
                                             AppTheme.primaryText
@@ -497,14 +561,12 @@ Item {
 
 
                                     Label {
-                                        width:
-                                            parent.width
+                                        width: parent.width
 
                                         text:
                                             trackDelegate.artist
 
-                                        font.pixelSize:
-                                            13
+                                        font.pixelSize: 13
 
                                         color:
                                             AppTheme.secondaryText
@@ -515,13 +577,8 @@ Item {
                                 }
 
 
-                                // ---------------------------------
-                                // Duration
-                                // ---------------------------------
-
                                 Label {
-                                    width:
-                                        56
+                                    width: 56
 
                                     anchors.verticalCenter:
                                         parent.verticalCenter
@@ -534,8 +591,7 @@ Item {
                                     horizontalAlignment:
                                         Text.AlignRight
 
-                                    font.pixelSize:
-                                        13
+                                    font.pixelSize: 13
 
                                     color:
                                         AppTheme.secondaryText
@@ -547,25 +603,22 @@ Item {
                         MouseArea {
                             id: trackMouseArea
 
-                            anchors.fill:
-                                parent
+                            anchors.fill: parent
 
-                            hoverEnabled:
-                                true
+                            hoverEnabled: true
 
                             cursorShape:
                                 Qt.PointingHandCursor
 
-                            onClicked:
-                            {
+
+                            onClicked: {
                                 if (
                                     root.albumController !== null
-                                )
-                                {
+                                ) {
                                     root.albumController
                                         .selectAlbumTrack(
-                                        trackDelegate.index
-                                    )
+                                            trackDelegate.index
+                                        )
                                 }
                             }
                         }
@@ -575,27 +628,15 @@ Item {
         }
 
 
-        // =========================================================
-        // Bottom spacing
-        // =========================================================
-
         Item {
-            width:
-                parent.width
-
-            height:
-                24
+            width: parent.width
+            height: 24
         }
     }
 
 
-    // =============================================================
-    // Loading
-    // =============================================================
-
     Rectangle {
-        anchors.fill:
-            parent
+        anchors.fill: parent
 
         visible:
             root.loading
@@ -603,16 +644,13 @@ Item {
         color:
             AppTheme.background
 
-        opacity:
-            0.92
+        opacity: 0.92
 
-        z:
-            100
+        z: 100
 
 
         BusyIndicator {
-            anchors.centerIn:
-                parent
+            anchors.centerIn: parent
 
             running:
                 root.loading
@@ -620,27 +658,28 @@ Item {
     }
 
 
-    // =============================================================
-    // Helpers
-    // =============================================================
-
     function formatDuration(durationMs)
     {
         if (
             durationMs === undefined ||
             durationMs === null ||
             durationMs <= 0
-        )
-        {
+        ) {
             return ""
         }
 
 
         var totalSeconds =
-            Math.floor(durationMs / 1000)
+            Math.floor(
+                durationMs / 1000
+            )
+
 
         var minutes =
-            Math.floor(totalSeconds / 60)
+            Math.floor(
+                totalSeconds / 60
+            )
+
 
         var seconds =
             totalSeconds % 60
@@ -649,7 +688,11 @@ Item {
         return (
             minutes +
             ":" +
-            (seconds < 10 ? "0" : "") +
+            (
+                seconds < 10
+                ? "0"
+                : ""
+            ) +
             seconds
         )
     }

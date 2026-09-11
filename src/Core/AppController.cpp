@@ -74,6 +74,7 @@ AppController::AppController(
           m_albumService,
           m_artistService,
           m_playbackController,
+          m_likesService,
           this))
     , m_artistController(new ArtistController(
           m_artistService,
