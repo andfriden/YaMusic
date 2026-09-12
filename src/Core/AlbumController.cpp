@@ -73,6 +73,23 @@ AlbumController::AlbumController(
             emit statusChanged(message);
         });
 
+    /*
+     * ArtistService загружает альбомы исполнителя,
+     * но сам по себе не знает о модели AlbumController.
+     *
+     * Передаём полученные альбомы в модель
+     * "Другие альбомы".
+     */
+    connect(
+        m_artistService,
+        &ArtistService::artistAlbumsReceived,
+        this,
+        [this](const QList<Album> &albums) {
+
+            m_otherAlbumsModel->setAlbums(
+                albums);
+        });
+
     if (m_likesService) {
 
         connect(
