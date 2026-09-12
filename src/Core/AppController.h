@@ -83,6 +83,7 @@ class AppController : public QObject
     Q_PROPERTY(QString currentTrackAlbumTitle READ currentTrackAlbumTitle NOTIFY currentTrackChanged)
     Q_PROPERTY(QString currentTrackAlbumId READ currentTrackAlbumId NOTIFY currentTrackChanged)
     Q_PROPERTY(QString currentTrackCoverUri READ currentTrackCoverUri NOTIFY currentTrackChanged)
+    Q_PROPERTY(bool currentTrackLiked READ currentTrackLiked NOTIFY currentTrackChanged)
 
     Q_PROPERTY(qint64 position READ position NOTIFY positionChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
@@ -177,6 +178,7 @@ public:
     bool isLoadingPlaylist() const;
     bool isLoadingAlbum() const;
     bool isLoadingArtist() const;
+    bool currentTrackLiked() const;
 
     QString currentPlaylistTitle() const;
     QString currentPlaylistCoverUri() const;

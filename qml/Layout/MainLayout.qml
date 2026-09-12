@@ -29,8 +29,8 @@ Item {
     readonly property string contextType:
         navigationController.contextTypeForCurrentPage()
 
-    readonly property int topBarHeight: 82
-    readonly property int contextPanelWidth: 260
+    readonly property int topBarHeight: 68
+    readonly property int contextPanelWidth: 280
 
     Rectangle {
         anchors.fill: parent
@@ -86,9 +86,9 @@ Item {
 
                 anchors.fill: parent
 
-                anchors.topMargin: 10
-                anchors.leftMargin: 20
-                anchors.rightMargin: 20
+                anchors.topMargin: 20
+                anchors.leftMargin: 28
+                anchors.rightMargin: 28
                 anchors.bottomMargin: 0
 
                 clip: true
@@ -133,7 +133,7 @@ Item {
                     id: bottomContentSpacer
 
                     width: contentScrollView.availableWidth
-                    height: 36
+                    height: 40
 
                     y: pageLoader.height
                 }
@@ -141,7 +141,11 @@ Item {
         }
 
         Rectangle {
-            width: root.contextPanelVisible ? 1 : 0
+            width:
+                root.contextPanelVisible
+                    ? 1
+                    : 0
+
             height: parent.height
 
             color: AppTheme.divider
@@ -156,11 +160,6 @@ Item {
                     : 0
 
             height: parent.height
-
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-
-            anchors.topMargin: 14
 
             contextType: root.contextType
             controller: root.controller

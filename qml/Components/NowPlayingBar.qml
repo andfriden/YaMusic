@@ -1,26 +1,20 @@
 import QtQuick
-import QtQuick.Controls.Basic
-import QtQuick.Shapes
+import QtQuick.Controls
+import QtQuick.Layouts
 
+import "../Theme"
 
-Item {
+Rectangle {
     id: root
 
     property var controller
 
     signal expandedRequested()
 
-
-    // =============================================================
-    // Player state
-    // =============================================================
-
     readonly property bool hasTrack:
         root.controller !== null &&
         root.controller !== undefined &&
-        String(
-            root.controller.currentTrackTitle || ""
-        ).length > 0
+        String(root.controller.currentTrackTitle || "").length > 0
 
     readonly property bool loading:
         root.controller !== null &&
@@ -31,16 +25,6 @@ Item {
         root.controller !== null &&
         root.controller !== undefined &&
         root.controller.playing
-
-    readonly property bool paused:
-        root.controller !== null &&
-        root.controller !== undefined &&
-        root.controller.playbackState === 3
-
-
-    // =============================================================
-    // Dynamic Player Accent
-    // =============================================================
 
     readonly property bool hasPlayerAccent:
         root.hasTrack &&
@@ -55,983 +39,763 @@ Item {
             ? root.controller.playerAccent
             : AppTheme.accent
 
+    height: 124
 
-    // =============================================================
-    // Volume
-    // =============================================================
-
-    readonly property bool hasVolume:
-        root.controller !== null &&
-        root.controller !== undefined
-
-    readonly property real currentVolume:
-        root.hasVolume
-            ? Math.max(
-                0,
-                Math.min(
-                    1,
-                    Number(
-                        root.controller.volume
-                    )
-                )
+    color:
+        root.hasPlayerAccent
+            ? Qt.rgba(
+                root.playerAccent.r,
+                root.playerAccent.g,
+                root.playerAccent.b,
+                0.09
             )
-            : 1
+            : AppTheme.panel
 
+    border.color:
+        root.hasPlayerAccent
+            ? Qt.rgba(
+                root.playerAccent.r,
+                root.playerAccent.g,
+                root.playerAccent.b,
+                0.14
+            )
+            : AppTheme.border
 
-    // =============================================================
-    // Main panel
-    // =============================================================
+    border.width: 1
+    radius: 12
 
-    Rectangle {
-        id: panel
+    RowLayout {
+        anchors.fill: parent
+        anchors.leftMargin: 18
+        anchors.rightMargin: 18
+        anchors.topMargin: 12
+        anchors.bottomMargin: 12
 
-        anchors.fill:
-            parent
+        spacing: 0
 
-        radius:
-            17
+        // =========================================================
+        // Track information
+        // =========================================================
 
-        color:
-            root.hasPlayerAccent
-                ? Qt.rgba(
-                    root.playerAccent.r,
-                    root.playerAccent.g,
-                    root.playerAccent.b,
-                    0.42
-                )
-                : AppTheme.panel
+        RowLayout {
+            id: trackInfo
 
-        border.width:
-            1
+            Layout.fillWidth: true
+            Layout.minimumWidth: 250
+            Layout.preferredWidth: 360
+            Layout.maximumWidth: 430
 
-        border.color:
-            root.hasPlayerAccent
-                ? Qt.rgba(
-                    root.playerAccent.r,
-                    root.playerAccent.g,
-                    root.playerAccent.b,
-                    0.18
-                )
-                : AppTheme.borderSubtle
+            spacing: 12
 
-        Behavior on color {
-            ColorAnimation {
-                duration:
-                    350
+            Image {
+                id: cover
 
-                easing.type:
-                    Easing.OutCubic
-            }
-        }
+                Layout.preferredWidth: 58
+                Layout.preferredHeight: 58
 
-        Behavior on border.color {
-            ColorAnimation {
-                duration:
-                    350
+                source:
+                        root.hasTrack &&
+                    root.controller.currentTrackCoverUri
+                    ? "image://yandex/" +
+                    root.controller.currentTrackCoverUri
+                    : ""
 
-                easing.type:
-                    Easing.OutCubic
-            }
-        }
-    }
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                cache: true
 
+                Rectangle {
+                    anchors.fill: parent
 
-    // =============================================================
-    // Artwork
-    // =============================================================
+                    radius: 9
 
-    Rectangle {
-        id: artworkFrame
+                    color: "transparent"
 
-        width:
-            62
+                    border.color:
+                        AppTheme.borderSubtle
 
-        height:
-            62
-
-        anchors.left:
-            parent.left
-
-        anchors.leftMargin:
-            12
-
-        anchors.verticalCenter:
-            parent.verticalCenter
-
-        radius:
-            11
-
-        color:
-            AppTheme.surface
-
-        clip:
-            true
-
-
-        Image {
-            id: artwork
-
-            anchors.fill:
-                parent
-
-            source:
-                    root.hasTrack &&
-                String(
-                    root.controller.currentTrackCoverUri || ""
-                ).length > 0
-                ? "image://yandex/" +
-                root.controller.currentTrackCoverUri
-                : ""
-
-            sourceSize:
-                Qt.size(
-                    124,
-                    124
-                )
-
-            fillMode:
-                Image.PreserveAspectCrop
-
-            asynchronous:
-                true
-
-            cache:
-                true
-
-            smooth:
-                true
-
-            visible:
-                status === Image.Ready
-        }
-
-
-        Rectangle {
-            anchors.fill:
-                parent
-
-            color:
-                AppTheme.surface
-
-            visible:
-                artwork.status !== Image.Ready
-
-
-            Text {
-                anchors.centerIn:
-                    parent
-
-                text:
-                    root.loading
-                        ? "..."
-                        : "♪"
-
-                color:
-                    AppTheme.textSecondary
-
-                font.pixelSize:
-                    root.loading
-                        ? 16
-                        : 22
-            }
-        }
-    }
-
-
-    // =============================================================
-    // Track information
-    // =============================================================
-
-    Item {
-        id: trackInfo
-
-        anchors.left:
-            artworkFrame.right
-
-        anchors.leftMargin:
-            14
-
-        anchors.right:
-            playbackControls.left
-
-        anchors.rightMargin:
-            18
-
-        anchors.verticalCenter:
-            parent.verticalCenter
-
-        height:
-            40
-
-
-        Text {
-            id: titleLabel
-
-            anchors.left:
-                parent.left
-
-            anchors.right:
-                parent.right
-
-            anchors.top:
-                parent.top
-
-            height:
-                20
-
-            text:
-                root.hasTrack
-                    ? String(
-                        root.controller.currentTrackTitle || ""
-                    )
-                    : qsTr("Ничего не играет")
-
-            color:
-                AppTheme.textPrimary
-
-            font.pixelSize:
-                14
-
-            font.weight:
-                Font.DemiBold
-
-            elide:
-                Text.ElideRight
-
-            verticalAlignment:
-                Text.AlignVCenter
-        }
-
-
-        Item {
-            id: artistArea
-
-            anchors.left:
-                parent.left
-
-            anchors.right:
-                parent.right
-
-            anchors.top:
-                titleLabel.bottom
-
-            height:
-                18
-
-
-            Text {
-                id: artistLabel
-
-                width:
-                    Math.min(
-                        implicitWidth,
-                        parent.width
-                    )
-
-                height:
-                    parent.height
-
-                text:
-                    root.hasTrack
-                        ? String(
-                            root.controller.currentTrackArtist || ""
-                        )
-                        : ""
-
-                color:
-                    artistMouseArea.containsMouse
-                        ? root.playerAccent
-                        : AppTheme.textSecondary
-
-                font.pixelSize:
-                    11
-
-                elide:
-                    Text.ElideRight
-
-                verticalAlignment:
-                    Text.AlignVCenter
-            }
-
-
-            MouseArea {
-                id: artistMouseArea
-
-                anchors.left:
-                    artistLabel.left
-
-                anchors.top:
-                    artistLabel.top
-
-                width:
-                    artistLabel.width
-
-                height:
-                    artistLabel.height
-
-                hoverEnabled:
-                    true
-
-                enabled:
-                    root.hasTrack &&
-                    String(
-                        root.controller.currentTrackArtistId || ""
-                    ).length > 0
-
-                cursorShape:
-                    enabled
-                        ? Qt.PointingHandCursor
-                        : Qt.ArrowCursor
-
-                onClicked: {
-                    var artistId =
-                        String(
-                            root.controller.currentTrackArtistId || ""
-                        )
-
-                    if (
-                        artistId.length === 0
-                    ) {
-                        return
-                    }
-
-                    root.controller.loadArtist(
-                        artistId
-                    )
-                }
-            }
-        }
-    }
-
-
-    // =============================================================
-    // Main playback controls
-    // =============================================================
-
-    Row {
-        id: playbackControls
-
-        anchors.horizontalCenter:
-            parent.horizontalCenter
-
-        anchors.verticalCenter:
-            parent.verticalCenter
-
-        anchors.verticalCenterOffset:
-            -9
-
-        spacing:
-            5
-
-
-        PlayerButton {
-            width:
-                44
-
-            height:
-                44
-
-            text:
-                "‹"
-
-            fontSize:
-                30
-
-            enabled:
-                root.hasTrack
-
-            onClicked: {
-                root.controller.previous()
-            }
-        }
-
-
-        Rectangle {
-            id: playButton
-
-            width:
-                52
-
-            height:
-                52
-
-            radius:
-                16
-
-            color:
-                root.hasTrack
-                    ? root.playerAccent
-                    : AppTheme.surface
-
-            opacity:
-                root.hasTrack
-                    ? 1
-                    : 0.65
-
-            Behavior on color {
-                ColorAnimation {
-                    duration:
-                        250
-
-                    easing.type:
-                        Easing.OutCubic
+                    border.width: 1
                 }
             }
 
+            ColumnLayout {
+                Layout.fillWidth: true
 
-            Text {
-                anchors.centerIn:
-                    parent
+                spacing: 3
 
-                text:
-                    root.loading
-                        ? "..."
-                        : root.playing
-                            ? "Ⅱ"
-                            : "▶"
+                Label {
+                    Layout.fillWidth: true
 
-                color:
-                    root.hasTrack
-                        ? AppTheme.background
-                        : AppTheme.textMuted
+                    text:
+                        root.hasTrack
+                            ? root.controller.currentTrackTitle
+                            : "Нет воспроизводимого трека"
 
-                font.pixelSize:
-                    root.loading
-                        ? 12
-                        : 17
+                    color:
+                        AppTheme.textPrimary
 
-                font.weight:
-                    Font.DemiBold
-            }
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
 
+                    elide:
+                        Text.ElideRight
 
-            MouseArea {
-                anchors.fill:
-                    parent
-
-                enabled:
-                    root.hasTrack &&
-                    !root.loading
-
-                hoverEnabled:
-                    true
-
-                cursorShape:
-                    enabled
-                        ? Qt.PointingHandCursor
-                        : Qt.ArrowCursor
-
-                onClicked: {
-                    if (
-                        root.playing
-                    ) {
-                        root.controller.pause()
-                    } else {
-                        root.controller.play()
-                    }
+                    maximumLineCount: 1
                 }
-            }
-        }
 
+                Label {
+                    Layout.fillWidth: true
 
-        PlayerButton {
-            width:
-                44
+                    text:
+                        root.hasTrack
+                            ? root.controller.currentTrackArtist
+                            : ""
 
-            height:
-                44
+                    color:
+                        AppTheme.textSecondary
 
-            text:
-                "›"
+                    font.pixelSize: 12
 
-            fontSize:
-                30
+                    elide:
+                        Text.ElideRight
 
-            enabled:
-                root.hasTrack
+                    maximumLineCount: 1
 
-            onClicked: {
-                root.controller.next()
-            }
-        }
-    }
+                    MouseArea {
+                        anchors.fill: parent
 
+                        enabled:
+                            root.hasTrack &&
+                            String(
+                                root.controller.currentTrackArtistId ||
+                                ""
+                            ).length > 0
 
-    // =============================================================
-    // Shuffle
-    // =============================================================
+                        cursorShape:
+                            Qt.PointingHandCursor
 
-    PlayerButton {
-        id: shuffleButton
+                        onClicked: {
+                            if (!root.controller)
+                                return
 
-        width:
-            40
-
-        height:
-            40
-
-        anchors.right:
-            playbackControls.left
-
-        anchors.rightMargin:
-            10
-
-        anchors.verticalCenter:
-            playbackControls.verticalCenter
-
-        text:
-            root.shuffleText()
-
-        fontSize:
-            17
-
-        enabled:
-            root.hasTrack
-
-        active:
-            root.controller !== null &&
-            root.controller !== undefined &&
-            root.controller.shuffleEnabled
-
-        onClicked: {
-            root.controller.toggleShuffle()
-        }
-    }
-
-
-    // =============================================================
-    // Repeat
-    // =============================================================
-
-    PlayerButton {
-        id: repeatButton
-
-        width:
-            40
-
-        height:
-            40
-
-        anchors.left:
-            playbackControls.right
-
-        anchors.leftMargin:
-            10
-
-        anchors.verticalCenter:
-            playbackControls.verticalCenter
-
-        text:
-            root.repeatText()
-
-        fontSize:
-            17
-
-        enabled:
-            root.hasTrack
-
-        active:
-            root.controller !== null &&
-            root.controller !== undefined &&
-            Number(
-                root.controller.repeatMode
-            ) !== 0
-
-        onClicked: {
-            root.controller.cycleRepeat()
-        }
-    }
-
-
-    // =============================================================
-    // Progress
-    // =============================================================
-
-    Item {
-        id: progressArea
-
-        anchors.left:
-            artworkFrame.right
-
-        anchors.leftMargin:
-            18
-
-        anchors.right:
-            rightControls.left
-
-        anchors.rightMargin:
-            10
-
-        anchors.bottom:
-            parent.bottom
-
-        anchors.bottomMargin:
-            7
-
-        height:
-            18
-
-        z:
-            5
-
-
-        Text {
-            id: positionLabel
-
-            anchors.left:
-                parent.left
-
-            anchors.verticalCenter:
-                parent.verticalCenter
-
-            width:
-                30
-
-            text:
-                root.hasTrack
-                    ? root.formatTime(
-                        root.controller.position
-                    )
-                    : "0:00"
-
-            color:
-                AppTheme.textMuted
-
-            font.pixelSize:
-                9
-        }
-
-
-        Rectangle {
-            id: progressBackground
-
-            anchors.left:
-                positionLabel.right
-
-            anchors.right:
-                durationLabel.left
-
-            anchors.verticalCenter:
-                parent.verticalCenter
-
-            anchors.leftMargin:
-                6
-
-            anchors.rightMargin:
-                6
-
-            height:
-                5
-
-            radius:
-                2.5
-
-            color:
-                Qt.rgba(
-                    AppTheme.textPrimary.r,
-                    AppTheme.textPrimary.g,
-                    AppTheme.textPrimary.b,
-                    0.18
-                )
-
-
-            Rectangle {
-                id: progressValue
-
-                anchors.left:
-                    parent.left
-
-                anchors.top:
-                    parent.top
-
-                anchors.bottom:
-                    parent.bottom
-
-                width: {
-                    if (
-                        root.controller === null ||
-                        root.controller === undefined ||
-                        Number(root.controller.duration) <= 0
-                    ) {
-                        return 0
-                    }
-
-                    var ratio =
-                        Number(
-                            root.controller.position
-                        ) /
-                        Number(
-                            root.controller.duration
-                        )
-
-                    ratio =
-                        Math.max(
-                            0,
-                            Math.min(
-                                1,
-                                ratio
+                            root.controller.loadArtist(
+                                root.controller.currentTrackArtistId
                             )
-                        )
-
-                    return parent.width * ratio
+                        }
+                    }
                 }
-
-                radius:
-                    2.5
-
-                color:
-                    root.playerAccent
             }
 
+            // =====================================================
+            // Like
+            // =====================================================
 
-            Rectangle {
-                id: progressHandle
+            Item {
+                id: likeButton
 
-                width:
-                    9
-
-                height:
-                    9
-
-                radius:
-                    4.5
-
-                anchors.verticalCenter:
-                    parent.verticalCenter
-
-                x:
-                    Math.max(
-                        0,
-                        Math.min(
-                            parent.width - width,
-                            progressValue.width -
-                            width / 2
-                        )
-                    )
-
-                color:
-                    root.playerAccent
+                Layout.preferredWidth: 36
+                Layout.preferredHeight: 36
 
                 visible:
                     root.hasTrack
-            }
-        }
 
+                Rectangle {
+                    anchors.fill: parent
 
-        Text {
-            id: durationLabel
+                    radius: 18
 
-            anchors.right:
-                parent.right
+                    color:
+                        likeMouseArea.containsMouse
+                            ? AppTheme.panelHover
+                            : "transparent"
 
-            anchors.verticalCenter:
-                parent.verticalCenter
+                    opacity:
+                        likeMouseArea.containsMouse
+                            ? 1
+                            : 0
 
-            width:
-                30
-
-            text:
-                root.hasTrack
-                    ? root.formatTime(
-                        root.controller.duration
-                    )
-                    : "0:00"
-
-            color:
-                AppTheme.textMuted
-
-            font.pixelSize:
-                9
-
-            horizontalAlignment:
-                Text.AlignRight
-        }
-
-
-        MouseArea {
-            anchors.left:
-                progressBackground.left
-
-            anchors.right:
-                progressBackground.right
-
-            anchors.verticalCenter:
-                progressBackground.verticalCenter
-
-            height:
-                20
-
-            enabled:
-                root.hasTrack &&
-                Number(
-                    root.controller.duration
-                ) > 0
-
-            cursorShape:
-                enabled
-                    ? Qt.PointingHandCursor
-                    : Qt.ArrowCursor
-
-            onClicked: function(mouse) {
-                if (
-                    !enabled ||
-                    root.controller === null ||
-                    root.controller === undefined
-                ) {
-                    return
-                }
-
-                var ratio =
-                    mouse.x / width
-
-                ratio =
-                    Math.max(
-                        0,
-                        Math.min(
-                            1,
-                            ratio
-                        )
-                    )
-
-                root.controller.seek(
-                    Math.round(
-                        Number(
-                            root.controller.duration
-                        ) *
-                        ratio
-                    )
-                )
-            }
-        }
-    }
-
-
-    // =============================================================
-    // Right controls
-    // =============================================================
-
-    Row {
-        id: rightControls
-
-        anchors.right:
-            parent.right
-
-        anchors.rightMargin:
-            10
-
-        anchors.verticalCenter:
-            playbackControls.verticalCenter
-
-        spacing:
-            4
-
-
-        // =========================================================
-        // Volume
-        // =========================================================
-
-        Item {
-            id: volumeArea
-
-            width:
-                92
-
-            height:
-                40
-
-            anchors.verticalCenter:
-                parent.verticalCenter
-
-
-            PlayerButton {
-                id: volumeButton
-
-                width:
-                    40
-
-                height:
-                    40
-
-                enabled:
-                    root.hasVolume
-
-                anchors.left:
-                    parent.left
-
-                anchors.verticalCenter:
-                    parent.verticalCenter
-
-                onClicked: {
-                    if (
-                        root.currentVolume > 0
-                    ) {
-                        root.controller.setVolume(
-                            0.0
-                        )
-                    } else {
-                        root.controller.setVolume(
-                            1.0
-                        )
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 100
+                        }
                     }
                 }
 
+                Label {
+                    anchors.centerIn: parent
 
-                VolumeIcon {
-                    anchors.centerIn:
-                        parent
+                    text:
+                            root.controller &&
+                        root.controller.currentTrackLiked
+                        ? "♥"
+                        : "♡"
 
-                    width:
-                        20
+                    color:
+                            root.controller &&
+                        root.controller.currentTrackLiked
+                        ? AppTheme.accent
+                        : AppTheme.textSecondary
 
-                    height:
-                        20
+                    font.pixelSize: 21
 
-                    volume:
-                        root.currentVolume
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 120
+                        }
+                    }
+                }
+
+                MouseArea {
+                    id: likeMouseArea
+
+                    anchors.fill: parent
 
                     enabled:
-                        root.hasVolume
+                        root.hasTrack &&
+                        root.controller !== null &&
+                        root.controller !== undefined &&
+                        String(
+                            root.controller.currentTrackId || ""
+                        ).length > 0
+
+                    cursorShape:
+                        enabled
+                            ? Qt.PointingHandCursor
+                            : Qt.ArrowCursor
+
+                    onClicked: {
+                        if (!root.controller)
+                            return
+
+                        const trackId =
+                            String(
+                                root.controller.currentTrackId ||
+                                ""
+                            )
+
+                        if (trackId.length === 0)
+                            return
+
+                        root.controller.toggleLike(
+                            trackId,
+                            root.controller.currentTrackLiked
+                        )
+                    }
+                }
+            }
+        }
+
+        Item {
+            Layout.preferredWidth: 18
+        }
+
+        // =========================================================
+        // Center controls
+        // =========================================================
+
+        ColumnLayout {
+            id: centerControls
+
+            Layout.alignment:
+                Qt.AlignVCenter
+
+            Layout.preferredWidth:
+                470
+
+            spacing: 7
+
+            RowLayout {
+                Layout.alignment:
+                    Qt.AlignHCenter
+
+                spacing: 8
+
+                // -------------------------------------------------
+                // Shuffle
+                // -------------------------------------------------
+
+                Item {
+                    width: 38
+                    height: 38
+
+                    Rectangle {
+                        anchors.fill: parent
+
+                        radius: 19
+
+                        color:
+                            shuffleMouseArea.containsMouse
+                                ? AppTheme.panelHover
+                                : "transparent"
+                    }
+
+                    Label {
+                        anchors.centerIn: parent
+
+                        text: "⤨"
+
+                        color:
+                                root.controller &&
+                            root.controller.shuffleEnabled
+                            ? root.playerAccent
+                            : AppTheme.textSecondary
+
+                        font.pixelSize: 20
+                    }
+
+                    MouseArea {
+                        id: shuffleMouseArea
+
+                        anchors.fill: parent
+
+                        cursorShape:
+                            Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (root.controller)
+                                root.controller.toggleShuffle()
+                        }
+                    }
+                }
+
+                // -------------------------------------------------
+                // Previous
+                // -------------------------------------------------
+
+                Item {
+                    width: 42
+                    height: 42
+
+                    Rectangle {
+                        anchors.fill: parent
+
+                        radius: 21
+
+                        color:
+                            previousMouseArea.containsMouse
+                                ? AppTheme.panelHover
+                                : "transparent"
+                    }
+
+                    Label {
+                        anchors.centerIn: parent
+
+                        text: "‹"
+
+                        color:
+                            AppTheme.textPrimary
+
+                        font.pixelSize: 32
+                        font.weight: Font.Light
+                    }
+
+                    MouseArea {
+                        id: previousMouseArea
+
+                        anchors.fill: parent
+
+                        cursorShape:
+                            Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (root.controller)
+                                root.controller.previous()
+                        }
+                    }
+                }
+
+                // -------------------------------------------------
+                // Play / Pause
+                // -------------------------------------------------
+
+                Item {
+                    width: 50
+                    height: 50
+
+                    Rectangle {
+                        anchors.fill: parent
+
+                        radius: 25
+
+                        color:
+                            root.playerAccent
+                    }
+
+                    Label {
+                        anchors.centerIn: parent
+
+                        text:
+                            root.loading
+                                ? "…"
+                                : root.playing
+                                    ? "Ⅱ"
+                                    : "▶"
+
+                        color:
+                            AppTheme.textPrimary
+
+                        font.pixelSize:
+                            root.playing
+                                ? 20
+                                : 19
+
+                        font.weight:
+                            Font.DemiBold
+                    }
+
+                    MouseArea {
+                        id: playMouseArea
+
+                        anchors.fill: parent
+
+                        cursorShape:
+                            Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (!root.controller)
+                                return
+
+                            if (root.loading)
+                                return
+
+                            if (root.playing)
+                                root.controller.pause()
+                            else
+                                root.controller.play()
+                        }
+                    }
+                }
+
+                // -------------------------------------------------
+                // Next
+                // -------------------------------------------------
+
+                Item {
+                    width: 42
+                    height: 42
+
+                    Rectangle {
+                        anchors.fill: parent
+
+                        radius: 21
+
+                        color:
+                            nextMouseArea.containsMouse
+                                ? AppTheme.panelHover
+                                : "transparent"
+                    }
+
+                    Label {
+                        anchors.centerIn: parent
+
+                        text: "›"
+
+                        color:
+                            AppTheme.textPrimary
+
+                        font.pixelSize: 32
+                        font.weight: Font.Light
+                    }
+
+                    MouseArea {
+                        id: nextMouseArea
+
+                        anchors.fill: parent
+
+                        cursorShape:
+                            Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (root.controller)
+                                root.controller.next()
+                        }
+                    }
+                }
+
+                // -------------------------------------------------
+                // Repeat
+                // -------------------------------------------------
+
+                Item {
+                    width: 38
+                    height: 38
+
+                    Rectangle {
+                        anchors.fill: parent
+
+                        radius: 19
+
+                        color:
+                            repeatMouseArea.containsMouse
+                                ? AppTheme.panelHover
+                                : "transparent"
+                    }
+
+                    Label {
+                        anchors.centerIn: parent
+
+                        text:
+                                root.controller &&
+                            root.controller.repeatMode === 1
+                            ? "↻1"
+                            : "↻"
+
+                        color:
+                                root.controller &&
+                            root.controller.repeatMode !== 0
+                            ? root.playerAccent
+                            : AppTheme.textSecondary
+
+                        font.pixelSize: 18
+                    }
+
+                    MouseArea {
+                        id: repeatMouseArea
+
+                        anchors.fill: parent
+
+                        cursorShape:
+                            Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (root.controller)
+                                root.controller.cycleRepeat()
+                        }
+                    }
                 }
             }
 
+            // =====================================================
+            // Progress
+            // =====================================================
+
+            RowLayout {
+                Layout.fillWidth: true
+
+                spacing: 8
+
+                Label {
+                    Layout.preferredWidth: 38
+
+                    text:
+                        root.formatTime(
+                            root.controller
+                                ? root.controller.position
+                                : 0
+                        )
+
+                    color:
+                        AppTheme.textMuted
+
+                    font.pixelSize: 10
+
+                    horizontalAlignment:
+                        Text.AlignRight
+                }
+
+                Item {
+                    id: progressArea
+
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 12
+
+                    Rectangle {
+                        anchors.verticalCenter:
+                            parent.verticalCenter
+
+                        anchors.left:
+                            parent.left
+
+                        anchors.right:
+                            parent.right
+
+                        height: 4
+                        radius: 2
+
+                        color:
+                            AppTheme.panelSecondary
+
+                        Rectangle {
+                            width:
+                                    root.controller &&
+                                root.controller.duration > 0
+                                ? parent.width *
+                                Math.max(
+                                    0,
+                                    Math.min(
+                                        1,
+                                        root.controller.position /
+                                        root.controller.duration
+                                    )
+                                )
+                                : 0
+
+                            height:
+                                parent.height
+
+                            radius: 2
+
+                            color:
+                                root.playerAccent
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+
+                        cursorShape:
+                            Qt.PointingHandCursor
+
+                        onClicked: function(mouse) {
+                            if (!root.controller)
+                                return
+
+                            if (
+                                root.controller.duration <= 0
+                            ) {
+                                return
+                            }
+
+                            const ratio =
+                                Math.max(
+                                    0,
+                                    Math.min(
+                                        1,
+                                        mouse.x / width
+                                    )
+                                )
+
+                            root.controller.seek(
+                                Math.round(
+                                    root.controller.duration *
+                                    ratio
+                                )
+                            )
+                        }
+                    }
+                }
+
+                Label {
+                    Layout.preferredWidth: 38
+
+                    text:
+                        root.formatTime(
+                            root.controller
+                                ? root.controller.duration
+                                : 0
+                        )
+
+                    color:
+                        AppTheme.textMuted
+
+                    font.pixelSize: 10
+
+                    horizontalAlignment:
+                        Text.AlignLeft
+                }
+            }
+        }
+
+        Item {
+            Layout.preferredWidth: 18
+        }
+
+        // =========================================================
+        // Right controls
+        // =========================================================
+
+        RowLayout {
+            Layout.fillWidth: true
+
+            Layout.minimumWidth: 250
+            Layout.preferredWidth: 360
+            Layout.maximumWidth: 430
+
+            spacing: 8
+
+            Item {
+                Layout.fillWidth: true
+            }
+
+            // -----------------------------------------------------
+            // Volume button
+            // -----------------------------------------------------
+
+            Item {
+                width: 38
+                height: 38
+
+                Rectangle {
+                    anchors.fill: parent
+
+                    radius: 19
+
+                    color:
+                        volumeMouseArea.containsMouse
+                            ? AppTheme.panelHover
+                            : "transparent"
+                }
+
+                Label {
+                    anchors.centerIn: parent
+
+                    text:
+                            root.controller &&
+                        root.controller.volume > 0
+                        ? "◖"
+                        : "×"
+
+                    color:
+                        AppTheme.textSecondary
+
+                    font.pixelSize: 19
+                }
+
+                MouseArea {
+                    id: volumeMouseArea
+
+                    anchors.fill: parent
+
+                    cursorShape:
+                        Qt.PointingHandCursor
+
+                    onClicked: {
+                        if (!root.controller)
+                            return
+
+                        if (
+                            root.controller.volume > 0
+                        ) {
+                            root.controller.setVolume(0)
+                        } else {
+                            root.controller.setVolume(1)
+                        }
+                    }
+                }
+            }
+
+            // -----------------------------------------------------
+            // Volume slider
+            // -----------------------------------------------------
 
             Slider {
                 id: volumeSlider
 
-                anchors.left:
-                    volumeButton.right
+                Layout.preferredWidth: 105
+                Layout.maximumWidth: 105
 
-                anchors.right:
-                    parent.right
-
-                anchors.verticalCenter:
-                    parent.verticalCenter
-
-                anchors.leftMargin:
-                    3
-
-                height:
-                    24
-
-                from:
-                    0.0
-
-                to:
-                    1.0
+                from: 0
+                to: 1
 
                 value:
-                    root.currentVolume
+                    root.controller
+                        ? root.controller.volume
+                        : 0
 
                 onMoved: {
-                    if (
-                        root.hasVolume
-                    ) {
-                        root.controller.setVolume(
-                            value
-                        )
-                    }
+                    if (root.controller)
+                        root.controller.setVolume(value)
                 }
-
 
                 background: Rectangle {
                     x:
@@ -1045,20 +809,11 @@ Item {
                     width:
                         volumeSlider.availableWidth
 
-                    height:
-                        4
-
-                    radius:
-                        2
+                    height: 4
+                    radius: 2
 
                     color:
-                        Qt.rgba(
-                            AppTheme.textPrimary.r,
-                            AppTheme.textPrimary.g,
-                            AppTheme.textPrimary.b,
-                            0.12
-                        )
-
+                        AppTheme.panelSecondary
 
                     Rectangle {
                         width:
@@ -1068,25 +823,14 @@ Item {
                         height:
                             parent.height
 
-                        radius:
-                            2
+                        radius: 2
 
                         color:
                             root.playerAccent
                     }
                 }
 
-
                 handle: Rectangle {
-                    width:
-                        8
-
-                    height:
-                        8
-
-                    radius:
-                        4
-
                     x:
                         volumeSlider.leftPadding +
                         volumeSlider.visualPosition *
@@ -1100,517 +844,82 @@ Item {
                         volumeSlider.availableHeight / 2 -
                         height / 2
 
+                    width: 10
+                    height: 10
+
+                    radius: 5
+
                     color:
                         root.playerAccent
                 }
             }
-        }
 
+            // -----------------------------------------------------
+            // Expand
+            // -----------------------------------------------------
 
-        // =========================================================
-        // Expanded Now Playing / Queue
-        // =========================================================
+            Item {
+                width: 38
+                height: 38
 
-        PlayerButton {
-            id: expandedButton
+                Rectangle {
+                    anchors.fill: parent
 
-            width:
-                40
+                    radius: 19
 
-            height:
-                40
+                    color:
+                        expandMouseArea.containsMouse
+                            ? AppTheme.panelHover
+                            : "transparent"
+                }
 
-            enabled:
-                root.hasTrack
+                Label {
+                    anchors.centerIn: parent
 
-            onClicked: {
-                root.expandedRequested()
-            }
+                    text: "↗"
 
+                    color:
+                        AppTheme.textSecondary
 
-            Column {
-                anchors.centerIn:
-                    parent
+                    font.pixelSize: 18
+                }
 
-                spacing:
-                    3
+                MouseArea {
+                    id: expandMouseArea
 
-                Repeater {
-                    model:
-                        3
+                    anchors.fill: parent
 
-                    Rectangle {
-                        width:
-                            17
+                    cursorShape:
+                        Qt.PointingHandCursor
 
-                        height:
-                            2
-
-                        radius:
-                            1
-
-                        color:
-                            AppTheme.textPrimary
+                    onClicked: {
+                        root.expandedRequested()
                     }
                 }
             }
         }
     }
 
-
     // =============================================================
-    // Player button
-    // =============================================================
-
-    component PlayerButton: Rectangle {
-
-        property string text: ""
-        property int fontSize: 20
-        property bool active: false
-
-        signal clicked()
-
-
-        radius:
-            12
-
-        color:
-            !enabled
-                ? "transparent"
-                : mouseArea.containsMouse
-                    ? Qt.rgba(
-                        root.playerAccent.r,
-                        root.playerAccent.g,
-                        root.playerAccent.b,
-                        0.16
-                    )
-                    : active
-                        ? Qt.rgba(
-                            root.playerAccent.r,
-                            root.playerAccent.g,
-                            root.playerAccent.b,
-                            0.10
-                        )
-                        : "transparent"
-
-        border.width:
-                mouseArea.containsMouse && enabled
-            ? 1
-            : 0
-
-        border.color:
-            Qt.rgba(
-                root.playerAccent.r,
-                root.playerAccent.g,
-                root.playerAccent.b,
-                0.18
-            )
-
-        opacity:
-            enabled
-                ? 1
-                : 0.35
-
-
-        Behavior on color {
-            ColorAnimation {
-                duration:
-                    140
-
-                easing.type:
-                    Easing.OutCubic
-            }
-        }
-
-
-        Text {
-            anchors.centerIn:
-                parent
-
-            text:
-                parent.text
-
-            color:
-                parent.active
-                    ? root.playerAccent
-                    : AppTheme.textPrimary
-
-            font.pixelSize:
-                parent.fontSize
-
-            font.weight:
-                Font.Normal
-
-            visible:
-                parent.text.length > 0
-        }
-
-
-        MouseArea {
-            id: mouseArea
-
-            anchors.fill:
-                parent
-
-            hoverEnabled:
-                true
-
-            enabled:
-                parent.enabled
-
-            cursorShape:
-                enabled
-                    ? Qt.PointingHandCursor
-                    : Qt.ArrowCursor
-
-            onClicked: {
-                parent.clicked()
-            }
-        }
-    }
-
-
-    // =============================================================
-    // Volume icon
+    // Helpers
     // =============================================================
 
-    component VolumeIcon: Item {
-
-        property real volume: 1.0
-        property bool enabled: true
-
-        readonly property bool muted:
-            volume <= 0.001
-
-        readonly property bool low:
-            volume > 0.001 &&
-            volume < 0.5
-
-
-        // ---------------------------------------------------------
-        // Speaker body
-        // ---------------------------------------------------------
-
-        Shape {
-            anchors.fill:
-                parent
-
-            visible:
-                true
-
-            ShapePath {
-                fillColor:
-                    root.hasTrack
-                        ? root.playerAccent
-                        : AppTheme.textPrimary
-
-                strokeColor:
-                    "transparent"
-
-                strokeWidth:
-                    0
-
-                startX:
-                    2
-
-                startY:
-                    7
-
-                PathLine {
-                    x:
-                        6
-
-                    y:
-                        7
-                }
-
-                PathLine {
-                    x:
-                        11
-
-                    y:
-                        3
-                }
-
-                PathLine {
-                    x:
-                        11
-
-                    y:
-                        17
-                }
-
-                PathLine {
-                    x:
-                        6
-
-                    y:
-                        13
-                }
-
-                PathLine {
-                    x:
-                        2
-
-                    y:
-                        13
-                }
-
-                PathLine {
-                    x:
-                        2
-
-                    y:
-                        7
-                }
-            }
-        }
-
-
-        // ---------------------------------------------------------
-        // Sound waves
-        // ---------------------------------------------------------
-
-        Shape {
-            anchors.fill:
-                parent
-
-            visible:
-                !muted
-
-            ShapePath {
-                fillColor:
-                    "transparent"
-
-                strokeColor:
-                    root.hasTrack
-                        ? root.playerAccent
-                        : AppTheme.textPrimary
-
-                strokeWidth:
-                    1.5
-
-                capStyle:
-                    ShapePath.RoundCap
-
-                joinStyle:
-                    ShapePath.RoundJoin
-
-                startX:
-                    14
-
-                startY:
-                    7
-
-                PathCubic {
-                    control1X:
-                        17
-
-                    control1Y:
-                        9
-
-                    control2X:
-                        17
-
-                    control2Y:
-                        11
-
-                    x:
-                        14
-
-                    y:
-                        13
-                }
-            }
-        }
-
-
-        Shape {
-            anchors.fill:
-                parent
-
-            visible:
-                !muted &&
-                !low
-
-            ShapePath {
-                fillColor:
-                    "transparent"
-
-                strokeColor:
-                    root.hasTrack
-                        ? root.playerAccent
-                        : AppTheme.textPrimary
-
-                strokeWidth:
-                    1.5
-
-                capStyle:
-                    ShapePath.RoundCap
-
-                joinStyle:
-                    ShapePath.RoundJoin
-
-                startX:
-                    15.5
-
-                startY:
-                    4.5
-
-                PathCubic {
-                    control1X:
-                        20
-
-                    control1Y:
-                        7
-
-                    control2X:
-                        20
-
-                    control2Y:
-                        13
-
-                    x:
-                        15.5
-
-                    y:
-                        15.5
-                }
-            }
-        }
-
-
-        // ---------------------------------------------------------
-        // Mute slash
-        // ---------------------------------------------------------
-
-        Shape {
-            anchors.fill:
-                parent
-
-            visible:
-                muted
-
-            ShapePath {
-                fillColor:
-                    "transparent"
-
-                strokeColor:
-                    root.hasTrack
-                        ? root.playerAccent
-                        : AppTheme.textPrimary
-
-                strokeWidth:
-                    2
-
-                capStyle:
-                    ShapePath.RoundCap
-
-                startX:
-                    3
-
-                startY:
-                    4
-
-                PathLine {
-                    x:
-                        17
-
-                    y:
-                        16
-                }
-            }
-        }
-    }
-
-
-    // =============================================================
-    // Icons
-    // =============================================================
-
-    function repeatText()
-    {
-        if (
-            root.controller === null ||
-            root.controller === undefined
-        ) {
-            return "↻"
-        }
-
-        var mode =
-            Number(
-                root.controller.repeatMode
-            )
-
-        if (
-            mode === 1
-        ) {
-            return "↻A"
-        }
-
-        if (
-            mode === 2
-        ) {
-            return "↻1"
-        }
-
-        return "↻"
-    }
-
-
-    function shuffleText()
-    {
-        if (
-            root.controller !== null &&
-            root.controller !== undefined &&
-            root.controller.shuffleEnabled
-        ) {
-            return "🔀"
-        }
-
-        return "⇄"
-    }
-
-
-    // =============================================================
-    // Duration
-    // =============================================================
-
-    function formatTime(
-        milliseconds)
-    {
-        if (
-            !isFinite(
-                Number(milliseconds)
-            ) ||
-            Number(milliseconds) <= 0
-        ) {
+    function formatTime(ms) {
+        if (!ms || ms < 0)
             return "0:00"
-        }
 
-        var totalSeconds =
-            Math.floor(
-                Number(milliseconds) /
-                1000
-            )
+        const totalSeconds =
+            Math.floor(ms / 1000)
 
-        var minutes =
-            Math.floor(
-                totalSeconds /
-                60
-            )
+        const minutes =
+            Math.floor(totalSeconds / 60)
 
-        var seconds =
-            totalSeconds %
-            60
+        const seconds =
+            totalSeconds % 60
 
         return minutes +
             ":" +
-            (
-                    seconds < 10
-                    ? "0"
-                    : ""
-            ) +
+            (seconds < 10 ? "0" : "") +
             seconds
     }
 }

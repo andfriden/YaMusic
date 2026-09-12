@@ -4,33 +4,20 @@ import QtQuick.Controls.Basic
 Item {
     id: root
 
-    property var controller: null
+    property var controller
     property bool homeMode: false
 
     // =============================================================
     // Layout
     // =============================================================
 
-    readonly property int sectionSpacing:
-        24
-
-    readonly property int titleSpacing:
-        10
-
-    readonly property int cardSpacing:
-        12
-
-    readonly property int cardHorizontalPadding:
-        8
-
-    readonly property int artworkTextSpacing:
-        7
-
-    readonly property int titleHeight:
-        18
-
-    readonly property int trackCountHeight:
-        16
+    readonly property int sectionSpacing: 32
+    readonly property int titleSpacing: 14
+    readonly property int cardSpacing: 18
+    readonly property int cardHorizontalPadding: 0
+    readonly property int artworkTextSpacing: 10
+    readonly property int titleHeight: 20
+    readonly property int trackCountHeight: 16
 
     // =============================================================
     // Size
@@ -38,7 +25,6 @@ Item {
 
     implicitHeight:
         sectionsColumn.implicitHeight
-
 
     // =============================================================
     // Sections
@@ -53,14 +39,12 @@ Item {
         spacing:
             root.sectionSpacing
 
-
         Repeater {
             model:
                     root.controller !== null &&
                 root.controller !== undefined
                 ? root.controller.personalPlaylistsModel
                 : null
-
 
             delegate: Column {
                 id: sectionItem
@@ -78,12 +62,10 @@ Item {
                     sectionItem.type === "personal-playlists" ||
                     sectionItem.type === "new-playlists"
 
-
                 readonly property var visiblePlaylists:
                     root.homeMode
                         ? sectionItem.playlists.slice(0, 4)
                         : sectionItem.playlists
-
 
                 width:
                     sectionsColumn.width
@@ -96,7 +78,6 @@ Item {
                     sectionItem.visiblePlaylists !== null &&
                     sectionItem.visiblePlaylists !== undefined &&
                     sectionItem.visiblePlaylists.length > 0
-
 
                 // =================================================
                 // Card geometry
@@ -115,32 +96,24 @@ Item {
                         )
                     )
 
-
                 readonly property real cardWidth:
                         sectionItem.visiblePlaylists.length > 0
                     ? sectionItem.availableWidth /
                     sectionItem.visiblePlaylists.length
                     : 0
 
-
                 readonly property real artworkSize:
                     Math.max(
                         1,
-                        sectionItem.cardWidth -
-                        (
-                            root.cardHorizontalPadding * 2
-                        )
+                        sectionItem.cardWidth
                     )
 
-
                 readonly property real cardHeight:
-                    root.cardHorizontalPadding +
                     sectionItem.artworkSize +
                     root.artworkTextSpacing +
                     root.titleHeight +
                     root.trackCountHeight +
                     8
-
 
                 // =================================================
                 // Section title
@@ -151,7 +124,7 @@ Item {
                         parent.width
 
                     height:
-                        22
+                        26
 
                     text:
                         sectionItem.title
@@ -160,10 +133,10 @@ Item {
                         AppTheme.textPrimary
 
                     font.pixelSize:
-                        19
+                        20
 
-                    font.bold:
-                        true
+                    font.weight:
+                        Font.DemiBold
 
                     verticalAlignment:
                         Text.AlignVCenter
@@ -174,7 +147,6 @@ Item {
                     maximumLineCount:
                         1
                 }
-
 
                 // =================================================
                 // Playlist row
@@ -192,13 +164,11 @@ Item {
                     spacing:
                         root.cardSpacing
 
-
                     Repeater {
                         model:
                             sectionItem.visiblePlaylists
 
-
-                        delegate: Rectangle {
+                        delegate: Item {
                             id: playlistCard
 
                             required property var modelData
@@ -209,34 +179,6 @@ Item {
                             height:
                                 sectionItem.cardHeight
 
-                            radius:
-                                10
-
-                            color:
-                                playlistMouseArea.containsMouse
-                                    ? AppTheme.panelActive
-                                    : AppTheme.panelSecondary
-
-                            border.width:
-                                1
-
-                            border.color:
-                                playlistMouseArea.containsMouse
-                                    ? AppTheme.border
-                                    : AppTheme.borderSubtle
-
-
-                            Behavior on color {
-                                ColorAnimation {
-                                    duration:
-                                        140
-
-                                    easing.type:
-                                        Easing.OutCubic
-                                }
-                            }
-
-
                             // =================================================
                             // Artwork
                             // =================================================
@@ -244,27 +186,39 @@ Item {
                             Rectangle {
                                 id: artworkBox
 
-                                x:
-                                    root.cardHorizontalPadding
-
-                                y:
-                                    root.cardHorizontalPadding
-
                                 width:
                                     sectionItem.artworkSize
 
                                 height:
                                     sectionItem.artworkSize
 
+                                anchors.left:
+                                    parent.left
+
+                                anchors.top:
+                                    parent.top
+
                                 radius:
-                                    8
+                                    12
 
                                 color:
-                                    AppTheme.panelHover
+                                    AppTheme.panelSubtle
 
                                 clip:
                                     true
 
+                                scale:
+                                    playlistMouseArea.containsMouse
+                                        ? 1.015
+                                        : 1.0
+
+                                Behavior on scale {
+                                    NumberAnimation {
+                                        duration: 140
+                                        easing.type:
+                                            Easing.OutCubic
+                                    }
+                                }
 
                                 Image {
                                     id: cover
@@ -311,7 +265,6 @@ Item {
                                         status === Image.Ready
                                 }
 
-
                                 Label {
                                     anchors.centerIn:
                                         parent
@@ -323,34 +276,38 @@ Item {
                                         AppTheme.textSecondary
 
                                     font.pixelSize:
-                                        28
+                                        32
 
                                     visible:
                                         cover.status !==
                                         Image.Ready
                                 }
 
-
+                                // Subtle hover overlay
                                 Rectangle {
                                     anchors.fill:
                                         parent
 
                                     radius:
-                                        8
+                                        12
 
                                     color:
-                                        "transparent"
-
-                                    border.width:
-                                        1
-
-                                    border.color:
                                         playlistMouseArea.containsMouse
-                                            ? AppTheme.border
-                                            : AppTheme.borderSubtle
+                                            ? AppTheme.panelHover
+                                            : "transparent"
+
+                                    opacity:
+                                        playlistMouseArea.containsMouse
+                                            ? 0.08
+                                            : 0
+
+                                    Behavior on opacity {
+                                        NumberAnimation {
+                                            duration: 120
+                                        }
+                                    }
                                 }
                             }
-
 
                             // =================================================
                             // Title
@@ -359,12 +316,11 @@ Item {
                             Label {
                                 id: titleLabel
 
-                                x:
-                                    root.cardHorizontalPadding
+                                anchors.left:
+                                    parent.left
 
-                                width:
-                                    parent.width -
-                                    root.cardHorizontalPadding * 2
+                                anchors.right:
+                                    parent.right
 
                                 anchors.top:
                                     artworkBox.bottom
@@ -382,13 +338,15 @@ Item {
                                     )
 
                                 color:
-                                    AppTheme.textPrimary
+                                    playlistMouseArea.containsMouse
+                                        ? AppTheme.textPrimary
+                                        : AppTheme.textPrimary
 
                                 font.pixelSize:
-                                    13
+                                    14
 
-                                font.bold:
-                                    true
+                                font.weight:
+                                    Font.Medium
 
                                 verticalAlignment:
                                     Text.AlignVCenter
@@ -400,7 +358,6 @@ Item {
                                     1
                             }
 
-
                             // =================================================
                             // Track count
                             // =================================================
@@ -408,12 +365,11 @@ Item {
                             Label {
                                 id: trackCountLabel
 
-                                x:
-                                    root.cardHorizontalPadding
+                                anchors.left:
+                                    parent.left
 
-                                width:
-                                    parent.width -
-                                    root.cardHorizontalPadding * 2
+                                anchors.right:
+                                    parent.right
 
                                 anchors.top:
                                     titleLabel.bottom
@@ -438,7 +394,7 @@ Item {
                                     : ""
 
                                 color:
-                                    AppTheme.textSecondary
+                                    AppTheme.textMuted
 
                                 font.pixelSize:
                                     11
@@ -455,7 +411,6 @@ Item {
                                 visible:
                                     text.length > 0
                             }
-
 
                             // =================================================
                             // Click
@@ -481,13 +436,11 @@ Item {
                                         return
                                     }
 
-
                                     const uid =
                                         String(
                                             playlistCard.modelData.uid ||
                                             ""
                                         )
-
 
                                     const kind =
                                         Number(
@@ -495,14 +448,12 @@ Item {
                                             0
                                         )
 
-
                                     if (
                                         uid.length === 0 ||
                                         kind <= 0
                                     ) {
                                         return
                                     }
-
 
                                     root.controller
                                         .selectPersonalPlaylist(

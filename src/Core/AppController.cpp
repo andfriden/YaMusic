@@ -26,8 +26,8 @@ AppController::AppController(
     AccountService *accountService,
     QObject *parent)
     : QObject(parent)
-    , m_auth(new YandexAuth(this))
-    , m_accountService(new AccountService(m_auth, this))
+    , m_auth(auth)
+    , m_accountService(accountService)
     , m_searchService(new SearchService(m_auth, this))
     , m_trackService(new TrackService(m_auth, this))
     , m_yandexPersonal(new YandexPersonal(m_auth, this))
@@ -123,7 +123,25 @@ AppController::AppController(
         this,
         &AppController::playerAccentChanged);
 
-    m_accountService->loadAccount();
+    connect(
+        m_likesService,
+        &LikesService::likeChanged,
+        this,
+        [this](
+            const QString &trackId,
+            bool liked) {
+
+            Q_UNUSED(liked);
+
+            if (trackId ==
+                currentTrackId()) {
+
+                emit currentTrackChanged();
+            }
+        });
+
+    if (m_accountService != nullptr)
+        m_accountService->loadAccount();
 }
 
 
@@ -133,6 +151,9 @@ AppController::AppController(
 
 void AppController::connectAccount()
 {
+    if (m_accountService == nullptr)
+        return;
+
     connect(
         m_accountService,
         &AccountService::accountReceived,
@@ -147,6 +168,9 @@ void AppController::connectAccount()
             m_recentListeningService->load(
                 50,
                 10);
+
+            m_personalController->loadMyWave();
+            m_personalController->loadRecommendations();
 
             emit statusChanged(
                 QString("Выполнен вход: %1 (uid: %2)")
@@ -529,7 +553,6 @@ void AppController::testConnection()
 
 void AppController::testYandexApi()
 {
-
     emit statusChanged(
         "Проверка аккаунта Яндекс Музыки...");
 }
@@ -895,6 +918,22 @@ QString AppController::currentTrackId() const
     return m_playbackController
         ->currentTrack()
         .id;
+}
+
+
+bool AppController::currentTrackLiked() const
+{
+    const QString trackId =
+        currentTrackId();
+
+    if (trackId.isEmpty() ||
+        m_likesService == nullptr) {
+
+        return false;
+    }
+
+    return m_likesService->isLiked(
+        trackId);
 }
 
 

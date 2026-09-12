@@ -27,21 +27,101 @@ ApplicationWindow {
     }
 }
 
-    Button {
+    Item {
         id: logoutButton
 
-        text: "Выйти"
+        width: 92
+        height: 38
 
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.margins: 12
+        anchors.top:
+            parent.top
 
-        visible: authController.authenticated
+        anchors.right:
+            parent.right
+
+        anchors.topMargin:
+            15
+
+        anchors.rightMargin:
+            20
+
+        visible:
+            authController.authenticated
 
         z: 100
 
-        onClicked: {
-            authController.logout()
+        Rectangle {
+            anchors.fill:
+                parent
+
+            radius: 10
+
+            color:
+                logoutMouseArea.containsMouse
+                    ? AppTheme.panelHover
+                    : AppTheme.panelSubtle
+
+            border.width:
+                1
+
+            border.color:
+                logoutMouseArea.containsMouse
+                    ? AppTheme.border
+                    : AppTheme.borderSubtle
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 120
+                }
+            }
+
+            Behavior on border.color {
+                ColorAnimation {
+                    duration: 120
+                }
+            }
+        }
+
+        Text {
+            anchors.centerIn:
+                parent
+
+            text:
+                "Выйти"
+
+            color:
+                logoutMouseArea.containsMouse
+                    ? AppTheme.textPrimary
+                    : AppTheme.textSecondary
+
+            font.pixelSize:
+                13
+
+            font.weight:
+                Font.Medium
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 120
+                }
+            }
+        }
+
+        MouseArea {
+            id: logoutMouseArea
+
+            anchors.fill:
+                parent
+
+            hoverEnabled:
+                true
+
+            cursorShape:
+                Qt.PointingHandCursor
+
+            onClicked: {
+                authController.logout()
+            }
         }
     }
 

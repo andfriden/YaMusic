@@ -10,66 +10,99 @@ Item {
     signal sectionSelected(string section)
     signal backRequested()
 
-    readonly property int barHeight: 82
-    implicitHeight: root.barHeight
+    readonly property int barHeight: 68
+
+    implicitHeight:
+        root.barHeight
 
     Rectangle {
         anchors.fill: parent
-        color: AppTheme.backgroundPrimary
+
+        color:
+            AppTheme.backgroundPrimary
     }
 
     Row {
         anchors.fill: parent
-        anchors.leftMargin: 24
-        anchors.rightMargin: 24
-        spacing: 10
+
+        anchors.leftMargin: 28
+        anchors.rightMargin: 28
+
+        spacing: 8
+
+        // =========================================================
+        // Back
+        // =========================================================
 
         Item {
             id: backArea
 
-            width: root.canGoBack ? 42 : 0
-            height: parent.height
-            visible: root.canGoBack
+            width:
+                root.canGoBack
+                    ? 40
+                    : 0
 
-            ToolButton {
-                id: backButton
+            height:
+                parent.height
 
-                width: 38
-                height: 38
+            visible:
+                root.canGoBack
 
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
+            Item {
+                width: 36
+                height: 36
 
-                text: "‹"
+                anchors.verticalCenter:
+                    parent.verticalCenter
 
-                contentItem: Text {
-                    text: backButton.text
+                Rectangle {
+                    anchors.fill: parent
 
-                    color:
-                        backButton.hovered
-                            ? AppTheme.accent
-                            : AppTheme.textPrimary
-
-                    font.pixelSize: 30
-
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                background: Rectangle {
-                    radius: 8
+                    radius: 10
 
                     color:
-                        backButton.hovered
+                        backMouseArea.containsMouse
                             ? AppTheme.panelHover
                             : "transparent"
                 }
 
-                onClicked: {
-                    root.backRequested()
+                Text {
+                    anchors.centerIn: parent
+
+                    text: "‹"
+
+                    color:
+                        backMouseArea.containsMouse
+                            ? AppTheme.textPrimary
+                            : AppTheme.textSecondary
+
+                    font.pixelSize: 30
+                    font.weight: Font.Light
+
+                    verticalAlignment:
+                        Text.AlignVCenter
+                }
+
+                MouseArea {
+                    id: backMouseArea
+
+                    anchors.fill: parent
+
+                    hoverEnabled: true
+
+                    cursorShape:
+                        Qt.PointingHandCursor
+
+                    onClicked: {
+                        root.backRequested()
+                    }
                 }
             }
         }
+
+        // =========================================================
+        // Brand
+        // =========================================================
 
         Item {
             id: brand
@@ -77,26 +110,14 @@ Item {
             width: 150
             height: parent.height
 
-            Rectangle {
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-
-                width: brandText.implicitWidth + 20
-                height: 42
-                radius: 12
-
-                color:
-                    brandMouseArea.containsMouse
-                        ? AppTheme.panelHover
-                        : "transparent"
-            }
-
             Text {
                 id: brandText
 
-                anchors.left: parent.left
-                anchors.leftMargin: 10
-                anchors.verticalCenter: parent.verticalCenter
+                anchors.left:
+                    parent.left
+
+                anchors.verticalCenter:
+                    parent.verticalCenter
 
                 text: "YaMusic"
 
@@ -105,17 +126,26 @@ Item {
                         ? AppTheme.accent
                         : AppTheme.textPrimary
 
-                font.pixelSize: 24
-                font.bold: true
+                font.pixelSize: 25
+                font.weight: Font.Bold
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: 120
+                    }
+                }
             }
 
             MouseArea {
                 id: brandMouseArea
 
-                anchors.fill: parent
+                anchors.fill:
+                    parent
 
                 hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
+
+                cursorShape:
+                    Qt.PointingHandCursor
 
                 onClicked: {
                     root.sectionSelected("home")
@@ -123,14 +153,36 @@ Item {
             }
         }
 
+        // =========================================================
+        // Navigation
+        // =========================================================
+
         Repeater {
             model: [
-                { title: "Моя волна", section: "wave" },
-                { title: "Чарты", section: "chart" },
-                { title: "Жанры", section: "genres" },
-                { title: "Плейлисты", section: "playlists" },
-                { title: "Спорт", section: "sport" },
-                { title: "Мне нравится", section: "liked" }
+                {
+                    title: "Моя волна",
+                    section: "wave"
+                },
+                {
+                    title: "Чарты",
+                    section: "chart"
+                },
+                {
+                    title: "Жанры",
+                    section: "genres"
+                },
+                {
+                    title: "Плейлисты",
+                    section: "playlists"
+                },
+                {
+                    title: "Спорт",
+                    section: "sport"
+                },
+                {
+                    title: "Мне нравится",
+                    section: "liked"
+                }
             ]
 
             delegate: Item {
@@ -138,19 +190,33 @@ Item {
 
                 required property var modelData
 
-                width: navigationText.implicitWidth + 32
-                height: parent.height
+                width:
+                    navigationText.implicitWidth + 28
+
+                height:
+                    parent.height
 
                 readonly property bool active:
-                    root.currentSection === modelData.section
+                    root.currentSection ===
+                    modelData.section
+
+                // -------------------------------------------------
+                // Navigation background
+                // -------------------------------------------------
 
                 Rectangle {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left:
+                        parent.left
 
-                    height: 42
-                    radius: 12
+                    anchors.right:
+                        parent.right
+
+                    anchors.verticalCenter:
+                        parent.verticalCenter
+
+                    height: 38
+
+                    radius: 10
 
                     color:
                         navigationItem.active
@@ -160,49 +226,86 @@ Item {
                                     ? AppTheme.panelHover
                                     : "transparent"
                             )
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 100
+                        }
+                    }
                 }
 
-                Rectangle {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
+                // -------------------------------------------------
+                // Active indicator
+                // -------------------------------------------------
 
-                    height: 3
-                    radius: 2
+                Rectangle {
+                    anchors.left:
+                        parent.left
+
+                    anchors.right:
+                        parent.right
+
+                    anchors.bottom:
+                        parent.bottom
+
+                    height: 2
+
+                    radius: 1
 
                     color:
                         navigationItem.active
                             ? AppTheme.accent
                             : "transparent"
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 120
+                        }
+                    }
                 }
+
+                // -------------------------------------------------
+                // Text
+                // -------------------------------------------------
 
                 Text {
                     id: navigationText
 
-                    anchors.centerIn: parent
+                    anchors.centerIn:
+                        parent
 
-                    text: navigationItem.modelData.title
+                    text:
+                        navigationItem.modelData.title
 
                     color:
                         navigationItem.active
                             ? AppTheme.textPrimary
                             : AppTheme.textSecondary
 
-                    font.pixelSize: 15
+                    font.pixelSize: 14
 
                     font.weight:
                         navigationItem.active
                             ? Font.DemiBold
                             : Font.Normal
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 100
+                        }
+                    }
                 }
 
                 MouseArea {
                     id: navigationMouseArea
 
-                    anchors.fill: parent
+                    anchors.fill:
+                        parent
 
                     hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
+
+                    cursorShape:
+                        Qt.PointingHandCursor
 
                     onClicked: {
                         root.sectionSelected(

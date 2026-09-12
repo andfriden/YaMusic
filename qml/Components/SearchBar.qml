@@ -6,111 +6,149 @@ Item {
 
     property var controller
 
-    height:
-        40
+    height: 42
 
+    // =============================================================
+    // Search field
+    // =============================================================
 
-    Row {
+    TextField {
+        id: searchField
+
         anchors.fill:
             parent
 
-        spacing:
-            10
+        leftPadding:
+            42
 
+        rightPadding:
+            42
 
-        TextField {
-            id: searchField
+        placeholderText:
+            "Поиск музыки"
 
-            width:
-                parent.width -
-                searchButton.width -
-                10
+        color:
+            AppTheme.textPrimary
 
-            height:
-                parent.height
+        placeholderTextColor:
+            AppTheme.textMuted
 
-            placeholderText:
-                "Поиск музыки..."
+        selectionColor:
+            AppTheme.accent
 
-            color:
-                AppTheme.textPrimary
+        selectedTextColor:
+            AppTheme.textPrimary
 
-            placeholderTextColor:
-                AppTheme.textMuted
+        font.pixelSize:
+            14
 
-            selectionColor:
-                "#8ab4f8"
+        enabled:
+            root.controller !== null &&
+            root.controller !== undefined &&
+            !root.controller.searching
 
-            selectedTextColor:
-                "#101010"
+        background:
+            Rectangle {
+                radius: 11
 
+                color:
+                    searchField.activeFocus
+                        ? AppTheme.panelActive
+                        : AppTheme.panelSubtle
 
-            background:
-                Rectangle {
-                    radius:
-                        6
+                border.width:
+                    searchField.activeFocus
+                        ? 1
+                        : 0
 
-                    color:
-                        "#ffffff"
+                border.color:
+                    AppTheme.accent
 
-                    border.width:
-                        1
-
-                    border.color:
-                        searchField.activeFocus
-                            ? AppTheme.textMuted
-                            : AppTheme.borderStrong
+                Behavior on color {
+                    ColorAnimation {
+                        duration: 120
+                    }
                 }
-
-
-            enabled:
-                root.controller !== null &&
-                root.controller !== undefined &&
-                !root.controller.searching
-
-
-            onAccepted: {
-                root.performSearch()
             }
-        }
 
+        // ---------------------------------------------------------
+        // Search icon
+        // ---------------------------------------------------------
 
-        Button {
-            id: searchButton
+        Text {
+            anchors.left:
+                parent.left
 
-            width:
-                100
+            anchors.leftMargin:
+                14
 
-            height:
-                parent.height
+            anchors.verticalCenter:
+                parent.verticalCenter
 
             text:
-                    root.controller !== null &&
-                root.controller !== undefined &&
-                root.controller.searching
-                ? "Поиск..."
-                : "Найти"
+                "⌕"
 
+            color:
+                searchField.activeFocus
+                    ? AppTheme.textPrimary
+                    : AppTheme.textMuted
 
-            enabled:
+            font.pixelSize:
+                23
+
+            font.weight:
+                Font.Light
+        }
+
+        // ---------------------------------------------------------
+        // Loading indicator
+        // ---------------------------------------------------------
+
+        Text {
+            anchors.right:
+                parent.right
+
+            anchors.rightMargin:
+                14
+
+            anchors.verticalCenter:
+                parent.verticalCenter
+
+            visible:
                 root.controller !== null &&
                 root.controller !== undefined &&
-                !root.controller.searching &&
-                searchField.text.trim().length > 0
+                root.controller.searching
 
+            text:
+                "…"
 
-            onClicked: {
-                root.performSearch()
-            }
+            color:
+                AppTheme.accent
+
+            font.pixelSize:
+                18
+
+            font.bold:
+                true
+        }
+
+        // ---------------------------------------------------------
+        // Search
+        // ---------------------------------------------------------
+
+        onAccepted: {
+            root.performSearch()
         }
     }
 
+    // =============================================================
+    // Search
+    // =============================================================
 
     function performSearch()
     {
         const query =
             searchField.text.trim()
-
 
         if (
             query.length === 0
@@ -118,14 +156,12 @@ Item {
             return
         }
 
-
         if (
             root.controller === null ||
             root.controller === undefined
         ) {
             return
         }
-
 
         root.controller.search(
             query
