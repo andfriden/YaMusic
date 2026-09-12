@@ -2,11 +2,20 @@
 
 Unofficial desktop client for Yandex Music built with C++17, Qt 6 and QML.
 
+YaMusic — независимый desktop-клиент Яндекс Музыки для macOS и Linux.
+
 ## Возможности
+
+### Авторизация
+
+* Авторизация через OAuth Яндекс Музыки
+* Получение OAuth-ссылки непосредственно из приложения
+* Ввод полученной ссылки в приложение
+* Сохранение авторизации между запусками
+* Выход из аккаунта
 
 ### Музыка и поиск
 
-* Авторизация через OAuth-токен Яндекс Музыки
 * Поиск музыки
 * «Моя волна»
 * Персональные рекомендации
@@ -14,8 +23,9 @@ Unofficial desktop client for Yandex Music built with C++17, Qt 6 and QML.
 * Недавно прослушанные треки
 * Пользовательские плейлисты
 * Понравившиеся треки
-* Чарты
-* Жанры и поджанры
+* Чарты России и мира
+* Жанры
+* Поджанры
 * Страницы жанров
 * Страницы плейлистов
 * Страницы альбомов
@@ -34,7 +44,15 @@ Unofficial desktop client for Yandex Music built with C++17, Qt 6 and QML.
 * Expanded Now Playing
 * Прогресс воспроизведения и перемотка
 * Dynamic Player Accent
-* Несколько источников воспроизведения
+
+### Интерфейс
+
+* Верхняя навигация
+* Боковая панель
+* Контекстная панель
+* Единый стиль страниц
+* Темная цветовая схема
+* Адаптивное расположение основных областей интерфейса
 
 ---
 
@@ -42,7 +60,7 @@ Unofficial desktop client for Yandex Music built with C++17, Qt 6 and QML.
 
 Для обычного использования рекомендуется использовать готовые пакеты YaMusic.
 
-Готовые пакеты будут содержать необходимые Qt runtime-библиотеки и QML-модули, поэтому **отдельная установка Qt для запуска приложения не потребуется**.
+Готовые пакеты будут содержать необходимые Qt runtime-библиотеки и QML-модули, поэтому отдельная установка Qt для запуска приложения не потребуется.
 
 ### Windows
 
@@ -81,61 +99,23 @@ chmod +x YaMusic-*.AppImage
 
 ## Авторизация
 
-### Важно
+Для авторизации в YaMusic:
 
-**Для работы YaMusic необходим OAuth-токен Яндекс Музыки.**
+1. Нажмите кнопку получения OAuth-ссылки в приложении.
+2. Откройте полученную ссылку в браузере.
+3. Авторизуйтесь в аккаунте Яндекса и разрешите доступ.
+4. После авторизации скопируйте полученную ссылку из адресной строки браузера.
+5. Вставьте ссылку обратно в YaMusic.
 
-Без токена приложение не сможет получить доступ к API Яндекс Музыки.
+YaMusic автоматически извлечёт необходимые данные из ссылки и выполнит авторизацию.
 
-Токен должен быть получен для собственного аккаунта Яндекса.
-
-### Получение токена
-
-Для получения токена используется OAuth Яндекса.
-
-1. Создайте OAuth-приложение в Яндексе.
-2. Получите `Client ID` приложения.
-3. Откройте OAuth-ссылку:
-
-```text
-https://oauth.yandex.ru/authorize?response_type=token&client_id=<CLIENT_ID>
-```
-
-где `<CLIENT_ID>` — идентификатор вашего приложения.
-
-4. Авторизуйтесь в аккаунте Яндекса.
-5. Разрешите доступ приложению.
-6. После авторизации браузер перенаправит вас на URL, содержащий:
-
-```text
-#access_token=<TOKEN>&expires_in=<SECONDS>
-```
-
-7. Скопируйте значение `access_token`.
-
-Например:
-
-```text
-#access_token=xxxxxxxxxxxxxxxx&expires_in=31536000
-```
-
-В YaMusic необходимо использовать:
-
-```text
-xxxxxxxxxxxxxxxx
-```
-
-Официальная документация Яндекса:
-
-https://yandex.ru/dev/id/doc/ru/tokens/debug-token
+После успешной авторизации данные сохраняются, поэтому повторно проходить эту процедуру при каждом запуске не требуется.
 
 ### Безопасность
 
-**Никому не передавайте свой OAuth-токен.**
+Ссылку, полученную после авторизации, **не следует передавать другим людям или публиковать**, поскольку она содержит данные для доступа к вашему аккаунту.
 
-Токен предоставляет доступ к данным вашего аккаунта.
-
-Не публикуйте его:
+Не публикуйте её:
 
 * в GitHub;
 * в исходном коде;
@@ -143,27 +123,68 @@ https://yandex.ru/dev/id/doc/ru/tokens/debug-token
 * в логах;
 * в открытых конфигурационных файлах.
 
-Не добавляйте токен в Git.
-
 ---
 
 ## Сборка из исходников
 
-Если вы хотите собрать YaMusic самостоятельно, необходимы:
+Для сборки необходимы:
 
 * C++17 compiler
 * Qt 6
 * Qt Quick
 * Qt Multimedia
 * CMake
-* Ninja или другой поддерживаемый CMake generator
+* Ninja
 
-### Linux
+CMakeLists.txt является источником истины для конфигурации проекта.
 
-Для Arch Linux:
+### Linux — Ubuntu
+
+Установите необходимые пакеты:
 
 ```bash
-sudo pacman -S \
+sudo apt update
+
+sudo apt install \
+    build-essential \
+    cmake \
+    ninja-build \
+    qt6-base-dev \
+    qt6-declarative-dev \
+    qt6-multimedia-dev
+```
+
+Клонирование проекта:
+
+```bash
+git clone https://github.com/andfriden/YaMusic.git
+cd YaMusic
+```
+
+Конфигурация:
+
+```bash
+cmake -S . -B build
+```
+
+Сборка:
+
+```bash
+cmake --build build --parallel
+```
+
+Запуск:
+
+```bash
+./build/appYaMusic
+```
+
+### Linux — Arch Linux
+
+Установите необходимые пакеты:
+
+```bash
+sudo pacman -S --needed \
     base-devel \
     cmake \
     ninja \
@@ -179,14 +200,16 @@ git clone https://github.com/andfriden/YaMusic.git
 cd YaMusic
 ```
 
+Конфигурация:
+
+```bash
+cmake -S . -B build
+```
+
 Сборка:
 
 ```bash
-cmake -S . -B build \
-    -G Ninja \
-    -DCMAKE_BUILD_TYPE=Debug
-
-cmake --build build
+cmake --build build --parallel
 ```
 
 Запуск:
@@ -204,21 +227,23 @@ cmake --build build
 * CMake
 * Ninja
 
-Клонирование:
+Клонирование проекта:
 
 ```bash
 git clone https://github.com/andfriden/YaMusic.git
 cd YaMusic
 ```
 
+Конфигурация:
+
+```bash
+cmake -S . -B build
+```
+
 Сборка:
 
 ```bash
-cmake -S . -B build \
-    -G Ninja \
-    -DCMAKE_BUILD_TYPE=Debug
-
-cmake --build build
+cmake --build build --parallel
 ```
 
 Запуск:
@@ -236,19 +261,22 @@ cmake --build build
 * CMake
 * Ninja или Visual Studio generator
 
-Клонирование:
+Клонирование проекта:
 
 ```powershell
 git clone https://github.com/andfriden/YaMusic.git
 cd YaMusic
 ```
 
+Конфигурация:
+
+```powershell
+cmake -S . -B build
+```
+
 Сборка:
 
 ```powershell
-cmake -S . -B build `
-    -DCMAKE_BUILD_TYPE=Debug
-
 cmake --build build --config Debug
 ```
 
@@ -257,6 +285,18 @@ cmake --build build --config Debug
 ```powershell
 .\build\Debug\appYaMusic.exe
 ```
+
+---
+
+## Установка собранного приложения
+
+После сборки приложение можно установить в отдельный каталог:
+
+```bash
+cmake --install build --prefix dist
+```
+
+Команда установки использует правила, определённые в `CMakeLists.txt`.
 
 ---
 
@@ -311,8 +351,8 @@ QML отвечает за:
 * `GenreController`
 * `LibraryController`
 * `PersonalController`
-* `SearchController`
 * `PlaybackController`
+* `SearchController`
 
 ### Services
 
@@ -329,11 +369,34 @@ Services инкапсулируют работу с API Яндекс Музык�
 * `QueueService`
 * `QueueModel`
 
-`PlayerService` отвечает непосредственно за управление `QMediaPlayer`.
+`PlayerService` отвечает за управление `QMediaPlayer`.
 
 `QueueService` управляет очередью воспроизведения.
 
 `PlaybackController` связывает состояние воспроизведения с остальной частью приложения.
+
+---
+
+## Интерфейс
+
+Основной интерфейс YaMusic состоит из:
+
+* верхней навигации;
+* боковой панели;
+* центральной области контента;
+* контекстной панели;
+* Mini Player.
+
+Основные разделы:
+
+* Моя волна
+* Чарты
+* Жанры
+* Плейлисты
+* Спорт
+* Мне нравится
+
+Страницы альбомов, исполнителей, плейлистов и жанров открываются внутри основной области приложения.
 
 ---
 
@@ -351,7 +414,6 @@ YaMusic/
 │
 ├── qml/
 │   ├── Components/
-│   ├── Context/
 │   ├── Home/
 │   ├── Layout/
 │   ├── MyWave/
@@ -359,7 +421,11 @@ YaMusic/
 │   ├── Search/
 │   └── Theme/
 │
+├── data/
+│   └── genre_playlists.csv
+│
 ├── CMakeLists.txt
+├── main.cpp
 └── README.md
 ```
 
@@ -410,6 +476,7 @@ YaMusic/
 
 * [x] Понравившиеся треки
 * [x] Работа с лайками
+* [x] Удаление лайков
 
 ### v0.7 — Playback Polish / Now Playing
 
@@ -428,6 +495,7 @@ YaMusic/
 * [x] Жанры
 * [x] Поджанры
 * [x] Страницы жанров
+* [x] Страницы плейлистов
 * [ ] Единая страница каталога
 * [ ] Новые релизы
 * [ ] Унифицированные состояния загрузки, ошибки и отсутствия данных
@@ -449,10 +517,10 @@ YaMusic/
 * Расширенные персональные рекомендации
 * Радио
 * Lyrics
-* Интерфейс настройки токена
-* Выход из аккаунта
 * Переключение аккаунтов
 * Настройка proxy
+* Улучшение кроссплатформенной поддержки
+* Готовые пакеты для macOS, Linux и Windows
 
 ---
 
@@ -462,7 +530,7 @@ YaMusic — независимый неофициальный клиент Ян�
 
 Проект не является официальным продуктом Яндекса и не связан с компанией Яндекс.
 
-Для работы приложения используется API Яндекс Музыки и OAuth-токен пользователя.
+Для работы приложения используется API Яндекс Музыки.
 
 ---
 
