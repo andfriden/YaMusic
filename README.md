@@ -137,9 +137,11 @@ YaMusic автоматически извлечёт необходимые да�
 
 `CMakeLists.txt` является источником истины для конфигурации проекта.
 
-### Linux — Ubuntu
+### Linux
 
-Установите необходимые пакеты:
+Установите необходимые зависимости для своего дистрибутива.
+
+**Ubuntu:**
 
 ```bash
 sudo apt update
@@ -153,34 +155,7 @@ sudo apt install \
     qt6-multimedia-dev
 ```
 
-Клонирование проекта:
-
-```bash
-git clone https://github.com/andfriden/YaMusic.git
-cd YaMusic
-```
-
-Конфигурация:
-
-```bash
-cmake -S . -B build
-```
-
-Сборка:
-
-```bash
-cmake --build build --parallel
-```
-
-Запуск:
-
-```bash
-./build/appYaMusic
-```
-
-### Linux — Arch Linux
-
-Установите необходимые пакеты:
+**Arch Linux:**
 
 ```bash
 sudo pacman -S --needed \
@@ -191,6 +166,8 @@ sudo pacman -S --needed \
     qt6-declarative \
     qt6-multimedia
 ```
+
+После установки зависимостей сборка одинакова для Ubuntu и Arch Linux.
 
 Клонирование проекта:
 
@@ -248,5 +225,290 @@ cmake --build build --parallel
 Запуск:
 
 ```bash
-./build/appYaMusic.app
+./build/appYaMusic.app/Contents/MacOS/appYaMusic
 ```
+
+### Windows
+
+Необходимы:
+
+* Visual Studio 2022 с C++ workload
+* Qt 6
+* CMake
+* Ninja или Visual Studio generator
+
+Клонирование проекта:
+
+```powershell
+git clone https://github.com/andfriden/YaMusic.git
+cd YaMusic
+```
+
+Конфигурация:
+
+```powershell
+cmake -S . -B build
+```
+
+Сборка:
+
+```powershell
+cmake --build build --config Debug
+```
+
+Запуск:
+
+```powershell
+.\build\Debug\appYaMusic.exe
+```
+
+### Установка собранного приложения
+
+После сборки приложение можно установить в отдельный каталог:
+
+```bash
+cmake --install build --prefix dist
+```
+
+Команда установки использует правила, определённые в `CMakeLists.txt`.
+
+---
+
+## Архитектура
+
+YaMusic построен с разделением логики приложения и пользовательского интерфейса.
+
+```text
+QML
+ │
+ ▼
+Controllers
+ │
+ ▼
+Services / Models
+ │
+ ├── Yandex Music API
+ │
+ └── Playback
+```
+
+### C++
+
+C++ отвечает за:
+
+* бизнес-логику;
+* работу с API;
+* авторизацию;
+* модели данных;
+* состояние приложения;
+* воспроизведение;
+* очередь воспроизведения.
+
+### QML
+
+QML отвечает за:
+
+* пользовательский интерфейс;
+* страницы;
+* навигацию;
+* визуальное состояние;
+* взаимодействие пользователя с приложением.
+
+### Controllers
+
+Основные контроллеры:
+
+* `AppController`
+* `AlbumController`
+* `ArtistController`
+* `ChartController`
+* `GenreController`
+* `LibraryController`
+* `PersonalController`
+* `PlaybackController`
+* `SearchController`
+
+### Services
+
+Services инкапсулируют работу с API Яндекс Музыки и отдельными подсистемами приложения.
+
+### Playback
+
+Воспроизведение построено на Qt Multimedia.
+
+Основные компоненты:
+
+* `PlaybackController`
+* `PlayerService`
+* `QueueService`
+* `QueueModel`
+
+`PlayerService` отвечает за управление `QMediaPlayer`.
+
+`QueueService` управляет очередью воспроизведения.
+
+`PlaybackController` связывает состояние воспроизведения с остальной частью приложения.
+
+---
+
+## Интерфейс
+
+Основной интерфейс YaMusic состоит из:
+
+* верхней навигации;
+* боковой панели;
+* центральной области контента;
+* контекстной панели;
+* Mini Player.
+
+Основные разделы:
+
+* Моя волна
+* Чарты
+* Жанры
+* Плейлисты
+* Спорт
+* Мне нравится
+
+Страницы альбомов, исполнителей, плейлистов и жанров открываются внутри основной области приложения.
+
+---
+
+## Структура проекта
+
+```text
+YaMusic/
+├── src/
+│   ├── Core/
+│   ├── Models/
+│   ├── Playback/
+│   ├── Player/
+│   ├── Queue/
+│   └── Yandex/
+│
+├── qml/
+│   ├── Components/
+│   ├── Home/
+│   ├── Layout/
+│   ├── MyWave/
+│   ├── Pages/
+│   ├── Search/
+│   └── Theme/
+│
+├── data/
+│   └── genre_playlists.csv
+│
+├── CMakeLists.txt
+├── main.cpp
+└── README.md
+```
+
+---
+
+## Roadmap
+
+### v0.1 — Technical POC
+
+* [x] Базовое Qt-приложение
+* [x] Подключение к Yandex Music API
+* [x] Авторизация
+* [x] Базовое воспроизведение
+
+### v0.2 — Search
+
+* [x] Поиск
+* [x] Результаты поиска
+* [x] Работа с треками
+* [x] Страницы альбомов
+* [x] Страницы исполнителей
+
+### v0.3 — My Wave / Personal
+
+* [x] «Моя волна»
+* [x] Персональные рекомендации
+* [x] Недавно прослушанные
+* [x] Персональные плейлисты
+
+### v0.4 — Smart Queue & Playback
+
+* [x] Единая очередь
+* [x] Добавление и удаление треков
+* [x] Изменение порядка
+* [x] Автоматический переход к следующему треку
+* [x] Repeat
+* [x] Shuffle
+* [x] Несколько источников воспроизведения
+
+### v0.5 — Library & Playlists
+
+* [x] Пользовательские плейлисты
+* [x] Страницы плейлистов
+* [x] Библиотека
+* [x] Недавно прослушанные
+
+### v0.6 — Likes
+
+* [x] Понравившиеся треки
+* [x] Работа с лайками
+* [x] Удаление лайков
+
+### v0.7 — Playback Polish / Now Playing
+
+* [x] Mini Player
+* [x] Expanded Now Playing
+* [x] Управление прогрессом
+* [x] Перемотка
+* [x] Управление громкостью
+* [x] Dynamic Player Accent
+
+### v0.8 — Catalog & Library Expansion 🚧
+
+#### Catalog
+
+* [x] Чарты
+* [x] Жанры
+* [x] Страницы жанров
+* [x] Страницы плейлистов
+* [ ] Новые релизы
+
+#### Library
+
+* [x] Пользовательские плейлисты
+* [x] Понравившиеся треки
+* [x] Недавно прослушанные треки
+* [ ] Сохранённые альбомы
+* [ ] Любимые исполнители
+
+---
+
+## Дальнейшие планы
+
+* Feed
+* Расширенные персональные рекомендации
+* Радио
+* Lyrics
+* Переключение аккаунтов
+* Настройка proxy
+* Улучшение кроссплатформенной поддержки
+* Готовые пакеты для macOS, Linux и Windows
+
+---
+
+## Disclaimer
+
+YaMusic — независимый неофициальный клиент Яндекс Музыки.
+
+Проект не является официальным продуктом Яндекса и не связан с компанией Яндекс.
+
+Для работы приложения используется API Яндекс Музыки.
+
+---
+
+## Лицензия
+
+Проект распространяется на условиях лицензии, указанной в репозитории.
+
+---
+
+[⬆ Наверх](#yamusic)
+
