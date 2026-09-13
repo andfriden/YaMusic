@@ -16,7 +16,8 @@ public:
     enum Roles {
         TitleRole = Qt::UserRole + 1,
         TypeRole,
-        PlaylistsRole
+        PlaylistsRole,
+        AlbumsRole
     };
 
     Q_ENUM(Roles)

@@ -1,5 +1,7 @@
 #include "LibraryController.h"
 #include "../Queue/QueueService.h"
+#include "../Yandex/Personal/LikedAlbumsModel.h"
+#include "../Yandex/Personal/LikedArtistsModel.h"
 #include "../Yandex/Personal/LikesService.h"
 
 LibraryController::LibraryController(
@@ -15,6 +17,8 @@ LibraryController::LibraryController(
     , m_playbackController(playbackController)
     , m_libraryPlaylistsModel(new LibraryPlaylistsModel(this))
     , m_likedTracksModel(new LikedTracksModel(this))
+    , m_likedAlbumsModel(new LikedAlbumsModel(this))
+    , m_likedArtistsModel(new LikedArtistsModel(this))
     , m_playlistModel(new PlaylistModel(this))
     , m_artistModel(new ArtistModel(this))
 {
@@ -210,6 +214,44 @@ LibraryController::LibraryController(
                         "Ошибка лайков: %1")
                         .arg(
                             message));
+            });
+
+        // Liked albums
+
+        connect(
+            m_likesService,
+            &LikesService::albumsReceived,
+            this,
+            [this](
+                const QList<Album> &albums)
+            {
+                m_loadingLikedAlbums =
+                    false;
+
+                emit loadingLikedAlbumsChanged();
+
+                m_likedAlbumsModel
+                    ->setAlbums(
+                        albums);
+            });
+
+        // Liked artists
+
+        connect(
+            m_likesService,
+            &LikesService::artistsReceived,
+            this,
+            [this](
+                const QList<Artist> &artists)
+            {
+                m_loadingLikedArtists =
+                    false;
+
+                emit loadingLikedArtistsChanged();
+
+                m_likedArtistsModel
+                    ->setArtists(
+                        artists);
             });
 
         connect(
@@ -476,6 +518,136 @@ bool
 LibraryController::isLoadingLikedTracks() const
 {
     return m_loadingLikedTracks;
+}
+
+// Liked albums
+
+void LibraryController::loadLikedAlbums(
+    const QString &uid)
+{
+    const QString userUid =
+        uid.trimmed();
+
+    if (userUid.isEmpty())
+    {
+        emit statusChanged(
+            "UID пользователя не указан");
+
+        return;
+    }
+
+    if (m_likesService == nullptr)
+    {
+        emit statusChanged(
+            "Сервис лайков недоступен");
+
+        return;
+    }
+
+    m_loadingLikedAlbums = true;
+
+    emit loadingLikedAlbumsChanged();
+
+    m_likedAlbumsModel->clear();
+
+    m_likesService->loadLikedAlbums(userUid);
+}
+
+LikedAlbumsModel *
+LibraryController::likedAlbumsModel() const
+{
+    return m_likedAlbumsModel;
+}
+
+bool
+LibraryController::isLoadingLikedAlbums() const
+{
+    return m_loadingLikedAlbums;
+}
+
+void LibraryController::selectLikedAlbum(
+    int index)
+{
+    if (m_likedAlbumsModel == nullptr)
+        return;
+
+    const Album album =
+        m_likedAlbumsModel->albumAt(index);
+
+    if (album.id.isEmpty())
+    {
+        emit statusChanged(
+            "Некорректный альбом");
+
+        return;
+    }
+
+    emit albumPageRequested(album.id);
+}
+
+// Liked artists
+
+void LibraryController::loadLikedArtists(
+    const QString &uid)
+{
+    const QString userUid =
+        uid.trimmed();
+
+    if (userUid.isEmpty())
+    {
+        emit statusChanged(
+            "UID пользователя не указан");
+
+        return;
+    }
+
+    if (m_likesService == nullptr)
+    {
+        emit statusChanged(
+            "Сервис лайков недоступен");
+
+        return;
+    }
+
+    m_loadingLikedArtists = true;
+
+    emit loadingLikedArtistsChanged();
+
+    m_likedArtistsModel->clear();
+
+    m_likesService->loadLikedArtists(userUid);
+}
+
+LikedArtistsModel *
+LibraryController::likedArtistsModel() const
+{
+    return m_likedArtistsModel;
+}
+
+bool
+LibraryController::isLoadingLikedArtists() const
+{
+    return m_loadingLikedArtists;
+}
+
+void LibraryController::selectLikedArtist(
+    int index)
+{
+    if (m_likedArtistsModel == nullptr)
+        return;
+
+    const Artist artist =
+        m_likedArtistsModel->artistAt(index);
+
+    if (artist.id.isEmpty())
+    {
+        emit statusChanged(
+            "Некорректный исполнитель");
+
+        return;
+    }
+
+    emit artistPageRequested(artist.id);
 }
 
 // Playlist

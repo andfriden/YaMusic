@@ -53,6 +53,7 @@ Item {
                 required property string title
                 required property string type
                 required property var playlists
+                required property var albums
 
                 // =================================================
                 // Home filtering
@@ -61,7 +62,11 @@ Item {
                 readonly property bool allowedOnHome:
                     !root.homeMode ||
                     sectionItem.type === "personal-playlists" ||
-                    sectionItem.type === "new-playlists"
+                    sectionItem.type === "new-playlists" ||
+                    sectionItem.type === "new-releases"
+
+                readonly property bool isAlbumsSection:
+                    sectionItem.type === "new-releases"
 
                 readonly property var visiblePlaylists:
                     root.homeMode
@@ -76,9 +81,19 @@ Item {
 
                 visible:
                     sectionItem.allowedOnHome &&
-                    sectionItem.visiblePlaylists !== null &&
-                    sectionItem.visiblePlaylists !== undefined &&
-                    sectionItem.visiblePlaylists.length > 0
+                    (
+                        sectionItem.isAlbumsSection
+                            ? (
+                                sectionItem.albums !== null &&
+                                sectionItem.albums !== undefined &&
+                                sectionItem.albums.length > 0
+                            )
+                            : (
+                                sectionItem.visiblePlaylists !== null &&
+                                sectionItem.visiblePlaylists !== undefined &&
+                                sectionItem.visiblePlaylists.length > 0
+                            )
+                    )
 
                 // =================================================
                 // Card geometry
@@ -91,17 +106,24 @@ Item {
                         (
                             Math.max(
                                 0,
-                                sectionItem.visiblePlaylists.length - 1
+                                sectionItem.isAlbumsSection
+                                    ? sectionItem.albums.length - 1
+                                    : sectionItem.visiblePlaylists.length - 1
                             ) *
                             root.cardSpacing
                         )
                     )
 
                 readonly property real cardWidth:
-                        sectionItem.visiblePlaylists.length > 0
-                    ? sectionItem.availableWidth /
-                    sectionItem.visiblePlaylists.length
-                    : 0
+                        sectionItem.isAlbumsSection
+                            ? sectionItem.albums.length > 0
+                                ? sectionItem.availableWidth /
+                                sectionItem.albums.length
+                                : 0
+                            : sectionItem.visiblePlaylists.length > 0
+                                ? sectionItem.availableWidth /
+                                sectionItem.visiblePlaylists.length
+                                : 0
 
                 readonly property real artworkSize:
                     Math.max(
@@ -167,12 +189,17 @@ Item {
 
                     Repeater {
                         model:
-                            sectionItem.visiblePlaylists
+                            sectionItem.isAlbumsSection
+                                ? sectionItem.albums
+                                : sectionItem.visiblePlaylists
 
                         delegate: Item {
                             id: playlistCard
 
                             required property var modelData
+
+                            readonly property bool isAlbumCard:
+                                sectionItem.isAlbumsSection
 
                             width:
                                 sectionItem.cardWidth
@@ -382,17 +409,25 @@ Item {
                                     root.trackCountHeight
 
                                 text:
-                                        Number(
+                                    playlistCard.isAlbumCard
+                                        ? Number(
+                                            playlistCard.modelData.year || 0
+                                        ) > 0
+                                            ? String(
+                                                playlistCard.modelData.year
+                                            )
+                                            : ""
+                                        : Number(
                                             playlistCard.modelData.trackCount ||
                                             0
                                         ) > 0
-                                    ? qsTr("%1 треков")
-                                        .arg(
-                                        Number(
-                                            playlistCard.modelData.trackCount
-                                        )
-                                    )
-                                    : ""
+                                            ? qsTr("%1 треков")
+                                                .arg(
+                                                Number(
+                                                    playlistCard.modelData.trackCount
+                                                )
+                                            )
+                                            : ""
 
                                 color:
                                     AppTheme.textMuted
@@ -437,30 +472,50 @@ Item {
                                         return
                                     }
 
-                                    const uid =
-                                        String(
-                                            playlistCard.modelData.uid ||
-                                            ""
-                                        )
-
-                                    const kind =
-                                        Number(
-                                            playlistCard.modelData.kind ||
-                                            0
-                                        )
-
                                     if (
-                                        uid.length === 0 ||
-                                        kind <= 0
+                                        playlistCard.isAlbumCard
                                     ) {
-                                        return
-                                    }
+                                        const albumId =
+                                            String(
+                                                playlistCard.modelData.albumId ||
+                                                ""
+                                            )
 
-                                    root.controller
-                                        .selectPersonalPlaylist(
-                                        uid,
-                                        kind
-                                    )
+                                        if (
+                                            albumId.length === 0
+                                        ) {
+                                            return
+                                        }
+
+                                        root.controller.loadAlbum(
+                                            albumId
+                                        )
+                                    } else {
+                                        const uid =
+                                            String(
+                                                playlistCard.modelData.uid ||
+                                                ""
+                                            )
+
+                                        const kind =
+                                            Number(
+                                                playlistCard.modelData.kind ||
+                                                0
+                                            )
+
+                                        if (
+                                            uid.length === 0 ||
+                                            kind <= 0
+                                        ) {
+                                            return
+                                        }
+
+                                        root.controller
+                                            .selectPersonalPlaylist(
+                                            uid,
+                                            kind
+                                        )
+                                    }
                                 }
                             }
                         }

@@ -8,6 +8,8 @@
 #include "../Yandex/Catalog/ArtistModel.h"
 #include "../Yandex/Catalog/ArtistService.h"
 #include "../Yandex/Personal/LibraryPlaylistsModel.h"
+#include "../Yandex/Personal/LikedAlbumsModel.h"
+#include "../Yandex/Personal/LikedArtistsModel.h"
 #include "../Yandex/Personal/LikedTracksModel.h"
 #include "../Yandex/Personal/PlaylistModel.h"
 #include "../Yandex/Personal/PlaylistService.h"
@@ -40,6 +42,30 @@ class LibraryController : public QObject
     Q_PROPERTY(
         LikedTracksModel *likedTracksModel
         READ likedTracksModel
+        CONSTANT)
+
+    // Liked albums
+
+    Q_PROPERTY(
+        bool loadingLikedAlbums
+        READ isLoadingLikedAlbums
+        NOTIFY loadingLikedAlbumsChanged)
+
+    Q_PROPERTY(
+        LikedAlbumsModel *likedAlbumsModel
+        READ likedAlbumsModel
+        CONSTANT)
+
+    // Liked artists
+
+    Q_PROPERTY(
+        bool loadingLikedArtists
+        READ isLoadingLikedArtists
+        NOTIFY loadingLikedArtistsChanged)
+
+    Q_PROPERTY(
+        LikedArtistsModel *likedArtistsModel
+        READ likedArtistsModel
         CONSTANT)
 
     // Playlist state
@@ -141,6 +167,32 @@ public:
 
     bool isLoadingLikedTracks() const;
 
+    // Liked albums
+
+    void loadLikedAlbums(
+        const QString &uid);
+
+    LikedAlbumsModel *
+    likedAlbumsModel() const;
+
+    bool isLoadingLikedAlbums() const;
+
+    void selectLikedAlbum(
+        int index);
+
+    // Liked artists
+
+    void loadLikedArtists(
+        const QString &uid);
+
+    LikedArtistsModel *
+    likedArtistsModel() const;
+
+    bool isLoadingLikedArtists() const;
+
+    void selectLikedArtist(
+        int index);
+
     // Playlist
 
     void loadPlaylist(
@@ -197,6 +249,12 @@ signals:
     void statusChanged(
         const QString &message);
 
+    void albumPageRequested(
+        const QString &albumId);
+
+    void artistPageRequested(
+        const QString &artistId);
+
     // Library playlists
 
     void loadingLibraryPlaylistsChanged();
@@ -204,6 +262,18 @@ signals:
     // Liked tracks
 
     void loadingLikedTracksChanged();
+
+    // Liked albums
+
+    void loadingLikedAlbumsChanged();
+
+    void likedAlbumsChanged();
+
+    // Liked artists
+
+    void loadingLikedArtistsChanged();
+
+    void likedArtistsChanged();
 
     // Playlist
 
@@ -243,6 +313,12 @@ private:
     LikedTracksModel *
         m_likedTracksModel = nullptr;
 
+    LikedAlbumsModel *
+        m_likedAlbumsModel = nullptr;
+
+    LikedArtistsModel *
+        m_likedArtistsModel = nullptr;
+
     PlaylistModel *
         m_playlistModel = nullptr;
 
@@ -255,6 +331,12 @@ private:
         false;
 
     bool m_loadingLikedTracks =
+        false;
+
+    bool m_loadingLikedAlbums =
+        false;
+
+    bool m_loadingLikedArtists =
         false;
 
     // Playlist state

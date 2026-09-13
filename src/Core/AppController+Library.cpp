@@ -11,6 +11,8 @@ void AppController::loadLibrary()
     }
 
     m_libraryController->loadUserPlaylists(m_accountUid);
+    m_libraryController->loadLikedAlbums(m_accountUid);
+    m_libraryController->loadLikedArtists(m_accountUid);
 }
 
 void AppController::selectLibraryPlaylist(int index)
@@ -55,4 +57,60 @@ LikedTracksModel *AppController::likedTracksModel() const
 bool AppController::isLoadingLikedTracks() const
 {
     return m_libraryController->isLoadingLikedTracks();
+}
+
+// Liked albums
+
+void AppController::loadLikedAlbums()
+{
+    if (m_accountUid.isEmpty())
+    {
+        emit statusChanged("Пользователь ещё не загружен");
+        return;
+    }
+
+    m_libraryController->loadLikedAlbums(m_accountUid);
+}
+
+void AppController::selectLikedAlbum(int index)
+{
+    m_libraryController->selectLikedAlbum(index);
+}
+
+LikedAlbumsModel *AppController::likedAlbumsModel() const
+{
+    return m_libraryController->likedAlbumsModel();
+}
+
+bool AppController::isLoadingLikedAlbums() const
+{
+    return m_libraryController->isLoadingLikedAlbums();
+}
+
+// Liked artists
+
+void AppController::loadLikedArtists()
+{
+    if (m_accountUid.isEmpty())
+    {
+        emit statusChanged("Пользователь ещё не загружен");
+        return;
+    }
+
+    m_libraryController->loadLikedArtists(m_accountUid);
+}
+
+void AppController::selectLikedArtist(int index)
+{
+    m_libraryController->selectLikedArtist(index);
+}
+
+LikedArtistsModel *AppController::likedArtistsModel() const
+{
+    return m_libraryController->likedArtistsModel();
+}
+
+bool AppController::isLoadingLikedArtists() const
+{
+    return m_libraryController->isLoadingLikedArtists();
 }

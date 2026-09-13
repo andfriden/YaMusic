@@ -20,6 +20,12 @@ public:
     void loadLikedTracks(
         const QString &uid);
 
+    void loadLikedAlbums(
+        const QString &uid);
+
+    void loadLikedArtists(
+        const QString &uid);
+
     void addLike(
         const QString &uid,
         const QString &trackId);
@@ -35,6 +41,12 @@ public:
 
         void tracksReceived(
             const QList<Track> &tracks);
+
+    void albumsReceived(
+        const QList<Album> &albums);
+
+    void artistsReceived(
+        const QList<Artist> &artists);
 
     void loadingChanged(
         bool loading);

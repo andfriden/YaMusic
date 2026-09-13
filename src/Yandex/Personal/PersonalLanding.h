@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QString>
 #include "../../Models/PersonalPlaylist.h"
+#include "../../Models/Track.h"
 
 struct PersonalLandingItem
 {
@@ -24,6 +25,11 @@ struct PersonalLandingSection
     QList<PersonalLandingItem> items;
 
     QList<PersonalPlaylist> playlists;
+
+    /*
+     * Альбомы (например, из блока "new-releases").
+     */
+    QList<Album> albums;
 };
 
 class YandexAuth;

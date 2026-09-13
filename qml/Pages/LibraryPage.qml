@@ -1082,6 +1082,546 @@ Item {
 
 
             // =========================================================
+            // Liked albums
+            // =========================================================
+
+            Column {
+                width:
+                    parent.width
+
+                spacing:
+                    12
+
+                Label {
+                    width:
+                        parent.width
+
+                    text:
+                        "Сохранённые альбомы"
+
+                    color:
+                        AppTheme.textPrimary
+
+                    font.pixelSize:
+                        20
+
+                    font.bold:
+                        true
+                }
+
+
+                Rectangle {
+                    width:
+                        parent.width
+
+                    height:
+                        albumGridView.count > 0
+                        ? Math.min(albumGridView.count * 74 + 20, 5 * 74 + 20)
+                        : 120
+
+                    radius:
+                        12
+
+                    color:
+                        AppTheme.panel
+
+                    border.width:
+                        1
+
+                    border.color:
+                        AppTheme.borderSubtle
+
+                    visible:
+                        root.controller !== null &&
+                        root.controller !== undefined
+
+
+                    GridView {
+                        id: albumGridView
+
+                        anchors.fill:
+                            parent
+
+                        anchors.margins:
+                            10
+
+                        cellWidth:
+                            180
+
+                        cellHeight:
+                            64
+
+                        clip:
+                            true
+
+                        interactive:
+                            albumGridView.count > 5
+
+                        boundsBehavior:
+                            Flickable.StopAtBounds
+
+                        model:
+                            root.controller !== null &&
+                            root.controller !== undefined
+                            ? root.controller.likedAlbumsModel
+                            : null
+
+
+                        delegate:
+                            Rectangle {
+                                id: albumDelegate
+
+                                width:
+                                    180
+
+                                height:
+                                    64
+
+                                radius:
+                                    8
+
+                                color:
+                                    albumMouse.containsMouse
+                                        ? AppTheme.panelActive
+                                        : AppTheme.panelSecondary
+
+                                required property string albumId
+                                required property string title
+                                required property string coverUri
+                                required property int year
+
+
+                                Rectangle {
+                                    id: albumCover
+
+                                    width:
+                                        48
+
+                                    height:
+                                        48
+
+                                    anchors.left:
+                                        parent.left
+
+                                    anchors.leftMargin:
+                                        8
+
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+
+                                    radius:
+                                        6
+
+                                    color:
+                                        AppTheme.artworkPlaceholder
+
+                                    clip:
+                                        true
+
+
+                                    Image {
+                                        id: albumCoverImage
+
+                                        anchors.fill:
+                                            parent
+
+                                        source:
+                                                albumDelegate.coverUri.length > 0
+                                            ? "image://yandex/" +
+                                              albumDelegate.coverUri
+                                            : ""
+
+                                        sourceSize:
+                                            Qt.size(
+                                                96,
+                                                96
+                                            )
+
+                                        fillMode:
+                                            Image.PreserveAspectCrop
+
+                                        asynchronous:
+                                            true
+
+                                        cache:
+                                            true
+
+                                        smooth:
+                                            true
+
+                                        visible:
+                                            status === Image.Ready
+                                    }
+                                }
+
+
+                                Column {
+                                    anchors.left:
+                                        albumCover.right
+
+                                    anchors.leftMargin:
+                                        10
+
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+
+                                    spacing:
+                                        2
+
+                                    Label {
+                                        width:
+                                            120
+
+                                        text:
+                                            albumDelegate.title
+
+                                        color:
+                                            AppTheme.textPrimary
+
+                                        font.pixelSize:
+                                            13
+
+                                        font.bold:
+                                            true
+
+                                        elide:
+                                            Text.ElideRight
+
+                                        maximumLineCount:
+                                            1
+                                    }
+
+
+                                    Label {
+                                        text:
+                                            albumDelegate.year > 0
+                                                ? albumDelegate.year
+                                                : ""
+
+                                        color:
+                                            AppTheme.textSecondary
+
+                                        font.pixelSize:
+                                            11
+                                    }
+                                }
+
+
+                                MouseArea {
+                                    id: albumMouse
+
+                                    anchors.fill:
+                                        parent
+
+                                    hoverEnabled:
+                                        true
+
+                                    cursorShape:
+                                        Qt.PointingHandCursor
+
+                                    onClicked: {
+                                        if (
+                                            root.controller === null ||
+                                            root.controller === undefined
+                                        ) {
+                                            return
+                                        }
+
+                                        root.controller.loadAlbum(
+                                            albumDelegate.albumId
+                                        )
+                                    }
+                                }
+                            }
+                    }
+
+
+                    Label {
+                        anchors.centerIn:
+                            parent
+
+                        text:
+                            "Нет сохранённых альбомов"
+
+                        color:
+                            AppTheme.textSecondary
+
+                        font.pixelSize:
+                            13
+
+                        visible:
+                            root.controller !== null &&
+                            root.controller !== undefined &&
+                            (
+                                root.controller.likedAlbumsModel === null ||
+                                root.controller.likedAlbumsModel.count === 0
+                            )
+                    }
+                }
+            }
+
+
+            // =========================================================
+            // Liked artists
+            // =========================================================
+
+            Column {
+                width:
+                    parent.width
+
+                spacing:
+                    12
+
+                Label {
+                    width:
+                        parent.width
+
+                    text:
+                        "Любимые исполнители"
+
+                    color:
+                        AppTheme.textPrimary
+
+                    font.pixelSize:
+                        20
+
+                    font.bold:
+                        true
+                }
+
+
+                Rectangle {
+                    width:
+                        parent.width
+
+                    height:
+                        artistGridView.count > 0
+                        ? Math.min(artistGridView.count * 74 + 20, 5 * 74 + 20)
+                        : 120
+
+                    radius:
+                        12
+
+                    color:
+                        AppTheme.panel
+
+                    border.width:
+                        1
+
+                    border.color:
+                        AppTheme.borderSubtle
+
+                    visible:
+                        root.controller !== null &&
+                        root.controller !== undefined
+
+
+                    GridView {
+                        id: artistGridView
+
+                        anchors.fill:
+                            parent
+
+                        anchors.margins:
+                            10
+
+                        cellWidth:
+                            180
+
+                        cellHeight:
+                            64
+
+                        clip:
+                            true
+
+                        interactive:
+                            artistGridView.count > 5
+
+                        boundsBehavior:
+                            Flickable.StopAtBounds
+
+                        model:
+                            root.controller !== null &&
+                            root.controller !== undefined
+                            ? root.controller.likedArtistsModel
+                            : null
+
+
+                        delegate:
+                            Rectangle {
+                                id: artistDelegate
+
+                                width:
+                                    180
+
+                                height:
+                                    64
+
+                                radius:
+                                    8
+
+                                color:
+                                    artistMouse.containsMouse
+                                        ? AppTheme.panelActive
+                                        : AppTheme.panelSecondary
+
+                                required property string artistId
+                                required property string name
+                                required property string coverUri
+
+
+                                Rectangle {
+                                    id: artistCover
+
+                                    width:
+                                        48
+
+                                    height:
+                                        48
+
+                                    anchors.left:
+                                        parent.left
+
+                                    anchors.leftMargin:
+                                        8
+
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+
+                                    radius:
+                                        24
+
+                                    color:
+                                        AppTheme.artworkPlaceholder
+
+                                    clip:
+                                        true
+
+
+                                    Image {
+                                        id: artistCoverImage
+
+                                        anchors.fill:
+                                            parent
+
+                                        source:
+                                                artistDelegate.coverUri.length > 0
+                                            ? "image://yandex/" +
+                                              artistDelegate.coverUri
+                                            : ""
+
+                                        sourceSize:
+                                            Qt.size(
+                                                96,
+                                                96
+                                            )
+
+                                        fillMode:
+                                            Image.PreserveAspectCrop
+
+                                        asynchronous:
+                                            true
+
+                                        cache:
+                                            true
+
+                                        smooth:
+                                            true
+
+                                        visible:
+                                            status === Image.Ready
+                                    }
+                                }
+
+
+                                Label {
+                                    anchors.left:
+                                        artistCover.right
+
+                                    anchors.leftMargin:
+                                        10
+
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+
+                                    width:
+                                        120
+
+                                    text:
+                                        artistDelegate.name
+
+                                    color:
+                                        AppTheme.textPrimary
+
+                                    font.pixelSize:
+                                        13
+
+                                    font.bold:
+                                        true
+
+                                    elide:
+                                        Text.ElideRight
+
+                                    maximumLineCount:
+                                        1
+                                }
+
+
+                                MouseArea {
+                                    id: artistMouse
+
+                                    anchors.fill:
+                                        parent
+
+                                    hoverEnabled:
+                                        true
+
+                                    cursorShape:
+                                        Qt.PointingHandCursor
+
+                                    onClicked: {
+                                        if (
+                                            root.controller === null ||
+                                            root.controller === undefined
+                                        ) {
+                                            return
+                                        }
+
+                                        root.controller.loadArtist(
+                                            artistDelegate.artistId
+                                        )
+                                    }
+                                }
+                            }
+                    }
+
+
+                    Label {
+                        anchors.centerIn:
+                            parent
+
+                        text:
+                            "Нет любимых исполнителей"
+
+                        color:
+                            AppTheme.textSecondary
+
+                        font.pixelSize:
+                            13
+
+                        visible:
+                            root.controller !== null &&
+                            root.controller !== undefined &&
+                            (
+                                root.controller.likedArtistsModel === null ||
+                                root.controller.likedArtistsModel.count === 0
+                            )
+                    }
+                }
+            }
+
+
+            // =========================================================
             // Bottom spacing
             // =========================================================
 

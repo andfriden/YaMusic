@@ -45,6 +45,8 @@ class AppController : public QObject
 
     Q_PROPERTY(bool loadingLibraryPlaylists READ isLoadingLibraryPlaylists NOTIFY loadingLibraryPlaylistsChanged)
     Q_PROPERTY(bool loadingLikedTracks READ isLoadingLikedTracks NOTIFY loadingLikedTracksChanged)
+    Q_PROPERTY(bool loadingLikedAlbums READ isLoadingLikedAlbums NOTIFY loadingLikedAlbumsChanged)
+    Q_PROPERTY(bool loadingLikedArtists READ isLoadingLikedArtists NOTIFY loadingLikedArtistsChanged)
     Q_PROPERTY(bool loadingPlaylist READ isLoadingPlaylist NOTIFY loadingPlaylistChanged)
     Q_PROPERTY(bool loadingAlbum READ isLoadingAlbum NOTIFY loadingAlbumChanged)
     Q_PROPERTY(bool loadingArtist READ isLoadingArtist NOTIFY loadingArtistChanged)
@@ -54,6 +56,8 @@ class AppController : public QObject
     Q_PROPERTY(PersonalPlaylistsModel *personalPlaylistsModel READ personalPlaylistsModel CONSTANT)
     Q_PROPERTY(LibraryPlaylistsModel *libraryPlaylistsModel READ libraryPlaylistsModel CONSTANT)
     Q_PROPERTY(LikedTracksModel *likedTracksModel READ likedTracksModel CONSTANT)
+    Q_PROPERTY(LikedAlbumsModel *likedAlbumsModel READ likedAlbumsModel CONSTANT)
+    Q_PROPERTY(LikedArtistsModel *likedArtistsModel READ likedArtistsModel CONSTANT)
     Q_PROPERTY(PlaylistModel *playlistModel READ playlistModel CONSTANT)
     Q_PROPERTY(RecentListeningModel *recentListeningModel READ recentListeningModel CONSTANT)
 
@@ -136,6 +140,12 @@ public:
     Q_INVOKABLE void loadLikedTracks();
     Q_INVOKABLE void selectLikedTrack(int index);
 
+    Q_INVOKABLE void loadLikedAlbums();
+    Q_INVOKABLE void selectLikedAlbum(int index);
+
+    Q_INVOKABLE void loadLikedArtists();
+    Q_INVOKABLE void selectLikedArtist(int index);
+
     Q_INVOKABLE void selectSearchResult(int index);
     Q_INVOKABLE void selectMyWaveTrack(int index);
     Q_INVOKABLE void selectPersonalPlaylist(const QString &uid, int kind);
@@ -170,6 +180,8 @@ public:
     PersonalPlaylistsModel *personalPlaylistsModel() const;
     LibraryPlaylistsModel *libraryPlaylistsModel() const;
     LikedTracksModel *likedTracksModel() const;
+    LikedAlbumsModel *likedAlbumsModel() const;
+    LikedArtistsModel *likedArtistsModel() const;
     PlaylistModel *playlistModel() const;
     RecentListeningModel *recentListeningModel() const;
 
@@ -185,6 +197,10 @@ public:
     bool isLoadingRecommendations() const;
     bool isLoadingLibraryPlaylists() const;
     bool isLoadingLikedTracks() const;
+
+    bool isLoadingLikedAlbums() const;
+
+    bool isLoadingLikedArtists() const;
     bool isLoadingPlaylist() const;
     bool isLoadingAlbum() const;
     bool isLoadingArtist() const;
@@ -245,6 +261,8 @@ public:
     void loadingRecommendationsChanged();
     void loadingLibraryPlaylistsChanged();
     void loadingLikedTracksChanged();
+    void loadingLikedAlbumsChanged();
+    void loadingLikedArtistsChanged();
     void loadingPlaylistChanged();
     void loadingAlbumChanged();
     void loadingArtistChanged();

@@ -159,6 +159,43 @@ void PersonalLanding::load()
                         block);
 
                 /*
+                 * Для секций с альбомами (new-releases)
+                 * извлекаем альбомы из items.
+                 */
+                if (
+                    section.type == "new-releases"
+                )
+                {
+                    for (
+                        const PersonalLandingItem &item :
+                        section.items
+                    )
+                    {
+                        if (
+                            item.type != "album"
+                        )
+                        {
+                            continue;
+                        }
+
+                        Album album =
+                            parseAlbum(
+                                item.data);
+
+                        if (
+                            album.id.isEmpty() &&
+                            album.title.isEmpty()
+                        )
+                        {
+                            continue;
+                        }
+
+                        section.albums.append(
+                            album);
+                    }
+                }
+
+                /*
                  * Для секций с плейлистами
                  * преобразуем items -> playlists
                  * прямо внутри секции.

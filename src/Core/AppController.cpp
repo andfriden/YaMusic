@@ -226,6 +226,18 @@ void AppController::connectLibrary()
 
     connect(
         m_libraryController,
+        &LibraryController::loadingLikedAlbumsChanged,
+        this,
+        &AppController::loadingLikedAlbumsChanged);
+
+    connect(
+        m_libraryController,
+        &LibraryController::loadingLikedArtistsChanged,
+        this,
+        &AppController::loadingLikedArtistsChanged);
+
+    connect(
+        m_libraryController,
         &LibraryController::loadingPlaylistChanged,
         this,
         &AppController::loadingPlaylistChanged);

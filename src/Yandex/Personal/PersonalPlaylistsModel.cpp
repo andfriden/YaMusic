@@ -101,6 +101,40 @@ QVariant PersonalPlaylistsModel::data(
             return playlists;
         }
 
+        case AlbumsRole:
+        {
+            QVariantList albums;
+
+            for (
+                const Album &album :
+                section.albums
+            )
+            {
+                QVariantMap object;
+
+                object.insert(
+                    "albumId",
+                    album.id);
+
+                object.insert(
+                    "title",
+                    album.title);
+
+                object.insert(
+                    "coverUri",
+                    album.coverUri);
+
+                object.insert(
+                    "year",
+                    album.year);
+
+                albums.append(
+                    object);
+            }
+
+            return albums;
+        }
+
         default:
             return {};
     }
@@ -123,6 +157,10 @@ PersonalPlaylistsModel::roleNames() const
         {
             PlaylistsRole,
             "playlists"
+        },
+        {
+            AlbumsRole,
+            "albums"
         }
     };
 }

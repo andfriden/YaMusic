@@ -184,10 +184,12 @@ set(
         src/Yandex/Catalog/TrackListModelBase.cpp
         src/Yandex/Catalog/TrackService.cpp
 
-        # Yandex Personal
+# Yandex Personal
+        src/Yandex/Personal/LibraryPlaylistsModel.cpp
+        src/Yandex/Personal/LikedAlbumsModel.cpp
+        src/Yandex/Personal/LikedArtistsModel.cpp
         src/Yandex/Personal/LikedTracksModel.cpp
         src/Yandex/Personal/LikesService.cpp
-        src/Yandex/Personal/LibraryPlaylistsModel.cpp
         src/Yandex/Personal/MyWaveModel.cpp
         src/Yandex/Personal/NewPlaylistsService.cpp
         src/Yandex/Personal/PersonalChartModel.cpp

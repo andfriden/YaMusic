@@ -221,6 +221,248 @@ void LikesService::loadLikedTracks(
         });
 }
 
+// Load liked albums
+
+void LikesService::loadLikedAlbums(
+    const QString &uid)
+{
+    if (!ensureAuthenticated())
+    {
+        emit errorOccurred("Токен Яндекс Музыки не установлен");
+        return;
+    }
+
+    const QString userId = uid.trimmed();
+
+    if (userId.isEmpty())
+    {
+        emit errorOccurred("UID пользователя не указан");
+        return;
+    }
+
+    if (m_loading)
+        return;
+
+    m_loading = true;
+
+    emit loadingChanged(true);
+
+    const QString path =
+        QStringLiteral("/users/%1/likes/albums")
+            .arg(userId);
+
+    QNetworkReply *reply =
+        m_yandexClient->get(path);
+
+    if (reply == nullptr)
+    {
+        m_loading = false;
+        emit loadingChanged(false);
+        return;
+    }
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply]()
+        {
+            const QByteArray data =
+                reply->readAll();
+
+            m_loading = false;
+
+            emit loadingChanged(false);
+
+            if (reply->error() != QNetworkReply::NoError)
+            {
+                const QString error = reply->errorString();
+                reply->deleteLater();
+                emit errorOccurred(error);
+                return;
+            }
+
+            QJsonParseError parseError;
+
+            const QJsonDocument document =
+                QJsonDocument::fromJson(data, &parseError);
+
+            if (parseError.error != QJsonParseError::NoError ||
+                !document.isObject())
+            {
+                reply->deleteLater();
+                emit errorOccurred("Некорректный ответ альбомов");
+                return;
+            }
+
+            QList<Album> albums;
+
+            const QJsonObject root = document.object();
+            const QJsonObject result = root.value("result").toObject();
+            const QJsonObject library = result.value("library").toObject();
+            const QJsonArray albumData = library.value("albums").toArray();
+
+            albums.reserve(albumData.size());
+
+            for (const QJsonValue &value : albumData)
+            {
+                if (!value.isObject())
+                    continue;
+
+                const QJsonObject obj = value.toObject();
+
+                Album album;
+
+                const QJsonValue idValue = obj.value("id");
+
+                if (idValue.isString())
+                    album.id = idValue.toString();
+                else if (idValue.isDouble())
+                    album.id = QString::number(static_cast<qint64>(idValue.toDouble()));
+
+                album.title = obj.value("title").toString();
+
+                const QJsonValue coverValue = obj.value("coverUri");
+                album.coverUri = coverValue.toString();
+
+                if (album.coverUri.isEmpty())
+                {
+                    const QJsonObject cover = obj.value("cover").toObject();
+                    album.coverUri = cover.value("uri").toString();
+                }
+
+                album.year = obj.value("year").toInt();
+
+                if (!album.id.isEmpty() || !album.title.isEmpty())
+                    albums.append(album);
+            }
+
+            reply->deleteLater();
+
+            emit albumsReceived(albums);
+        });
+}
+
+// Load liked artists
+
+void LikesService::loadLikedArtists(
+    const QString &uid)
+{
+    if (!ensureAuthenticated())
+    {
+        emit errorOccurred("Токен Яндекс Музыки не установлен");
+        return;
+    }
+
+    const QString userId = uid.trimmed();
+
+    if (userId.isEmpty())
+    {
+        emit errorOccurred("UID пользователя не указан");
+        return;
+    }
+
+    if (m_loading)
+        return;
+
+    m_loading = true;
+
+    emit loadingChanged(true);
+
+    const QString path =
+        QStringLiteral("/users/%1/likes/artists")
+            .arg(userId);
+
+    QNetworkReply *reply =
+        m_yandexClient->get(path);
+
+    if (reply == nullptr)
+    {
+        m_loading = false;
+        emit loadingChanged(false);
+        return;
+    }
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply]()
+        {
+            const QByteArray data =
+                reply->readAll();
+
+            m_loading = false;
+
+            emit loadingChanged(false);
+
+            if (reply->error() != QNetworkReply::NoError)
+            {
+                const QString error = reply->errorString();
+                reply->deleteLater();
+                emit errorOccurred(error);
+                return;
+            }
+
+            QJsonParseError parseError;
+
+            const QJsonDocument document =
+                QJsonDocument::fromJson(data, &parseError);
+
+            if (parseError.error != QJsonParseError::NoError ||
+                !document.isObject())
+            {
+                reply->deleteLater();
+                emit errorOccurred("Некорректный ответ исполнителей");
+                return;
+            }
+
+            QList<Artist> artists;
+
+            const QJsonObject root = document.object();
+            const QJsonObject result = root.value("result").toObject();
+            const QJsonObject library = result.value("library").toObject();
+            const QJsonArray artistData = library.value("artists").toArray();
+
+            artists.reserve(artistData.size());
+
+            for (const QJsonValue &value : artistData)
+            {
+                if (!value.isObject())
+                    continue;
+
+                const QJsonObject obj = value.toObject();
+
+                Artist artist;
+
+                const QJsonValue idValue = obj.value("id");
+
+                if (idValue.isString())
+                    artist.id = idValue.toString();
+                else if (idValue.isDouble())
+                    artist.id = QString::number(static_cast<qint64>(idValue.toDouble()));
+
+                artist.name = obj.value("name").toString();
+
+                const QJsonValue coverValue = obj.value("coverUri");
+                artist.coverUri = coverValue.toString();
+
+                if (artist.coverUri.isEmpty())
+                {
+                    const QJsonObject cover = obj.value("cover").toObject();
+                    artist.coverUri = cover.value("uri").toString();
+                }
+
+                if (!artist.id.isEmpty() || !artist.name.isEmpty())
+                    artists.append(artist);
+            }
+
+            reply->deleteLater();
+
+            emit artistsReceived(artists);
+        });
+}
+
 // Load full track data by IDs
 
 void LikesService::loadTracksByIds(
