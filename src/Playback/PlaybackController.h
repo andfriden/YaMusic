@@ -86,7 +86,20 @@ public:
     void toggleShuffle();
 
     signals:
-        void currentTrackChanged();
+
+    /*
+     * Emitted when the queue reaches its end and auto-repeat
+     * is off / cannot cycle. sourceType tells what kind of
+     * content just finished ("playlist", "album", "artist", …).
+     * sourceTitle is the human-readable name.
+     * The receiver can load a related source and resume playback.
+     */
+
+    void playlistExhausted(
+        const QString &sourceType,
+        const QString &sourceTitle);
+
+    void currentTrackChanged();
 
     void stateChanged();
 

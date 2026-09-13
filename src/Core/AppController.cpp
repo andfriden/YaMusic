@@ -442,6 +442,90 @@ void AppController::connectPlayback()
         &PlaybackController::playbackError,
         this,
         &AppController::statusChanged);
+
+    /*
+     * Когда очередь закончилась и Repeat выключен —
+     * автоматически подхватываем похожий контент
+     * в зависимости от типа источника:
+     *   "playlist" — первый похожий плейлист
+     *   "artist"   — первый похожий исполнитель
+     *   "album"    — загружаем исполнителя альбома
+     */
+
+    connect(
+        m_playbackController,
+        &PlaybackController::playlistExhausted,
+        this,
+        [this](
+            const QString &sourceType,
+            const QString &sourceTitle) {
+
+            Q_UNUSED(sourceTitle);
+
+            if (sourceType == "playlist") {
+
+                const QVariantList similar =
+                    m_libraryController
+                        ->similarPlaylists();
+
+                for (const QVariant &item : similar) {
+                    const QVariantMap map =
+                        item.toMap();
+
+                    const QString uid =
+                        map.value("uid").toString();
+
+                    const int kind =
+                        map.value("kind").toInt();
+
+                    if (uid.isEmpty() || kind <= 0)
+                        continue;
+
+                    selectPersonalPlaylist(
+                        uid, kind);
+
+                    emit statusChanged(
+                        "Похожий плейлист");
+
+                    return;
+                }
+
+            } else if (sourceType == "artist") {
+
+                const SimilarArtistsModel *similar =
+                    m_artistController
+                        ->similarArtistsModel();
+
+                if (similar == nullptr ||
+                    similar->count() <= 0)
+                    return;
+
+                const Artist first =
+                    similar->artistAt(0);
+
+                if (first.id.isEmpty())
+                    return;
+
+                loadArtist(first.id);
+
+                emit statusChanged(
+                    QString("Похожий исполнитель: %1")
+                        .arg(first.name));
+
+            } else if (sourceType == "album") {
+
+                const QString artistId =
+                    currentTrackArtistId();
+
+                if (artistId.isEmpty())
+                    return;
+
+                loadArtist(artistId);
+
+                emit statusChanged(
+                    "Исполнитель альбома");
+            }
+        });
 }
 
 // Player

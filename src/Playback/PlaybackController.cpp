@@ -537,31 +537,27 @@ void PlaybackController::handlePlaybackFinished()
 {
     if (m_queueService == nullptr) {
 
-        setState(
-            Stopped);
+        setState(Stopped);
 
         return;
     }
 
     const QueueService::RepeatMode mode =
-        m_queueService
-            ->repeatMode();
+        m_queueService->repeatMode();
 
-    if (
-        mode ==
-        QueueService::RepeatOne
-    ) {
+    // RepeatOne: переигрываем текущий трек.
+    if (mode == QueueService::RepeatOne) {
 
         if (playQueueCurrentTrack()) {
             return;
         }
 
-        setState(
-            Stopped);
+        setState(Stopped);
 
         return;
     }
 
+    // Есть следующий трек в очереди — играем его.
     if (m_queueService->hasNext()) {
 
         m_queueService->next();
@@ -571,21 +567,28 @@ void PlaybackController::handlePlaybackFinished()
         }
     }
 
-    if (
-        mode ==
-            QueueService::RepeatAll &&
-        m_queueService->count() > 0
-    ) {
+    // RepeatAll: зацикливаемся на начало.
+    if (mode == QueueService::RepeatAll &&
+        m_queueService->count() > 0) {
 
-        m_queueService
-            ->setCurrentIndex(
-                0);
+        m_queueService->setCurrentIndex(0);
 
         if (playQueueCurrentTrack()) {
             return;
         }
     }
 
-    setState(
-        Stopped);
+    // Очередь кончилась. Сообщаем наверх, чтобы
+    // подхватили похожий плейлист (если такой механизм есть).
+    const QString sourceType =
+        m_queueService->sourceType();
+
+    const QString sourceTitle =
+        m_queueService->sourceTitle();
+
+    setState(Stopped);
+
+    emit playlistExhausted(
+        sourceType,
+        sourceTitle);
 }
