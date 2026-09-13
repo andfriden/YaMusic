@@ -122,18 +122,31 @@ Item {
 
                     color:
 
-                        rowMouseArea.containsMouse
+                        root.controller &&
+                        root.controller.currentTrackId !== "" &&
+                        resultItem.trackId ===
+                            root.controller.currentTrackId
                             ? AppTheme.panelActive
-                            : AppTheme.panelSecondary
+                            : (
+                                rowMouseArea.containsMouse
+                                    ? AppTheme.panelActive
+                                    : AppTheme.panelSecondary
+                            )
 
 
 
                     border.width:
-                        1
+
+                        root.controller &&
+                        root.controller.currentTrackId !== "" &&
+                        resultItem.trackId ===
+                            root.controller.currentTrackId
+                            ? 1
+                            : 0
 
 
                     border.color:
-                        AppTheme.borderSubtle
+                        AppTheme.accent
 
 
 

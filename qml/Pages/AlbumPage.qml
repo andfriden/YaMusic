@@ -565,17 +565,27 @@ Item {
                                     8
 
                                 color:
-                                    trackMouse.containsMouse
+                                    root.controller &&
+                                    root.controller.currentTrackId !== "" &&
+                                    trackRow.trackId ===
+                                        root.controller.currentTrackId
                                         ? AppTheme.panelActive
-                                        : AppTheme.panelSecondary
+                                        : (
+                                            trackMouse.containsMouse
+                                                ? AppTheme.panelActive
+                                                : AppTheme.panelSecondary
+                                        )
 
                                 border.width:
-                                    1
+                                    root.controller &&
+                                    root.controller.currentTrackId !== "" &&
+                                    trackRow.trackId ===
+                                        root.controller.currentTrackId
+                                        ? 1
+                                        : 0
 
                                 border.color:
-                                    trackMouse.containsMouse
-                                        ? AppTheme.border
-                                        : AppTheme.borderSubtle
+                                    AppTheme.accent
 
 
                                 /*

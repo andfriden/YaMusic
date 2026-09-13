@@ -230,16 +230,27 @@ Item {
                     radius: 8
 
                     color:
-                        rowMouseArea.containsMouse
+                        root.controller &&
+                        root.controller.currentTrackId !== "" &&
+                        trackDelegate.trackId ===
+                            root.controller.currentTrackId
                             ? AppTheme.panelActive
-                            : AppTheme.panelSecondary
+                            : (
+                                rowMouseArea.containsMouse
+                                    ? AppTheme.panelActive
+                                    : AppTheme.panelSecondary
+                            )
 
-                    border.width: 1
+                    border.width:
+                        root.controller &&
+                        root.controller.currentTrackId !== "" &&
+                        trackDelegate.trackId ===
+                            root.controller.currentTrackId
+                            ? 1
+                            : 0
 
                     border.color:
-                        rowMouseArea.containsMouse
-                            ? AppTheme.border
-                            : AppTheme.borderSubtle
+                        AppTheme.accent
 
                     Behavior on color {
                         ColorAnimation {
