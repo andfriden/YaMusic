@@ -3,8 +3,6 @@
 #include "../Player/PlayerService.h"
 #include "../Yandex/Catalog/TrackService.h"
 
-#include <QDebug>
-
 PlaybackController::PlaybackController(
     TrackService *trackService,
     PlayerService *playerService,
@@ -194,12 +192,6 @@ void PlaybackController::playTrack(
 
         return;
     }
-
-    qDebug()
-        << "Loading stream:"
-        << track.id
-        << "|"
-        << track.title;
 
     m_trackService
         ->loadStreamInfo(
@@ -423,10 +415,6 @@ void PlaybackController::handleStreamUrl(
         trackId != m_currentTrack.id
     ) {
 
-        qDebug()
-            << "Ignoring stale stream URL:"
-            << trackId;
-
         return;
     }
 
@@ -452,10 +440,6 @@ void PlaybackController::handleStreamUrl(
         return;
     }
 
-    qDebug()
-        << "PlaybackController stream URL:"
-        << trackId;
-
     m_playerService
         ->playUrl(
             url);
@@ -474,10 +458,6 @@ bool PlaybackController::playQueueCurrentTrack()
     if (track.id.isEmpty()) {
         return false;
     }
-
-    qDebug()
-        << "Queue next track:"
-        << track.title;
 
     playTrack(
         track);
@@ -504,10 +484,6 @@ void PlaybackController::handlePlaybackFinished()
         QueueService::RepeatOne
     ) {
 
-        qDebug()
-            << "Repeat One:"
-            << m_currentTrack.title;
-
         if (playQueueCurrentTrack()) {
             return;
         }
@@ -533,10 +509,6 @@ void PlaybackController::handlePlaybackFinished()
         m_queueService->count() > 0
     ) {
 
-        qDebug()
-            << "Repeat All:"
-            << "returning to first track";
-
         m_queueService
             ->setCurrentIndex(
                 0);
@@ -545,9 +517,6 @@ void PlaybackController::handlePlaybackFinished()
             return;
         }
     }
-
-    qDebug()
-        << "Queue finished";
 
     setState(
         Stopped);

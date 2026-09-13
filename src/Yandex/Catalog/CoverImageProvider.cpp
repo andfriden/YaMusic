@@ -1,6 +1,5 @@
 #include "CoverImageProvider.h"
 
-#include <QDebug>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -15,7 +14,6 @@ constexpr auto kCirclePrefix =
     "circle/";
 
 }
-
 
 // =============================================================
 // CoverImageResponse
@@ -32,33 +30,17 @@ CoverImageResponse::CoverImageResponse(
     load();
 }
 
-
 QQuickTextureFactory *
 CoverImageResponse::textureFactory() const
 {
     if (m_image.isNull()) {
 
-        qDebug()
-            << "CoverImageResponse:"
-            << "empty image";
-
         return nullptr;
     }
-
-    qDebug()
-        << "CoverImageResponse:"
-        << "texture"
-        << "| size:"
-        << m_image.size()
-        << "| format:"
-        << m_image.format()
-        << "| circular:"
-        << m_circular;
 
     return QQuickTextureFactory::textureFactoryForImage(
         m_image);
 }
-
 
 void CoverImageResponse::cancel()
 {
@@ -69,7 +51,6 @@ void CoverImageResponse::cancel()
      * The response is allowed to finish normally.
      */
 }
-
 
 QImage CoverImageResponse::makeCircular(
     const QImage &image) const
@@ -213,28 +194,14 @@ QImage CoverImageResponse::makeCircular(
     return result;
 }
 
-
 void CoverImageResponse::load()
 {
     if (m_url.isEmpty()) {
-
-        qDebug()
-            << "CoverImageResponse:"
-            << "empty URL";
 
         emit finished();
 
         return;
     }
-
-    qDebug()
-        << "CoverImageResponse:"
-        << "loading:"
-        << m_url
-        << "| requested:"
-        << m_requestedSize
-        << "| circular:"
-        << m_circular;
 
     auto *networkManager =
         new QNetworkAccessManager();
@@ -267,13 +234,6 @@ void CoverImageResponse::load()
                 reply->attribute(
                     QNetworkRequest::HttpStatusCodeAttribute);
 
-            qDebug()
-                << "CoverImageResponse:"
-                << "HTTP"
-                << statusCode
-                << "| error:"
-                << reply->errorString();
-
             if (
                 reply->error() !=
                 QNetworkReply::NoError
@@ -292,21 +252,12 @@ void CoverImageResponse::load()
             const QByteArray data =
                 reply->readAll();
 
-            qDebug()
-                << "CoverImageResponse:"
-                << "bytes:"
-                << data.size();
-
             QImage image;
 
             if (
                 !image.loadFromData(
                     data)
             ) {
-
-                qDebug()
-                    << "CoverImageResponse:"
-                    << "failed to decode image";
 
                 reply->deleteLater();
 
@@ -317,13 +268,6 @@ void CoverImageResponse::load()
 
                 return;
             }
-
-            qDebug()
-                << "CoverImageResponse:"
-                << "decoded:"
-                << image.size()
-                << "| format:"
-                << image.format();
 
             /*
              * -------------------------------------------------
@@ -352,10 +296,6 @@ void CoverImageResponse::load()
 
             if (m_image.isNull()) {
 
-                qDebug()
-                    << "CoverImageResponse:"
-                    << "failed to process image";
-
                 reply->deleteLater();
 
                 networkManager
@@ -366,15 +306,6 @@ void CoverImageResponse::load()
                 return;
             }
 
-            qDebug()
-                << "CoverImageResponse:"
-                << "final:"
-                << m_image.size()
-                << "| format:"
-                << m_image.format()
-                << "| circular:"
-                << m_circular;
-
             reply->deleteLater();
 
             networkManager
@@ -384,7 +315,6 @@ void CoverImageResponse::load()
         });
 }
 
-
 // =============================================================
 // CoverImageProvider
 // =============================================================
@@ -393,7 +323,6 @@ CoverImageProvider::CoverImageProvider()
     : QQuickAsyncImageProvider()
 {
 }
-
 
 QQuickImageResponse *
 CoverImageProvider::requestImageResponse(
@@ -412,23 +341,11 @@ CoverImageProvider::requestImageResponse(
         createUrl(
             cleanId);
 
-    qDebug()
-        << "CoverImageProvider:"
-        << "id:"
-        << id
-        << "| cleanId:"
-        << cleanId
-        << "| url:"
-        << url
-        << "| circular:"
-        << circular;
-
     return new CoverImageResponse(
         url,
         requestedSize,
         circular);
 }
-
 
 bool CoverImageProvider::isCircularRequest(
     const QString &id) const
@@ -437,7 +354,6 @@ bool CoverImageProvider::isCircularRequest(
         QString::fromLatin1(
             kCirclePrefix));
 }
-
 
 QString CoverImageProvider::stripRequestPrefix(
     QString id) const
@@ -458,7 +374,6 @@ QString CoverImageProvider::stripRequestPrefix(
 
     return id;
 }
-
 
 QString CoverImageProvider::createUrl(
     QString uri) const

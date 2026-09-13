@@ -3,8 +3,6 @@
 #include "../Playback/PlaybackController.h"
 #include "../Queue/QueueService.h"
 
-#include <QDebug>
-
 void PersonalController::connectRecentlyPlayed()
 {
     if (
@@ -19,9 +17,6 @@ void PersonalController::connectRecentlyPlayed()
         this,
         [](bool loading) {
 
-            qDebug()
-                << "Recent listening loading:"
-                << loading;
         });
 
     connect(
@@ -34,10 +29,6 @@ void PersonalController::connectRecentlyPlayed()
             m_recentListeningModel
                 ->setTracks(
                     tracks);
-
-            qDebug()
-                << "Recently listened tracks:"
-                << tracks.size();
 
             emit statusChanged(
                 QString(
@@ -52,10 +43,6 @@ void PersonalController::connectRecentlyPlayed()
         this,
         [this](
             const QString &message) {
-
-            qDebug()
-                << "Recent listening error:"
-                << message;
 
             emit statusChanged(
                 QString(
@@ -138,12 +125,6 @@ void PersonalController::selectRecentListening(
     const Track track =
         tracks.at(
             index);
-
-    qDebug()
-        << "Выбран трек истории:"
-        << track.title
-        << "| index:"
-        << index;
 
     emit statusChanged(
         QString(

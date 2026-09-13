@@ -6,9 +6,6 @@
 
 #include "../Playback/PlaybackController.h"
 
-#include <QDebug>
-
-
 AlbumController::AlbumController(
     AlbumService *albumService,
     ArtistService *artistService,
@@ -121,7 +118,6 @@ AlbumController::AlbumController(
     }
 }
 
-
 void AlbumController::loadAlbum(
     const QString &id)
 {
@@ -146,7 +142,6 @@ void AlbumController::loadAlbum(
     m_albumService->loadAlbum(id);
 }
 
-
 void AlbumController::selectAlbumTrack(
     int index)
 {
@@ -170,7 +165,6 @@ void AlbumController::selectAlbumTrack(
     m_playbackController->playTrack(
         track);
 }
-
 
 void AlbumController::playAlbum()
 {
@@ -205,13 +199,11 @@ void AlbumController::playAlbum()
     m_playbackController->playCurrent();
 }
 
-
 AlbumModel *
 AlbumController::albumModel() const
 {
     return m_albumModel;
 }
-
 
 ArtistAlbumsModel *
 AlbumController::otherAlbumsModel() const
@@ -219,18 +211,15 @@ AlbumController::otherAlbumsModel() const
     return m_otherAlbumsModel;
 }
 
-
 bool AlbumController::isLoading() const
 {
     return m_loading;
 }
 
-
 QString AlbumController::albumId() const
 {
     return m_albumId;
 }
-
 
 QString AlbumController::albumTitle() const
 {
@@ -239,7 +228,6 @@ QString AlbumController::albumTitle() const
         : QString();
 }
 
-
 QString AlbumController::albumCoverUri() const
 {
     return m_albumModel
@@ -247,14 +235,12 @@ QString AlbumController::albumCoverUri() const
         : QString();
 }
 
-
 int AlbumController::albumTrackCount() const
 {
     return m_albumModel
         ? m_albumModel->count()
         : 0;
 }
-
 
 void AlbumController::loadOtherAlbumsForCurrentArtist(
     const AlbumDetails &album)

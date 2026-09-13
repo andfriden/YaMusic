@@ -3,8 +3,6 @@
 #include "../Player/PlayerService.h"
 #include "../Queue/QueueService.h"
 
-#include <QDebug>
-
 // =============================================================
 // Playback
 // =============================================================
@@ -15,20 +13,17 @@ void AppController::play()
         ->play();
 }
 
-
 void AppController::pause()
 {
     m_playerService
         ->pause();
 }
 
-
 void AppController::stop()
 {
     m_playerService
         ->stop();
 }
-
 
 void AppController::next()
 {
@@ -42,7 +37,6 @@ void AppController::next()
     }
 }
 
-
 void AppController::previous()
 {
     if (
@@ -55,13 +49,11 @@ void AppController::previous()
     }
 }
 
-
 void AppController::cycleRepeat()
 {
     m_playbackController
         ->cycleRepeatMode();
 }
-
 
 void AppController::setRepeatMode(
     int mode)
@@ -74,7 +66,6 @@ void AppController::setRepeatMode(
         return;
     }
 
-
     m_playbackController
         ->setRepeatMode(
             static_cast<
@@ -82,13 +73,11 @@ void AppController::setRepeatMode(
                 mode));
 }
 
-
 void AppController::toggleShuffle()
 {
     m_playbackController
         ->toggleShuffle();
 }
-
 
 void AppController::setShuffle(
     bool enabled)
@@ -97,7 +86,6 @@ void AppController::setShuffle(
         ->setShuffleEnabled(
             enabled);
 }
-
 
 void AppController::seek(
     qint64 position)

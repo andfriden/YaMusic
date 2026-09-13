@@ -3,7 +3,6 @@
 #include "../Auth/YandexAuth.h"
 #include "../YandexClient.h"
 
-#include <QDebug>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -75,10 +74,6 @@ RecentListeningService::RecentListeningService(
             emit loadingChanged(
                 false);
 
-            qDebug()
-                << "Recent listening tracks:"
-                << orderedTracks.size();
-
             for (
                 const Track &track :
                 orderedTracks
@@ -96,13 +91,6 @@ RecentListeningService::RecentListeningService(
                             .name;
                 }
 
-                qDebug()
-                    << "Recent Track:"
-                    << track.id
-                    << "|"
-                    << track.title
-                    << "|"
-                    << artistName;
             }
 
             emit tracksReceived(
@@ -279,10 +267,6 @@ void RecentListeningService::load(
 
             reply->deleteLater();
 
-            qDebug()
-                << "Recent listening references:"
-                << references.size();
-
             if (
                 references.isEmpty()
             ) {
@@ -339,10 +323,6 @@ void RecentListeningService::load(
 
                 return;
             }
-
-            qDebug()
-                << "Resolving recent tracks:"
-                << trackIds.size();
 
             m_yandexClient
                 ->getTracks(

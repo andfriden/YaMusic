@@ -1,14 +1,10 @@
 #include "PlaylistModel.h"
 
-#include <QDebug>
-
-
 PlaylistModel::PlaylistModel(
     QObject *parent)
     : QAbstractListModel(parent)
 {
 }
-
 
 // =============================================================
 // Model
@@ -27,7 +23,6 @@ int PlaylistModel::rowCount(
     return m_tracks.size();
 }
 
-
 QVariant PlaylistModel::data(
     const QModelIndex &index,
     int role) const
@@ -41,11 +36,9 @@ QVariant PlaylistModel::data(
         return {};
     }
 
-
     const Track &track =
         m_tracks.at(
             index.row());
-
 
     switch (role)
     {
@@ -85,10 +78,8 @@ QVariant PlaylistModel::data(
             return track.liked;
     }
 
-
     return {};
 }
-
 
 QHash<int, QByteArray>
 PlaylistModel::roleNames() const
@@ -106,7 +97,6 @@ PlaylistModel::roleNames() const
     };
 }
 
-
 // =============================================================
 // Playlist
 // =============================================================
@@ -122,25 +112,9 @@ void PlaylistModel::setPlaylist(
     m_tracks =
         playlist.tracks;
 
-
     // =========================================================
     // Debug
     // =========================================================
-
-    qDebug()
-        << "========================================";
-
-    qDebug()
-        << "PlaylistModel::setPlaylist";
-
-    qDebug()
-        << "Playlist title:"
-        << playlist.title;
-
-    qDebug()
-        << "Tracks count:"
-        << m_tracks.size();
-
 
     for (
         int i = 0;
@@ -151,59 +125,27 @@ void PlaylistModel::setPlaylist(
         const Track &track =
             m_tracks.at(i);
 
-
-        qDebug()
-            << "Playlist track"
-            << i
-            << "| id:" << track.id
-            << "| title:" << track.title
-            << "| artist count:" << track.artists.size()
-            << "| album count:" << track.albums.size()
-            << "| liked:" << track.liked;
-
-
         if (
             !track.artists.isEmpty()
         )
         {
-            qDebug()
-                << "  artist:"
-                << track.artists.first().name
-                << "| artistId:"
-                << track.artists.first().id;
         }
         else
         {
-            qDebug()
-                << "  artist: <EMPTY>";
         }
-
 
         if (
             !track.albums.isEmpty()
         )
         {
-            qDebug()
-                << "  album:"
-                << track.albums.first().title
-                << "| albumId:"
-                << track.albums.first().id;
         }
         else
         {
-            qDebug()
-                << "  album: <EMPTY>";
         }
     }
 
-
-    qDebug()
-        << "========================================";
-
-
     endResetModel();
 }
-
 
 void PlaylistModel::clear()
 {
@@ -214,7 +156,6 @@ void PlaylistModel::clear()
         return;
     }
 
-
     beginResetModel();
 
     m_playlist =
@@ -224,7 +165,6 @@ void PlaylistModel::clear()
 
     endResetModel();
 }
-
 
 Track PlaylistModel::trackAt(
     int index) const
@@ -241,19 +181,16 @@ Track PlaylistModel::trackAt(
         index);
 }
 
-
 QList<Track>
 PlaylistModel::tracks() const
 {
     return m_tracks;
 }
 
-
 int PlaylistModel::count() const
 {
     return m_tracks.size();
 }
-
 
 QString
 PlaylistModel::title() const
@@ -261,13 +198,11 @@ PlaylistModel::title() const
     return m_playlist.title;
 }
 
-
 int
 PlaylistModel::trackCount() const
 {
     return m_tracks.size();
 }
-
 
 // =============================================================
 // Like state
@@ -290,7 +225,6 @@ void PlaylistModel::setTrackLiked(
             continue;
         }
 
-
         if (
             m_tracks[i].liked == liked
         )
@@ -298,10 +232,8 @@ void PlaylistModel::setTrackLiked(
             return;
         }
 
-
         m_tracks[i].liked =
             liked;
-
 
         emit dataChanged(
             index(i),

@@ -2,8 +2,6 @@
 
 #include "../Player/PlayerService.h"
 
-#include <QDebug>
-
 void PersonalController::connectPlayback()
 {
     if (
@@ -54,10 +52,6 @@ void PersonalController::connectPlayback()
                 batchId.isEmpty()
             ) {
 
-                qDebug()
-                    << "My Wave track has no batchId:"
-                    << m_currentMyWaveTrackId;
-
                 return;
             }
 
@@ -68,9 +62,6 @@ void PersonalController::connectPlayback()
                 "trackStarted",
                 m_currentMyWaveTrackId);
 
-            qDebug()
-                << "My Wave trackStarted:"
-                << m_currentMyWaveTrackId;
         });
 
     /*
@@ -122,11 +113,6 @@ void PersonalController::connectPlayback()
                     finishedTrackId,
                     playedSeconds);
 
-                qDebug()
-                    << "My Wave trackFinished:"
-                    << finishedTrackId
-                    << "| seconds:"
-                    << playedSeconds;
             }
 
             /*

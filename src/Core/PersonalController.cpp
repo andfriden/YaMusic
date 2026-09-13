@@ -2,9 +2,6 @@
 
 #include "../Yandex/Personal/YandexPersonal.h"
 
-#include <QDebug>
-
-
 // =============================================================
 // Constructor
 // =============================================================
@@ -40,7 +37,6 @@ PersonalController::PersonalController(
 
     connectPlayback();
 
-
     // =============================================================
     // New playlists
     // =============================================================
@@ -56,11 +52,6 @@ PersonalController::PersonalController(
             [this](
                 const QList<Playlist> &playlists)
             {
-                qDebug()
-                    << "PersonalController:"
-                    << "new playlists loaded:"
-                    << playlists.size();
-
 
                 if (
                     playlists.isEmpty()
@@ -69,9 +60,7 @@ PersonalController::PersonalController(
                     return;
                 }
 
-
                 PersonalLandingSection section;
-
 
                 section.id =
                     "new-playlists";
@@ -81,7 +70,6 @@ PersonalController::PersonalController(
 
                 section.type =
                     "new-playlists";
-
 
                 for (
                     const Playlist &playlist :
@@ -96,17 +84,13 @@ PersonalController::PersonalController(
                         continue;
                     }
 
-
                     PersonalPlaylist personalPlaylist;
-
 
                     personalPlaylist.uid =
                         playlist.uid;
 
-
                     personalPlaylist.kind =
                         playlist.kind;
-
 
                     personalPlaylist.id =
                         personalPlaylist.uid +
@@ -114,22 +98,17 @@ PersonalController::PersonalController(
                         QString::number(
                             personalPlaylist.kind);
 
-
                     personalPlaylist.title =
                         playlist.title;
-
 
                     personalPlaylist.description =
                         playlist.description;
 
-
                     personalPlaylist.trackCount =
                         playlist.trackCount;
 
-
                     personalPlaylist.coverUri =
                         playlist.coverUri;
-
 
                     if (
                         personalPlaylist.title.isEmpty()
@@ -138,11 +117,9 @@ PersonalController::PersonalController(
                         continue;
                     }
 
-
                     section.playlists.append(
                         personalPlaylist);
                 }
-
 
                 if (
                     section.playlists.isEmpty()
@@ -151,14 +128,12 @@ PersonalController::PersonalController(
                     return;
                 }
 
-
                 // -----------------------------------------------------
                 // Replace existing new-playlists section
                 // -----------------------------------------------------
 
                 bool replaced =
                     false;
-
 
                 for (
                     PersonalLandingSection &existingSection :
@@ -180,7 +155,6 @@ PersonalController::PersonalController(
                     }
                 }
 
-
                 // -----------------------------------------------------
                 // Add section if landing3 did not provide it
                 // -----------------------------------------------------
@@ -193,13 +167,11 @@ PersonalController::PersonalController(
                         section);
                 }
 
-
                 // -----------------------------------------------------
                 // Rebuild flat playlist list
                 // -----------------------------------------------------
 
                 m_recommendationPlaylists.clear();
-
 
                 for (
                     const PersonalLandingSection &recommendationSection :
@@ -221,7 +193,6 @@ PersonalController::PersonalController(
                     }
                 }
 
-
                 // -----------------------------------------------------
                 // Update model
                 // -----------------------------------------------------
@@ -235,7 +206,6 @@ PersonalController::PersonalController(
                             m_recommendationSections);
                 }
 
-
                 emit statusChanged(
                     QString(
                         "Новых плейлистов загружено: %1")
@@ -244,7 +214,6 @@ PersonalController::PersonalController(
             });
     }
 }
-
 
 // =============================================================
 // Models
@@ -256,13 +225,11 @@ PersonalController::myWaveModel() const
     return m_myWaveModel;
 }
 
-
 PersonalPlaylistsModel *
 PersonalController::personalPlaylistsModel() const
 {
     return m_personalPlaylistsModel;
 }
-
 
 RecentListeningModel *
 PersonalController::recentListeningModel() const
@@ -270,13 +237,11 @@ PersonalController::recentListeningModel() const
     return m_recentListeningModel;
 }
 
-
 PersonalChartModel *
 PersonalController::chartModel() const
 {
     return m_chartModel;
 }
-
 
 // =============================================================
 // Loading state
@@ -288,13 +253,11 @@ PersonalController::isLoadingMyWave() const
     return m_loadingMyWave;
 }
 
-
 bool
 PersonalController::isLoadingMoreMyWave() const
 {
     return m_loadingMoreMyWave;
 }
-
 
 bool
 PersonalController::isLoadingRecommendations() const

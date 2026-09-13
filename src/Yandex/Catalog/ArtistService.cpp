@@ -3,7 +3,6 @@
 #include "../Auth/YandexAuth.h"
 #include "../YandexClient.h"
 
-#include <QDebug>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -432,12 +431,6 @@ void restoreArtistArtwork(
             artist.coverUri =
                 trackArtist.coverUri;
 
-            qDebug()
-                << "Artist artwork restored from track artist:"
-                << artist.name
-                << "| cover:"
-                << artist.coverUri;
-
             return;
         }
     }
@@ -455,12 +448,6 @@ void restoreArtistArtwork(
             ) {
                 artist.coverUri =
                     trackArtist.coverUri;
-
-                qDebug()
-                    << "Artist artwork restored from fallback:"
-                    << artist.name
-                    << "| cover:"
-                    << artist.coverUri;
 
                 return;
             }
@@ -575,13 +562,6 @@ void ArtistService::loadArtistAlbums(
         query.toString(
             QUrl::FullyEncoded);
 
-    qDebug()
-        << "ArtistService::loadArtistAlbums"
-        << "| artist:"
-        << artistId
-        << "| path:"
-        << path;
-
     QNetworkReply *reply =
         m_yandexClient->get(
             path);
@@ -670,13 +650,6 @@ void ArtistService::loadArtistAlbums(
                     album);
             }
 
-            qDebug()
-                << "ArtistService::artistAlbumsReceived"
-                << "| artist:"
-                << artistId
-                << "| albums:"
-                << albums.size();
-
             reply->deleteLater();
 
             emit artistAlbumsReceived(
@@ -747,22 +720,6 @@ void ArtistService::loadArtist(
 
                     restoreSimilarArtistArtwork(
                         *artistData);
-
-                    qDebug()
-                        << "Artist loaded:"
-                        << artistData->name
-                        << "| id:"
-                        << artistData->id
-                        << "| cover:"
-                        << artistData->coverUri
-                        << "| tracks:"
-                        << artistData->tracks.size()
-                        << "| albums:"
-                        << artistData->popularAlbums.size()
-                        << "| new release:"
-                        << artistData->newRelease.title
-                        << "| similar:"
-                        << artistData->similarArtists.size();
 
                     emit artistReceived(
                         *artistData);
@@ -1080,12 +1037,6 @@ void ArtistService::loadArtist(
                         }
                     }
 
-                    qDebug()
-                        << "Similar artists loaded:"
-                        << artistData
-                               ->similarArtists
-                               .size();
-
                     similarReply
                         ->deleteLater();
 
@@ -1388,16 +1339,6 @@ void ArtistService::loadArtist(
                         restoreArtistArtwork(
                             artist);
 
-                        qDebug()
-                            << "Artist tracks loaded:"
-                            << artist.name
-                            << "| id:"
-                            << artist.id
-                            << "| cover:"
-                            << artist.coverUri
-                            << "| tracks:"
-                            << artist.tracks.size();
-
                         tracksReply
                             ->deleteLater();
 
@@ -1413,16 +1354,6 @@ void ArtistService::loadArtist(
 
             restoreArtistArtwork(
                 artist);
-
-            qDebug()
-                << "Artist brief-info:"
-                << artist.name
-                << "| id:"
-                << artist.id
-                << "| cover:"
-                << artist.coverUri
-                << "| tracks:"
-                << artist.tracks.size();
 
             loadAdditionalData(
                 artist);

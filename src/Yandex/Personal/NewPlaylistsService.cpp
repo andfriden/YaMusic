@@ -4,13 +4,11 @@
 #include "../YandexClient.h"
 #include "PlaylistService.h"
 
-#include <QDebug>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkReply>
 #include <QPair>
-
 
 // =============================================================
 // Constructor
@@ -37,11 +35,6 @@ NewPlaylistsService::NewPlaylistsService(
             [this](
                 const QList<Playlist> &playlists)
             {
-                qDebug()
-                    << "NewPlaylistsService:"
-                    << "resolved playlists:"
-                    << playlists.size();
-
 
                 emit playlistsReceived(
                     playlists);
@@ -49,16 +42,12 @@ NewPlaylistsService::NewPlaylistsService(
     }
 }
 
-
 // =============================================================
 // Load
 // =============================================================
 
 void NewPlaylistsService::load()
 {
-    qDebug()
-        << "NewPlaylistsService::load()";
-
 
     if (
         m_auth == nullptr
@@ -70,7 +59,6 @@ void NewPlaylistsService::load()
         return;
     }
 
-
     if (
         !m_auth->isAuthenticated()
     )
@@ -80,7 +68,6 @@ void NewPlaylistsService::load()
 
         return;
     }
-
 
     if (
         m_playlistService == nullptr
@@ -92,27 +79,17 @@ void NewPlaylistsService::load()
         return;
     }
 
-
     m_yandexClient
         ->setToken(
             m_auth->token());
 
-
     const QString path =
         "/landing3/new-playlists";
-
-
-    qDebug()
-        << "NewPlaylistsService:"
-        << "request:"
-        << path;
-
 
     QNetworkReply *reply =
         m_yandexClient
             ->get(
                 path);
-
 
     if (
         reply == nullptr
@@ -124,7 +101,6 @@ void NewPlaylistsService::load()
         return;
     }
 
-
     connect(
         reply,
         &QNetworkReply::finished,
@@ -134,19 +110,11 @@ void NewPlaylistsService::load()
             const QByteArray data =
                 reply->readAll();
 
-
             const int statusCode =
                 reply
                     ->attribute(
                         QNetworkRequest::HttpStatusCodeAttribute)
                     .toInt();
-
-
-            qDebug()
-                << "NewPlaylistsService:"
-                << "HTTP:"
-                << statusCode;
-
 
             if (
                 reply->error() !=
@@ -161,15 +129,12 @@ void NewPlaylistsService::load()
                 return;
             }
 
-
             QJsonParseError parseError;
-
 
             const QJsonDocument document =
                 QJsonDocument::fromJson(
                     data,
                     &parseError);
-
 
             if (
                 parseError.error !=
@@ -185,16 +150,13 @@ void NewPlaylistsService::load()
                 return;
             }
 
-
             const QJsonObject root =
                 document.object();
-
 
             const QJsonObject result =
                 root
                     .value("result")
                     .toObject();
-
 
             if (
                 result.isEmpty()
@@ -208,20 +170,16 @@ void NewPlaylistsService::load()
                 return;
             }
 
-
             const QJsonArray newPlaylists =
                 result
                     .value("newPlaylists")
                     .toArray();
 
-
             QList<QPair<QString, int>>
                 references;
 
-
             references.reserve(
                 newPlaylists.size());
-
 
             for (
                 const QJsonValue &value :
@@ -235,22 +193,18 @@ void NewPlaylistsService::load()
                     continue;
                 }
 
-
                 const QJsonObject object =
                     value.toObject();
-
 
                 const qint64 uid =
                     object
                         .value("uid")
                         .toInteger();
 
-
                 const int kind =
                     object
                         .value("kind")
                         .toInt();
-
 
                 if (
                     uid <= 0 ||
@@ -260,7 +214,6 @@ void NewPlaylistsService::load()
                     continue;
                 }
 
-
                 references.append(
                     qMakePair(
                         QString::number(
@@ -268,15 +221,7 @@ void NewPlaylistsService::load()
                         kind));
             }
 
-
-            qDebug()
-                << "NewPlaylistsService:"
-                << "references:"
-                << references.size();
-
-
             reply->deleteLater();
-
 
             if (
                 references.isEmpty()
@@ -287,7 +232,6 @@ void NewPlaylistsService::load()
 
                 return;
             }
-
 
             m_playlistService
                 ->loadPlaylists(

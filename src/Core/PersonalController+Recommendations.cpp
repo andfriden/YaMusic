@@ -1,9 +1,7 @@
 #include "PersonalController.h"
 
-#include <QDebug>
 #include <QJsonArray>
 #include <QJsonObject>
-
 
 // =============================================================
 // Recommendations connections
@@ -18,7 +16,6 @@ void PersonalController::connectRecommendations()
         return;
     }
 
-
     connect(
         m_personalLanding,
         &PersonalLanding::loaded,
@@ -31,18 +28,14 @@ void PersonalController::connectRecommendations()
 
             emit loadingRecommendationsChanged();
 
-
             m_recommendationSections =
                 sections;
-
 
             QList<PersonalPlaylist>
                 playlists;
 
-
             QList<PersonalChartItem>
                 chartItems;
-
 
             // =====================================================
             // Sections
@@ -69,11 +62,9 @@ void PersonalController::connectRecommendations()
                         continue;
                     }
 
-
                     playlists.append(
                         playlist);
                 }
-
 
                 // -------------------------------------------------
                 // Chart
@@ -85,7 +76,6 @@ void PersonalController::connectRecommendations()
                 {
                     continue;
                 }
-
 
                 for (
                     const PersonalLandingItem &landingItem :
@@ -100,22 +90,18 @@ void PersonalController::connectRecommendations()
                         continue;
                     }
 
-
                     const QJsonObject data =
                         landingItem.data;
-
 
                     const QJsonObject chart =
                         data
                             .value("chart")
                             .toObject();
 
-
                     const QJsonObject track =
                         data
                             .value("track")
                             .toObject();
-
 
                     if (
                         track.isEmpty()
@@ -124,39 +110,32 @@ void PersonalController::connectRecommendations()
                         continue;
                     }
 
-
                     PersonalChartItem item;
-
 
                     item.position =
                         chart
                             .value("position")
                             .toInt();
 
-
                     item.listeners =
                         chart
                             .value("listeners")
                             .toInt();
-
 
                     item.progress =
                         chart
                             .value("progress")
                             .toString();
 
-
                     item.shift =
                         chart
                             .value("shift")
                             .toInt();
 
-
                     item.id =
                         track
                             .value("id")
                             .toString();
-
 
                     if (
                         item.id.isEmpty()
@@ -168,7 +147,6 @@ void PersonalController::connectRecommendations()
                                 .toString();
                     }
 
-
                     if (
                         item.id.isEmpty()
                     )
@@ -177,30 +155,25 @@ void PersonalController::connectRecommendations()
                             landingItem.id;
                     }
 
-
                     item.title =
                         track
                             .value("title")
                             .toString();
-
 
                     item.coverUri =
                         track
                             .value("coverUri")
                             .toString();
 
-
                     item.durationMs =
                         track
                             .value("durationMs")
                             .toInteger();
 
-
                     const QJsonArray artists =
                         track
                             .value("artists")
                             .toArray();
-
 
                     for (
                         const QJsonValue &artistValue :
@@ -214,13 +187,11 @@ void PersonalController::connectRecommendations()
                             continue;
                         }
 
-
                         const QString artistName =
                             artistValue
                                 .toObject()
                                 .value("name")
                                 .toString();
-
 
                         if (
                             !artistName.isEmpty()
@@ -231,7 +202,6 @@ void PersonalController::connectRecommendations()
                         }
                     }
 
-
                     if (
                         item.id.isEmpty() ||
                         item.title.isEmpty()
@@ -240,12 +210,10 @@ void PersonalController::connectRecommendations()
                         continue;
                     }
 
-
                     chartItems.append(
                         item);
                 }
             }
-
 
             // =====================================================
             // Store playlists
@@ -253,7 +221,6 @@ void PersonalController::connectRecommendations()
 
             m_recommendationPlaylists =
                 playlists;
-
 
             // =====================================================
             // Playlists model
@@ -268,7 +235,6 @@ void PersonalController::connectRecommendations()
                         sections);
             }
 
-
             // =====================================================
             // Chart model
             // =====================================================
@@ -282,9 +248,7 @@ void PersonalController::connectRecommendations()
                         chartItems);
             }
 
-
             emit recommendationsLoaded();
-
 
             emit statusChanged(
                 QString(
@@ -292,7 +256,6 @@ void PersonalController::connectRecommendations()
                 .arg(
                     sections.size()));
         });
-
 
     // =============================================================
     // Error
@@ -310,11 +273,9 @@ void PersonalController::connectRecommendations()
 
             emit loadingRecommendationsChanged();
 
-
             m_recommendationSections.clear();
 
             m_recommendationPlaylists.clear();
-
 
             if (
                 m_personalPlaylistsModel != nullptr
@@ -324,7 +285,6 @@ void PersonalController::connectRecommendations()
                     ->clear();
             }
 
-
             if (
                 m_chartModel != nullptr
             )
@@ -333,7 +293,6 @@ void PersonalController::connectRecommendations()
                     ->clear();
             }
 
-
             emit statusChanged(
                 QString(
                     "Ошибка загрузки рекомендаций: %1")
@@ -341,7 +300,6 @@ void PersonalController::connectRecommendations()
                     message));
         });
 }
-
 
 // =============================================================
 // Load recommendations
@@ -356,7 +314,6 @@ void PersonalController::loadRecommendations()
         return;
     }
 
-
     if (
         m_personalLanding == nullptr
     )
@@ -364,17 +321,14 @@ void PersonalController::loadRecommendations()
         return;
     }
 
-
     m_loadingRecommendations =
         true;
 
     emit loadingRecommendationsChanged();
 
-
     m_recommendationSections.clear();
 
     m_recommendationPlaylists.clear();
-
 
     if (
         m_personalPlaylistsModel != nullptr
@@ -384,7 +338,6 @@ void PersonalController::loadRecommendations()
             ->clear();
     }
 
-
     if (
         m_chartModel != nullptr
     )
@@ -393,14 +346,11 @@ void PersonalController::loadRecommendations()
             ->clear();
     }
 
-
     emit statusChanged(
         "Загрузка рекомендаций...");
 
-
     m_personalLanding
         ->load();
-
 
     // =============================================================
     // New playlists
@@ -410,16 +360,11 @@ void PersonalController::loadRecommendations()
         m_newPlaylistsService != nullptr
     )
     {
-        qDebug()
-            << "PersonalController:"
-            << "loading new playlists";
-
 
         m_newPlaylistsService
             ->load();
     }
 }
-
 
 // =============================================================
 // Select personal playlist
@@ -432,7 +377,6 @@ void PersonalController::selectPersonalPlaylist(
     const QString playlistUid =
         uid.trimmed();
 
-
     if (
         playlistUid.isEmpty() ||
         kind <= 0
@@ -444,9 +388,7 @@ void PersonalController::selectPersonalPlaylist(
         return;
     }
 
-
     PersonalPlaylist selectedPlaylist;
-
 
     for (
         const PersonalPlaylist &playlist :
@@ -464,7 +406,6 @@ void PersonalController::selectPersonalPlaylist(
             break;
         }
     }
-
 
     if (
         selectedPlaylist.uid.isEmpty()
@@ -492,7 +433,6 @@ void PersonalController::selectPersonalPlaylist(
                 }
             }
 
-
             if (
                 !selectedPlaylist.uid.isEmpty()
             )
@@ -501,7 +441,6 @@ void PersonalController::selectPersonalPlaylist(
             }
         }
     }
-
 
     if (
         selectedPlaylist.uid.isEmpty()
@@ -513,13 +452,11 @@ void PersonalController::selectPersonalPlaylist(
         return;
     }
 
-
     m_myWaveQueueActive =
         false;
 
     m_waitingForMoreMyWave =
         false;
-
 
     emit personalPlaylistSelected(
         selectedPlaylist);

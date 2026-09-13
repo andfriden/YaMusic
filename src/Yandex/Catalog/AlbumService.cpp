@@ -3,7 +3,6 @@
 #include "../Auth/YandexAuth.h"
 #include "../YandexClient.h"
 
-#include <QDebug>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -213,7 +212,6 @@ Track parseTrack(
 
 }
 
-
 AlbumService::AlbumService(
     YandexAuth *auth,
     QObject *parent)
@@ -223,7 +221,6 @@ AlbumService::AlbumService(
           new YandexClient(this))
 {
 }
-
 
 void AlbumService::loadAlbum(
     const QString &id)
@@ -613,14 +610,6 @@ void AlbumService::loadAlbum(
             /*
              * Debug
              */
-
-            qDebug()
-                << "Album loaded:"
-                << albumDetails.album.title
-                << "| id:"
-                << albumDetails.album.id
-                << "| tracks:"
-                << albumDetails.tracks.size();
 
             /*
              * Notify listeners

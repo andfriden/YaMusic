@@ -5,9 +5,6 @@
 #include "../Queue/QueueService.h"
 #include "../Yandex/Personal/YandexPersonal.h"
 
-#include <QDebug>
-
-
 void PersonalController::connectMyWave()
 {
     if (
@@ -57,10 +54,6 @@ void PersonalController::connectMyWave()
             m_waitingForMoreMyWave =
                 false;
 
-            qDebug()
-                << "My Wave error:"
-                << message;
-
             emit statusChanged(
                 message);
         });
@@ -72,9 +65,6 @@ void PersonalController::connectMyWave()
         [this](
             const QString &event)
         {
-            qDebug()
-                << "My Wave feedback sent:"
-                << event;
         });
 
     connect(
@@ -84,12 +74,8 @@ void PersonalController::connectMyWave()
         [this](
             const QString &message)
         {
-            qDebug()
-                << "My Wave feedback error:"
-                << message;
         });
 }
-
 
 // =============================================================
 // Load My Wave
@@ -145,16 +131,12 @@ void PersonalController::loadMyWave()
         queue->clearSource();
     }
 
-    qDebug()
-        << "My Wave: loading first batch";
-
     emit statusChanged(
         "Загрузка моей волны...");
 
     m_yandexPersonal
         ->loadMyWave();
 }
-
 
 // =============================================================
 // Load more
@@ -196,10 +178,6 @@ void PersonalController::loadMoreMyWave()
     m_waitingForMoreMyWave =
         true;
 
-    qDebug()
-        << "My Wave: loading more from"
-        << lastTrack.id;
-
     emit statusChanged(
         "Загрузка следующей части моей волны...");
 
@@ -207,7 +185,6 @@ void PersonalController::loadMoreMyWave()
         ->loadMoreMyWave(
             lastTrack.id);
 }
-
 
 // =============================================================
 // Received
@@ -239,13 +216,6 @@ void PersonalController::handleMyWaveReceived(
         emit loadingMyWaveChanged();
         emit loadingMoreMyWaveChanged();
 
-        qDebug()
-            << "My Wave:"
-            << (
-                wasLoadingMore
-                    ? "empty next batch"
-                    : "empty first batch");
-
         emit statusChanged(
             wasLoadingMore
                 ? "Моя волна вернула пустую следующую партию"
@@ -253,7 +223,6 @@ void PersonalController::handleMyWaveReceived(
 
         return;
     }
-
 
     // ---------------------------------------------------------
     // Batch mapping
@@ -280,7 +249,6 @@ void PersonalController::handleMyWaveReceived(
         }
     }
 
-
     const bool isMoreBatch =
         m_loadingMoreMyWave;
 
@@ -292,7 +260,6 @@ void PersonalController::handleMyWaveReceived(
 
     emit loadingMyWaveChanged();
     emit loadingMoreMyWaveChanged();
-
 
     // =========================================================
     // First batch
@@ -332,13 +299,6 @@ void PersonalController::handleMyWaveReceived(
         m_waitingForMoreMyWave =
             false;
 
-        qDebug()
-            << "My Wave first batch:"
-            << tracks.size()
-            << "tracks"
-            << "| batch:"
-            << trimmedBatchId;
-
         emit statusChanged(
             QString(
                 "Моя волна: %1 треков")
@@ -348,7 +308,6 @@ void PersonalController::handleMyWaveReceived(
 
         return;
     }
-
 
     // =========================================================
     // Next batch
@@ -370,23 +329,12 @@ void PersonalController::handleMyWaveReceived(
             ->count() -
         oldCount;
 
-    qDebug()
-        << "My Wave next batch:"
-        << tracks.size()
-        << "received"
-        << "|"
-        << appended
-        << "appended"
-        << "| batch:"
-        << trimmedBatchId;
-
     emit statusChanged(
         QString(
             "Моя волна: %1 треков")
             .arg(
                 m_myWaveModel
                     ->count()));
-
 
     if (
         !m_waitingForMoreMyWave
@@ -413,21 +361,14 @@ void PersonalController::handleMyWaveReceived(
         return;
     }
 
-
     // Source remains My Wave
     queue->setSource(
         "Моя волна",
         "myWave");
 
-
     if (
         !queue->hasNext()
     ) {
-
-        qDebug()
-            << "My Wave:"
-               "new batch arrived,"
-               "but queue has no next track";
 
         return;
     }
@@ -450,15 +391,10 @@ void PersonalController::handleMyWaveReceived(
     m_myWaveTrackStarted =
         false;
 
-    qDebug()
-        << "My Wave continued:"
-        << nextTrack.title;
-
     m_playbackController
         ->playTrack(
             nextTrack);
 }
-
 
 // =============================================================
 // Select track
@@ -519,7 +455,6 @@ void PersonalController::selectMyWaveTrack(
         ->playTrack(
             track);
 }
-
 
 // =============================================================
 // Start queue
@@ -603,13 +538,7 @@ void PersonalController::startMyWaveQueue(
     m_myWaveTrackStarted =
         false;
 
-    qDebug()
-        << "My Wave queue:"
-        << queue->count()
-        << "| current:"
-        << queue->currentIndex();
 }
-
 
 // =============================================================
 // Append tracks
@@ -683,7 +612,6 @@ void PersonalController::appendMyWaveTracksToQueue(
         "myWave");
 }
 
-
 // =============================================================
 // Playback finished
 // =============================================================
@@ -734,17 +662,12 @@ void PersonalController::handleMyWavePlaybackFinished()
         m_myWaveTrackStarted =
             false;
 
-        qDebug()
-            << "My Wave next:"
-            << nextTrack.title;
-
         m_playbackController
             ->playTrack(
                 nextTrack);
 
         return;
     }
-
 
     if (
         m_loadingMoreMyWave
@@ -760,10 +683,6 @@ void PersonalController::handleMyWavePlaybackFinished()
         lastTrack.id.isEmpty()
     ) {
 
-        qDebug()
-            << "My Wave finished:"
-               "no last track";
-
         m_myWaveQueueActive =
             false;
 
@@ -773,14 +692,8 @@ void PersonalController::handleMyWavePlaybackFinished()
     m_waitingForMoreMyWave =
         true;
 
-    qDebug()
-        << "My Wave batch finished."
-        << "Loading more from:"
-        << lastTrack.id;
-
     loadMoreMyWave();
 }
-
 
 // =============================================================
 // Batch
@@ -793,7 +706,6 @@ QString PersonalController::batchIdForTrack(
         .value(
             trackId);
 }
-
 
 // =============================================================
 // Stop
@@ -838,7 +750,6 @@ void PersonalController::stopCurrentMyWaveTrack(
         false;
 }
 
-
 // =============================================================
 // Feedback
 // =============================================================
@@ -861,10 +772,6 @@ void PersonalController::sendMyWaveFeedback(
     if (
         batchId.isEmpty()
     ) {
-
-        qDebug()
-            << "No batch ID for Wave track:"
-            << trackId;
 
         return;
     }

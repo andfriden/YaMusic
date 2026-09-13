@@ -1,6 +1,5 @@
 #include "RecentListeningModel.h"
 
-#include <QDebug>
 #include <QRandomGenerator>
 #include <QStringList>
 
@@ -8,8 +7,6 @@ RecentListeningModel::RecentListeningModel(
     QObject *parent)
     : QAbstractListModel(parent)
 {
-    qDebug()
-        << "RecentListeningModel CREATED";
 }
 
 int RecentListeningModel::rowCount(
@@ -157,15 +154,6 @@ RecentListeningModel::roleNames() const
 void RecentListeningModel::setTracks(
     const QList<Track> &tracks)
 {
-    qDebug()
-        << "========================================";
-
-    qDebug()
-        << "RecentListeningModel::setTracks";
-
-    qDebug()
-        << "incoming count:"
-        << tracks.size();
 
     for (
         int i = 0;
@@ -175,19 +163,6 @@ void RecentListeningModel::setTracks(
         const Track &track =
             tracks.at(i);
 
-        qDebug()
-            << "track"
-            << i
-            << "| id:"
-            << track.id
-            << "| title:"
-            << track.title
-            << "| artist count:"
-            << track.artists.size()
-            << "| album count:"
-            << track.albums.size()
-            << "| cover:"
-            << track.coverUri;
     }
 
     beginResetModel();
@@ -197,20 +172,10 @@ void RecentListeningModel::setTracks(
 
     endResetModel();
 
-    qDebug()
-        << "stored count:"
-        << m_tracks.size();
-
-    qDebug()
-        << "========================================";
 }
 
 void RecentListeningModel::clear()
 {
-    qDebug()
-        << "RecentListeningModel::clear"
-        << "| previous count:"
-        << m_tracks.size();
 
     beginResetModel();
 
@@ -218,10 +183,6 @@ void RecentListeningModel::clear()
 
     endResetModel();
 
-    qDebug()
-        << "RecentListeningModel::clear"
-        << "| new count:"
-        << m_tracks.size();
 }
 
 Track RecentListeningModel::trackAt(
@@ -241,12 +202,6 @@ Track RecentListeningModel::trackAt(
 QVariantMap RecentListeningModel::trackDataAt(
     int index) const
 {
-    qDebug()
-        << "RecentListeningModel::trackDataAt"
-        << "| index:"
-        << index
-        << "| count:"
-        << m_tracks.size();
 
     QVariantMap result;
 
@@ -254,8 +209,6 @@ QVariantMap RecentListeningModel::trackDataAt(
         index < 0 ||
         index >= m_tracks.size()
     ) {
-        qDebug()
-            << "trackDataAt: invalid index";
 
         return result;
     }
@@ -334,10 +287,6 @@ QVariantMap RecentListeningModel::trackDataAt(
         "durationMs",
         track.durationMs);
 
-    qDebug()
-        << "trackDataAt result:"
-        << result;
-
     return result;
 }
 
@@ -345,30 +294,12 @@ QVariantList
 RecentListeningModel::randomTrackData(
     int limit) const
 {
-    qDebug()
-        << "========================================";
-
-    qDebug()
-        << "RecentListeningModel::randomTrackData";
-
-    qDebug()
-        << "stored count:"
-        << m_tracks.size();
-
-    qDebug()
-        << "requested limit:"
-        << limit;
 
     QVariantList result;
 
     if (
         m_tracks.isEmpty()
     ) {
-        qDebug()
-            << "randomTrackData: model is EMPTY";
-
-        qDebug()
-            << "========================================";
 
         return result;
     }
@@ -376,11 +307,6 @@ RecentListeningModel::randomTrackData(
     if (
         limit <= 0
     ) {
-        qDebug()
-            << "randomTrackData: invalid limit";
-
-        qDebug()
-            << "========================================";
 
         return result;
     }
@@ -397,10 +323,6 @@ RecentListeningModel::randomTrackData(
     ) {
         indexes.append(i);
     }
-
-    qDebug()
-        << "indexes created:"
-        << indexes.size();
 
     /*
      * Fisher-Yates shuffle.
@@ -424,10 +346,6 @@ RecentListeningModel::randomTrackData(
         qMin(
             limit,
             indexes.size());
-
-    qDebug()
-        << "resultCount:"
-        << resultCount;
 
     for (
         int i = 0;
@@ -513,32 +431,9 @@ RecentListeningModel::randomTrackData(
             "durationMs",
             track.durationMs);
 
-        qDebug()
-            << "random item:"
-            << i
-            << "| sourceIndex:"
-            << sourceIndex
-            << "| id:"
-            << track.id
-            << "| title:"
-            << track.title
-            << "| artist:"
-            << artistName
-            << "| album:"
-            << albumTitle
-            << "| cover:"
-            << track.coverUri;
-
         result.append(
             item);
     }
-
-    qDebug()
-        << "randomTrackData result size:"
-        << result.size();
-
-    qDebug()
-        << "========================================";
 
     return result;
 }

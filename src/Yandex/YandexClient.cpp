@@ -3,7 +3,6 @@
 #include "AccountParser.h"
 #include "Catalog/SearchParser.h"
 
-#include <QDebug>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -16,13 +15,11 @@ constexpr auto YandexApiBaseUrl =
     "https://api.music.yandex.net";
 }
 
-
 YandexClient::YandexClient(
     QObject *parent)
     : QObject(parent)
 {
 }
-
 
 void YandexClient::setToken(
     const QString &token)
@@ -31,12 +28,10 @@ void YandexClient::setToken(
         token.trimmed();
 }
 
-
 bool YandexClient::hasToken() const
 {
     return !m_token.isEmpty();
 }
-
 
 QNetworkRequest
 YandexClient::createRequest(
@@ -81,7 +76,6 @@ YandexClient::createRequest(
     return request;
 }
 
-
 QNetworkReply *
 YandexClient::get(
     const QString &path)
@@ -89,7 +83,6 @@ YandexClient::get(
     return m_networkManager.get(
         createRequest(path));
 }
-
 
 QNetworkReply *
 YandexClient::post(
@@ -104,7 +97,6 @@ YandexClient::post(
         document.toJson(
             QJsonDocument::Compact));
 }
-
 
 QNetworkReply *
 YandexClient::postForm(
@@ -124,7 +116,6 @@ YandexClient::postForm(
             QUrl::FullyEncoded)
             .toUtf8());
 }
-
 
 void YandexClient::getAccountStatus()
 {
@@ -185,7 +176,6 @@ void YandexClient::getAccountStatus()
             reply->deleteLater();
         });
 }
-
 
 void YandexClient::search(
     const QString &query)
@@ -290,7 +280,6 @@ void YandexClient::search(
             reply->deleteLater();
         });
 }
-
 
 void YandexClient::getTracks(
     const QStringList &trackIds)
@@ -439,19 +428,12 @@ void YandexClient::getTracks(
                 parseTracks(
                     document.object());
 
-            qDebug()
-                << "Tracks loaded:"
-                << tracks.size()
-                << "/ requested:"
-                << normalizedIds.size();
-
             emit tracksReceived(
                 tracks);
 
             reply->deleteLater();
         });
 }
-
 
 QList<Track>
 YandexClient::parseTracks(
@@ -489,7 +471,6 @@ YandexClient::parseTracks(
 
     return tracks;
 }
-
 
 Track YandexClient::parseTrack(
     const QJsonObject &trackObject) const

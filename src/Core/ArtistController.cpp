@@ -4,8 +4,6 @@
 #include "../Queue/QueueService.h"
 #include "../Yandex/Catalog/ArtistService.h"
 
-#include <QDebug>
-
 ArtistController::ArtistController(
     ArtistService *artistService,
     PlaybackController *playbackController,
@@ -25,9 +23,6 @@ ArtistController::ArtistController(
     if (
         m_artistService == nullptr
     ) {
-        qDebug()
-            << "ArtistController:"
-            << "ArtistService is null";
 
         return;
     }
@@ -118,28 +113,9 @@ ArtistController::ArtistController(
                 ->setArtists(
                     artist.similarArtists);
 
-            qDebug()
-                << "ArtistController loaded:"
-                << artist.name
-                << "| id:"
-                << artist.id
-                << "| cover:"
-                << m_artistCoverUri
-                << "| tracks:"
-                << artist.tracks.size()
-                << "| albums:"
-                << artist.popularAlbums.size()
-                << "| similar:"
-                << artist.similarArtists.size();
-
             if (
                 m_artistCoverUri.isEmpty()
             ) {
-                qDebug()
-                    << "ArtistController:"
-                    << "artist artwork is still empty"
-                    << "| artist:"
-                    << artist.name;
             }
 
             emit loadingChanged();
@@ -163,10 +139,6 @@ ArtistController::ArtistController(
             m_loading = false;
 
             emit loadingChanged();
-
-            qDebug()
-                << "ArtistController error:"
-                << message;
 
             emit statusChanged(
                 QString(
@@ -228,10 +200,6 @@ void ArtistController::loadArtist(
         ->clear();
 
     emit artistChanged();
-
-    qDebug()
-        << "ArtistController loading:"
-        << artistId;
 
     emit statusChanged(
         QString(
@@ -301,12 +269,6 @@ void ArtistController::selectTrack(
     queue->setCurrentIndex(
         index);
 
-    qDebug()
-        << "Artist track selected:"
-        << track.title
-        << "| index:"
-        << index;
-
     emit trackSelected(
         track);
 
@@ -337,12 +299,6 @@ void ArtistController::selectSimilarArtist(
 
         return;
     }
-
-    qDebug()
-        << "Similar artist selected:"
-        << artist.name
-        << "| id:"
-        << artist.id;
 
     emit similarArtistSelected(
         artist.id);
@@ -404,12 +360,6 @@ void ArtistController::playArtist()
 
     const Track &track =
         tracks.first();
-
-    qDebug()
-        << "Artist playback started:"
-        << m_artistName
-        << "| tracks:"
-        << tracks.size();
 
     emit trackSelected(
         track);

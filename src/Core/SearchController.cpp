@@ -4,9 +4,6 @@
 #include "../Queue/QueueService.h"
 #include "../Yandex/Catalog/SearchService.h"
 
-#include <QDebug>
-
-
 SearchController::SearchController(
     SearchService *searchService,
     PlaybackController *playbackController,
@@ -25,7 +22,6 @@ SearchController::SearchController(
         return;
     }
 
-
     connect(
         m_searchService,
         &SearchService::searchStarted,
@@ -38,17 +34,14 @@ SearchController::SearchController(
                 return;
             }
 
-
             m_searching =
                 true;
 
             emit searchingChanged();
 
-
             emit statusChanged(
                 "Поиск...");
         });
-
 
     connect(
         m_searchService,
@@ -62,18 +55,9 @@ SearchController::SearchController(
 
             emit searchingChanged();
 
-
             m_model
                 ->setResults(
                     results);
-
-
-            qDebug()
-                << "Search results:"
-                << results.tracks.size()
-                << "/"
-                << results.total;
-
 
             emit statusChanged(
                 QString(
@@ -81,7 +65,6 @@ SearchController::SearchController(
                     .arg(
                         results.total));
         });
-
 
     connect(
         m_searchService,
@@ -95,21 +78,13 @@ SearchController::SearchController(
 
             emit searchingChanged();
 
-
             m_model
                 ->clear();
-
-
-            qDebug()
-                << "Search service error:"
-                << message;
-
 
             emit statusChanged(
                 message);
         });
 }
-
 
 void SearchController::search(
     const QString &query)
@@ -117,13 +92,11 @@ void SearchController::search(
     const QString trimmedQuery =
         query.trimmed();
 
-
     if (
         trimmedQuery.isEmpty()
     ) {
         m_model
             ->clear();
-
 
         if (
             m_searching
@@ -134,14 +107,11 @@ void SearchController::search(
             emit searchingChanged();
         }
 
-
         emit statusChanged(
             "Введите запрос");
 
-
         return;
     }
-
 
     if (
         m_searchService == nullptr
@@ -152,12 +122,10 @@ void SearchController::search(
         return;
     }
 
-
     m_searchService
         ->search(
             trimmedQuery);
 }
-
 
 void SearchController::selectResult(
     int index)
@@ -171,7 +139,6 @@ void SearchController::selectResult(
         return;
     }
 
-
     if (
         m_playbackController == nullptr
     ) {
@@ -181,12 +148,10 @@ void SearchController::selectResult(
         return;
     }
 
-
     const Track track =
         m_model
             ->trackAt(
                 index);
-
 
     if (
         track.id.isEmpty()
@@ -197,11 +162,9 @@ void SearchController::selectResult(
         return;
     }
 
-
     QueueService *queue =
         m_playbackController
             ->queueService();
-
 
     if (
         queue == nullptr
@@ -212,9 +175,7 @@ void SearchController::selectResult(
         return;
     }
 
-
     QList<Track> tracks;
-
 
     /*
      * SearchModel является QAbstractItemModel.
@@ -228,7 +189,6 @@ void SearchController::selectResult(
         m_model
             ->rowCount();
 
-
     for (
         int i = 0;
         i < count;
@@ -240,18 +200,15 @@ void SearchController::selectResult(
                 ->trackAt(
                     i);
 
-
         if (
             searchTrack.id.isEmpty()
         ) {
             continue;
         }
 
-
         tracks.append(
             searchTrack);
     }
-
 
     if (
         tracks.isEmpty()
@@ -261,7 +218,6 @@ void SearchController::selectResult(
 
         return;
     }
-
 
     queue->clear();
 
@@ -275,28 +231,16 @@ void SearchController::selectResult(
         "Поиск",
         "search");
 
-
-    qDebug()
-        << "Search track selected:"
-        << track.title
-        << "| index:"
-        << index
-        << "| queue tracks:"
-        << tracks.size();
-
-
     m_playbackController
         ->playTrack(
             track);
 }
-
 
 SearchModel *
 SearchController::model() const
 {
     return m_model;
 }
-
 
 bool
 SearchController::isSearching() const

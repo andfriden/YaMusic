@@ -3,8 +3,6 @@
 #include "../Auth/YandexAuth.h"
 #include "../YandexClient.h"
 
-#include <QDebug>
-
 SearchService::SearchService(
     YandexAuth *auth,
     QObject *parent)
@@ -28,9 +26,6 @@ SearchService::SearchService(
         this,
         [this](const QString &message)
         {
-            qDebug()
-                << "SearchService error:"
-                << message;
 
             emit errorOccurred(
                 message);

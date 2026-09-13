@@ -4,9 +4,6 @@
 
 #include "../Yandex/Personal/LikesService.h"
 
-#include <QDebug>
-
-
 // =============================================================
 // Constructor
 // =============================================================
@@ -63,10 +60,8 @@ LibraryController::LibraryController(
 
                 emit loadingPlaylistChanged();
 
-
                 Playlist playlistWithLikes =
                     playlist;
-
 
                 if (
                     m_likesService != nullptr
@@ -83,35 +78,22 @@ LibraryController::LibraryController(
                     }
                 }
 
-
                 m_playlistModel
                     ->setPlaylist(
                         playlistWithLikes);
 
-
                 m_currentPlaylistTitle =
                     playlistWithLikes.title;
-
 
                 m_currentPlaylistCoverUri =
                     playlistWithLikes.coverUri;
 
-
                 m_currentPlaylistTrackCount =
                     playlistWithLikes.trackCount;
 
-
                 emit currentPlaylistChanged();
 
-
-                qDebug()
-                    << "Плейлист загружен:"
-                    << playlistWithLikes.title
-                    << "| треков:"
-                    << playlistWithLikes.trackCount;
-
             });
-
 
         connect(
             m_playlistService,
@@ -157,13 +139,11 @@ LibraryController::LibraryController(
                         item);
                 }
 
-
                 m_similarPlaylists =
                     result;
 
                 emit similarPlaylistsChanged();
             });
-
 
         connect(
             m_playlistService,
@@ -177,17 +157,11 @@ LibraryController::LibraryController(
 
                 emit loadingLibraryPlaylistsChanged();
 
-
                 m_libraryPlaylistsModel
                     ->setPlaylists(
                         playlists);
 
-
-                qDebug()
-                    << "Плейлистов в медиатеке:"
-                    << playlists.size();
             });
-
 
         connect(
             m_playlistService,
@@ -206,7 +180,6 @@ LibraryController::LibraryController(
                     emit loadingPlaylistChanged();
                 }
 
-
                 if (
                     m_loadingLibraryPlaylists
                 )
@@ -217,12 +190,6 @@ LibraryController::LibraryController(
                     emit loadingLibraryPlaylistsChanged();
                 }
 
-
-                qDebug()
-                    << "Playlist error:"
-                    << message;
-
-
                 emit statusChanged(
                     QString(
                         "Ошибка плейлистов: %1")
@@ -230,7 +197,6 @@ LibraryController::LibraryController(
                             message));
             });
     }
-
 
     // =============================================================
     // Likes service
@@ -252,17 +218,11 @@ LibraryController::LibraryController(
 
                 emit loadingLikedTracksChanged();
 
-
                 m_likedTracksModel
                     ->setTracks(
                         tracks);
 
-
-                qDebug()
-                    << "Лайкнутых треков:"
-                    << tracks.size();
             });
-
 
         connect(
             m_likesService,
@@ -277,7 +237,6 @@ LibraryController::LibraryController(
                 emit loadingLikedTracksChanged();
             });
 
-
         connect(
             m_likesService,
             &LikesService::errorOccurred,
@@ -290,19 +249,12 @@ LibraryController::LibraryController(
 
                 emit loadingLikedTracksChanged();
 
-
-                qDebug()
-                    << "Likes error:"
-                    << message;
-
-
                 emit statusChanged(
                     QString(
                         "Ошибка лайков: %1")
                         .arg(
                             message));
             });
-
 
         connect(
             m_likesService,
@@ -317,7 +269,6 @@ LibraryController::LibraryController(
                     liked);
             });
     }
-
 
     // =============================================================
     // Artist service
@@ -339,41 +290,26 @@ LibraryController::LibraryController(
 
                 emit loadingArtistChanged();
 
-
                 m_artistModel
                     ->setArtist(
                         artist);
 
-
                 m_currentArtistName =
                     artist.name;
 
-
                 m_currentArtistCoverUri =
                     artist.coverUri;
-
 
                 m_currentArtistGenres =
                     artist.genres.join(
                         ", ");
 
-
                 m_currentArtistTrackCount =
                     artist.tracks.size();
 
-
                 emit currentArtistChanged();
 
-
-                qDebug()
-                    << "Исполнитель загружен:"
-                    << artist.name
-                    << "| id:"
-                    << artist.id
-                    << "| треков:"
-                    << artist.tracks.size();
             });
-
 
         connect(
             m_artistService,
@@ -387,12 +323,6 @@ LibraryController::LibraryController(
 
                 emit loadingArtistChanged();
 
-
-                qDebug()
-                    << "Artist error:"
-                    << message;
-
-
                 emit statusChanged(
                     QString(
                         "Ошибка загрузки исполнителя: %1")
@@ -401,7 +331,6 @@ LibraryController::LibraryController(
             });
     }
 }
-
 
 // =============================================================
 // Library playlists
@@ -413,7 +342,6 @@ void LibraryController::loadUserPlaylists(
     const QString userUid =
         uid.trimmed();
 
-
     if (
         userUid.isEmpty()
     )
@@ -423,7 +351,6 @@ void LibraryController::loadUserPlaylists(
 
         return;
     }
-
 
     if (
         m_playlistService == nullptr
@@ -435,22 +362,18 @@ void LibraryController::loadUserPlaylists(
         return;
     }
 
-
     m_loadingLibraryPlaylists =
         true;
 
     emit loadingLibraryPlaylistsChanged();
 
-
     m_libraryPlaylistsModel
         ->clear();
-
 
     m_playlistService
         ->loadUserPlaylists(
             userUid);
 }
-
 
 void LibraryController::selectLibraryPlaylist(
     int index)
@@ -465,12 +388,10 @@ void LibraryController::selectLibraryPlaylist(
         return;
     }
 
-
     const PersonalPlaylist playlist =
         m_libraryPlaylistsModel
             ->playlistAt(
                 index);
-
 
     if (
         playlist.uid.isEmpty() ||
@@ -483,12 +404,10 @@ void LibraryController::selectLibraryPlaylist(
         return;
     }
 
-
     loadPlaylist(
         playlist.uid,
         playlist.kind);
 }
-
 
 LibraryPlaylistsModel *
 LibraryController::libraryPlaylistsModel() const
@@ -496,13 +415,11 @@ LibraryController::libraryPlaylistsModel() const
     return m_libraryPlaylistsModel;
 }
 
-
 bool
 LibraryController::isLoadingLibraryPlaylists() const
 {
     return m_loadingLibraryPlaylists;
 }
-
 
 // =============================================================
 // Liked tracks
@@ -514,7 +431,6 @@ void LibraryController::loadLikedTracks(
     const QString userUid =
         uid.trimmed();
 
-
     if (
         userUid.isEmpty()
     )
@@ -524,7 +440,6 @@ void LibraryController::loadLikedTracks(
 
         return;
     }
-
 
     if (
         m_likesService == nullptr
@@ -536,22 +451,18 @@ void LibraryController::loadLikedTracks(
         return;
     }
 
-
     m_loadingLikedTracks =
         true;
 
     emit loadingLikedTracksChanged();
 
-
     m_likedTracksModel
         ->clear();
-
 
     m_likesService
         ->loadLikedTracks(
             userUid);
 }
-
 
 void LibraryController::selectLikedTrack(
     int index)
@@ -566,7 +477,6 @@ void LibraryController::selectLikedTrack(
         return;
     }
 
-
     if (
         m_likedTracksModel == nullptr
     )
@@ -577,12 +487,10 @@ void LibraryController::selectLikedTrack(
         return;
     }
 
-
     const Track track =
         m_likedTracksModel
             ->trackAt(
                 index);
-
 
     if (
         track.id.isEmpty()
@@ -594,16 +502,13 @@ void LibraryController::selectLikedTrack(
         return;
     }
 
-
     const QList<Track> tracks =
         m_likedTracksModel
             ->tracks();
 
-
     QueueService *queue =
         m_playbackController
             ->queueService();
-
 
     if (
         queue == nullptr
@@ -614,7 +519,6 @@ void LibraryController::selectLikedTrack(
 
         return;
     }
-
 
     queue->clear();
 
@@ -628,12 +532,10 @@ void LibraryController::selectLikedTrack(
         "Понравившиеся треки",
         "likes");
 
-
     m_playbackController
         ->playTrack(
             track);
 }
-
 
 LikedTracksModel *
 LibraryController::likedTracksModel() const
@@ -641,13 +543,11 @@ LibraryController::likedTracksModel() const
     return m_likedTracksModel;
 }
 
-
 bool
 LibraryController::isLoadingLikedTracks() const
 {
     return m_loadingLikedTracks;
 }
-
 
 // =============================================================
 // Playlist
@@ -660,7 +560,6 @@ void LibraryController::loadPlaylist(
     const QString playlistUid =
         uid.trimmed();
 
-
     if (
         playlistUid.isEmpty() ||
         kind <= 0
@@ -672,7 +571,6 @@ void LibraryController::loadPlaylist(
         return;
     }
 
-
     if (
         m_playlistService == nullptr
     )
@@ -683,21 +581,17 @@ void LibraryController::loadPlaylist(
         return;
     }
 
-
     m_loadingPlaylist =
         true;
 
     emit loadingPlaylistChanged();
 
-
     m_playlistModel
         ->clear();
-
 
     m_similarPlaylists.clear();
 
     emit similarPlaylistsChanged();
-
 
     m_currentPlaylistTitle.clear();
 
@@ -706,16 +600,13 @@ void LibraryController::loadPlaylist(
     m_currentPlaylistTrackCount =
         0;
 
-
     emit currentPlaylistChanged();
-
 
     m_playlistService
         ->loadPlaylist(
             playlistUid,
             kind);
 }
-
 
 void LibraryController::selectPlaylistTrack(
     int index)
@@ -730,11 +621,9 @@ void LibraryController::selectPlaylistTrack(
         return;
     }
 
-
     const QList<Track> tracks =
         m_playlistModel
             ->tracks();
-
 
     if (
         index < 0 ||
@@ -747,11 +636,9 @@ void LibraryController::selectPlaylistTrack(
         return;
     }
 
-
     const Track track =
         tracks.at(
             index);
-
 
     if (
         track.id.isEmpty()
@@ -763,11 +650,9 @@ void LibraryController::selectPlaylistTrack(
         return;
     }
 
-
     QueueService *queue =
         m_playbackController
             ->queueService();
-
 
     if (
         queue == nullptr
@@ -778,7 +663,6 @@ void LibraryController::selectPlaylistTrack(
 
         return;
     }
-
 
     queue->clear();
 
@@ -792,12 +676,10 @@ void LibraryController::selectPlaylistTrack(
         m_currentPlaylistTitle,
         "playlist");
 
-
     m_playbackController
         ->playTrack(
             track);
 }
-
 
 PlaylistModel *
 LibraryController::playlistModel() const
@@ -805,13 +687,11 @@ LibraryController::playlistModel() const
     return m_playlistModel;
 }
 
-
 bool
 LibraryController::isLoadingPlaylist() const
 {
     return m_loadingPlaylist;
 }
-
 
 QString
 LibraryController::currentPlaylistTitle() const
@@ -819,13 +699,11 @@ LibraryController::currentPlaylistTitle() const
     return m_currentPlaylistTitle;
 }
 
-
 QString
 LibraryController::currentPlaylistCoverUri() const
 {
     return m_currentPlaylistCoverUri;
 }
-
 
 int
 LibraryController::currentPlaylistTrackCount() const
@@ -833,13 +711,11 @@ LibraryController::currentPlaylistTrackCount() const
     return m_currentPlaylistTrackCount;
 }
 
-
 QVariantList
 LibraryController::similarPlaylists() const
 {
     return m_similarPlaylists;
 }
-
 
 // =============================================================
 // Artist
@@ -851,7 +727,6 @@ void LibraryController::loadArtist(
     const QString artistId =
         id.trimmed();
 
-
     if (
         artistId.isEmpty()
     )
@@ -861,7 +736,6 @@ void LibraryController::loadArtist(
 
         return;
     }
-
 
     if (
         m_artistService == nullptr
@@ -873,16 +747,13 @@ void LibraryController::loadArtist(
         return;
     }
 
-
     m_loadingArtist =
         true;
 
     emit loadingArtistChanged();
 
-
     m_artistModel
         ->clear();
-
 
     m_currentArtistName.clear();
 
@@ -893,15 +764,12 @@ void LibraryController::loadArtist(
     m_currentArtistTrackCount =
         0;
 
-
     emit currentArtistChanged();
-
 
     m_artistService
         ->loadArtist(
             artistId);
 }
-
 
 void LibraryController::selectArtistTrack(
     int index)
@@ -916,11 +784,9 @@ void LibraryController::selectArtistTrack(
         return;
     }
 
-
     const QList<Track> tracks =
         m_artistModel
             ->tracks();
-
 
     if (
         index < 0 ||
@@ -933,11 +799,9 @@ void LibraryController::selectArtistTrack(
         return;
     }
 
-
     const Track track =
         tracks.at(
             index);
-
 
     if (
         track.id.isEmpty()
@@ -949,11 +813,9 @@ void LibraryController::selectArtistTrack(
         return;
     }
 
-
     QueueService *queue =
         m_playbackController
             ->queueService();
-
 
     if (
         queue == nullptr
@@ -964,7 +826,6 @@ void LibraryController::selectArtistTrack(
 
         return;
     }
-
 
     queue->clear();
 
@@ -978,12 +839,10 @@ void LibraryController::selectArtistTrack(
         m_currentArtistName,
         "artist");
 
-
     m_playbackController
         ->playTrack(
             track);
 }
-
 
 ArtistModel *
 LibraryController::artistModel() const
@@ -991,13 +850,11 @@ LibraryController::artistModel() const
     return m_artistModel;
 }
 
-
 bool
 LibraryController::isLoadingArtist() const
 {
     return m_loadingArtist;
 }
-
 
 QString
 LibraryController::currentArtistName() const
@@ -1005,13 +862,11 @@ LibraryController::currentArtistName() const
     return m_currentArtistName;
 }
 
-
 QString
 LibraryController::currentArtistCoverUri() const
 {
     return m_currentArtistCoverUri;
 }
-
 
 QString
 LibraryController::currentArtistGenres() const
@@ -1019,13 +874,11 @@ LibraryController::currentArtistGenres() const
     return m_currentArtistGenres;
 }
 
-
 int
 LibraryController::currentArtistTrackCount() const
 {
     return m_currentArtistTrackCount;
 }
-
 
 // =============================================================
 // Likes
@@ -1038,14 +891,12 @@ void LibraryController::setTrackLiked(
     const QString id =
         trackId.trimmed();
 
-
     if (
         id.isEmpty()
     )
     {
         return;
     }
-
 
     if (
         m_playlistModel != nullptr
@@ -1057,14 +908,12 @@ void LibraryController::setTrackLiked(
                 liked);
     }
 
-
     if (
         m_likedTracksModel == nullptr
     )
     {
         return;
     }
-
 
     if (liked)
     {

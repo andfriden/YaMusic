@@ -3,8 +3,6 @@
 #include "../../Yandex/Auth/YandexAuth.h"
 #include "../../Yandex/YandexClient.h"
 
-#include <QDebug>
-
 // Creates the account service and initializes its Yandex API client.
 AccountService::AccountService(
     YandexAuth *auth,
@@ -26,9 +24,6 @@ AccountService::AccountService(
         &YandexClient::requestError,
         this,
         [this](const QString &message) {
-            qDebug()
-                << "AccountService error:"
-                << message;
 
             emit errorOccurred(message);
         });
