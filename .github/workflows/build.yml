@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "v*"
 
   pull_request:
     branches:
@@ -196,3 +198,57 @@ jobs:
         with:
           name: YaMusic-Windows-x64
           path: YaMusic-Windows-x64.zip
+
+
+  # =============================================================
+  # Release (only on tags)
+  # =============================================================
+
+  release:
+    name: Publish Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [linux, macos, windows]
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: write
+
+    steps:
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: |
+          ls -la artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: YaMusic ${{ github.ref_name }}
+          body: |
+            ## YaMusic ${{ github.ref_name }}
+
+            Бета-сборка для macOS, Linux и Windows.
+
+            ### Установка
+
+            - **Linux** — распаковать `YaMusic-Linux-x64.tar.gz`
+            - **macOS** — открыть `YaMusic-macOS.dmg`
+            - **Windows** — распаковать `YaMusic-Windows-x64.zip`
+
+            ### Возможности
+
+            - Новые релизы на главной
+            - Сохранённые альбомы
+            - Любимые исполнители
+            - Автопереход на похожий контент
+            - Подсветка текущего трека
+            - Тёмная тема (с сохранением)
+          draft: false
+          prerelease: true
+          files: artifacts/**
