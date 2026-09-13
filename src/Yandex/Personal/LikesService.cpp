@@ -38,7 +38,7 @@ void LikesService::loadLikedTracks(
         return;
     }
 
-    if (m_loading)
+    if (m_loadingTracks)
         return;
 
     if (!m_yandexClient->hasToken())
@@ -49,7 +49,7 @@ void LikesService::loadLikedTracks(
         return;
     }
 
-    m_loading = true;
+    m_loadingTracks = true;
 
     emit loadingChanged(true);
 
@@ -62,7 +62,7 @@ void LikesService::loadLikedTracks(
 
     if (reply == nullptr)
     {
-        m_loading = false;
+        m_loadingTracks = false;
         emit loadingChanged(false);
         return;
     }
@@ -84,7 +84,7 @@ void LikesService::loadLikedTracks(
 
                 reply->deleteLater();
 
-                m_loading = false;
+                m_loadingTracks = false;
 
                 emit loadingChanged(false);
                 emit errorOccurred(error);
@@ -104,7 +104,7 @@ void LikesService::loadLikedTracks(
             {
                 reply->deleteLater();
 
-                m_loading = false;
+                m_loadingTracks = false;
 
                 emit loadingChanged(false);
                 emit errorOccurred(
@@ -118,7 +118,7 @@ void LikesService::loadLikedTracks(
             {
                 reply->deleteLater();
 
-                m_loading = false;
+                m_loadingTracks = false;
 
                 emit loadingChanged(false);
                 emit errorOccurred(
@@ -209,7 +209,7 @@ void LikesService::loadLikedTracks(
 
             if (trackIds.isEmpty())
             {
-                m_loading = false;
+                m_loadingTracks = false;
 
                 emit loadingChanged(false);
                 emit tracksReceived({});
@@ -240,10 +240,7 @@ void LikesService::loadLikedAlbums(
         return;
     }
 
-    if (m_loading)
-        return;
-
-    m_loading = true;
+    m_loadingAlbums = true;
 
     emit loadingChanged(true);
 
@@ -256,7 +253,7 @@ void LikesService::loadLikedAlbums(
 
     if (reply == nullptr)
     {
-        m_loading = false;
+        m_loadingAlbums = false;
         emit loadingChanged(false);
         return;
     }
@@ -270,7 +267,7 @@ void LikesService::loadLikedAlbums(
             const QByteArray data =
                 reply->readAll();
 
-            m_loading = false;
+            m_loadingAlbums = false;
 
             emit loadingChanged(false);
 
@@ -362,10 +359,7 @@ void LikesService::loadLikedArtists(
         return;
     }
 
-    if (m_loading)
-        return;
-
-    m_loading = true;
+    m_loadingArtists = true;
 
     emit loadingChanged(true);
 
@@ -378,7 +372,7 @@ void LikesService::loadLikedArtists(
 
     if (reply == nullptr)
     {
-        m_loading = false;
+        m_loadingArtists = false;
         emit loadingChanged(false);
         return;
     }
@@ -392,7 +386,7 @@ void LikesService::loadLikedArtists(
             const QByteArray data =
                 reply->readAll();
 
-            m_loading = false;
+            m_loadingArtists = false;
 
             emit loadingChanged(false);
 
@@ -470,7 +464,7 @@ void LikesService::loadTracksByIds(
 {
     if (m_yandexClient == nullptr)
     {
-        m_loading = false;
+        m_loadingTracks = false;
 
         emit loadingChanged(false);
         emit errorOccurred(
@@ -507,7 +501,7 @@ void LikesService::loadTracksByIds(
                 for (Track &track : likedTracks)
                     track.liked = true;
 
-                m_loading = false;
+                m_loadingTracks = false;
 
                 emit loadingChanged(false);
                 emit tracksReceived(likedTracks);
@@ -527,7 +521,7 @@ void LikesService::loadTracksByIds(
             {
                 disconnect(*errorConnection);
 
-                m_loading = false;
+                m_loadingTracks = false;
 
                 emit loadingChanged(false);
                 emit errorOccurred(message);

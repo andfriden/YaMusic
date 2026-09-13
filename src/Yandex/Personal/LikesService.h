@@ -68,7 +68,9 @@ private:
         const QString &trackId,
         bool liked);
 
-    bool m_loading = false;
+    bool m_loadingTracks = false;
+    bool m_loadingAlbums = false;
+    bool m_loadingArtists = false;
 
     QSet<QString> m_likedTrackIds;
 };
