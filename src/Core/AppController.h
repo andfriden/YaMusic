@@ -103,6 +103,12 @@ class AppController : public QObject
 
     Q_PROPERTY(QColor playerAccent READ playerAccent NOTIFY playerAccentChanged)
 
+    /*
+     * Theme: сохраняется в QSettings.
+     */
+
+    Q_PROPERTY(bool darkTheme READ darkTheme WRITE setDarkTheme NOTIFY darkThemeChanged)
+
 public:
     explicit AppController(
     YandexAuth *auth,
@@ -215,8 +221,17 @@ public:
 
     QColor playerAccent() const;
 
-signals:
-    void statusChanged(const QString &message);
+    /*
+     * Theme
+     */
+
+    bool darkTheme() const;
+
+    Q_INVOKABLE void setDarkTheme(
+        bool dark);
+
+    signals:
+        void statusChanged(const QString &message);
     void artistPageRequested(const QString &artistId);
     void albumPageRequested(const QString &albumId);
     void playlistPageRequested();
@@ -252,6 +267,12 @@ signals:
     void playbackSourceChanged();
     void queueChanged();
     void playerAccentChanged();
+
+    /*
+     * Theme
+     */
+
+    void darkThemeChanged();
 
 private:
     void connectAccount();
@@ -294,4 +315,10 @@ private:
 
     QString m_accountUid;
     bool m_playAlbumAfterLoad = false;
+
+    /*
+     * Theme
+     */
+
+    bool m_darkTheme = false;
 };

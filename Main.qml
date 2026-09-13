@@ -20,18 +20,26 @@ ApplicationWindow {
 
     property bool expandedNowPlayingVisible: false
 
-   Connections {
-    target: appController
+Connections {
+        target: appController
 
-    function onStatusChanged(message) {
-        statusBar.message = message
+        function onStatusChanged(message) {
+            statusBar.message = message
+        }
+
+        function onDarkThemeChanged() {
+            AppTheme.dark = appController.darkTheme
+        }
     }
-}
+
+    Component.onCompleted: {
+        AppTheme.dark = appController.darkTheme
+    }
 
     Item {
-        id: logoutButton
+        id: settingsButton
 
-        width: 92
+        width: 38
         height: 38
 
         anchors.top:
@@ -58,7 +66,7 @@ ApplicationWindow {
             radius: 10
 
             color:
-                logoutMouseArea.containsMouse
+                settingsMouseArea.containsMouse
                     ? AppTheme.panelHover
                     : AppTheme.panelSubtle
 
@@ -66,7 +74,7 @@ ApplicationWindow {
                 1
 
             border.color:
-                logoutMouseArea.containsMouse
+                settingsMouseArea.containsMouse
                     ? AppTheme.border
                     : AppTheme.borderSubtle
 
@@ -88,18 +96,15 @@ ApplicationWindow {
                 parent
 
             text:
-                "Выйти"
+                "⚙"
 
             color:
-                logoutMouseArea.containsMouse
+                settingsMouseArea.containsMouse
                     ? AppTheme.textPrimary
                     : AppTheme.textSecondary
 
             font.pixelSize:
-                13
-
-            font.weight:
-                Font.Medium
+                16
 
             Behavior on color {
                 ColorAnimation {
@@ -109,7 +114,7 @@ ApplicationWindow {
         }
 
         MouseArea {
-            id: logoutMouseArea
+            id: settingsMouseArea
 
             anchors.fill:
                 parent
@@ -121,7 +126,194 @@ ApplicationWindow {
                 Qt.PointingHandCursor
 
             onClicked: {
-                authController.logout()
+                settingsPopup.open()
+            }
+        }
+    }
+
+    Popup {
+        id: settingsPopup
+
+        width: 180
+        height: 120
+
+        x: settingsButton.x - width + settingsButton.width
+        y: settingsButton.y + settingsButton.height + 6
+
+        closePolicy:
+            Popup.CloseOnEscape |
+            Popup.CloseOnPressOutside
+
+        background:
+            Rectangle {
+                color:
+                    AppTheme.panel
+
+                border.width:
+                    1
+
+                border.color:
+                    AppTheme.borderSubtle
+
+                radius: 10
+            }
+
+        Column {
+            anchors.fill:
+                parent
+
+            anchors.margins:
+                10
+
+            spacing:
+                8
+
+            // Theme switcher
+
+            Row {
+                width:
+                    parent.width
+
+                height:
+                    30
+
+                spacing:
+                    8
+
+                Text {
+                    text:
+                        "Тёмная тема"
+
+                    color:
+                        AppTheme.textPrimary
+
+                    font.pixelSize:
+                        13
+
+                    anchors.verticalCenter:
+                        parent.verticalCenter
+                }
+
+                Item {
+                    width:
+                        20
+
+                    height:
+                        20
+
+                    anchors.verticalCenter:
+                        parent.verticalCenter
+
+                    Rectangle {
+                        anchors.fill:
+                            parent
+
+                        radius:
+                            4
+
+                        color:
+                            AppTheme.dark
+                                ? AppTheme.accent
+                                : AppTheme.panelSecondary
+
+                        border.width:
+                            1
+
+                        border.color:
+                            AppTheme.border
+
+                        Text {
+                            anchors.centerIn:
+                                parent
+
+                            text:
+                                AppTheme.dark
+                                    ? "✓"
+                                    : ""
+
+                            color:
+                                AppTheme.textPrimary
+
+                            font.pixelSize:
+                                12
+                        }
+
+                        MouseArea {
+                            anchors.fill:
+                                parent
+
+                            cursorShape:
+                                Qt.PointingHandCursor
+
+                            onClicked: {
+                                appController.setDarkTheme(
+                                    !AppTheme.dark
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Logout
+
+            Rectangle {
+                width:
+                    parent.width
+
+                height:
+                    34
+
+                radius:
+                    8
+
+                color:
+                    logoutArea.containsMouse
+                        ? AppTheme.panelActive
+                        : AppTheme.panelSecondary
+
+                border.width:
+                    1
+
+                border.color:
+                    AppTheme.borderSubtle
+
+                Text {
+                    anchors.centerIn:
+                        parent
+
+                    text:
+                        "Выйти"
+
+                    color:
+                        logoutArea.containsMouse
+                            ? AppTheme.error
+                            : AppTheme.textPrimary
+
+                    font.pixelSize:
+                        13
+
+                    font.weight:
+                        Font.Medium
+                }
+
+                MouseArea {
+                    id: logoutArea
+
+                    anchors.fill:
+                        parent
+
+                    hoverEnabled:
+                        true
+
+                    cursorShape:
+                        Qt.PointingHandCursor
+
+                    onClicked: {
+                        settingsPopup.close()
+                        authController.logout()
+                    }
+                }
             }
         }
     }

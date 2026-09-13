@@ -519,10 +519,10 @@ Item {
                         parent.width
 
                     height:
-                            likedTracksView.count > 0
-                        ? (
-                            likedTracksView.count * 74 +
-                            20
+                        likedTracksView.count > 0
+                        ? Math.min(
+                            likedTracksView.count * 74 + 20,
+                            10 * 74 + 20
                         )
                         : 120
 
@@ -564,7 +564,7 @@ Item {
                             true
 
                         interactive:
-                            false
+                            likedTracksView.count > 10
 
                         boundsBehavior:
                             Flickable.StopAtBounds

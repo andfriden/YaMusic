@@ -18,6 +18,8 @@
 #include "../Yandex/Personal/RecentListeningService.h"
 #include "../Yandex/Personal/YandexPersonal.h"
 
+#include <QSettings>
+
 AppController::AppController(
     YandexAuth *auth,
     AccountService *accountService,
@@ -96,6 +98,10 @@ AppController::AppController(
     connectGenre();
     connectPlayback();
     connectPlayer();
+
+    // Загружаем сохранённую тему
+    QSettings settings;
+    m_darkTheme = settings.value("theme/dark", false).toBool();
 
     connect(
         m_queueService,
@@ -1060,4 +1066,24 @@ QColor AppController::playerAccent() const
 {
     return m_playerAccentService
         ->accentColor();
+}
+
+// Theme
+
+bool AppController::darkTheme() const
+{
+    return m_darkTheme;
+}
+
+void AppController::setDarkTheme(bool dark)
+{
+    if (m_darkTheme == dark)
+        return;
+
+    m_darkTheme = dark;
+
+    QSettings settings;
+    settings.setValue("theme/dark", dark);
+
+    emit darkThemeChanged();
 }
