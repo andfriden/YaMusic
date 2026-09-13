@@ -4,18 +4,8 @@
 
 MyWaveModel::MyWaveModel(
     QObject *parent)
-    : QAbstractListModel(parent)
+    : TrackListModelBase(parent)
 {
-}
-
-int MyWaveModel::rowCount(
-    const QModelIndex &parent) const
-{
-    if (parent.isValid()) {
-        return 0;
-    }
-
-    return m_tracks.size();
 }
 
 QVariant MyWaveModel::data(
@@ -107,13 +97,8 @@ MyWaveModel::roleNames() const
 void MyWaveModel::setTracks(
     const QList<Track> &tracks)
 {
-    beginResetModel();
-
-    m_tracks = tracks;
-
-    endResetModel();
-
-    emit countChanged();
+    TrackListModelBase::setTracks(
+        tracks);
 }
 
 void MyWaveModel::appendTracks(
@@ -172,34 +157,6 @@ void MyWaveModel::appendTracks(
     emit countChanged();
 }
 
-void MyWaveModel::clear()
-{
-    if (m_tracks.isEmpty()) {
-        return;
-    }
-
-    beginResetModel();
-
-    m_tracks.clear();
-
-    endResetModel();
-
-    emit countChanged();
-}
-
-Track MyWaveModel::trackAt(
-    int index) const
-{
-    if (
-        index < 0 ||
-        index >= m_tracks.size()
-    ) {
-        return {};
-    }
-
-    return m_tracks.at(index);
-}
-
 Track MyWaveModel::lastTrack() const
 {
     if (m_tracks.isEmpty()) {
@@ -207,14 +164,4 @@ Track MyWaveModel::lastTrack() const
     }
 
     return m_tracks.last();
-}
-
-QList<Track> MyWaveModel::tracks() const
-{
-    return m_tracks;
-}
-
-int MyWaveModel::count() const
-{
-    return m_tracks.size();
 }

@@ -37,8 +37,25 @@ public:
 
     QueueService *queueService() const;
 
+    /*
+     * Playback control
+     */
+
     void playTrack(
         const Track &track);
+
+    /*
+     * Queue the given tracks (replacing any existing queue),
+     * jump to the specified index and immediately start playback.
+     * sourceTitle / sourceType are forwarded to QueueService::setSource
+     * so the UI can display "Playing from …".
+     */
+
+    void playFromSource(
+        const QList<Track> &tracks,
+        int index,
+        const QString &sourceTitle = {},
+        const QString &sourceType = {});
 
     void playQueue();
 

@@ -5,20 +5,8 @@
 
 RecentListeningModel::RecentListeningModel(
     QObject *parent)
-    : QAbstractListModel(parent)
+    : TrackListModelBase(parent)
 {
-}
-
-int RecentListeningModel::rowCount(
-    const QModelIndex &parent) const
-{
-    if (
-        parent.isValid()
-    ) {
-        return 0;
-    }
-
-    return m_tracks.size();
 }
 
 QVariant RecentListeningModel::data(
@@ -154,49 +142,8 @@ RecentListeningModel::roleNames() const
 void RecentListeningModel::setTracks(
     const QList<Track> &tracks)
 {
-
-    for (
-        int i = 0;
-        i < tracks.size();
-        ++i
-    ) {
-        const Track &track =
-            tracks.at(i);
-
-    }
-
-    beginResetModel();
-
-    m_tracks =
-        tracks;
-
-    endResetModel();
-
-}
-
-void RecentListeningModel::clear()
-{
-
-    beginResetModel();
-
-    m_tracks.clear();
-
-    endResetModel();
-
-}
-
-Track RecentListeningModel::trackAt(
-    int index) const
-{
-    if (
-        index < 0 ||
-        index >= m_tracks.size()
-    ) {
-        return {};
-    }
-
-    return m_tracks.at(
-        index);
+    TrackListModelBase::setTracks(
+        tracks);
 }
 
 QVariantMap RecentListeningModel::trackDataAt(
@@ -436,15 +383,4 @@ RecentListeningModel::randomTrackData(
     }
 
     return result;
-}
-
-QList<Track>
-RecentListeningModel::tracks() const
-{
-    return m_tracks;
-}
-
-int RecentListeningModel::count() const
-{
-    return m_tracks.size();
 }

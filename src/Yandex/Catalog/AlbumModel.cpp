@@ -3,7 +3,7 @@
 
 AlbumModel::AlbumModel(
     QObject *parent)
-    : QAbstractListModel(parent)
+    : TrackListModelBase(parent)
 {
 }
 
@@ -11,17 +11,6 @@ AlbumModel::AlbumModel(
 // =============================================================
 // Model
 // =============================================================
-
-int AlbumModel::rowCount(
-    const QModelIndex &parent) const
-{
-    if (parent.isValid())
-    {
-        return 0;
-    }
-
-    return m_tracks.size();
-}
 
 
 QVariant AlbumModel::data(
@@ -97,17 +86,11 @@ AlbumModel::roleNames() const
 void AlbumModel::setAlbum(
     const AlbumDetails &album)
 {
-    beginResetModel();
-
     m_album =
         album;
 
-    m_tracks =
-        album.tracks;
-
-    endResetModel();
-
-    emit countChanged();
+    setTracks(
+        album.tracks);
 
     emit albumChanged();
 }
@@ -115,58 +98,18 @@ void AlbumModel::setAlbum(
 
 void AlbumModel::clear()
 {
-    if (m_tracks.isEmpty())
-    {
-        return;
-    }
-
-
-    beginResetModel();
+    TrackListModelBase::clear();
 
     m_album =
         AlbumDetails{};
-
-    m_tracks.clear();
-
-    endResetModel();
-
-    emit countChanged();
 
     emit albumChanged();
 }
 
 
 // =============================================================
-// Tracks
+// Album info
 // =============================================================
-
-Track AlbumModel::trackAt(
-    int index) const
-{
-    if (
-        index < 0 ||
-        index >= m_tracks.size()
-    )
-    {
-        return {};
-    }
-
-    return m_tracks.at(index);
-}
-
-
-QList<Track>
-AlbumModel::tracks() const
-{
-    return m_tracks;
-}
-
-
-int AlbumModel::count() const
-{
-    return m_tracks.size();
-}
-
 
 QString
 AlbumModel::title() const
@@ -197,37 +140,8 @@ void AlbumModel::setTrackLiked(
     const QString &trackId,
     bool liked)
 {
-    for (
-        int i = 0;
-        i < m_tracks.size();
-        ++i
-    )
-    {
-        if (
-            m_tracks[i].id != trackId
-        )
-        {
-            continue;
-        }
-
-
-        if (
-            m_tracks[i].liked == liked
-        )
-        {
-            return;
-        }
-
-
-        m_tracks[i].liked =
-            liked;
-
-
-        emit dataChanged(
-            index(i),
-            index(i),
-            { LikedRole });
-
-        return;
-    }
+    TrackListModelBase::setTrackLiked(
+        trackId,
+        liked,
+        LikedRole);
 }

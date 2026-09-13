@@ -1,15 +1,15 @@
 #pragma once
 
-#include <QAbstractListModel>
 #include <QHash>
 #include <QList>
 #include <QString>
 #include <QVariant>
 
 #include "AlbumService.h"
+#include "TrackListModelBase.h"
 
 
-class AlbumModel final : public QAbstractListModel
+class AlbumModel final : public TrackListModelBase
 {
     Q_OBJECT
 
@@ -53,11 +53,6 @@ public:
         QObject *parent = nullptr);
 
 
-    int rowCount(
-        const QModelIndex &parent =
-            QModelIndex()) const override;
-
-
     QVariant data(
         const QModelIndex &index,
         int role =
@@ -73,16 +68,6 @@ public:
 
 
     void clear();
-
-
-    Track trackAt(
-        int index) const;
-
-
-    QList<Track> tracks() const;
-
-
-    int count() const;
 
 
     QString title() const;
@@ -109,6 +94,4 @@ signals:
 private:
 
     AlbumDetails m_album;
-
-    QList<Track> m_tracks;
 };

@@ -1,14 +1,14 @@
 #pragma once
 
-#include <QAbstractListModel>
 #include <QHash>
 #include <QList>
 #include <QVariant>
 
 #include "../../Models/Track.h"
+#include "../Catalog/TrackListModelBase.h"
 
 
-class LikedTracksModel : public QAbstractListModel
+class LikedTracksModel final : public TrackListModelBase
 {
     Q_OBJECT
 
@@ -34,10 +34,6 @@ public:
         QObject *parent = nullptr);
 
 
-    int rowCount(
-        const QModelIndex &parent = QModelIndex()) const override;
-
-
     QVariant data(
         const QModelIndex &index,
         int role = Qt::DisplayRole) const override;
@@ -53,16 +49,6 @@ public:
     void clear();
 
 
-    QList<Track> tracks() const;
-
-
-    Track trackAt(
-        int index) const;
-
-
-    int count() const;
-
-
     void setTrackLiked(
         const QString &trackId,
         bool liked);
@@ -73,6 +59,4 @@ public:
 
 
 private:
-
-    QList<Track> m_tracks;
 };

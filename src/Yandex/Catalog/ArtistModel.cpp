@@ -4,18 +4,8 @@
 
 ArtistModel::ArtistModel(
     QObject *parent)
-    : QAbstractListModel(parent)
+    : TrackListModelBase(parent)
 {
-}
-
-int ArtistModel::rowCount(
-    const QModelIndex &parent) const
-{
-    if (parent.isValid()) {
-        return 0;
-    }
-
-    return m_tracks.size();
 }
 
 QVariant ArtistModel::data(
@@ -109,50 +99,18 @@ ArtistModel::roleNames() const
 void ArtistModel::setArtist(
     const ArtistDetails &artist)
 {
-    beginResetModel();
-
     m_artist =
         artist;
 
-    m_tracks =
-        artist.tracks;
-
-    endResetModel();
+    setTracks(
+        artist.tracks);
 }
 
 void ArtistModel::clear()
 {
-    beginResetModel();
+    TrackListModelBase::clear();
 
     m_artist = {};
-
-    m_tracks.clear();
-
-    endResetModel();
-}
-
-Track ArtistModel::trackAt(
-    int index) const
-{
-    if (
-        index < 0 ||
-        index >= m_tracks.size()
-    ) {
-        return {};
-    }
-
-    return m_tracks.at(
-        index);
-}
-
-QList<Track> ArtistModel::tracks() const
-{
-    return m_tracks;
-}
-
-int ArtistModel::count() const
-{
-    return m_tracks.size();
 }
 
 QString ArtistModel::id() const

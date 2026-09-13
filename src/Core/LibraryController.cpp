@@ -506,35 +506,14 @@ void LibraryController::selectLikedTrack(
         m_likedTracksModel
             ->tracks();
 
-    QueueService *queue =
-        m_playbackController
-            ->queueService();
-
-    if (
-        queue == nullptr
-    )
-    {
-        emit statusChanged(
-            "Очередь воспроизведения недоступна");
-
-        return;
-    }
-
-    queue->clear();
-
-    queue->addTracks(
-        tracks);
-
-    queue->setCurrentIndex(
-        index);
-
-    queue->setSource(
-        "Понравившиеся треки",
-        "likes");
-
+    // Заменяем очередь лайкнутыми треками
+    // и запускаем выбранный трек.
     m_playbackController
-        ->playTrack(
-            track);
+        ->playFromSource(
+            tracks,
+            index,
+            "Понравившиеся треки",
+            "likes");
 }
 
 LikedTracksModel *
@@ -650,35 +629,14 @@ void LibraryController::selectPlaylistTrack(
         return;
     }
 
-    QueueService *queue =
-        m_playbackController
-            ->queueService();
-
-    if (
-        queue == nullptr
-    )
-    {
-        emit statusChanged(
-            "Очередь воспроизведения недоступна");
-
-        return;
-    }
-
-    queue->clear();
-
-    queue->addTracks(
-        tracks);
-
-    queue->setCurrentIndex(
-        index);
-
-    queue->setSource(
-        m_currentPlaylistTitle,
-        "playlist");
-
+    // Заменяем очередь треками плейлиста
+    // и запускаем выбранный трек.
     m_playbackController
-        ->playTrack(
-            track);
+        ->playFromSource(
+            tracks,
+            index,
+            m_currentPlaylistTitle,
+            "playlist");
 }
 
 PlaylistModel *
@@ -813,35 +771,14 @@ void LibraryController::selectArtistTrack(
         return;
     }
 
-    QueueService *queue =
-        m_playbackController
-            ->queueService();
-
-    if (
-        queue == nullptr
-    )
-    {
-        emit statusChanged(
-            "Очередь воспроизведения недоступна");
-
-        return;
-    }
-
-    queue->clear();
-
-    queue->addTracks(
-        tracks);
-
-    queue->setCurrentIndex(
-        index);
-
-    queue->setSource(
-        m_currentArtistName,
-        "artist");
-
+    // Заменяем очередь треками исполнителя
+    // и запускаем выбранный трек.
     m_playbackController
-        ->playTrack(
-            track);
+        ->playFromSource(
+            tracks,
+            index,
+            m_currentArtistName,
+            "artist");
 }
 
 ArtistModel *

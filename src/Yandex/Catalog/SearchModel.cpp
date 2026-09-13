@@ -4,18 +4,8 @@
 
 SearchModel::SearchModel(
     QObject *parent)
-    : QAbstractListModel(parent)
+    : TrackListModelBase(parent)
 {
-}
-
-int SearchModel::rowCount(
-    const QModelIndex &parent) const
-{
-    if (parent.isValid()) {
-        return 0;
-    }
-
-    return m_tracks.size();
 }
 
 QVariant SearchModel::data(
@@ -112,31 +102,6 @@ SearchModel::roleNames() const
 void SearchModel::setResults(
     const SearchResults &results)
 {
-    beginResetModel();
-
-    m_tracks =
-        results.tracks;
-
-    endResetModel();
-}
-
-void SearchModel::clear()
-{
-    beginResetModel();
-
-    m_tracks.clear();
-
-    endResetModel();
-}
-
-Track SearchModel::trackAt(
-    int index) const
-{
-    if (index < 0 ||
-        index >= m_tracks.size()) {
-
-        return {};
-    }
-
-    return m_tracks.at(index);
+    setTracks(
+        results.tracks);
 }

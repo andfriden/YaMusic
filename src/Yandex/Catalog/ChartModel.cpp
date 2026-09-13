@@ -3,20 +3,8 @@
 
 ChartModel::ChartModel(
     QObject *parent)
-    : QAbstractListModel(parent)
+    : TrackListModelBase(parent)
 {
-}
-
-
-int ChartModel::rowCount(
-    const QModelIndex &parent) const
-{
-    if (parent.isValid())
-    {
-        return 0;
-    }
-
-    return m_tracks.size();
 }
 
 
@@ -140,42 +128,6 @@ ChartModel::roleNames() const
 void ChartModel::setTracks(
     const QList<Track> &tracks)
 {
-    beginResetModel();
-
-    m_tracks =
-        tracks;
-
-    endResetModel();
-}
-
-
-void ChartModel::clear()
-{
-    beginResetModel();
-
-    m_tracks.clear();
-
-    endResetModel();
-}
-
-
-Track ChartModel::trackAt(
-    int index) const
-{
-    if (
-        index < 0 ||
-        index >= m_tracks.size()
-    )
-    {
-        return {};
-    }
-
-    return m_tracks.at(
-        index);
-}
-
-
-int ChartModel::count() const
-{
-    return m_tracks.size();
+    TrackListModelBase::setTracks(
+        tracks);
 }

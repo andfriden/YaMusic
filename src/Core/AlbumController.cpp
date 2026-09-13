@@ -179,24 +179,14 @@ void AlbumController::playAlbum()
         return;
     }
 
-    QueueService *queue =
-        m_playbackController->queueService();
-
-    if (!queue) {
-        return;
-    }
-
-    queue->clear();
-
-    queue->setSource(
-        m_albumModel->title(),
-        QStringLiteral("album"));
-
-    queue->addTracks(tracks);
-
-    queue->setCurrentIndex(0);
-
-    m_playbackController->playCurrent();
+    // Заменяем очередь треками альбома
+    // и запускаем воспроизведение с первого трека.
+    m_playbackController
+        ->playFromSource(
+            tracks,
+            0,
+            m_albumModel->title(),
+            "album");
 }
 
 AlbumModel *

@@ -162,32 +162,21 @@ void SearchController::selectResult(
         return;
     }
 
-    QueueService *queue =
-        m_playbackController
-            ->queueService();
-
-    if (
-        queue == nullptr
-    ) {
-        emit statusChanged(
-            "Очередь воспроизведения недоступна");
-
-        return;
-    }
-
-    QList<Track> tracks;
-
     /*
      * SearchModel является QAbstractItemModel.
      *
      * Собираем все результаты через
-     * trackAt(), не добавляя новый API
-     * в SearchModel.
+     * trackAt(), используя rowCount().
      */
 
     const int count =
         m_model
             ->rowCount();
+
+    QList<Track> tracks;
+
+    tracks.reserve(
+        count);
 
     for (
         int i = 0;
@@ -219,21 +208,14 @@ void SearchController::selectResult(
         return;
     }
 
-    queue->clear();
-
-    queue->addTracks(
-        tracks);
-
-    queue->setCurrentIndex(
-        index);
-
-    queue->setSource(
-        "Поиск",
-        "search");
-
+    // Заменяем очередь результатами поиска
+    // и запускаем выбранный трек.
     m_playbackController
-        ->playTrack(
-            track);
+        ->playFromSource(
+            tracks,
+            index,
+            "Поиск",
+            "search");
 }
 
 SearchModel *

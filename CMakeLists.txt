@@ -180,6 +180,7 @@ set(
         src/Yandex/Catalog/SearchResult.cpp
         src/Yandex/Catalog/SearchService.cpp
         src/Yandex/Catalog/SimilarArtistsModel.cpp
+        src/Yandex/Catalog/TrackListModelBase.cpp
         src/Yandex/Catalog/TrackService.cpp
 
         # Yandex Personal

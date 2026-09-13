@@ -247,34 +247,17 @@ void ArtistController::selectTrack(
         return;
     }
 
-    QueueService *queue =
-        m_playbackController
-            ->queueService();
-
-    if (
-        queue == nullptr
-    ) {
-        emit statusChanged(
-            "Очередь воспроизведения недоступна");
-
-        return;
-    }
-
-    queue->clear();
-
-    queue->addTracks(
-        m_artistModel
-            ->tracks());
-
-    queue->setCurrentIndex(
-        index);
-
     emit trackSelected(
         track);
 
+    // Заменяем очередь треками исполнителя
+    // и запускаем выбранный трек.
     m_playbackController
-        ->playTrack(
-            track);
+        ->playFromSource(
+            m_artistModel->tracks(),
+            index,
+            m_artistName,
+            "artist");
 }
 
 void ArtistController::selectSimilarArtist(
@@ -337,27 +320,6 @@ void ArtistController::playArtist()
         return;
     }
 
-    QueueService *queue =
-        m_playbackController
-            ->queueService();
-
-    if (
-        queue == nullptr
-    ) {
-        emit statusChanged(
-            "Очередь воспроизведения недоступна");
-
-        return;
-    }
-
-    queue->clear();
-
-    queue->addTracks(
-        tracks);
-
-    queue->setCurrentIndex(
-        0);
-
     const Track &track =
         tracks.first();
 
@@ -365,8 +327,11 @@ void ArtistController::playArtist()
         track);
 
     m_playbackController
-        ->playTrack(
-            track);
+        ->playFromSource(
+            tracks,
+            0,
+            m_artistName,
+            "artist");
 
     emit statusChanged(
         QString(

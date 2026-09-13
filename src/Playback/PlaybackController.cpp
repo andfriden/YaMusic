@@ -198,6 +198,75 @@ void PlaybackController::playTrack(
             track.id);
 }
 
+void PlaybackController::playFromSource(
+    const QList<Track> &tracks,
+    int index,
+    const QString &sourceTitle,
+    const QString &sourceType)
+{
+    if (m_queueService == nullptr) {
+
+        setState(
+            Error);
+
+        emit playbackError(
+            "QueueService недоступен");
+
+        return;
+    }
+
+    if (
+        index < 0 ||
+        index >= tracks.size()
+    ) {
+
+        setState(
+            Error);
+
+        emit playbackError(
+            "Некорректный индекс трека");
+
+        return;
+    }
+
+    const Track track =
+        tracks.at(index);
+
+    if (track.id.isEmpty()) {
+
+        setState(
+            Error);
+
+        emit playbackError(
+            "Некорректный трек");
+
+        return;
+    }
+
+    if (m_queueService != nullptr) {
+
+        m_queueService->clear();
+
+        m_queueService->addTracks(
+            tracks);
+
+        m_queueService->setCurrentIndex(
+            index);
+
+        if (
+            !sourceTitle.isEmpty()
+        ) {
+
+            m_queueService->setSource(
+                sourceTitle,
+                sourceType);
+        }
+    }
+
+    playTrack(
+        track);
+}
+
 void PlaybackController::playQueue()
 {
     if (m_queueService == nullptr) {
