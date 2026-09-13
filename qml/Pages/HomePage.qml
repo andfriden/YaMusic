@@ -1,4 +1,6 @@
 import QtQuick
+import QtQuick.Controls.Basic
+import YaMusic 1.0
 
 
 Item {

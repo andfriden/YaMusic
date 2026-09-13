@@ -1,4 +1,5 @@
 import QtQuick
+import YaMusic 1.0
 
 Item {
     id: root
