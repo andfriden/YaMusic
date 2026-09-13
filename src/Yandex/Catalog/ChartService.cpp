@@ -1,9 +1,7 @@
 #include "ChartService.h"
-
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
-
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -11,24 +9,18 @@
 #include <QJsonValue>
 #include <QNetworkReply>
 
-
 ChartService::ChartService(
     YandexAuth *auth,
     QObject *parent)
-    : QObject(parent)
-    , m_auth(auth)
-    , m_yandexClient(
-          new YandexClient(this))
+    : YandexServiceBase(auth, parent)
 {
 }
-
 
 void ChartService::loadChart(
     const QString &chartType)
 {
     if (
-        m_auth == nullptr ||
-        !m_auth->isAuthenticated()
+        !ensureAuthenticated()
     )
     {
         emit errorOccurred(
@@ -52,9 +44,6 @@ void ChartService::loadChart(
 
         return;
     }
-
-    m_yandexClient->setToken(
-        m_auth->token());
 
     const QString path =
         "/landing3/chart/" +

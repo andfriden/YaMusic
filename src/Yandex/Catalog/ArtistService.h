@@ -1,10 +1,9 @@
 #pragma once
 
 #include <QList>
-#include <QObject>
 #include <QString>
-
 #include "../../Models/Track.h"
+#include "../YandexServiceBase.h"
 
 struct ArtistDetails
 {
@@ -24,10 +23,7 @@ struct ArtistDetails
     QList<Artist> similarArtists;
 };
 
-class YandexAuth;
-class YandexClient;
-
-class ArtistService : public QObject
+class ArtistService : public YandexServiceBase
 {
     Q_OBJECT
 
@@ -51,11 +47,4 @@ public:
 
     void errorOccurred(
         const QString &message);
-
-private:
-    YandexAuth *m_auth =
-        nullptr;
-
-    YandexClient *m_yandexClient =
-        nullptr;
 };

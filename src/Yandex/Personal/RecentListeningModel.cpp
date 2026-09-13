@@ -1,5 +1,4 @@
 #include "RecentListeningModel.h"
-
 #include <QRandomGenerator>
 #include <QStringList>
 

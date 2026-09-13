@@ -1,11 +1,8 @@
 #include "PersonalController.h"
-
 #include <QJsonArray>
 #include <QJsonObject>
 
-// =============================================================
 // Recommendations connections
-// =============================================================
 
 void PersonalController::connectRecommendations()
 {
@@ -37,18 +34,14 @@ void PersonalController::connectRecommendations()
             QList<PersonalChartItem>
                 chartItems;
 
-            // =====================================================
             // Sections
-            // =====================================================
 
             for (
                 const PersonalLandingSection &section :
                 sections
             )
             {
-                // -------------------------------------------------
                 // Playlists
-                // -------------------------------------------------
 
                 for (
                     const PersonalPlaylist &playlist :
@@ -66,9 +59,7 @@ void PersonalController::connectRecommendations()
                         playlist);
                 }
 
-                // -------------------------------------------------
                 // Chart
-                // -------------------------------------------------
 
                 if (
                     section.type != "chart"
@@ -215,16 +206,12 @@ void PersonalController::connectRecommendations()
                 }
             }
 
-            // =====================================================
             // Store playlists
-            // =====================================================
 
             m_recommendationPlaylists =
                 playlists;
 
-            // =====================================================
             // Playlists model
-            // =====================================================
 
             if (
                 m_personalPlaylistsModel != nullptr
@@ -235,9 +222,7 @@ void PersonalController::connectRecommendations()
                         sections);
             }
 
-            // =====================================================
             // Chart model
-            // =====================================================
 
             if (
                 m_chartModel != nullptr
@@ -257,9 +242,7 @@ void PersonalController::connectRecommendations()
                     sections.size()));
         });
 
-    // =============================================================
     // Error
-    // =============================================================
 
     connect(
         m_personalLanding,
@@ -301,9 +284,7 @@ void PersonalController::connectRecommendations()
         });
 }
 
-// =============================================================
 // Load recommendations
-// =============================================================
 
 void PersonalController::loadRecommendations()
 {
@@ -352,9 +333,7 @@ void PersonalController::loadRecommendations()
     m_personalLanding
         ->load();
 
-    // =============================================================
     // New playlists
-    // =============================================================
 
     if (
         m_newPlaylistsService != nullptr
@@ -366,9 +345,7 @@ void PersonalController::loadRecommendations()
     }
 }
 
-// =============================================================
 // Select personal playlist
-// =============================================================
 
 void PersonalController::selectPersonalPlaylist(
     const QString &uid,

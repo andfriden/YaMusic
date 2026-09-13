@@ -1,5 +1,4 @@
 #include "SearchModel.h"
-
 #include <QStringList>
 
 SearchModel::SearchModel(

@@ -1,11 +1,7 @@
 #include "AppController.h"
-
 #include "../Yandex/Catalog/ChartService.h"
 
-
-// =============================================================
 // Artist
-// =============================================================
 
 void AppController::loadArtist(
     const QString &id)
@@ -17,10 +13,8 @@ void AppController::loadArtist(
         return;
     }
 
-
     const QString artistId =
         id.trimmed();
-
 
     if (
         artistId.isEmpty()
@@ -32,20 +26,15 @@ void AppController::loadArtist(
         return;
     }
 
-
     emit artistPageRequested(
         artistId);
-
 
     m_artistController
         ->loadArtist(
             artistId);
 }
 
-
-// =============================================================
 // Album
-// =============================================================
 
 void AppController::loadAlbum(
     const QString &id)
@@ -57,10 +46,8 @@ void AppController::loadAlbum(
         return;
     }
 
-
     const QString albumId =
         id.trimmed();
-
 
     if (
         albumId.isEmpty()
@@ -72,20 +59,16 @@ void AppController::loadAlbum(
         return;
     }
 
-
     m_playAlbumAfterLoad =
         false;
 
-
     emit albumPageRequested(
         albumId);
-
 
     m_albumController
         ->loadAlbum(
             albumId);
 }
-
 
 void AppController::playAlbum(
     const QString &id)
@@ -97,10 +80,8 @@ void AppController::playAlbum(
         return;
     }
 
-
     const QString albumId =
         id.trimmed();
-
 
     if (
         albumId.isEmpty()
@@ -112,24 +93,18 @@ void AppController::playAlbum(
         return;
     }
 
-
     m_playAlbumAfterLoad =
         true;
 
-
     emit albumPageRequested(
         albumId);
-
 
     m_albumController
         ->loadAlbum(
             albumId);
 }
 
-
-// =============================================================
 // Chart
-// =============================================================
 
 void AppController::loadChart(
     const QString &chartType)
@@ -141,12 +116,10 @@ void AppController::loadChart(
         return;
     }
 
-
     m_chartController
         ->loadChart(
             chartType);
 }
-
 
 void AppController::loadCharts()
 {
@@ -156,7 +129,6 @@ void AppController::loadCharts()
     {
         return;
     }
-
 
     m_chartController
         ->loadCharts();

@@ -1,16 +1,13 @@
 #include "ArtistService.h"
-
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
-
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
 #include <QNetworkReply>
 #include <QUrlQuery>
-
 #include <memory>
 
 namespace
@@ -182,10 +179,7 @@ void restoreSimilarArtistArtwork(
 ArtistService::ArtistService(
     YandexAuth *auth,
     QObject *parent)
-    : QObject(parent)
-    , m_auth(auth)
-    , m_yandexClient(
-          new YandexClient(this))
+    : YandexServiceBase(auth, parent)
 {
 }
 
@@ -193,8 +187,7 @@ void ArtistService::loadArtistAlbums(
     const QString &id)
 {
     if (
-        m_auth == nullptr ||
-        !m_auth->isAuthenticated()
+        !ensureAuthenticated()
     ) {
         emit errorOccurred(
             "Токен Яндекс Музыки не установлен");
@@ -213,9 +206,6 @@ void ArtistService::loadArtistAlbums(
 
         return;
     }
-
-    m_yandexClient->setToken(
-        m_auth->token());
 
     QUrlQuery query;
 
@@ -338,8 +328,7 @@ void ArtistService::loadArtist(
     const QString &id)
 {
     if (
-        m_auth == nullptr ||
-        !m_auth->isAuthenticated()
+        !ensureAuthenticated()
     ) {
         emit errorOccurred(
             "Токен Яндекс Музыки не установлен");
@@ -358,9 +347,6 @@ void ArtistService::loadArtist(
 
         return;
     }
-
-    m_yandexClient->setToken(
-        m_auth->token());
 
     auto loadAdditionalData =
         [this,

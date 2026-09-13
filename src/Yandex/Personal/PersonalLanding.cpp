@@ -1,16 +1,13 @@
 #include "PersonalLanding.h"
-
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
-
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkReply>
 #include <QSet>
 #include <QUrlQuery>
-
 
 namespace
 {
@@ -25,7 +22,6 @@ const QString LandingBlocks =
     "playlists,"
     "podcasts";
 
-
 const QStringList PlaylistSectionTypes =
 {
     "personal-playlists",
@@ -36,10 +32,7 @@ const QStringList PlaylistSectionTypes =
 
 }
 
-
-// =============================================================
 // Constructor
-// =============================================================
 
 PersonalLanding::PersonalLanding(
     YandexAuth *auth,
@@ -50,10 +43,7 @@ PersonalLanding::PersonalLanding(
 {
 }
 
-
-// =============================================================
 // Load
-// =============================================================
 
 void PersonalLanding::load()
 {
@@ -65,7 +55,6 @@ void PersonalLanding::load()
         return;
     }
 
-
     if (!m_auth->isAuthenticated())
     {
         emit errorOccurred(
@@ -74,10 +63,8 @@ void PersonalLanding::load()
         return;
     }
 
-
     m_yandexClient->setToken(
         m_auth->token());
-
 
     QUrlQuery query;
 
@@ -85,17 +72,14 @@ void PersonalLanding::load()
         "blocks",
         LandingBlocks);
 
-
     const QString path =
         "/landing3?" +
         query.toString(
             QUrl::FullyEncoded);
 
-
     QNetworkReply *reply =
         m_yandexClient->get(
             path);
-
 
     connect(
         reply,
@@ -105,7 +89,6 @@ void PersonalLanding::load()
         {
             const QByteArray data =
                 reply->readAll();
-
 
             if (
                 reply->error() !=
@@ -120,15 +103,12 @@ void PersonalLanding::load()
                 return;
             }
 
-
             QJsonParseError parseError;
-
 
             const QJsonDocument document =
                 QJsonDocument::fromJson(
                     data,
                     &parseError);
-
 
             if (
                 parseError.error !=
@@ -144,28 +124,22 @@ void PersonalLanding::load()
                 return;
             }
 
-
             const QJsonObject result =
                 unwrapResult(document);
-
 
             const QJsonArray blocks =
                 result
                     .value("blocks")
                     .toArray();
 
-
             QList<PersonalLandingSection>
                 sections;
-
 
             QList<PersonalPlaylist>
                 allPlaylists;
 
-
             QSet<QString>
                 playlistIds;
-
 
             for (
                 const QJsonValue &value :
@@ -177,15 +151,12 @@ void PersonalLanding::load()
                     continue;
                 }
 
-
                 const QJsonObject block =
                     value.toObject();
-
 
                 PersonalLandingSection section =
                     parseSection(
                         block);
-
 
                 /*
                  * Для секций с плейлистами
@@ -212,11 +183,9 @@ void PersonalLanding::load()
                             continue;
                         }
 
-
                         const PersonalPlaylist playlist =
                             parsePersonalPlaylist(
                                 item);
-
 
                         if (
                             playlist.title.isEmpty()
@@ -224,7 +193,6 @@ void PersonalLanding::load()
                         {
                             continue;
                         }
-
 
                         /*
                          * Главное:
@@ -235,14 +203,12 @@ void PersonalLanding::load()
                         section.playlists.append(
                             playlist);
 
-
                         /*
                          * Отдельный плоский кэш
                          * всех плейлистов.
                          */
                         QString key =
                             playlist.id;
-
 
                         if (
                             key.isEmpty()
@@ -252,14 +218,12 @@ void PersonalLanding::load()
                                 item.id;
                         }
 
-
                         if (
                             key.isEmpty()
                         )
                         {
                             continue;
                         }
-
 
                         if (
                             playlistIds.contains(
@@ -269,28 +233,23 @@ void PersonalLanding::load()
                             continue;
                         }
 
-
                         playlistIds.insert(
                             key);
-
 
                         allPlaylists.append(
                             playlist);
                     }
                 }
 
-
                 sections.append(
                     section);
             }
-
 
             /*
              * Сначала отдаём полноценные секции.
              */
             emit loaded(
                 sections);
-
 
             /*
              * Дополнительно сохраняем плоский список
@@ -304,15 +263,11 @@ void PersonalLanding::load()
                     allPlaylists);
             }
 
-
             reply->deleteLater();
         });
 }
 
-
-// =============================================================
 // Parse item
-// =============================================================
 
 PersonalLandingItem
 PersonalLanding::parseItem(
@@ -320,32 +275,25 @@ PersonalLanding::parseItem(
 {
     PersonalLandingItem item;
 
-
     item.id =
         object
             .value("id")
             .toString();
-
 
     item.type =
         object
             .value("type")
             .toString();
 
-
     item.data =
         object
             .value("data")
             .toObject();
 
-
     return item;
 }
 
-
-// =============================================================
 // Parse section
-// =============================================================
 
 PersonalLandingSection
 PersonalLanding::parseSection(
@@ -353,42 +301,35 @@ PersonalLanding::parseSection(
 {
     PersonalLandingSection section;
 
-
     section.id =
         object
             .value("id")
             .toString();
-
 
     section.title =
         object
             .value("title")
             .toString();
 
-
     section.type =
         object
             .value("type")
             .toString();
-
 
     section.typeForFrom =
         object
             .value("typeForFrom")
             .toString();
 
-
     section.description =
         object
             .value("description")
             .toString();
 
-
     QJsonArray entities =
         object
             .value("entities")
             .toArray();
-
 
     if (
         entities.isEmpty()
@@ -400,7 +341,6 @@ PersonalLanding::parseSection(
                 .toArray();
     }
 
-
     for (
         const QJsonValue &value :
         entities
@@ -411,20 +351,15 @@ PersonalLanding::parseSection(
             continue;
         }
 
-
         section.items.append(
             parseItem(
                 value.toObject()));
     }
 
-
     return section;
 }
 
-
-// =============================================================
 // Parse playlist
-// =============================================================
 
 PersonalPlaylist
 PersonalLanding::parsePersonalPlaylist(
@@ -432,10 +367,8 @@ PersonalLanding::parsePersonalPlaylist(
 {
     PersonalPlaylist playlist;
 
-
     QJsonObject object =
         item.data;
-
 
     if (
         object.contains("data") &&
@@ -450,7 +383,6 @@ PersonalLanding::parsePersonalPlaylist(
                 .toObject();
     }
 
-
     if (
         object.contains("playlist") &&
         object
@@ -464,36 +396,30 @@ PersonalLanding::parsePersonalPlaylist(
                 .toObject();
     }
 
-
     playlist.title =
         object
             .value("title")
             .toString();
-
 
     playlist.description =
         object
             .value("description")
             .toString();
 
-
     playlist.trackCount =
         object
             .value("trackCount")
             .toInt();
-
 
     playlist.kind =
         object
             .value("kind")
             .toInt();
 
-
     const qint64 uid =
         object
             .value("uid")
             .toInteger();
-
 
     if (uid > 0)
     {
@@ -501,7 +427,6 @@ PersonalLanding::parsePersonalPlaylist(
             QString::number(
                 uid);
     }
-
 
     if (
         !playlist.uid.isEmpty() &&
@@ -520,12 +445,10 @@ PersonalLanding::parsePersonalPlaylist(
             item.id;
     }
 
-
     playlist.coverUri =
         object
             .value("coverUri")
             .toString();
-
 
     if (
         playlist.coverUri.isEmpty()
@@ -538,7 +461,6 @@ PersonalLanding::parsePersonalPlaylist(
                 .value("uri")
                 .toString();
     }
-
 
     return playlist;
 }

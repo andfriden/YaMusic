@@ -1,5 +1,4 @@
 #include "ArtistController.h"
-
 #include "../Playback/PlaybackController.h"
 #include "../Queue/QueueService.h"
 #include "../Yandex/Catalog/ArtistService.h"

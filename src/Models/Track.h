@@ -3,14 +3,12 @@
 #include <QList>
 #include <QString>
 
-
 struct Artist
 {
     QString id;
     QString name;
     QString coverUri;
 };
-
 
 struct Album
 {
@@ -19,7 +17,6 @@ struct Album
     QString coverUri;
     int year = 0;
 };
-
 
 struct Track
 {

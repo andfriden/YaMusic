@@ -4,10 +4,8 @@
 #include <QList>
 #include <QObject>
 #include <QString>
-
 #include "../Models/PersonalPlaylist.h"
 #include "../Models/Track.h"
-
 #include "../Yandex/Personal/MyWaveModel.h"
 #include "../Yandex/Personal/NewPlaylistsService.h"
 #include "../Yandex/Personal/PersonalChartModel.h"
@@ -16,11 +14,9 @@
 #include "../Yandex/Personal/RecentListeningModel.h"
 #include "../Yandex/Personal/RecentListeningService.h"
 
-
 class PlayerService;
 class PlaybackController;
 class YandexPersonal;
-
 
 class PersonalController : public QObject
 {
@@ -61,7 +57,6 @@ class PersonalController : public QObject
         READ chartModel
         CONSTANT)
 
-
 public:
 
     explicit PersonalController(
@@ -73,10 +68,7 @@ public:
         PlayerService *playerService,
         QObject *parent = nullptr);
 
-
-    // =============================================================
     // My Wave
-    // =============================================================
 
     Q_INVOKABLE void loadMyWave();
 
@@ -85,10 +77,7 @@ public:
     Q_INVOKABLE void selectMyWaveTrack(
         int index);
 
-
-    // =============================================================
     // Recommendations
-    // =============================================================
 
     Q_INVOKABLE void loadRecommendations();
 
@@ -96,18 +85,12 @@ public:
         const QString &uid,
         int kind);
 
-
-    // =============================================================
     // Recently played
-    // =============================================================
 
     Q_INVOKABLE void selectRecentListening(
         int index);
 
-
-    // =============================================================
     // Models
-    // =============================================================
 
     MyWaveModel *
     myWaveModel() const;
@@ -121,17 +104,13 @@ public:
     PersonalChartModel *
     chartModel() const;
 
-
-    // =============================================================
     // Loading state
-    // =============================================================
 
     bool isLoadingMyWave() const;
 
     bool isLoadingMoreMyWave() const;
 
     bool isLoadingRecommendations() const;
-
 
 signals:
 
@@ -151,7 +130,6 @@ signals:
 
     void personalPlaylistSelected(
         const PersonalPlaylist &playlist);
-
 
 private:
 
@@ -188,7 +166,6 @@ private:
     QString batchIdForTrack(
         const QString &trackId) const;
 
-
 private:
 
     YandexPersonal *
@@ -209,7 +186,6 @@ private:
     PlayerService *
         m_playerService = nullptr;
 
-
     MyWaveModel *
         m_myWaveModel = nullptr;
 
@@ -222,20 +198,17 @@ private:
     PersonalChartModel *
         m_chartModel = nullptr;
 
-
     QList<PersonalLandingSection>
         m_recommendationSections;
 
     QList<PersonalPlaylist>
         m_recommendationPlaylists;
 
-
     bool m_loadingMyWave = false;
 
     bool m_loadingMoreMyWave = false;
 
     bool m_loadingRecommendations = false;
-
 
     bool m_myWaveQueueActive = false;
 

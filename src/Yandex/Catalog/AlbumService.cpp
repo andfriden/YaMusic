@@ -1,9 +1,7 @@
 #include "AlbumService.h"
-
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
-
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -12,34 +10,21 @@
 AlbumService::AlbumService(
     YandexAuth *auth,
     QObject *parent)
-    : QObject(parent)
-    , m_auth(auth)
-    , m_yandexClient(
-          new YandexClient(this))
+    : YandexServiceBase(auth, parent)
 {
 }
 
 void AlbumService::loadAlbum(
     const QString &id)
 {
-    /*
-     * Authentication
-     */
-
     if (
-        m_auth == nullptr ||
-        !m_auth->isAuthenticated()
+        !ensureAuthenticated()
     ) {
-
         emit errorOccurred(
             "Токен Яндекс Музыки не установлен");
 
         return;
     }
-
-    /*
-     * Validate ID
-     */
 
     const QString albumId =
         id.trimmed();
@@ -47,15 +32,11 @@ void AlbumService::loadAlbum(
     if (
         albumId.isEmpty()
     ) {
-
         emit errorOccurred(
             "ID альбома не указан");
 
         return;
     }
-
-    m_yandexClient->setToken(
-        m_auth->token());
 
     /*
      * -------------------------------------------------

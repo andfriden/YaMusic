@@ -3,10 +3,8 @@
 #include <QHash>
 #include <QString>
 #include <QVariant>
-
 #include "../../Models/Track.h"
 #include "TrackListModelBase.h"
-
 
 class ChartModel final : public TrackListModelBase
 {
@@ -27,23 +25,18 @@ public:
 
     Q_ENUM(Roles)
 
-
     explicit ChartModel(
         QObject *parent = nullptr);
-
 
     QVariant data(
         const QModelIndex &index,
         int role = Qt::DisplayRole) const override;
 
-
     QHash<int, QByteArray>
     roleNames() const override;
 
-
     void setTracks(
         const QList<Track> &tracks);
-
 
 private:
 };

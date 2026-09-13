@@ -1,8 +1,6 @@
 #include "GenreController.h"
-
 #include "../Yandex/Catalog/GenreService.h"
 #include "../Yandex/Personal/PlaylistService.h"
-
 #include <QCoreApplication>
 #include <QFile>
 #include <QFileInfo>
@@ -11,13 +9,10 @@
 #include <QStringList>
 #include <QTextStream>
 
-
 namespace
 {
 
-// =============================================================
 // CSV helpers
-// =============================================================
 
 QStringList splitCsvLineInternal(
     const QString &line)
@@ -28,7 +23,6 @@ QStringList splitCsvLineInternal(
 
     bool quoted = false;
 
-
     for (
         int i = 0;
         i < line.size();
@@ -37,7 +31,6 @@ QStringList splitCsvLineInternal(
     {
         const QChar ch =
             line.at(i);
-
 
         if (
             ch == '"'
@@ -60,7 +53,6 @@ QStringList splitCsvLineInternal(
             continue;
         }
 
-
         if (
             ch == ',' &&
             !quoted
@@ -74,24 +66,18 @@ QStringList splitCsvLineInternal(
             continue;
         }
 
-
         current += ch;
     }
 
-
     result.append(
         current.trimmed());
-
 
     return result;
 }
 
 }
 
-
-// =============================================================
 // Constructor
-// =============================================================
 
 GenreController::GenreController(
     GenreService *genreService,
@@ -118,7 +104,6 @@ GenreController::GenreController(
                 displayedGenres.reserve(
                     genres.size());
 
-
                 for (
                     const Genre &genre :
                     genres
@@ -132,15 +117,12 @@ GenreController::GenreController(
                         continue;
                     }
 
-
                     displayedGenres.append(
                         genre);
                 }
 
-
                 m_model->setGenres(
                     displayedGenres);
-
 
                 m_loading = false;
 
@@ -149,7 +131,6 @@ GenreController::GenreController(
                 emit statusChanged(
                     QString());
             });
-
 
         connect(
             m_genreService,
@@ -167,13 +148,10 @@ GenreController::GenreController(
                     return;
                 }
 
-
                 Q_UNUSED(tagId);
-
 
                 m_waitingForTagPlaylistIds =
                     false;
-
 
                 if (
                     playlists.isEmpty()
@@ -184,11 +162,9 @@ GenreController::GenreController(
                     return;
                 }
 
-
                 startGenrePlaylistQueue(
                     playlists);
             });
-
 
         connect(
             m_genreService,
@@ -204,9 +180,7 @@ GenreController::GenreController(
                     m_waitingForTagPlaylistIds =
                         false;
 
-
                     finishGenrePlaylistLoading();
-
 
                     emit errorOccurred(
                         message);
@@ -214,10 +188,8 @@ GenreController::GenreController(
                     return;
                 }
 
-
                 emit errorOccurred(
                     message);
-
 
                 if (
                     m_loading
@@ -232,7 +204,6 @@ GenreController::GenreController(
                 }
             });
     }
-
 
     if (
         m_playlistService != nullptr
@@ -253,17 +224,12 @@ GenreController::GenreController(
                     return;
                 }
 
-
                 m_waitingForPlaylists =
                     false;
 
-
-                // -------------------------------------------------
                 // Add only new playlists.
-                // -------------------------------------------------
 
                 QSet<QString> existingKeys;
-
 
                 for (
                     const Playlist &playlist :
@@ -276,7 +242,6 @@ GenreController::GenreController(
                                 playlist.uid,
                                 playlist.kind)));
                 }
-
 
                 for (
                     const Playlist &playlist :
@@ -291,13 +256,11 @@ GenreController::GenreController(
                         continue;
                     }
 
-
                     const QString key =
                         playlistKey(
                             qMakePair(
                                 playlist.uid,
                                 playlist.kind));
-
 
                     if (
                         existingKeys.contains(
@@ -307,30 +270,21 @@ GenreController::GenreController(
                         continue;
                     }
 
-
                     existingKeys.insert(
                         key);
 
-
                     m_genrePlaylists.append(
                         playlist);
-
 
                     m_loadedAnyGenrePlaylist =
                         true;
                 }
 
-
-                // -------------------------------------------------
                 // Progressive UI update.
-                // -------------------------------------------------
 
                 emit genreContentChanged();
 
-
-                // -------------------------------------------------
                 // More batches.
-                // -------------------------------------------------
 
                 if (
                     m_genrePlaylistQueuePosition <
@@ -342,12 +296,9 @@ GenreController::GenreController(
                     return;
                 }
 
-
-                // -------------------------------------------------
                 // CSV produced no usable playlists.
                 //
                 // Only now do we try the API fallback.
-                // -------------------------------------------------
 
                 if (
                     !m_loadedAnyGenrePlaylist &&
@@ -359,34 +310,27 @@ GenreController::GenreController(
                     return;
                 }
 
-
                 finishGenrePlaylistLoading();
             });
     }
 }
 
-
-// =============================================================
 // Properties
-// =============================================================
 
 bool GenreController::loading() const
 {
     return m_loading;
 }
 
-
 GenreModel *GenreController::model() const
 {
     return m_model;
 }
 
-
 bool GenreController::genreLoading() const
 {
     return m_genreLoading;
 }
-
 
 QVariantList GenreController::genrePlaylists() const
 {
@@ -395,7 +339,6 @@ QVariantList GenreController::genrePlaylists() const
     result.reserve(
         m_genrePlaylists.size());
 
-
     for (
         const Playlist &playlist :
         m_genrePlaylists
@@ -403,49 +346,38 @@ QVariantList GenreController::genrePlaylists() const
     {
         QVariantMap map;
 
-
         map.insert(
             "uid",
             playlist.uid);
-
 
         map.insert(
             "kind",
             playlist.kind);
 
-
         map.insert(
             "title",
             playlist.title);
-
 
         map.insert(
             "description",
             playlist.description);
 
-
         map.insert(
             "trackCount",
             playlist.trackCount);
-
 
         map.insert(
             "coverUri",
             playlist.coverUri);
 
-
         result.append(
             map);
     }
 
-
     return result;
 }
 
-
-// =============================================================
 // Genres
-// =============================================================
 
 void GenreController::loadGenres()
 {
@@ -459,7 +391,6 @@ void GenreController::loadGenres()
         return;
     }
 
-
     if (
         m_loading
     )
@@ -467,31 +398,24 @@ void GenreController::loadGenres()
         return;
     }
 
-
     m_loading =
         true;
-
 
     emit loadingChanged();
 
     emit statusChanged(
         "Загрузка жанров...");
 
-
     m_genreService->loadGenres();
 }
 
-
-// =============================================================
 // Selected genre
-// =============================================================
 
 void GenreController::loadGenre(
     const QString &genreId)
 {
     const QString trimmedGenreId =
         genreId.trimmed();
-
 
     if (
         trimmedGenreId.isEmpty()
@@ -502,7 +426,6 @@ void GenreController::loadGenre(
 
         return;
     }
-
 
     if (
         m_genreService == nullptr ||
@@ -515,7 +438,6 @@ void GenreController::loadGenre(
         return;
     }
 
-
     if (
         m_genreLoading
     )
@@ -523,42 +445,32 @@ void GenreController::loadGenre(
         return;
     }
 
-
     m_loadingGenreId =
         trimmedGenreId;
-
 
     m_genreLoading =
         true;
 
-
     m_waitingForPlaylists =
         false;
-
 
     m_waitingForTagPlaylistIds =
         false;
 
-
     m_usingApiFallback =
         false;
-
 
     m_csvHadCandidates =
         false;
 
-
     m_loadedAnyGenrePlaylist =
         false;
-
 
     m_genrePlaylistQueue.clear();
 
     m_genrePlaylistQueuePosition = 0;
 
-
     m_genrePlaylists.clear();
-
 
     emit genreLoadingChanged();
 
@@ -567,15 +479,11 @@ void GenreController::loadGenre(
     emit statusChanged(
         "Загрузка плейлистов...");
 
-
-    // -------------------------------------------------------------
     // CSV is the primary source.
-    // -------------------------------------------------------------
 
     const QList<QPair<QString, int>> csvPlaylists =
         loadPlaylistIdsFromCsv(
             trimmedGenreId);
-
 
     if (
         !csvPlaylists.isEmpty()
@@ -584,27 +492,20 @@ void GenreController::loadGenre(
         m_csvHadCandidates =
             true;
 
-
         startGenrePlaylistQueue(
             csvPlaylists);
 
         return;
     }
 
-
-    // -------------------------------------------------------------
     // CSV has no candidates.
     //
     // Go directly to API.
-    // -------------------------------------------------------------
 
     startApiFallback();
 }
 
-
-// =============================================================
 // Tag playlists
-// =============================================================
 
 void GenreController::loadTagPlaylists(
     const QString &tagId)
@@ -619,10 +520,8 @@ void GenreController::loadTagPlaylists(
         return;
     }
 
-
     const QString trimmedTagId =
         tagId.trimmed();
-
 
     if (
         trimmedTagId.isEmpty()
@@ -634,7 +533,6 @@ void GenreController::loadTagPlaylists(
         return;
     }
 
-
     if (
         m_genreLoading
     )
@@ -642,38 +540,29 @@ void GenreController::loadTagPlaylists(
         return;
     }
 
-
     m_genreLoading =
         true;
-
 
     m_waitingForPlaylists =
         false;
 
-
     m_waitingForTagPlaylistIds =
         true;
-
 
     m_usingApiFallback =
         true;
 
-
     m_csvHadCandidates =
         false;
 
-
     m_loadedAnyGenrePlaylist =
         false;
-
 
     m_genrePlaylistQueue.clear();
 
     m_genrePlaylistQueuePosition = 0;
 
-
     m_genrePlaylists.clear();
-
 
     emit genreLoadingChanged();
 
@@ -682,15 +571,11 @@ void GenreController::loadTagPlaylists(
     emit statusChanged(
         "Загрузка плейлистов...");
 
-
     m_genreService->loadTagPlaylistIds(
         trimmedTagId);
 }
 
-
-// =============================================================
 // Start playlist queue
-// =============================================================
 
 void GenreController::startGenrePlaylistQueue(
     const QList<QPair<QString, int>> &playlists)
@@ -699,9 +584,7 @@ void GenreController::startGenrePlaylistQueue(
 
     m_genrePlaylistQueuePosition = 0;
 
-
     QSet<QString> uniqueKeys;
-
 
     for (
         const QPair<QString, int> &playlist :
@@ -711,10 +594,8 @@ void GenreController::startGenrePlaylistQueue(
         const QString uid =
             playlist.first.trimmed();
 
-
         const int kind =
             playlist.second;
-
 
         if (
             uid.isEmpty() ||
@@ -724,17 +605,14 @@ void GenreController::startGenrePlaylistQueue(
             continue;
         }
 
-
         const QPair<QString, int> normalized =
             qMakePair(
                 uid,
                 kind);
 
-
         const QString key =
             playlistKey(
                 normalized);
-
 
         if (
             uniqueKeys.contains(
@@ -744,15 +622,12 @@ void GenreController::startGenrePlaylistQueue(
             continue;
         }
 
-
         uniqueKeys.insert(
             key);
-
 
         m_genrePlaylistQueue.append(
             normalized);
     }
-
 
     if (
         m_genrePlaylistQueue.isEmpty()
@@ -767,20 +642,15 @@ void GenreController::startGenrePlaylistQueue(
             return;
         }
 
-
         finishGenrePlaylistLoading();
 
         return;
     }
 
-
     loadNextGenrePlaylistBatch();
 }
 
-
-// =============================================================
 // Load next batch
-// =============================================================
 
 void GenreController::loadNextGenrePlaylistBatch()
 {
@@ -792,14 +662,12 @@ void GenreController::loadNextGenrePlaylistBatch()
         return;
     }
 
-
     if (
         m_waitingForPlaylists
     )
     {
         return;
     }
-
 
     if (
         m_genrePlaylistQueuePosition >=
@@ -816,30 +684,24 @@ void GenreController::loadNextGenrePlaylistBatch()
             return;
         }
 
-
         finishGenrePlaylistLoading();
 
         return;
     }
 
-
     const int start =
         m_genrePlaylistQueuePosition;
-
 
     const int end =
         qMin(
             start + GenrePlaylistBatchSize,
             m_genrePlaylistQueue.size());
 
-
     QList<QPair<QString, int>>
         batch;
 
-
     batch.reserve(
         end - start);
-
 
     for (
         int i = start;
@@ -851,23 +713,17 @@ void GenreController::loadNextGenrePlaylistBatch()
             m_genrePlaylistQueue.at(i));
     }
 
-
     m_genrePlaylistQueuePosition =
         end;
 
-
     m_waitingForPlaylists =
         true;
-
 
     m_playlistService->loadPlaylists(
         batch);
 }
 
-
-// =============================================================
 // API fallback
-// =============================================================
 
 void GenreController::startApiFallback()
 {
@@ -877,7 +733,6 @@ void GenreController::startApiFallback()
     {
         return;
     }
-
 
     if (
         m_genreService == nullptr
@@ -891,7 +746,6 @@ void GenreController::startApiFallback()
         return;
     }
 
-
     if (
         m_usingApiFallback
     )
@@ -901,59 +755,44 @@ void GenreController::startApiFallback()
         return;
     }
 
-
     m_usingApiFallback =
         true;
 
-
     m_csvHadCandidates =
         false;
-
 
     m_genrePlaylistQueue.clear();
 
     m_genrePlaylistQueuePosition = 0;
 
-
     m_waitingForPlaylists =
         false;
-
 
     m_waitingForTagPlaylistIds =
         true;
 
-
     emit statusChanged(
         "Получение плейлистов жанра...");
 
-
-    // -------------------------------------------------------------
     // Genre IDs used by the catalog correspond to tag IDs here.
-    // -------------------------------------------------------------
 
     m_genreService->loadTagPlaylistIds(
         m_loadingGenreId);
 }
 
-
-// =============================================================
 // Finish genre loading
-// =============================================================
 
 void GenreController::finishGenrePlaylistLoading()
 {
     m_waitingForPlaylists =
         false;
 
-
     m_waitingForTagPlaylistIds =
         false;
-
 
     m_genrePlaylistQueue.clear();
 
     m_genrePlaylistQueuePosition = 0;
-
 
     if (
         m_genreLoading
@@ -965,17 +804,13 @@ void GenreController::finishGenrePlaylistLoading()
         emit genreLoadingChanged();
     }
 
-
     emit genreContentChanged();
 
     emit statusChanged(
         QString());
 }
 
-
-// =============================================================
 // CSV loader
-// =============================================================
 
 QList<QPair<QString, int>>
 GenreController::loadPlaylistIdsFromCsv(
@@ -984,18 +819,13 @@ GenreController::loadPlaylistIdsFromCsv(
     QList<QPair<QString, int>>
         playlists;
 
-
-    // -------------------------------------------------------------
     // First try Qt resource.
-    // -------------------------------------------------------------
 
     QString csvPath =
         ":/qt/qml/YaMusic/data/genre_playlists.csv";
 
-
     QFile resourceFile(
         csvPath);
-
 
     if (
         !resourceFile.exists() ||
@@ -1004,13 +834,10 @@ GenreController::loadPlaylistIdsFromCsv(
             QIODevice::Text)
     )
     {
-        // ---------------------------------------------------------
         // Fallback to data/genre_playlists.csv near executable.
-        // ---------------------------------------------------------
 
         QString currentPath =
             QCoreApplication::applicationDirPath();
-
 
         for (
             int level = 0;
@@ -1021,7 +848,6 @@ GenreController::loadPlaylistIdsFromCsv(
             const QString candidate =
                 currentPath +
                 "/data/genre_playlists.csv";
-
 
             if (
                 QFileInfo::exists(
@@ -1034,12 +860,10 @@ GenreController::loadPlaylistIdsFromCsv(
                 break;
             }
 
-
             const QString parentPath =
                 QFileInfo(
                     currentPath)
                     .absolutePath();
-
 
             if (
                 parentPath == currentPath
@@ -1048,16 +872,13 @@ GenreController::loadPlaylistIdsFromCsv(
                 break;
             }
 
-
             currentPath =
                 parentPath;
         }
     }
 
-
     QFile file(
         csvPath);
-
 
     if (
         !file.open(
@@ -1068,10 +889,8 @@ GenreController::loadPlaylistIdsFromCsv(
         return playlists;
     }
 
-
     QTextStream stream(
         &file);
-
 
     if (
         stream.atEnd()
@@ -1080,22 +899,18 @@ GenreController::loadPlaylistIdsFromCsv(
         return playlists;
     }
 
-
     const QString headerLine =
         stream.readLine();
-
 
     const QStringList headers =
         splitCsvLine(
             headerLine);
-
 
     int genreIdColumn = -1;
 
     int uidColumn = -1;
 
     int kindColumn = -1;
-
 
     for (
         int i = 0;
@@ -1107,7 +922,6 @@ GenreController::loadPlaylistIdsFromCsv(
             headers.at(i)
                 .trimmed()
                 .toLower();
-
 
         if (
             header == "genre_id"
@@ -1129,7 +943,6 @@ GenreController::loadPlaylistIdsFromCsv(
         }
     }
 
-
     if (
         genreIdColumn < 0 ||
         uidColumn < 0 ||
@@ -1139,9 +952,7 @@ GenreController::loadPlaylistIdsFromCsv(
         return playlists;
     }
 
-
     QSet<QString> uniqueKeys;
-
 
     while (
         !stream.atEnd()
@@ -1150,7 +961,6 @@ GenreController::loadPlaylistIdsFromCsv(
         const QString line =
             stream.readLine();
 
-
         if (
             line.trimmed().isEmpty()
         )
@@ -1158,11 +968,9 @@ GenreController::loadPlaylistIdsFromCsv(
             continue;
         }
 
-
         const QStringList columns =
             splitCsvLine(
                 line);
-
 
         const int requiredColumn =
             qMax(
@@ -1170,7 +978,6 @@ GenreController::loadPlaylistIdsFromCsv(
                 qMax(
                     uidColumn,
                     kindColumn));
-
 
         if (
             columns.size() <=
@@ -1180,12 +987,10 @@ GenreController::loadPlaylistIdsFromCsv(
             continue;
         }
 
-
         const QString rowGenreId =
             columns.at(
                 genreIdColumn)
                 .trimmed();
-
 
         if (
             rowGenreId != genreId
@@ -1194,15 +999,12 @@ GenreController::loadPlaylistIdsFromCsv(
             continue;
         }
 
-
         const QString uid =
             columns.at(
                 uidColumn)
                 .trimmed();
 
-
         bool ok = false;
-
 
         const int kind =
             columns.at(
@@ -1210,7 +1012,6 @@ GenreController::loadPlaylistIdsFromCsv(
                 .trimmed()
                 .toInt(
                     &ok);
-
 
         if (
             uid.isEmpty() ||
@@ -1221,17 +1022,14 @@ GenreController::loadPlaylistIdsFromCsv(
             continue;
         }
 
-
         const QPair<QString, int> playlist =
             qMakePair(
                 uid,
                 kind);
 
-
         const QString key =
             playlistKey(
                 playlist);
-
 
         if (
             uniqueKeys.contains(
@@ -1241,23 +1039,17 @@ GenreController::loadPlaylistIdsFromCsv(
             continue;
         }
 
-
         uniqueKeys.insert(
             key);
-
 
         playlists.append(
             playlist);
     }
 
-
     return playlists;
 }
 
-
-// =============================================================
 // CSV split
-// =============================================================
 
 QStringList GenreController::splitCsvLine(
     const QString &line)
@@ -1266,10 +1058,7 @@ QStringList GenreController::splitCsvLine(
         line);
 }
 
-
-// =============================================================
 // Displayed genres
-// =============================================================
 
 bool GenreController::isDisplayedGenre(
     const QString &genreId)
@@ -1299,15 +1088,11 @@ bool GenreController::isDisplayedGenre(
         "blues"
     };
 
-
     return displayedGenres.contains(
         genreId.trimmed());
 }
 
-
-// =============================================================
 // Playlist key
-// =============================================================
 
 QString GenreController::playlistKey(
     const QPair<QString, int> &playlist)

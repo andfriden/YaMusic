@@ -6,9 +6,7 @@ PlaylistModel::PlaylistModel(
 {
 }
 
-// =============================================================
 // Model
-// =============================================================
 
 QVariant PlaylistModel::data(
     const QModelIndex &index,
@@ -84,9 +82,7 @@ PlaylistModel::roleNames() const
     };
 }
 
-// =============================================================
 // Playlist
-// =============================================================
 
 void PlaylistModel::setPlaylist(
     const Playlist &playlist)
@@ -118,9 +114,7 @@ PlaylistModel::trackCount() const
     return m_tracks.size();
 }
 
-// =============================================================
 // Like state
-// =============================================================
 
 void PlaylistModel::setTrackLiked(
     const QString &trackId,

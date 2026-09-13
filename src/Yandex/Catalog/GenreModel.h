@@ -5,9 +5,7 @@
 #include <QList>
 #include <QString>
 #include <QVariant>
-
 #include "../../Models/Genre.h"
-
 
 class GenreModel : public QAbstractListModel
 {
@@ -31,38 +29,29 @@ public:
 
     Q_ENUM(Roles)
 
-
     explicit GenreModel(
         QObject *parent = nullptr);
-
 
     int rowCount(
         const QModelIndex &parent =
             QModelIndex()) const override;
 
-
     QVariant data(
         const QModelIndex &index,
         int role = Qt::DisplayRole) const override;
 
-
     QHash<int, QByteArray>
     roleNames() const override;
-
 
     void setGenres(
         const QList<Genre> &genres);
 
-
     void clear();
-
 
     Genre genreAt(
         int index) const;
 
-
     int count() const;
-
 
 private:
 

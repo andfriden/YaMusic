@@ -26,11 +26,9 @@ public:
     Q_INVOKABLE void updateForCover(
         const QString &coverUri);
 
-
     signals:
 
         void accentColorChanged();
-
 
 private:
 
@@ -39,7 +37,6 @@ private:
 
     QString createUrl(
         QString uri) const;
-
 
 private:
 

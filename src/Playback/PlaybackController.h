@@ -2,7 +2,6 @@
 
 #include <QObject>
 #include <QString>
-
 #include "../Models/Track.h"
 #include "../Queue/QueueService.h"
 

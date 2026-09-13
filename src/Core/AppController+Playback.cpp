@@ -1,11 +1,8 @@
 #include "AppController.h"
-
 #include "../Player/PlayerService.h"
 #include "../Queue/QueueService.h"
 
-// =============================================================
 // Playback
-// =============================================================
 
 void AppController::play()
 {

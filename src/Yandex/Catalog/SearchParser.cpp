@@ -1,5 +1,4 @@
 #include "SearchParser.h"
-
 #include <QJsonArray>
 #include <QJsonObject>
 

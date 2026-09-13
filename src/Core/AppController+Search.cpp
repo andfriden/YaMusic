@@ -1,12 +1,10 @@
 #include "AppController.h"
 
-
 void AppController::search(
     const QString &query)
 {
     const QString trimmedQuery =
         query.trimmed();
-
 
     if (
         trimmedQuery.isEmpty()
@@ -15,7 +13,6 @@ void AppController::search(
         return;
     }
 
-
     if (
         m_searchController == nullptr
     )
@@ -23,10 +20,8 @@ void AppController::search(
         return;
     }
 
-
     emit searchPageRequested(
         trimmedQuery);
-
 
     m_searchController
         ->search(

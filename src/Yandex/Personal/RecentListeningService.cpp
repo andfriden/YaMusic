@@ -1,9 +1,7 @@
 #include "RecentListeningService.h"
-
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
-
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -13,10 +11,7 @@
 RecentListeningService::RecentListeningService(
     YandexAuth *auth,
     QObject *parent)
-    : QObject(parent)
-    , m_auth(auth)
-    , m_yandexClient(
-          new YandexClient(this))
+    : YandexServiceBase(auth, parent)
 {
     connect(
         m_yandexClient,
@@ -133,13 +128,10 @@ void RecentListeningService::load(
         return;
     }
 
-    if (
-        m_auth == nullptr ||
-        !m_auth->isAuthenticated()
-    ) {
+    if (!ensureAuthenticated()) {
 
         emit errorOccurred(
-            "Yandex Music token is not set");
+            "Токен Яндекс Музыки не установлен");
 
         return;
     }
@@ -159,10 +151,6 @@ void RecentListeningService::load(
     if (contextCount <= 0) {
         contextCount = 10;
     }
-
-    m_yandexClient
-        ->setToken(
-            m_auth->token());
 
     QUrlQuery query;
 

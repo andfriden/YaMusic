@@ -1,5 +1,4 @@
 #include "LikesService.h"
-
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -8,32 +7,25 @@
 #include <QSet>
 #include <QUrlQuery>
 #include <memory>
-
 #include "../Auth/YandexAuth.h"
 #include "../YandexClient.h"
-
 
 LikesService::LikesService(
     YandexAuth *auth,
     QObject *parent)
-    : QObject(parent)
-    , m_auth(auth)
-    , m_yandexClient(new YandexClient(this))
+    : YandexServiceBase(auth, parent)
 {
 }
 
-
-// =============================================================
 // Load liked tracks
-// =============================================================
 
 void LikesService::loadLikedTracks(
     const QString &uid)
 {
-    if (m_auth == nullptr)
+    if (!ensureAuthenticated())
     {
         emit errorOccurred(
-            QStringLiteral("Сервис авторизации недоступен"));
+            QStringLiteral("Токен Яндекс Музыки не установлен"));
 
         return;
     }
@@ -48,9 +40,6 @@ void LikesService::loadLikedTracks(
 
     if (m_loading)
         return;
-
-    m_yandexClient->setToken(
-        m_auth->token());
 
     if (!m_yandexClient->hasToken())
     {
@@ -232,10 +221,7 @@ void LikesService::loadLikedTracks(
         });
 }
 
-
-// =============================================================
 // Load full track data by IDs
-// =============================================================
 
 void LikesService::loadTracksByIds(
     const QStringList &trackIds)
@@ -311,10 +297,7 @@ void LikesService::loadTracksByIds(
     m_yandexClient->getTracks(trackIds);
 }
 
-
-// =============================================================
 // Add like
-// =============================================================
 
 void LikesService::addLike(
     const QString &uid,
@@ -326,10 +309,7 @@ void LikesService::addLike(
         true);
 }
 
-
-// =============================================================
 // Remove like
-// =============================================================
 
 void LikesService::removeLike(
     const QString &uid,
@@ -341,10 +321,7 @@ void LikesService::removeLike(
         false);
 }
 
-
-// =============================================================
 // Like state
-// =============================================================
 
 bool LikesService::isLiked(
     const QString &trackId) const
@@ -358,20 +335,17 @@ bool LikesService::isLiked(
     return m_likedTrackIds.contains(id);
 }
 
-
-// =============================================================
 // Change like
-// =============================================================
 
 void LikesService::changeLike(
     const QString &uid,
     const QString &trackId,
     bool liked)
 {
-    if (m_auth == nullptr)
+    if (!ensureAuthenticated())
     {
         emit errorOccurred(
-            QStringLiteral("Сервис авторизации недоступен"));
+            QStringLiteral("Токен Яндекс Музыки не установлен"));
 
         return;
     }
@@ -405,9 +379,6 @@ void LikesService::changeLike(
 
         return;
     }
-
-    m_yandexClient->setToken(
-        m_auth->token());
 
     if (!m_yandexClient->hasToken())
     {

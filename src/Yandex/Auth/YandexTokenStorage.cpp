@@ -1,7 +1,5 @@
 #include "YandexTokenStorage.h"
-
 #include <QSettings>
-
 
 namespace
 {
@@ -15,10 +13,7 @@ namespace
         "yandex/token";
 }
 
-
-// =============================================================
 // Load
-// =============================================================
 
 QString YandexTokenStorage::load()
 {
@@ -32,10 +27,7 @@ QString YandexTokenStorage::load()
         .toString();
 }
 
-
-// =============================================================
 // Save
-// =============================================================
 
 bool YandexTokenStorage::saveToken(
     const QString &token)
@@ -61,10 +53,7 @@ bool YandexTokenStorage::saveToken(
         QSettings::NoError;
 }
 
-
-// =============================================================
 // Clear
-// =============================================================
 
 bool YandexTokenStorage::clearToken()
 {

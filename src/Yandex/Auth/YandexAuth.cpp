@@ -1,5 +1,4 @@
 #include "YandexAuth.h"
-
 #include "YandexTokenStorage.h"
 
 #include <QProcessEnvironment>

@@ -4,19 +4,12 @@
 #include <QList>
 #include <QString>
 #include <QVariant>
-
 #include "AlbumService.h"
 #include "TrackListModelBase.h"
-
 
 class AlbumModel final : public TrackListModelBase
 {
     Q_OBJECT
-
-    Q_PROPERTY(
-        int count
-        READ count
-        NOTIFY countChanged)
 
     Q_PROPERTY(
         QString title
@@ -48,48 +41,37 @@ public:
 
     Q_ENUM(Roles)
 
-
     explicit AlbumModel(
         QObject *parent = nullptr);
-
 
     QVariant data(
         const QModelIndex &index,
         int role =
             Qt::DisplayRole) const override;
 
-
     QHash<int, QByteArray>
     roleNames() const override;
-
 
     void setAlbum(
         const AlbumDetails &album);
 
-
     void clear();
-
 
     QString title() const;
 
-
     QString coverUri() const;
 
-
     int trackCount() const;
-
 
     void setTrackLiked(
         const QString &trackId,
         bool liked);
-
 
 signals:
 
     void countChanged();
 
     void albumChanged();
-
 
 private:
 

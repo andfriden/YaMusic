@@ -1,12 +1,10 @@
 #include "PersonalChartModel.h"
 
-
 PersonalChartModel::PersonalChartModel(
     QObject *parent)
     : QAbstractListModel(parent)
 {
 }
-
 
 int PersonalChartModel::rowCount(
     const QModelIndex &parent) const
@@ -21,7 +19,6 @@ int PersonalChartModel::rowCount(
     return m_items.size();
 }
 
-
 QVariant PersonalChartModel::data(
     const QModelIndex &index,
     int role) const
@@ -35,11 +32,9 @@ QVariant PersonalChartModel::data(
         return {};
     }
 
-
     const PersonalChartItem &item =
         m_items.at(
             index.row());
-
 
     switch (role)
     {
@@ -75,7 +70,6 @@ QVariant PersonalChartModel::data(
     }
 }
 
-
 QHash<int, QByteArray>
 PersonalChartModel::roleNames() const
 {
@@ -92,7 +86,6 @@ PersonalChartModel::roleNames() const
     };
 }
 
-
 void PersonalChartModel::setItems(
     const QList<PersonalChartItem> &items)
 {
@@ -104,7 +97,6 @@ void PersonalChartModel::setItems(
     endResetModel();
 }
 
-
 void PersonalChartModel::clear()
 {
     beginResetModel();
@@ -114,12 +106,10 @@ void PersonalChartModel::clear()
     endResetModel();
 }
 
-
 QVariantMap PersonalChartModel::item(
     int index) const
 {
     QVariantMap result;
-
 
     if (
         index < 0 ||
@@ -129,10 +119,8 @@ QVariantMap PersonalChartModel::item(
         return result;
     }
 
-
     const PersonalChartItem &item =
         m_items.at(index);
-
 
     result["trackId"] =
         item.id;
@@ -160,7 +148,6 @@ QVariantMap PersonalChartModel::item(
 
     result["durationMs"] =
         item.durationMs;
-
 
     return result;
 }

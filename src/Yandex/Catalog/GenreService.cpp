@@ -1,16 +1,13 @@
 #include "GenreService.h"
-
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
-
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
 #include <QJsonValue>
 #include <QNetworkReply>
-
 
 namespace
 {
@@ -50,12 +47,10 @@ Genre parseGenre(
             .value("showInMenu")
             .toBool(false);
 
-
     const QJsonObject images =
         object
             .value("images")
             .toObject();
-
 
     genre.image208 =
         images
@@ -67,16 +62,13 @@ Genre parseGenre(
             .value("300x300")
             .toString();
 
-
     const QJsonArray subGenres =
         object
             .value("subGenres")
             .toArray();
 
-
     genre.subGenres.reserve(
         subGenres.size());
-
 
     for (
         const QJsonValue &value :
@@ -90,11 +82,9 @@ Genre parseGenre(
             continue;
         }
 
-
         const Genre subGenre =
             parseGenre(
                 value.toObject());
-
 
         if (
             subGenre.id.isEmpty()
@@ -103,15 +93,12 @@ Genre parseGenre(
             continue;
         }
 
-
         genre.subGenres.append(
             subGenre);
     }
 
-
     return genre;
 }
-
 
 QList<Genre> parseGenres(
     const QJsonArray &genresArray)
@@ -120,7 +107,6 @@ QList<Genre> parseGenres(
 
     genres.reserve(
         genresArray.size());
-
 
     for (
         const QJsonValue &value :
@@ -134,11 +120,9 @@ QList<Genre> parseGenres(
             continue;
         }
 
-
         const Genre genre =
             parseGenre(
                 value.toObject());
-
 
         if (
             genre.id.isEmpty()
@@ -147,42 +131,30 @@ QList<Genre> parseGenres(
             continue;
         }
 
-
         genres.append(
             genre);
     }
-
 
     return genres;
 }
 
 }
 
-
-// =============================================================
 // Constructor
-// =============================================================
 
 GenreService::GenreService(
     YandexAuth *auth,
     QObject *parent)
-    : QObject(parent)
-    , m_auth(auth)
-    , m_yandexClient(
-          new YandexClient(this))
+    : YandexServiceBase(auth, parent)
 {
 }
 
-
-// =============================================================
 // Genres
-// =============================================================
 
 void GenreService::loadGenres()
 {
     if (
-        m_auth == nullptr ||
-        !m_auth->isAuthenticated()
+        !ensureAuthenticated()
     )
     {
         emit errorOccurred(
@@ -191,15 +163,9 @@ void GenreService::loadGenres()
         return;
     }
 
-
-    m_yandexClient->setToken(
-        m_auth->token());
-
-
     QNetworkReply *reply =
         m_yandexClient->get(
             "/genres");
-
 
     if (
         reply == nullptr
@@ -211,7 +177,6 @@ void GenreService::loadGenres()
         return;
     }
 
-
     connect(
         reply,
         &QNetworkReply::finished,
@@ -220,7 +185,6 @@ void GenreService::loadGenres()
         {
             const QByteArray data =
                 reply->readAll();
-
 
             if (
                 reply->error() !=
@@ -235,15 +199,12 @@ void GenreService::loadGenres()
                 return;
             }
 
-
             QJsonParseError parseError;
-
 
             const QJsonDocument document =
                 QJsonDocument::fromJson(
                     data,
                     &parseError);
-
 
             if (
                 parseError.error !=
@@ -259,12 +220,10 @@ void GenreService::loadGenres()
                 return;
             }
 
-
             const QJsonValue resultValue =
                 document
                     .object()
                     .value("result");
-
 
             if (
                 !resultValue.isArray()
@@ -278,31 +237,24 @@ void GenreService::loadGenres()
                 return;
             }
 
-
             const QList<Genre> genres =
                 parseGenres(
                     resultValue.toArray());
 
-
             emit genresReceived(
                 genres);
-
 
             reply->deleteLater();
         });
 }
 
-
-// =============================================================
 // Tag playlists
-// =============================================================
 
 void GenreService::loadTagPlaylistIds(
     const QString &tagId)
 {
     if (
-        m_auth == nullptr ||
-        !m_auth->isAuthenticated()
+        !ensureAuthenticated()
     )
     {
         emit errorOccurred(
@@ -311,10 +263,8 @@ void GenreService::loadTagPlaylistIds(
         return;
     }
 
-
     const QString trimmedTagId =
         tagId.trimmed();
-
 
     if (
         trimmedTagId.isEmpty()
@@ -326,22 +276,15 @@ void GenreService::loadTagPlaylistIds(
         return;
     }
 
-
-    m_yandexClient->setToken(
-        m_auth->token());
-
-
     const QString path =
         QString(
             "/tags/%1/playlist-ids")
         .arg(
             trimmedTagId);
 
-
     QNetworkReply *reply =
         m_yandexClient->get(
             path);
-
 
     if (
         reply == nullptr
@@ -353,7 +296,6 @@ void GenreService::loadTagPlaylistIds(
         return;
     }
 
-
     connect(
         reply,
         &QNetworkReply::finished,
@@ -362,7 +304,6 @@ void GenreService::loadTagPlaylistIds(
         {
             const QByteArray data =
                 reply->readAll();
-
 
             if (
                 reply->error() !=
@@ -377,15 +318,12 @@ void GenreService::loadTagPlaylistIds(
                 return;
             }
 
-
             QJsonParseError parseError;
-
 
             const QJsonDocument document =
                 QJsonDocument::fromJson(
                     data,
                     &parseError);
-
 
             if (
                 parseError.error !=
@@ -401,24 +339,19 @@ void GenreService::loadTagPlaylistIds(
                 return;
             }
 
-
             const QJsonObject result =
                 unwrapResult(document);
-
 
             const QJsonArray ids =
                 result
                     .value("ids")
                     .toArray();
 
-
             QList<QPair<QString, int>>
                 playlists;
 
-
             playlists.reserve(
                 ids.size());
-
 
             for (
                 const QJsonValue &value :
@@ -432,22 +365,18 @@ void GenreService::loadTagPlaylistIds(
                     continue;
                 }
 
-
                 const QJsonObject object =
                     value.toObject();
-
 
                 const qint64 uid =
                     object
                         .value("uid")
                         .toInteger();
 
-
                 const int kind =
                     object
                         .value("kind")
                         .toInt();
-
 
                 if (
                     uid <= 0 ||
@@ -457,18 +386,15 @@ void GenreService::loadTagPlaylistIds(
                     continue;
                 }
 
-
                 playlists.append(
                     qMakePair(
                         QString::number(uid),
                         kind));
             }
 
-
             emit tagPlaylistIdsReceived(
                 trimmedTagId,
                 playlists);
-
 
             reply->deleteLater();
         });

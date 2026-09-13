@@ -5,7 +5,6 @@
 #include <QVariant>
 #include <QVariantList>
 #include <QVariantMap>
-
 #include "../../Models/Track.h"
 #include "../Catalog/TrackListModelBase.h"
 
@@ -28,23 +27,18 @@ public:
     explicit RecentListeningModel(
         QObject *parent = nullptr);
 
-
     QVariant data(
         const QModelIndex &index,
         int role = Qt::DisplayRole) const override;
 
-
     QHash<int, QByteArray>
     roleNames() const override;
-
 
     void setTracks(
         const QList<Track> &tracks);
 
-
     Q_INVOKABLE QVariantMap trackDataAt(
         int index) const;
-
 
     Q_INVOKABLE QVariantList randomTrackData(
         int limit) const;

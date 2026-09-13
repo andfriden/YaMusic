@@ -1,16 +1,12 @@
 #include "LikedTracksModel.h"
 
-
 LikedTracksModel::LikedTracksModel(
     QObject *parent)
     : TrackListModelBase(parent)
 {
 }
 
-
-// =============================================================
 // Model
-// =============================================================
 
 QVariant LikedTracksModel::data(
     const QModelIndex &index,
@@ -25,11 +21,9 @@ QVariant LikedTracksModel::data(
         return {};
     }
 
-
     const Track &track =
         m_tracks.at(
             index.row());
-
 
     switch (role)
     {
@@ -69,10 +63,8 @@ QVariant LikedTracksModel::data(
             return track.liked;
     }
 
-
     return {};
 }
-
 
 QHash<int, QByteArray>
 LikedTracksModel::roleNames() const
@@ -90,10 +82,7 @@ LikedTracksModel::roleNames() const
     };
 }
 
-
-// =============================================================
 // Tracks
-// =============================================================
 
 void LikedTracksModel::setTracks(
     const QList<Track> &tracks)
@@ -114,16 +103,12 @@ void LikedTracksModel::setTracks(
         liked);
 }
 
-
 void LikedTracksModel::clear()
 {
     TrackListModelBase::clear();
 }
 
-
-// =============================================================
 // Like state
-// =============================================================
 
 void LikedTracksModel::setTrackLiked(
     const QString &trackId,
@@ -135,34 +120,8 @@ void LikedTracksModel::setTrackLiked(
         LikedRole);
 }
 
-
 void LikedTracksModel::removeTrack(
     const QString &trackId)
 {
-    for (
-        int i = 0;
-        i < m_tracks.size();
-        ++i
-    )
-    {
-        if (
-            m_tracks[i].id != trackId
-        )
-        {
-            continue;
-        }
-
-
-        beginRemoveRows(
-            QModelIndex(),
-            i,
-            i);
-
-        m_tracks.removeAt(
-            i);
-
-        endRemoveRows();
-
-        return;
-    }
+    removeTrackById(trackId);
 }

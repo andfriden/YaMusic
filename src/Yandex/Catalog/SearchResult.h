@@ -2,7 +2,6 @@
 
 #include <QList>
 #include <QString>
-
 #include "../../Models/Track.h"
 
 struct SearchResults

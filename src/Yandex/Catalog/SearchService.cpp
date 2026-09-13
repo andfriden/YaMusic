@@ -1,14 +1,11 @@
 #include "SearchService.h"
-
 #include "../Auth/YandexAuth.h"
 #include "../YandexClient.h"
 
 SearchService::SearchService(
     YandexAuth *auth,
     QObject *parent)
-    : QObject(parent)
-    , m_auth(auth)
-    , m_yandexClient(new YandexClient(this))
+    : YandexServiceBase(auth, parent)
 {
     connect(
         m_yandexClient,
@@ -35,11 +32,10 @@ SearchService::SearchService(
 void SearchService::search(
     const QString &query)
 {
-    if (m_auth == nullptr ||
-        !m_auth->isAuthenticated()) {
+    if (!ensureAuthenticated()) {
 
         emit errorOccurred(
-            "Yandex Music token is not set");
+            "Токен Яндекс Музыки не установлен");
 
         return;
         }
@@ -54,9 +50,6 @@ void SearchService::search(
 
         return;
     }
-
-    m_yandexClient->setToken(
-        m_auth->token());
 
     emit searchStarted();
 

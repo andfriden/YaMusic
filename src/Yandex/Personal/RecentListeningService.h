@@ -4,13 +4,9 @@
 #include <QHash>
 #include <QJsonObject>
 #include <QList>
-#include <QObject>
 #include <QString>
-
 #include "../../Models/Track.h"
-
-class YandexAuth;
-class YandexClient;
+#include "../YandexServiceBase.h"
 
 struct RecentListeningTrack
 {
@@ -18,7 +14,7 @@ struct RecentListeningTrack
     QDateTime timestamp;
 };
 
-class RecentListeningService : public QObject
+class RecentListeningService : public YandexServiceBase
 {
     Q_OBJECT
 
@@ -55,12 +51,6 @@ private:
 
     void resolveTracks(
         const QList<RecentListeningTrack> &references);
-
-    YandexAuth *
-        m_auth = nullptr;
-
-    YandexClient *
-        m_yandexClient = nullptr;
 
     QString
         m_userId;

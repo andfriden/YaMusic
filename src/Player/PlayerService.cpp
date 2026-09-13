@@ -6,9 +6,7 @@ PlayerService::PlayerService(
     , m_player(this)
     , m_audioOutput(this)
 {
-    // =========================================================
     // Audio output
-    // =========================================================
 
     m_audioOutput.setVolume(
         1.0f);
@@ -19,9 +17,7 @@ PlayerService::PlayerService(
     m_player.setAudioOutput(
         &m_audioOutput);
 
-    // =========================================================
     // Playback state
-    // =========================================================
 
     connect(
         &m_player,
@@ -59,9 +55,7 @@ PlayerService::PlayerService(
             }
         });
 
-    // =========================================================
     // Media status
-    // =========================================================
 
     connect(
         &m_player,
@@ -113,9 +107,7 @@ PlayerService::PlayerService(
             }
         });
 
-    // =========================================================
     // Position
-    // =========================================================
 
     connect(
         &m_player,
@@ -128,9 +120,7 @@ PlayerService::PlayerService(
                 position);
         });
 
-    // =========================================================
     // Duration
-    // =========================================================
 
     connect(
         &m_player,
@@ -143,9 +133,7 @@ PlayerService::PlayerService(
                 duration);
         });
 
-    // =========================================================
     // Player errors
-    // =========================================================
 
     connect(
         &m_player,
@@ -160,9 +148,7 @@ PlayerService::PlayerService(
                 errorString);
         });
 
-    // =========================================================
     // Volume
-    // =========================================================
 
     connect(
         &m_audioOutput,
@@ -174,9 +160,7 @@ PlayerService::PlayerService(
             emit volumeChanged();
         });
 
-    // =========================================================
     // Mute
-    // =========================================================
 
     connect(
         &m_audioOutput,
@@ -188,9 +172,7 @@ PlayerService::PlayerService(
         });
 }
 
-// =============================================================
 // Playback state
-// =============================================================
 
 bool PlayerService::isPlaying() const
 {
@@ -213,9 +195,7 @@ qint64 PlayerService::duration() const
     return m_player.duration();
 }
 
-// =============================================================
 // Volume
-// =============================================================
 
 float PlayerService::volume() const
 {
@@ -227,9 +207,7 @@ bool PlayerService::isMuted() const
     return m_audioOutput.isMuted();
 }
 
-// =============================================================
 // Playback
-// =============================================================
 
 void PlayerService::play()
 {
@@ -310,9 +288,7 @@ void PlayerService::seek(
         clampedPosition);
 }
 
-// =============================================================
 // Volume
-// =============================================================
 
 void PlayerService::setVolume(
     float volume)

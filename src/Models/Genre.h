@@ -3,7 +3,6 @@
 #include <QList>
 #include <QString>
 
-
 struct Genre
 {
     QString id;

@@ -6,7 +6,6 @@
 #include <QString>
 #include <QStringList>
 
-
 struct PersonalChartItem
 {
     QString id;
@@ -23,7 +22,6 @@ struct PersonalChartItem
 
     QStringList artists;
 };
-
 
 class PersonalChartModel : public QAbstractListModel
 {
@@ -47,31 +45,24 @@ public:
     explicit PersonalChartModel(
         QObject *parent = nullptr);
 
-
     int rowCount(
         const QModelIndex &parent =
             QModelIndex()) const override;
-
 
     QVariant data(
         const QModelIndex &index,
         int role = Qt::DisplayRole) const override;
 
-
     QHash<int, QByteArray>
     roleNames() const override;
-
 
     void setItems(
         const QList<PersonalChartItem> &items);
 
-
     void clear();
-
 
     Q_INVOKABLE QVariantMap item(
         int index) const;
-
 
 private:
 

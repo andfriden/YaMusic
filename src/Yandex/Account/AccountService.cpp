@@ -1,5 +1,4 @@
 #include "AccountService.h"
-
 #include "../../Yandex/Auth/YandexAuth.h"
 #include "../../Yandex/YandexClient.h"
 

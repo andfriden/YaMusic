@@ -1,14 +1,10 @@
 #pragma once
 
-#include <QObject>
 #include <QString>
-
 #include "SearchResult.h"
+#include "../YandexServiceBase.h"
 
-class YandexAuth;
-class YandexClient;
-
-class SearchService : public QObject
+class SearchService : public YandexServiceBase
 {
     Q_OBJECT
 
@@ -28,8 +24,4 @@ public:
 
     void errorOccurred(
         const QString &message);
-
-private:
-    YandexAuth *m_auth = nullptr;
-    YandexClient *m_yandexClient = nullptr;
 };

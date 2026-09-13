@@ -1,7 +1,6 @@
 #pragma once
 
 #include "SearchResult.h"
-
 #include <QJsonObject>
 
 // Converts a Yandex Music search response into application models.

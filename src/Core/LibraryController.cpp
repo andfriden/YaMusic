@@ -1,12 +1,6 @@
 #include "LibraryController.h"
-
 #include "../Queue/QueueService.h"
-
 #include "../Yandex/Personal/LikesService.h"
-
-// =============================================================
-// Constructor
-// =============================================================
 
 LibraryController::LibraryController(
     PlaylistService *playlistService,
@@ -15,66 +9,30 @@ LibraryController::LibraryController(
     PlaybackController *playbackController,
     QObject *parent)
     : QObject(parent)
-
-    , m_playlistService(
-          playlistService)
-
-    , m_artistService(
-          artistService)
-
-    , m_likesService(
-          likesService)
-
-    , m_playbackController(
-          playbackController)
-
-    , m_libraryPlaylistsModel(
-          new LibraryPlaylistsModel(this))
-
-    , m_likedTracksModel(
-          new LikedTracksModel(this))
-
-    , m_playlistModel(
-          new PlaylistModel(this))
-
-    , m_artistModel(
-          new ArtistModel(this))
+    , m_playlistService(playlistService)
+    , m_artistService(artistService)
+    , m_likesService(likesService)
+    , m_playbackController(playbackController)
+    , m_libraryPlaylistsModel(new LibraryPlaylistsModel(this))
+    , m_likedTracksModel(new LikedTracksModel(this))
+    , m_playlistModel(new PlaylistModel(this))
+    , m_artistModel(new ArtistModel(this))
 {
-    // =============================================================
-    // Playlist service
-    // =============================================================
-
-    if (
-        m_playlistService != nullptr
-    )
-    {
+    if (m_playlistService != nullptr) {
         connect(
             m_playlistService,
             &PlaylistService::playlistReceived,
             this,
-            [this](
-                const Playlist &playlist)
-            {
-                m_loadingPlaylist =
-                    false;
+            [this](const Playlist &playlist) {
+                m_loadingPlaylist = false;
 
                 emit loadingPlaylistChanged();
 
-                Playlist playlistWithLikes =
-                    playlist;
+                Playlist playlistWithLikes = playlist;
 
-                if (
-                    m_likesService != nullptr
-                )
-                {
-                    for (
-                        Track &track :
-                        playlistWithLikes.tracks
-                    )
-                    {
-                        track.liked =
-                            m_likesService->isLiked(
-                                track.id);
+                if (m_likesService != nullptr) {
+                    for (Track &track : playlistWithLikes.tracks) {
+                        track.liked = m_likesService->isLiked(track.id);
                     }
                 }
 
@@ -198,9 +156,7 @@ LibraryController::LibraryController(
             });
     }
 
-    // =============================================================
     // Likes service
-    // =============================================================
 
     if (
         m_likesService != nullptr
@@ -270,9 +226,7 @@ LibraryController::LibraryController(
             });
     }
 
-    // =============================================================
     // Artist service
-    // =============================================================
 
     if (
         m_artistService != nullptr
@@ -332,9 +286,7 @@ LibraryController::LibraryController(
     }
 }
 
-// =============================================================
 // Library playlists
-// =============================================================
 
 void LibraryController::loadUserPlaylists(
     const QString &uid)
@@ -421,9 +373,7 @@ LibraryController::isLoadingLibraryPlaylists() const
     return m_loadingLibraryPlaylists;
 }
 
-// =============================================================
 // Liked tracks
-// =============================================================
 
 void LibraryController::loadLikedTracks(
     const QString &uid)
@@ -528,9 +478,7 @@ LibraryController::isLoadingLikedTracks() const
     return m_loadingLikedTracks;
 }
 
-// =============================================================
 // Playlist
-// =============================================================
 
 void LibraryController::loadPlaylist(
     const QString &uid,
@@ -675,9 +623,7 @@ LibraryController::similarPlaylists() const
     return m_similarPlaylists;
 }
 
-// =============================================================
 // Artist
-// =============================================================
 
 void LibraryController::loadArtist(
     const QString &id)
@@ -817,9 +763,7 @@ LibraryController::currentArtistTrackCount() const
     return m_currentArtistTrackCount;
 }
 
-// =============================================================
 // Likes
-// =============================================================
 
 void LibraryController::setTrackLiked(
     const QString &trackId,

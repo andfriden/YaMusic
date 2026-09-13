@@ -1,10 +1,7 @@
 #include "PersonalController.h"
-
 #include "../Yandex/Personal/YandexPersonal.h"
 
-// =============================================================
 // Constructor
-// =============================================================
 
 PersonalController::PersonalController(
     YandexPersonal *yandexPersonal,
@@ -37,9 +34,7 @@ PersonalController::PersonalController(
 
     connectPlayback();
 
-    // =============================================================
     // New playlists
-    // =============================================================
 
     if (
         m_newPlaylistsService != nullptr
@@ -128,9 +123,7 @@ PersonalController::PersonalController(
                     return;
                 }
 
-                // -----------------------------------------------------
                 // Replace existing new-playlists section
-                // -----------------------------------------------------
 
                 bool replaced =
                     false;
@@ -155,9 +148,7 @@ PersonalController::PersonalController(
                     }
                 }
 
-                // -----------------------------------------------------
                 // Add section if landing3 did not provide it
-                // -----------------------------------------------------
 
                 if (
                     !replaced
@@ -167,9 +158,7 @@ PersonalController::PersonalController(
                         section);
                 }
 
-                // -----------------------------------------------------
                 // Rebuild flat playlist list
-                // -----------------------------------------------------
 
                 m_recommendationPlaylists.clear();
 
@@ -193,9 +182,7 @@ PersonalController::PersonalController(
                     }
                 }
 
-                // -----------------------------------------------------
                 // Update model
-                // -----------------------------------------------------
 
                 if (
                     m_personalPlaylistsModel != nullptr
@@ -215,9 +202,7 @@ PersonalController::PersonalController(
     }
 }
 
-// =============================================================
 // Models
-// =============================================================
 
 MyWaveModel *
 PersonalController::myWaveModel() const
@@ -243,9 +228,7 @@ PersonalController::chartModel() const
     return m_chartModel;
 }
 
-// =============================================================
 // Loading state
-// =============================================================
 
 bool
 PersonalController::isLoadingMyWave() const

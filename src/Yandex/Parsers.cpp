@@ -1,10 +1,8 @@
 #include "Parsers.h"
-
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
-
 
 QString parseId(
     const QJsonObject &object)
@@ -49,7 +47,6 @@ QString parseId(
     return {};
 }
 
-
 QString parseCoverUri(
     const QJsonObject &object)
 {
@@ -81,7 +78,6 @@ QString parseCoverUri(
         .toString();
 }
 
-
 Artist parseArtist(
     const QJsonObject &object)
 {
@@ -111,7 +107,6 @@ Artist parseArtist(
 
     return artist;
 }
-
 
 Album parseAlbum(
     const QJsonObject &object)
@@ -146,7 +141,6 @@ Album parseAlbum(
 
     return album;
 }
-
 
 Track parseTrack(
     const QJsonObject &object)
@@ -234,7 +228,6 @@ Track parseTrack(
     return track;
 }
 
-
 QList<Track> parseTrackArray(
     const QJsonArray &array)
 {
@@ -265,7 +258,6 @@ QList<Track> parseTrackArray(
 
     return tracks;
 }
-
 
 QJsonObject unwrapResult(
     const QJsonDocument &document)

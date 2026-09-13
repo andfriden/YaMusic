@@ -1,17 +1,11 @@
 #pragma once
 
 #include <QList>
-#include <QObject>
 #include <QString>
-
 #include "../../Models/Track.h"
+#include "../YandexServiceBase.h"
 
-
-class YandexAuth;
-class YandexClient;
-
-
-class ChartService : public QObject
+class ChartService : public YandexServiceBase
 {
     Q_OBJECT
 
@@ -21,10 +15,8 @@ public:
         YandexAuth *auth,
         QObject *parent = nullptr);
 
-
     void loadChart(
         const QString &chartType);
-
 
     signals:
 
@@ -32,17 +24,6 @@ public:
             const QList<Track> &tracks,
             const QString &chartType);
 
-
     void errorOccurred(
         const QString &message);
-
-
-private:
-
-    YandexAuth *
-        m_auth = nullptr;
-
-
-    YandexClient *
-        m_yandexClient = nullptr;
 };

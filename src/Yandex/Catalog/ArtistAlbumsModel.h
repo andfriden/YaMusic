@@ -6,7 +6,6 @@
 #include <QList>
 #include <QModelIndex>
 #include <QVariant>
-
 #include "../../Models/Track.h"
 
 class ArtistAlbumsModel : public QAbstractListModel

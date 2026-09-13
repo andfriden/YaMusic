@@ -35,7 +35,6 @@ private:
     QImage m_image;
 };
 
-
 class CoverImageProvider :
     public QQuickAsyncImageProvider
 {

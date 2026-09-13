@@ -5,9 +5,7 @@
 #include <QList>
 #include <QByteArray>
 #include <QVariant>
-
 #include "../../Models/Track.h"
-
 
 class TrackListModelBase : public QAbstractListModel
 {
@@ -22,11 +20,9 @@ public:
 
     using QAbstractListModel::QAbstractListModel;
 
-
     int rowCount(
         const QModelIndex &parent =
             QModelIndex()) const override;
-
 
     /*
      * Access a single track by index.
@@ -36,13 +32,11 @@ public:
     Track trackAt(
         int index) const;
 
-
     /*
      * All tracks (copy).
      */
 
     QList<Track> tracks() const;
-
 
     /*
      * Convenience property.
@@ -50,13 +44,11 @@ public:
 
     int count() const;
 
-
     /*
      * Remove all tracks and signal the UI.
      */
 
     void clear();
-
 
     /*
      * Replace all tracks with a new list.
@@ -66,7 +58,6 @@ public:
 
     void setTracks(
         const QList<Track> &tracks);
-
 
     /*
      * Find a track by id and set its `liked` flag.
@@ -79,11 +70,17 @@ public:
         bool liked,
         int likedRole);
 
+    /*
+     * Remove the first track with matching id.
+     * Emits rowsRemoved. Returns true if removed.
+     */
+
+    bool removeTrackById(
+        const QString &trackId);
 
 signals:
 
     void countChanged();
-
 
 protected:
 

@@ -3,8 +3,8 @@
 #include <QObject>
 #include <QList>
 #include <QString>
-
 #include "../../Models/Track.h"
+#include "../YandexServiceBase.h"
 
 struct AlbumDetails
 {
@@ -17,10 +17,7 @@ struct AlbumDetails
     QList<Track> tracks;
 };
 
-class YandexAuth;
-class YandexClient;
-
-class AlbumService : public QObject
+class AlbumService : public YandexServiceBase
 {
     Q_OBJECT
 
@@ -38,8 +35,4 @@ public:
 
     void errorOccurred(
         const QString &message);
-
-private:
-    YandexAuth *m_auth = nullptr;
-    YandexClient *m_yandexClient = nullptr;
 };

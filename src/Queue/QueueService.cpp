@@ -1,7 +1,5 @@
 #include "QueueService.h"
-
 #include <QRandomGenerator>
-
 
 QueueService::QueueService(
     QObject *parent)
@@ -9,10 +7,7 @@ QueueService::QueueService(
 {
 }
 
-
-// =============================================================
 // Queue
-// =============================================================
 
 int
 QueueService::count() const
@@ -20,13 +15,11 @@ QueueService::count() const
     return m_tracks.size();
 }
 
-
 int
 QueueService::currentIndex() const
 {
     return m_currentIndex;
 }
-
 
 Track
 QueueService::currentTrack() const
@@ -41,7 +34,6 @@ QueueService::currentTrack() const
     return m_tracks.at(
         m_currentIndex);
 }
-
 
 Track
 QueueService::trackAt(
@@ -58,17 +50,13 @@ QueueService::trackAt(
         index);
 }
 
-
 QList<Track>
 QueueService::tracks() const
 {
     return m_tracks;
 }
 
-
-// =============================================================
 // Source
-// =============================================================
 
 QString
 QueueService::sourceTitle() const
@@ -76,13 +64,11 @@ QueueService::sourceTitle() const
     return m_sourceTitle;
 }
 
-
 QString
 QueueService::sourceType() const
 {
     return m_sourceType;
 }
-
 
 void
 QueueService::setSource(
@@ -113,7 +99,6 @@ QueueService::setSource(
     emit queueChanged();
 }
 
-
 void
 QueueService::clearSource()
 {
@@ -131,10 +116,7 @@ QueueService::clearSource()
     emit queueChanged();
 }
 
-
-// =============================================================
 // Modification
-// =============================================================
 
 void
 QueueService::addTrack(
@@ -173,7 +155,6 @@ QueueService::addTrack(
 
     emit queueChanged();
 }
-
 
 void
 QueueService::addTracks(
@@ -274,7 +255,6 @@ QueueService::addTracks(
     emit queueChanged();
 }
 
-
 void
 QueueService::removeTrack(
     int index)
@@ -351,7 +331,6 @@ QueueService::removeTrack(
     emit queueChanged();
 }
 
-
 void
 QueueService::moveTrack(
     int from,
@@ -414,7 +393,6 @@ QueueService::moveTrack(
     emit queueChanged();
 }
 
-
 void
 QueueService::clear()
 {
@@ -439,10 +417,7 @@ QueueService::clear()
     }
 }
 
-
-// =============================================================
 // Navigation
-// =============================================================
 
 bool
 QueueService::setCurrentIndex(
@@ -470,7 +445,6 @@ QueueService::setCurrentIndex(
     return true;
 }
 
-
 bool
 QueueService::next()
 {
@@ -486,7 +460,6 @@ QueueService::next()
 
     return true;
 }
-
 
 bool
 QueueService::previous()
@@ -504,7 +477,6 @@ QueueService::previous()
     return true;
 }
 
-
 bool
 QueueService::hasNext() const
 {
@@ -513,7 +485,6 @@ QueueService::hasNext() const
         m_currentIndex + 1 <
             m_tracks.size();
 }
-
 
 bool
 QueueService::hasPrevious() const
@@ -524,17 +495,13 @@ QueueService::hasPrevious() const
             m_tracks.size();
 }
 
-
-// =============================================================
 // Repeat
-// =============================================================
 
 QueueService::RepeatMode
 QueueService::repeatMode() const
 {
     return m_repeatMode;
 }
-
 
 void
 QueueService::setRepeatMode(
@@ -553,7 +520,6 @@ QueueService::setRepeatMode(
     emit repeatModeChanged();
 }
 
-
 void
 QueueService::cycleRepeatMode()
 {
@@ -568,14 +534,12 @@ QueueService::cycleRepeatMode()
 
         break;
 
-
     case RepeatAll:
 
         setRepeatMode(
             RepeatOne);
 
         break;
-
 
     case RepeatOne:
 
@@ -586,17 +550,13 @@ QueueService::cycleRepeatMode()
     }
 }
 
-
-// =============================================================
 // Shuffle
-// =============================================================
 
 bool
 QueueService::shuffleEnabled() const
 {
     return m_shuffleEnabled;
 }
-
 
 void
 QueueService::setShuffleEnabled(
@@ -674,7 +634,6 @@ QueueService::setShuffleEnabled(
     emit queueChanged();
 }
 
-
 void
 QueueService::toggleShuffle()
 {
@@ -682,10 +641,7 @@ QueueService::toggleShuffle()
         !m_shuffleEnabled);
 }
 
-
-// =============================================================
 // Shuffle rebuild
-// =============================================================
 
 void
 QueueService::rebuildShuffledQueue()

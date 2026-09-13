@@ -1,10 +1,8 @@
 #include "AppController.h"
-
 #include "../Models/PersonalPlaylist.h"
 #include "../Player/PlayerService.h"
 #include "../Queue/QueueService.h"
 #include "PlayerAccentService.h"
-
 #include "../Yandex/Account/AccountService.h"
 #include "../Yandex/Auth/YandexAuth.h"
 #include "../Yandex/Catalog/AlbumService.h"
@@ -19,7 +17,6 @@
 #include "../Yandex/Personal/PlaylistService.h"
 #include "../Yandex/Personal/RecentListeningService.h"
 #include "../Yandex/Personal/YandexPersonal.h"
-
 
 AppController::AppController(
     YandexAuth *auth,
@@ -144,10 +141,7 @@ AppController::AppController(
         m_accountService->loadAccount();
 }
 
-
-// =============================================================
 // Account
-// =============================================================
 
 void AppController::connectAccount()
 {
@@ -185,10 +179,7 @@ void AppController::connectAccount()
         &AppController::statusChanged);
 }
 
-
-// =============================================================
 // Search
-// =============================================================
 
 void AppController::connectSearch()
 {
@@ -205,10 +196,7 @@ void AppController::connectSearch()
         &AppController::searchingChanged);
 }
 
-
-// =============================================================
 // Library
-// =============================================================
 
 void AppController::connectLibrary()
 {
@@ -261,10 +249,7 @@ void AppController::connectLibrary()
         &AppController::currentArtistChanged);
 }
 
-
-// =============================================================
 // Album
-// =============================================================
 
 void AppController::connectAlbum()
 {
@@ -303,10 +288,7 @@ void AppController::connectAlbum()
         });
 }
 
-
-// =============================================================
 // Personal
-// =============================================================
 
 void AppController::connectPersonal()
 {
@@ -351,10 +333,7 @@ void AppController::connectPersonal()
         });
 }
 
-
-// =============================================================
 // Artist
-// =============================================================
 
 void AppController::connectArtist()
 {
@@ -379,10 +358,7 @@ void AppController::connectArtist()
         });
 }
 
-
-// =============================================================
 // Chart
-// =============================================================
 
 void AppController::connectChart()
 {
@@ -393,10 +369,7 @@ void AppController::connectChart()
         &AppController::statusChanged);
 }
 
-
-// =============================================================
 // Genre
-// =============================================================
 
 void AppController::connectGenre()
 {
@@ -407,10 +380,7 @@ void AppController::connectGenre()
         &AppController::statusChanged);
 }
 
-
-// =============================================================
 // Playback
-// =============================================================
 
 void AppController::connectPlayback()
 {
@@ -474,10 +444,7 @@ void AppController::connectPlayback()
         &AppController::statusChanged);
 }
 
-
-// =============================================================
 // Player
-// =============================================================
 
 void AppController::connectPlayer()
 {
@@ -545,10 +512,7 @@ void AppController::connectPlayer()
         });
 }
 
-
-// =============================================================
 // Test
-// =============================================================
 
 void AppController::testConnection()
 {
@@ -556,13 +520,11 @@ void AppController::testConnection()
         "Приложение работает");
 }
 
-
 void AppController::testYandexApi()
 {
     emit statusChanged(
         "Проверка аккаунта Яндекс Музыки...");
 }
-
 
 void AppController::testSearch(
     const QString &query)
@@ -571,10 +533,7 @@ void AppController::testSearch(
         query);
 }
 
-
-// =============================================================
 // Likes
-// =============================================================
 
 void AppController::toggleLike(
     const QString &trackId,
@@ -621,34 +580,27 @@ void AppController::toggleLike(
     }
 }
 
-
-// =============================================================
 // Queue
-// =============================================================
 
 QString AppController::playbackSourceTitle() const
 {
     return m_queueService->sourceTitle();
 }
 
-
 QString AppController::playbackSourceType() const
 {
     return m_queueService->sourceType();
 }
-
 
 int AppController::queueCount() const
 {
     return m_queueService->count();
 }
 
-
 int AppController::queueCurrentIndex() const
 {
     return m_queueService->currentIndex();
 }
-
 
 QVariantMap AppController::queueTrackData(
     int index) const
@@ -701,10 +653,7 @@ QVariantMap AppController::queueTrackData(
     return result;
 }
 
-
-// =============================================================
 // Models
-// =============================================================
 
 SearchModel *
 AppController::searchModel() const
@@ -712,13 +661,11 @@ AppController::searchModel() const
     return m_searchController->model();
 }
 
-
 MyWaveModel *
 AppController::myWaveModel() const
 {
     return m_personalController->myWaveModel();
 }
-
 
 PersonalPlaylistsModel *
 AppController::personalPlaylistsModel() const
@@ -727,14 +674,12 @@ AppController::personalPlaylistsModel() const
         ->personalPlaylistsModel();
 }
 
-
 PlaylistModel *
 AppController::playlistModel() const
 {
     return m_libraryController
         ->playlistModel();
 }
-
 
 RecentListeningModel *
 AppController::recentListeningModel() const
@@ -743,13 +688,11 @@ AppController::recentListeningModel() const
         ->recentListeningModel();
 }
 
-
 AlbumController *
 AppController::albumController() const
 {
     return m_albumController;
 }
-
 
 ArtistController *
 AppController::artistController() const
@@ -757,13 +700,11 @@ AppController::artistController() const
     return m_artistController;
 }
 
-
 ChartController *
 AppController::chartController() const
 {
     return m_chartController;
 }
-
 
 GenreController *
 AppController::genreController() const
@@ -771,10 +712,7 @@ AppController::genreController() const
     return m_genreController;
 }
 
-
-// =============================================================
 // State
-// =============================================================
 
 bool AppController::isSearching() const
 {
@@ -782,13 +720,11 @@ bool AppController::isSearching() const
         ->isSearching();
 }
 
-
 bool AppController::isPlaying() const
 {
     return m_playerService
         ->isPlaying();
 }
-
 
 bool AppController::isLoadingMyWave() const
 {
@@ -796,13 +732,11 @@ bool AppController::isLoadingMyWave() const
         ->isLoadingMyWave();
 }
 
-
 bool AppController::isLoadingMoreMyWave() const
 {
     return m_personalController
         ->isLoadingMoreMyWave();
 }
-
 
 bool AppController::isLoadingRecommendations() const
 {
@@ -810,13 +744,11 @@ bool AppController::isLoadingRecommendations() const
         ->isLoadingRecommendations();
 }
 
-
 bool AppController::isLoadingPlaylist() const
 {
     return m_libraryController
         ->isLoadingPlaylist();
 }
-
 
 bool AppController::isLoadingAlbum() const
 {
@@ -824,17 +756,13 @@ bool AppController::isLoadingAlbum() const
         ->isLoading();
 }
 
-
 bool AppController::isLoadingArtist() const
 {
     return m_artistController
         ->isLoading();
 }
 
-
-// =============================================================
 // Current playlist
-// =============================================================
 
 QString AppController::currentPlaylistTitle() const
 {
@@ -842,13 +770,11 @@ QString AppController::currentPlaylistTitle() const
         ->currentPlaylistTitle();
 }
 
-
 QString AppController::currentPlaylistCoverUri() const
 {
     return m_libraryController
         ->currentPlaylistCoverUri();
 }
-
 
 int AppController::currentPlaylistTrackCount() const
 {
@@ -856,17 +782,13 @@ int AppController::currentPlaylistTrackCount() const
         ->currentPlaylistTrackCount();
 }
 
-
 QVariantList AppController::similarPlaylists() const
 {
     return m_libraryController
         ->similarPlaylists();
 }
 
-
-// =============================================================
 // Current album
-// =============================================================
 
 QString AppController::currentAlbumTitle() const
 {
@@ -874,13 +796,11 @@ QString AppController::currentAlbumTitle() const
         ->albumTitle();
 }
 
-
 int AppController::currentAlbumTrackCount() const
 {
     return m_albumController
         ->albumTrackCount();
 }
-
 
 QString AppController::currentAlbumCoverUri() const
 {
@@ -888,10 +808,7 @@ QString AppController::currentAlbumCoverUri() const
         ->albumCoverUri();
 }
 
-
-// =============================================================
 // Current artist
-// =============================================================
 
 QString AppController::currentArtistName() const
 {
@@ -899,20 +816,17 @@ QString AppController::currentArtistName() const
         ->artistName();
 }
 
-
 QString AppController::currentArtistCoverUri() const
 {
     return m_artistController
         ->artistCoverUri();
 }
 
-
 QString AppController::currentArtistGenres() const
 {
     return m_artistController
         ->artistGenres();
 }
-
 
 int AppController::currentArtistTrackCount() const
 {
@@ -921,10 +835,7 @@ int AppController::currentArtistTrackCount() const
         ->count();
 }
 
-
-// =============================================================
 // Current track
-// =============================================================
 
 QString AppController::currentTrackId() const
 {
@@ -932,7 +843,6 @@ QString AppController::currentTrackId() const
         ->currentTrack()
         .id;
 }
-
 
 bool AppController::currentTrackLiked() const
 {
@@ -949,14 +859,12 @@ bool AppController::currentTrackLiked() const
         trackId);
 }
 
-
 QString AppController::currentTrackTitle() const
 {
     return m_playbackController
         ->currentTrack()
         .title;
 }
-
 
 QString AppController::currentTrackArtist() const
 {
@@ -969,7 +877,6 @@ QString AppController::currentTrackArtist() const
         : track.artists.first().name;
 }
 
-
 QString AppController::currentTrackArtistId() const
 {
     const Track track =
@@ -980,7 +887,6 @@ QString AppController::currentTrackArtistId() const
         ? QString()
         : track.artists.first().id;
 }
-
 
 QString AppController::currentTrackAlbumTitle() const
 {
@@ -993,7 +899,6 @@ QString AppController::currentTrackAlbumTitle() const
         : track.albums.first().title;
 }
 
-
 QString AppController::currentTrackAlbumId() const
 {
     const Track track =
@@ -1005,7 +910,6 @@ QString AppController::currentTrackAlbumId() const
         : track.albums.first().id;
 }
 
-
 QString AppController::currentTrackCoverUri() const
 {
     return m_playbackController
@@ -1013,22 +917,17 @@ QString AppController::currentTrackCoverUri() const
         .coverUri;
 }
 
-
-// =============================================================
 // Player state
-// =============================================================
 
 qint64 AppController::position() const
 {
     return m_playerService->position();
 }
 
-
 qint64 AppController::duration() const
 {
     return m_playerService->duration();
 }
-
 
 PlaybackController::PlaybackState
 AppController::playbackState() const
@@ -1037,7 +936,6 @@ AppController::playbackState() const
         ->state();
 }
 
-
 int AppController::repeatMode() const
 {
     return static_cast<int>(
@@ -1045,20 +943,17 @@ int AppController::repeatMode() const
             ->repeatMode());
 }
 
-
 bool AppController::shuffleEnabled() const
 {
     return m_playbackController
         ->shuffleEnabled();
 }
 
-
 float AppController::volume() const
 {
     return m_playerService
         ->volume();
 }
-
 
 void AppController::setVolume(
     float volume)
@@ -1067,10 +962,7 @@ void AppController::setVolume(
         ->setVolume(volume);
 }
 
-
-// =============================================================
 // Genres
-// =============================================================
 
 void AppController::loadGenres()
 {
@@ -1078,10 +970,7 @@ void AppController::loadGenres()
         ->loadGenres();
 }
 
-
-// =============================================================
 // Player accent
-// =============================================================
 
 QColor AppController::playerAccent() const
 {

@@ -1,12 +1,10 @@
 #include "ChartModel.h"
 
-
 ChartModel::ChartModel(
     QObject *parent)
     : TrackListModelBase(parent)
 {
 }
-
 
 QVariant ChartModel::data(
     const QModelIndex &index,
@@ -21,21 +19,17 @@ QVariant ChartModel::data(
         return {};
     }
 
-
     const Track &track =
         m_tracks.at(
             index.row());
-
 
     switch (role)
     {
         case IdRole:
             return track.id;
 
-
         case TitleRole:
             return track.title;
-
 
         case ArtistRole:
         {
@@ -57,7 +51,6 @@ QVariant ChartModel::data(
                 ", ");
         }
 
-
         case ArtistIdRole:
         {
             if (track.artists.isEmpty())
@@ -70,24 +63,19 @@ QVariant ChartModel::data(
                 .id;
         }
 
-
         case CoverUriRole:
             return track.coverUri;
-
 
         case DurationMsRole:
             return track.durationMs;
 
-
         case PositionRole:
             return index.row() + 1;
-
 
         default:
             return {};
     }
 }
-
 
 QHash<int, QByteArray>
 ChartModel::roleNames() const
@@ -123,7 +111,6 @@ ChartModel::roleNames() const
         }
     };
 }
-
 
 void ChartModel::setTracks(
     const QList<Track> &tracks)

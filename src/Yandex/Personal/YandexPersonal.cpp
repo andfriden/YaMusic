@@ -1,9 +1,7 @@
 #include "YandexPersonal.h"
-
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
-
 #include <QDateTime>
 #include <QJsonArray>
 #include <QJsonDocument>

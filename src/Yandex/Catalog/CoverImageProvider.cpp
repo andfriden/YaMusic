@@ -1,5 +1,4 @@
 #include "CoverImageProvider.h"
-
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -15,9 +14,7 @@ constexpr auto kCirclePrefix =
 
 }
 
-// =============================================================
 // CoverImageResponse
-// =============================================================
 
 CoverImageResponse::CoverImageResponse(
     const QString &url,
@@ -315,9 +312,7 @@ void CoverImageResponse::load()
         });
 }
 
-// =============================================================
 // CoverImageProvider
-// =============================================================
 
 CoverImageProvider::CoverImageProvider()
     : QQuickAsyncImageProvider()

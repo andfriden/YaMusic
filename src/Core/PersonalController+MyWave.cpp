@@ -1,5 +1,4 @@
 #include "PersonalController.h"
-
 #include "../Playback/PlaybackController.h"
 #include "../Player/PlayerService.h"
 #include "../Queue/QueueService.h"
@@ -77,9 +76,7 @@ void PersonalController::connectMyWave()
         });
 }
 
-// =============================================================
 // Load My Wave
-// =============================================================
 
 void PersonalController::loadMyWave()
 {
@@ -138,9 +135,7 @@ void PersonalController::loadMyWave()
         ->loadMyWave();
 }
 
-// =============================================================
 // Load more
-// =============================================================
 
 void PersonalController::loadMoreMyWave()
 {
@@ -186,9 +181,7 @@ void PersonalController::loadMoreMyWave()
             lastTrack.id);
 }
 
-// =============================================================
 // Received
-// =============================================================
 
 void PersonalController::handleMyWaveReceived(
     const QList<Track> &tracks,
@@ -224,9 +217,7 @@ void PersonalController::handleMyWaveReceived(
         return;
     }
 
-    // ---------------------------------------------------------
     // Batch mapping
-    // ---------------------------------------------------------
 
     if (
         !trimmedBatchId.isEmpty()
@@ -261,9 +252,7 @@ void PersonalController::handleMyWaveReceived(
     emit loadingMyWaveChanged();
     emit loadingMoreMyWaveChanged();
 
-    // =========================================================
     // First batch
-    // =========================================================
 
     if (
         !isMoreBatch
@@ -309,9 +298,7 @@ void PersonalController::handleMyWaveReceived(
         return;
     }
 
-    // =========================================================
     // Next batch
-    // =========================================================
 
     const int oldCount =
         m_myWaveModel
@@ -396,9 +383,7 @@ void PersonalController::handleMyWaveReceived(
             nextTrack);
 }
 
-// =============================================================
 // Select track
-// =============================================================
 
 void PersonalController::selectMyWaveTrack(
     int index)
@@ -456,9 +441,7 @@ void PersonalController::selectMyWaveTrack(
             track);
 }
 
-// =============================================================
 // Start queue
-// =============================================================
 
 void PersonalController::startMyWaveQueue(
     int index)
@@ -540,9 +523,7 @@ void PersonalController::startMyWaveQueue(
 
 }
 
-// =============================================================
 // Append tracks
-// =============================================================
 
 void PersonalController::appendMyWaveTracksToQueue(
     const QList<Track> &tracks)
@@ -612,9 +593,7 @@ void PersonalController::appendMyWaveTracksToQueue(
         "myWave");
 }
 
-// =============================================================
 // Playback finished
-// =============================================================
 
 void PersonalController::handleMyWavePlaybackFinished()
 {
@@ -695,9 +674,7 @@ void PersonalController::handleMyWavePlaybackFinished()
     loadMoreMyWave();
 }
 
-// =============================================================
 // Batch
-// =============================================================
 
 QString PersonalController::batchIdForTrack(
     const QString &trackId) const
@@ -707,9 +684,7 @@ QString PersonalController::batchIdForTrack(
             trackId);
 }
 
-// =============================================================
 // Stop
-// =============================================================
 
 void PersonalController::stopCurrentMyWaveTrack(
     const QString &event)
@@ -750,9 +725,7 @@ void PersonalController::stopCurrentMyWaveTrack(
         false;
 }
 
-// =============================================================
 // Feedback
-// =============================================================
 
 void PersonalController::sendMyWaveFeedback(
     const QString &event,

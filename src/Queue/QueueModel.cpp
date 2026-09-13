@@ -1,7 +1,5 @@
 #include "QueueModel.h"
-
 #include "QueueService.h"
-
 
 QueueModel::QueueModel(
     QueueService *queueService,
@@ -13,7 +11,6 @@ QueueModel::QueueModel(
         return;
     }
 
-
     connect(
         m_queueService,
         &QueueService::queueChanged,
@@ -22,7 +19,6 @@ QueueModel::QueueModel(
         {
             reload();
         });
-
 
     connect(
         m_queueService,
@@ -33,14 +29,10 @@ QueueModel::QueueModel(
             updateCurrentIndex();
         });
 
-
     reload();
 }
 
-
-// =============================================================
 // Model
-// =============================================================
 
 int QueueModel::rowCount(
     const QModelIndex &parent) const
@@ -50,7 +42,6 @@ int QueueModel::rowCount(
     return m_tracks.count();
 }
 
-
 QVariant QueueModel::data(
     const QModelIndex &index,
     int role) const
@@ -59,7 +50,6 @@ QVariant QueueModel::data(
         return {};
     }
 
-
     if (
         index.row() < 0 ||
         index.row() >= m_tracks.size()
@@ -67,21 +57,17 @@ QVariant QueueModel::data(
         return {};
     }
 
-
     const Track &track =
         m_tracks.at(
             index.row());
-
 
     switch (role)
     {
         case IdRole:
             return track.id;
 
-
         case TitleRole:
             return track.title;
-
 
         case ArtistRole:
         {
@@ -94,7 +80,6 @@ QVariant QueueModel::data(
             return "";
         }
 
-
         case ArtistIdRole:
         {
             if (!track.artists.isEmpty()) {
@@ -105,7 +90,6 @@ QVariant QueueModel::data(
 
             return "";
         }
-
 
         case AlbumRole:
         {
@@ -118,7 +102,6 @@ QVariant QueueModel::data(
             return "";
         }
 
-
         case AlbumIdRole:
         {
             if (!track.albums.isEmpty()) {
@@ -130,30 +113,24 @@ QVariant QueueModel::data(
             return "";
         }
 
-
         case CoverUriRole:
             return track.coverUri;
 
-
         case DurationMsRole:
             return track.durationMs;
-
 
         case CurrentRole:
             return index.row() ==
                    m_currentIndex;
     }
 
-
     return {};
 }
-
 
 QHash<int, QByteArray>
 QueueModel::roleNames() const
 {
     QHash<int, QByteArray> roles;
-
 
     roles[IdRole] =
         "trackId";
@@ -182,14 +159,10 @@ QueueModel::roleNames() const
     roles[CurrentRole] =
         "current";
 
-
     return roles;
 }
 
-
-// =============================================================
 // Access
-// =============================================================
 
 Track QueueModel::trackAt(
     int index) const
@@ -201,33 +174,26 @@ Track QueueModel::trackAt(
         return {};
     }
 
-
     return m_tracks.at(
         index);
 }
-
 
 QList<Track> QueueModel::tracks() const
 {
     return m_tracks;
 }
 
-
 int QueueModel::count() const
 {
     return m_tracks.count();
 }
-
 
 int QueueModel::currentIndex() const
 {
     return m_currentIndex;
 }
 
-
-// =============================================================
 // Synchronisation
-// =============================================================
 
 void QueueModel::reload()
 {
@@ -235,21 +201,16 @@ void QueueModel::reload()
         return;
     }
 
-
     beginResetModel();
-
 
     m_tracks =
         m_queueService->tracks();
 
-
     m_currentIndex =
         m_queueService->currentIndex();
 
-
     endResetModel();
 }
-
 
 void QueueModel::updateCurrentIndex()
 {
@@ -257,10 +218,8 @@ void QueueModel::updateCurrentIndex()
         return;
     }
 
-
     const int newIndex =
         m_queueService->currentIndex();
-
 
     if (
         newIndex ==
@@ -269,14 +228,11 @@ void QueueModel::updateCurrentIndex()
         return;
     }
 
-
     const int oldIndex =
         m_currentIndex;
 
-
     m_currentIndex =
         newIndex;
-
 
     if (
         oldIndex >= 0 &&
@@ -289,7 +245,6 @@ void QueueModel::updateCurrentIndex()
                 oldIndex),
             { CurrentRole });
     }
-
 
     if (
         newIndex >= 0 &&

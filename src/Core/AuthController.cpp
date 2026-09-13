@@ -1,5 +1,4 @@
 #include "AuthController.h"
-
 #include "../Yandex/Account/AccountService.h"
 #include "../Yandex/Auth/YandexAuth.h"
 

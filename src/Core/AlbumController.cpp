@@ -1,9 +1,7 @@
 #include "AlbumController.h"
-
 #include "../Yandex/Catalog/AlbumService.h"
 #include "../Yandex/Catalog/ArtistService.h"
 #include "../Yandex/Personal/LikesService.h"
-
 #include "../Playback/PlaybackController.h"
 
 AlbumController::AlbumController(

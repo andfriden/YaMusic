@@ -1,10 +1,9 @@
 #pragma once
 
 #include <QList>
-#include <QObject>
 #include <QString>
+#include "../YandexServiceBase.h"
 
-class YandexAuth;
 class YandexClient;
 
 struct TrackStreamInfo
@@ -19,7 +18,7 @@ struct TrackStreamInfo
     int bitrateInKbps = 0;
 };
 
-class TrackService : public QObject
+class TrackService : public YandexServiceBase
 {
     Q_OBJECT
 
@@ -49,7 +48,4 @@ private:
     void resolveStream(
         const QString &trackId,
         const TrackStreamInfo &stream);
-
-    YandexAuth *m_auth = nullptr;
-    YandexClient *m_yandexClient = nullptr;
 };

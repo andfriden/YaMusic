@@ -1,8 +1,6 @@
 #include "ChartController.h"
-
 #include "../Playback/PlaybackController.h"
 #include "../Yandex/Catalog/ChartService.h"
-
 
 ChartController::ChartController(
     ChartService *chartService,
@@ -20,7 +18,6 @@ ChartController::ChartController(
     {
         return;
     }
-
 
     connect(
         m_chartService,
@@ -45,14 +42,12 @@ ChartController::ChartController(
                     tracks);
             }
 
-
             if (
                 m_pendingCharts > 0
             )
             {
                 --m_pendingCharts;
             }
-
 
             if (
                 m_pendingCharts == 0
@@ -64,7 +59,6 @@ ChartController::ChartController(
                 emit chartsChanged();
             }
         });
-
 
     connect(
         m_chartService,
@@ -85,7 +79,6 @@ ChartController::ChartController(
         });
 }
 
-
 void ChartController::loadChart(
     const QString &chartType)
 {
@@ -96,12 +89,10 @@ void ChartController::loadChart(
         return;
     }
 
-
     const QString type =
         chartType
             .trimmed()
             .toLower();
-
 
     if (
         type != "russia" &&
@@ -114,12 +105,10 @@ void ChartController::loadChart(
         return;
     }
 
-
     m_loading = true;
     m_pendingCharts = 1;
 
     emit loadingChanged();
-
 
     if (
         type == "russia"
@@ -132,11 +121,9 @@ void ChartController::loadChart(
         m_worldModel->clear();
     }
 
-
     m_chartService->loadChart(
         type);
 }
-
 
 void ChartController::loadCharts()
 {
@@ -147,16 +134,13 @@ void ChartController::loadCharts()
         return;
     }
 
-
     m_loading = true;
     m_pendingCharts = 2;
 
     emit loadingChanged();
 
-
     m_russiaModel->clear();
     m_worldModel->clear();
-
 
     m_chartService->loadChart(
         "russia");
@@ -164,7 +148,6 @@ void ChartController::loadCharts()
     m_chartService->loadChart(
         "world");
 }
-
 
 void ChartController::selectTrack(
     const QString &chartType,
@@ -177,9 +160,7 @@ void ChartController::selectTrack(
         return;
     }
 
-
     ChartModel *model = nullptr;
-
 
     if (
         chartType == "russia"
@@ -196,7 +177,6 @@ void ChartController::selectTrack(
             m_worldModel;
     }
 
-
     if (
         model == nullptr
     )
@@ -204,10 +184,8 @@ void ChartController::selectTrack(
         return;
     }
 
-
     const Track track =
         model->trackAt(index);
-
 
     if (
         track.id.isEmpty()
@@ -216,11 +194,9 @@ void ChartController::selectTrack(
         return;
     }
 
-
     m_playbackController->playTrack(
         track);
 }
-
 
 ChartModel *
 ChartController::russiaModel() const
@@ -228,13 +204,11 @@ ChartController::russiaModel() const
     return m_russiaModel;
 }
 
-
 ChartModel *
 ChartController::worldModel() const
 {
     return m_worldModel;
 }
-
 
 bool
 ChartController::isLoading() const

@@ -1,17 +1,12 @@
 #include "PlayerAccentService.h"
-
 #include <QImage>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QUrl>
-
 #include <algorithm>
 
-
-// =============================================================
 // Constructor
-// =============================================================
 
 PlayerAccentService::PlayerAccentService(
     QObject *parent)
@@ -23,10 +18,7 @@ PlayerAccentService::PlayerAccentService(
 {
 }
 
-
-// =============================================================
 // Accent color
-// =============================================================
 
 QColor
 PlayerAccentService::accentColor() const
@@ -34,10 +26,7 @@ PlayerAccentService::accentColor() const
     return m_accentColor;
 }
 
-
-// =============================================================
 // Update accent
-// =============================================================
 
 void
 PlayerAccentService::updateForCover(
@@ -46,13 +35,11 @@ PlayerAccentService::updateForCover(
     const QString uri =
         coverUri.trimmed();
 
-
     if (
         uri.isEmpty()
     ) {
         return;
     }
-
 
     if (
         uri == m_currentCoverUri
@@ -60,21 +47,16 @@ PlayerAccentService::updateForCover(
         return;
     }
 
-
     m_currentCoverUri =
         uri;
 
-
-    // ---------------------------------------------------------
     // Cache
-    // ---------------------------------------------------------
 
     if (
         m_cache.contains(uri)
     ) {
         const QColor cachedColor =
             m_cache.value(uri);
-
 
         if (
             cachedColor.isValid()
@@ -90,14 +72,11 @@ PlayerAccentService::updateForCover(
             }
         }
 
-
         return;
     }
 
-
     const QString urlString =
         createUrl(uri);
-
 
     if (
         urlString.isEmpty()
@@ -105,10 +84,8 @@ PlayerAccentService::updateForCover(
         return;
     }
 
-
     const QUrl url(
         urlString);
-
 
     if (
         !url.isValid()
@@ -116,27 +93,22 @@ PlayerAccentService::updateForCover(
         return;
     }
 
-
     QNetworkRequest request(
         url);
-
 
     request.setAttribute(
         QNetworkRequest::RedirectPolicyAttribute,
         QNetworkRequest::NoLessSafeRedirectPolicy);
 
-
     QNetworkReply *reply =
         m_networkManager->get(
             request);
-
 
     if (
         reply == nullptr
     ) {
         return;
     }
-
 
     connect(
         reply,
@@ -147,21 +119,17 @@ PlayerAccentService::updateForCover(
             const QByteArray data =
                 reply->readAll();
 
-
             const bool successful =
                 reply->error()
                 == QNetworkReply::NoError;
 
-
             reply->deleteLater();
-
 
             if (
                 uri != m_currentCoverUri
             ) {
                 return;
             }
-
 
             if (
                 !successful ||
@@ -170,11 +138,9 @@ PlayerAccentService::updateForCover(
                 return;
             }
 
-
             const QColor color =
                 calculateDominantColor(
                     data);
-
 
             if (
                 !color.isValid()
@@ -182,11 +148,9 @@ PlayerAccentService::updateForCover(
                 return;
             }
 
-
             m_cache.insert(
                 uri,
                 color);
-
 
             if (
                 color ==
@@ -195,26 +159,20 @@ PlayerAccentService::updateForCover(
                 return;
             }
 
-
             m_accentColor =
                 color;
-
 
             emit accentColorChanged();
         });
 }
 
-
-// =============================================================
 // Dominant color
-// =============================================================
 
 QColor
 PlayerAccentService::calculateDominantColor(
     const QByteArray &data) const
 {
     QImage image;
-
 
     if (
         !image.loadFromData(
@@ -223,13 +181,11 @@ PlayerAccentService::calculateDominantColor(
         return {};
     }
 
-
     if (
         image.isNull()
     ) {
         return {};
     }
-
 
     image =
         image.scaled(
@@ -238,17 +194,14 @@ PlayerAccentService::calculateDominantColor(
             Qt::IgnoreAspectRatio,
             Qt::SmoothTransformation);
 
-
     image =
         image.convertToFormat(
             QImage::Format_RGB32);
-
 
     quint64 red = 0;
     quint64 green = 0;
     quint64 blue = 0;
     quint64 count = 0;
-
 
     for (
         int y = 0;
@@ -265,13 +218,11 @@ PlayerAccentService::calculateDominantColor(
                     x,
                     y);
 
-
             if (
                 !pixel.isValid()
             ) {
                 continue;
             }
-
 
             const int maxChannel =
                 std::max({
@@ -280,14 +231,12 @@ PlayerAccentService::calculateDominantColor(
                     pixel.blue()
                 });
 
-
             const int minChannel =
                 std::min({
                     pixel.red(),
                     pixel.green(),
                     pixel.blue()
                 });
-
 
             // Ignore almost black pixels.
 
@@ -297,7 +246,6 @@ PlayerAccentService::calculateDominantColor(
                 continue;
             }
 
-
             // Ignore almost white pixels.
 
             if (
@@ -305,7 +253,6 @@ PlayerAccentService::calculateDominantColor(
             ) {
                 continue;
             }
-
 
             red +=
                 static_cast<quint64>(
@@ -323,13 +270,11 @@ PlayerAccentService::calculateDominantColor(
         }
     }
 
-
     if (
         count == 0
     ) {
         return {};
     }
-
 
     QColor result(
         static_cast<int>(
@@ -341,13 +286,11 @@ PlayerAccentService::calculateDominantColor(
         static_cast<int>(
             blue / count));
 
-
     if (
         !result.isValid()
     ) {
         return {};
     }
-
 
     // Prevent a too-dark accent.
 
@@ -355,14 +298,10 @@ PlayerAccentService::calculateDominantColor(
         result.lighter(
             115);
 
-
     return result;
 }
 
-
-// =============================================================
 // Cover URL
-// =============================================================
 
 QString
 PlayerAccentService::createUrl(
@@ -371,17 +310,13 @@ PlayerAccentService::createUrl(
     uri =
         uri.trimmed();
 
-
     if (
         uri.isEmpty()
     ) {
         return {};
     }
 
-
-    // ---------------------------------------------------------
     // Already complete URL.
-    // ---------------------------------------------------------
 
     if (
         uri.startsWith(
@@ -395,10 +330,7 @@ PlayerAccentService::createUrl(
         return uri;
     }
 
-
-    // ---------------------------------------------------------
     // Protocol-relative URL.
-    // ---------------------------------------------------------
 
     if (
         uri.startsWith(
@@ -411,8 +343,6 @@ PlayerAccentService::createUrl(
                     uri);
     }
 
-
-    // ---------------------------------------------------------
     // Yandex coverUri usually contains %% as the size marker.
     //
     // Example:
@@ -420,16 +350,12 @@ PlayerAccentService::createUrl(
     // avatars.yandex.net/get-music-content/.../%%
     //
     // Replace it with an actual image size.
-    // ---------------------------------------------------------
 
     uri.replace(
         "%%",
         "600x600");
 
-
-    // ---------------------------------------------------------
     // Common Yandex hosts.
-    // ---------------------------------------------------------
 
     if (
         uri.startsWith(
@@ -447,10 +373,7 @@ PlayerAccentService::createUrl(
                     uri);
     }
 
-
-    // ---------------------------------------------------------
     // Relative Yandex path.
-    // ---------------------------------------------------------
 
     return
         QString(

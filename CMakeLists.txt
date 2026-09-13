@@ -156,6 +156,7 @@ set(
         src/Yandex/AccountParser.cpp
         src/Yandex/Parsers.cpp
         src/Yandex/YandexClient.cpp
+        src/Yandex/YandexServiceBase.cpp
 
         # Yandex Account
         src/Yandex/Account/AccountService.cpp

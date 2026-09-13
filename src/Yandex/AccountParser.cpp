@@ -1,5 +1,4 @@
 #include "AccountParser.h"
-
 #include <QJsonObject>
 
 Account AccountParser::parse(const QJsonObject &json)

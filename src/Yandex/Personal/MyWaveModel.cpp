@@ -1,5 +1,4 @@
 #include "MyWaveModel.h"
-
 #include <QStringList>
 
 MyWaveModel::MyWaveModel(

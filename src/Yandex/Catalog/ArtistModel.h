@@ -3,10 +3,8 @@
 #include <QHash>
 #include <QString>
 #include <QVariant>
-
 #include "ArtistService.h"
 #include "TrackListModelBase.h"
-
 
 class ArtistModel final : public TrackListModelBase
 {
@@ -26,23 +24,18 @@ public:
     explicit ArtistModel(
         QObject *parent = nullptr);
 
-
     QVariant data(
         const QModelIndex &index,
         int role =
             Qt::DisplayRole) const override;
 
-
     QHash<int, QByteArray>
     roleNames() const override;
-
 
     void setArtist(
         const ArtistDetails &artist);
 
-
     void clear();
-
 
     QString id() const;
 

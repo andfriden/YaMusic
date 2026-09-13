@@ -4,7 +4,6 @@
 #include <QList>
 #include <QObject>
 #include <QString>
-
 #include "../../Models/Track.h"
 
 class YandexAuth;

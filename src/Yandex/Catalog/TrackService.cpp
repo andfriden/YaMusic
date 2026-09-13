@@ -1,9 +1,7 @@
 #include "TrackService.h"
-
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
-
 #include <QCryptographicHash>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -20,20 +18,17 @@ constexpr auto DownloadInfoSalt =
 TrackService::TrackService(
     YandexAuth *auth,
     QObject *parent)
-    : QObject(parent)
-    , m_auth(auth)
-    , m_yandexClient(new YandexClient(this))
+    : YandexServiceBase(auth, parent)
 {
 }
 
 void TrackService::loadStreamInfo(
     const QString &trackId)
 {
-    if (m_auth == nullptr ||
-        !m_auth->isAuthenticated()) {
+    if (!ensureAuthenticated()) {
 
         emit errorOccurred(
-            "Yandex Music token is not set");
+            "Токен Яндекс Музыки не установлен");
 
         return;
     }
@@ -48,9 +43,6 @@ void TrackService::loadStreamInfo(
 
         return;
     }
-
-    m_yandexClient->setToken(
-        m_auth->token());
 
     const QString path =
         "/tracks/" +

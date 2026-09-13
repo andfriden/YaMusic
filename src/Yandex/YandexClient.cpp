@@ -1,9 +1,7 @@
 #include "YandexClient.h"
-
 #include "AccountParser.h"
 #include "Catalog/SearchParser.h"
 #include "Parsers.h"
-
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>

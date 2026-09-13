@@ -2,17 +2,14 @@
 
 #include <QObject>
 #include <QString>
-
 #include "../Models/Track.h"
 #include "../Yandex/Catalog/AlbumModel.h"
 #include "../Yandex/Catalog/ArtistAlbumsModel.h"
-
 
 class AlbumService;
 class ArtistService;
 class PlaybackController;
 class LikesService;
-
 
 class AlbumController final : public QObject
 {
@@ -53,7 +50,6 @@ class AlbumController final : public QObject
         READ albumTrackCount
         NOTIFY albumChanged)
 
-
 public:
 
     explicit AlbumController(
@@ -63,40 +59,29 @@ public:
         LikesService *likesService,
         QObject *parent = nullptr);
 
-
     void loadAlbum(
         const QString &id);
-
 
     Q_INVOKABLE void selectAlbumTrack(
         int index);
 
-
     Q_INVOKABLE void playAlbum();
-
 
     AlbumModel *
     albumModel() const;
 
-
     ArtistAlbumsModel *
     otherAlbumsModel() const;
 
-
     bool isLoading() const;
-
 
     QString albumId() const;
 
-
     QString albumTitle() const;
-
 
     QString albumCoverUri() const;
 
-
     int albumTrackCount() const;
-
 
 signals:
 
@@ -110,49 +95,39 @@ signals:
     void trackSelected(
         const Track &track);
 
-
 private:
 
     void loadOtherAlbumsForCurrentArtist(
         const AlbumDetails &album);
 
-
     AlbumService *
         m_albumService =
             nullptr;
-
 
     ArtistService *
         m_artistService =
             nullptr;
 
-
     PlaybackController *
         m_playbackController =
             nullptr;
-
 
     LikesService *
         m_likesService =
             nullptr;
 
-
     AlbumModel *
         m_albumModel =
             nullptr;
-
 
     ArtistAlbumsModel *
         m_otherAlbumsModel =
             nullptr;
 
-
     bool m_loading =
         false;
 
-
     QString m_albumId;
-
 
     QString m_currentArtistId;
 };

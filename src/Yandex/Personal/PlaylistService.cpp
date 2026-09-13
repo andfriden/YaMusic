@@ -1,21 +1,16 @@
 #include "PlaylistService.h"
-
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
-
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkReply>
 
-
 namespace
 {
 
-// =============================================================
 // Playlist parser
-// =============================================================
 
 Playlist parsePlaylist(const QJsonObject &object)
 {
@@ -40,13 +35,11 @@ Playlist parsePlaylist(const QJsonObject &object)
     playlist.trackCount =
         object.value("trackCount").toInt();
 
-
     const QJsonObject cover =
         object.value("cover").toObject();
 
     playlist.coverUri =
         cover.value("uri").toString();
-
 
     const QJsonArray tracks =
         object.value("tracks").toArray();
@@ -83,10 +76,7 @@ Playlist parsePlaylist(const QJsonObject &object)
     return playlist;
 }
 
-
-// =============================================================
 // Playlist response parser
-// =============================================================
 
 bool parsePlaylistResponse(
     const QByteArray &data,
@@ -107,7 +97,6 @@ bool parsePlaylistResponse(
         return false;
     }
 
-
     const QJsonObject playlistObject =
         unwrapResult(document);
 
@@ -115,10 +104,8 @@ bool parsePlaylistResponse(
         return false;
     }
 
-
     playlist =
         parsePlaylist(playlistObject);
-
 
     return (
         !playlist.uid.isEmpty() &&
@@ -126,10 +113,7 @@ bool parsePlaylistResponse(
     );
 }
 
-
-// =============================================================
 // User playlist parser
-// =============================================================
 
 PersonalPlaylist parseUserPlaylist(
     const QJsonObject &object)
@@ -149,7 +133,6 @@ PersonalPlaylist parseUserPlaylist(
                 QString::number(id);
         }
     }
-
 
     playlist.uid =
         QString::number(
@@ -182,14 +165,10 @@ PersonalPlaylist parseUserPlaylist(
             .value("uri")
             .toString();
 
-
     return playlist;
 }
 
-
-// =============================================================
 // Similar playlist parser
-// =============================================================
 
 Playlist parseSimilarPlaylist(
     const QJsonObject &object)
@@ -221,10 +200,7 @@ Playlist parseSimilarPlaylist(
 
 }
 
-
-// =============================================================
 // PlaylistService
-// =============================================================
 
 PlaylistService::PlaylistService(
     YandexAuth *auth,
@@ -235,10 +211,7 @@ PlaylistService::PlaylistService(
 {
 }
 
-
-// =============================================================
 // Single playlist
-// =============================================================
 
 void PlaylistService::loadPlaylist(
     const QString &uid,
@@ -253,7 +226,6 @@ void PlaylistService::loadPlaylist(
         return;
     }
 
-
     const QString trimmedUid =
         uid.trimmed();
 
@@ -263,17 +235,14 @@ void PlaylistService::loadPlaylist(
         return;
     }
 
-
     if (kind <= 0) {
         emit errorOccurred(
             "Идентификатор плейлиста некорректен");
         return;
     }
 
-
     m_yandexClient->setToken(
         m_auth->token());
-
 
     const QString path =
         QString(
@@ -281,17 +250,14 @@ void PlaylistService::loadPlaylist(
             .arg(trimmedUid)
             .arg(kind);
 
-
     QNetworkReply *reply =
         m_yandexClient->get(path);
-
 
     if (reply == nullptr) {
         emit errorOccurred(
             "Не удалось загрузить плейлист");
         return;
     }
-
 
     connect(
         reply,
@@ -301,7 +267,6 @@ void PlaylistService::loadPlaylist(
         {
             const QByteArray data =
                 reply->readAll();
-
 
             if (
                 reply->error() !=
@@ -314,9 +279,7 @@ void PlaylistService::loadPlaylist(
                 return;
             }
 
-
             Playlist playlist;
-
 
             if (
                 !parsePlaylistResponse(
@@ -330,25 +293,19 @@ void PlaylistService::loadPlaylist(
                 return;
             }
 
-
             if (!playlist.uuid.isEmpty()) {
                 loadSimilarPlaylists(
                     playlist.uuid);
             }
 
-
             emit playlistReceived(
                 playlist);
-
 
             reply->deleteLater();
         });
 }
 
-
-// =============================================================
 // Playlist batch
-// =============================================================
 
 void PlaylistService::loadPlaylists(
     const QList<QPair<QString, int>> &playlists)
@@ -359,7 +316,6 @@ void PlaylistService::loadPlaylists(
     m_playlistBatchCompleted = 0;
     m_playlistBatchError = false;
 
-
     if (
         m_auth == nullptr ||
         !m_auth->isAuthenticated()
@@ -368,7 +324,6 @@ void PlaylistService::loadPlaylists(
             "Токен Яндекс Музыки не установлен");
         return;
     }
-
 
     for (
         const QPair<QString, int> &playlist :
@@ -380,7 +335,6 @@ void PlaylistService::loadPlaylists(
         const int kind =
             playlist.second;
 
-
         if (
             uid.isEmpty() ||
             kind <= 0
@@ -388,11 +342,9 @@ void PlaylistService::loadPlaylists(
             continue;
         }
 
-
         m_playlistBatchQueue.append(
             qMakePair(uid, kind));
     }
-
 
     if (m_playlistBatchQueue.isEmpty()) {
 
@@ -401,14 +353,11 @@ void PlaylistService::loadPlaylists(
         return;
     }
 
-
     m_yandexClient->setToken(
         m_auth->token());
 
-
     startNextPlaylistBatchRequests();
 }
-
 
 void PlaylistService::startNextPlaylistBatchRequests()
 {
@@ -427,20 +376,16 @@ void PlaylistService::startNextPlaylistBatchRequests()
         const int kind =
             playlist.second;
 
-
         const QString path =
             QString(
                 "/users/%1/playlists/%2")
                 .arg(uid)
                 .arg(kind);
 
-
         QNetworkReply *reply =
             m_yandexClient->get(path);
 
-
         ++m_playlistBatchActive;
-
 
         if (reply == nullptr) {
 
@@ -452,7 +397,6 @@ void PlaylistService::startNextPlaylistBatchRequests()
             continue;
         }
 
-
         connect(
             reply,
             &QNetworkReply::finished,
@@ -462,10 +406,8 @@ void PlaylistService::startNextPlaylistBatchRequests()
                 const QByteArray data =
                     reply->readAll();
 
-
                 --m_playlistBatchActive;
                 ++m_playlistBatchCompleted;
-
 
                 if (
                     reply->error() !=
@@ -477,7 +419,6 @@ void PlaylistService::startNextPlaylistBatchRequests()
                 } else {
 
                     Playlist playlist;
-
 
                     if (
                         parsePlaylistResponse(
@@ -494,12 +435,9 @@ void PlaylistService::startNextPlaylistBatchRequests()
                     }
                 }
 
-
                 reply->deleteLater();
 
-
                 startNextPlaylistBatchRequests();
-
 
                 if (
                     m_playlistBatchActive == 0 &&
@@ -510,7 +448,6 @@ void PlaylistService::startNextPlaylistBatchRequests()
             });
     }
 
-
     if (
         m_playlistBatchActive == 0 &&
         m_playlistBatchQueue.isEmpty() &&
@@ -519,7 +456,6 @@ void PlaylistService::startNextPlaylistBatchRequests()
         finishPlaylistBatch();
     }
 }
-
 
 void PlaylistService::finishPlaylistBatch()
 {
@@ -532,15 +468,11 @@ void PlaylistService::finishPlaylistBatch()
     m_playlistBatchCompleted = 0;
     m_playlistBatchError = false;
 
-
     emit playlistsReceived(
         results);
 }
 
-
-// =============================================================
 // User playlists
-// =============================================================
 
 void PlaylistService::loadUserPlaylists(
     const QString &uid)
@@ -554,10 +486,8 @@ void PlaylistService::loadUserPlaylists(
         return;
     }
 
-
     const QString trimmedUid =
         uid.trimmed();
-
 
     if (trimmedUid.isEmpty()) {
         emit errorOccurred(
@@ -565,27 +495,22 @@ void PlaylistService::loadUserPlaylists(
         return;
     }
 
-
     m_yandexClient->setToken(
         m_auth->token());
-
 
     const QString path =
         QString(
             "/users/%1/playlists/list")
             .arg(trimmedUid);
 
-
     QNetworkReply *reply =
         m_yandexClient->get(path);
-
 
     if (reply == nullptr) {
         emit errorOccurred(
             "Не удалось загрузить плейлисты пользователя");
         return;
     }
-
 
     connect(
         reply,
@@ -595,7 +520,6 @@ void PlaylistService::loadUserPlaylists(
         {
             const QByteArray data =
                 reply->readAll();
-
 
             if (
                 reply->error() !=
@@ -608,14 +532,12 @@ void PlaylistService::loadUserPlaylists(
                 return;
             }
 
-
             QJsonParseError parseError;
 
             const QJsonDocument document =
                 QJsonDocument::fromJson(
                     data,
                     &parseError);
-
 
             if (
                 parseError.error !=
@@ -628,9 +550,7 @@ void PlaylistService::loadUserPlaylists(
                 return;
             }
 
-
             QJsonArray playlistArray;
-
 
             if (document.isArray()) {
 
@@ -651,7 +571,6 @@ void PlaylistService::loadUserPlaylists(
                 }
             }
 
-
             if (
                 playlistArray.isEmpty() &&
                 !document.isArray()
@@ -663,9 +582,7 @@ void PlaylistService::loadUserPlaylists(
                 return;
             }
 
-
             QList<PersonalPlaylist> playlists;
-
 
             for (
                 const QJsonValue &value :
@@ -676,11 +593,9 @@ void PlaylistService::loadUserPlaylists(
                     continue;
                 }
 
-
                 const PersonalPlaylist playlist =
                     parseUserPlaylist(
                         value.toObject());
-
 
                 if (
                     playlist.uid.isEmpty() ||
@@ -689,24 +604,18 @@ void PlaylistService::loadUserPlaylists(
                     continue;
                 }
 
-
                 playlists.append(
                     playlist);
             }
 
-
             emit userPlaylistsReceived(
                 playlists);
-
 
             reply->deleteLater();
         });
 }
 
-
-// =============================================================
 // Similar playlists
-// =============================================================
 
 void PlaylistService::loadSimilarPlaylists(
     const QString &uuid)
@@ -720,7 +629,6 @@ void PlaylistService::loadSimilarPlaylists(
         return;
     }
 
-
     const QString trimmedUuid =
         uuid.trimmed();
 
@@ -728,25 +636,20 @@ void PlaylistService::loadSimilarPlaylists(
         return;
     }
 
-
     m_yandexClient->setToken(
         m_auth->token());
-
 
     const QString path =
         QString(
             "/playlist/%1/similar-entities")
             .arg(trimmedUuid);
 
-
     QNetworkReply *reply =
         m_yandexClient->get(path);
-
 
     if (reply == nullptr) {
         return;
     }
-
 
     connect(
         reply,
@@ -757,7 +660,6 @@ void PlaylistService::loadSimilarPlaylists(
             const QByteArray data =
                 reply->readAll();
 
-
             if (
                 reply->error() !=
                 QNetworkReply::NoError
@@ -766,14 +668,12 @@ void PlaylistService::loadSimilarPlaylists(
                 return;
             }
 
-
             QJsonParseError parseError;
 
             const QJsonDocument document =
                 QJsonDocument::fromJson(
                     data,
                     &parseError);
-
 
             if (
                 parseError.error !=
@@ -784,7 +684,6 @@ void PlaylistService::loadSimilarPlaylists(
                 return;
             }
 
-
             const QJsonObject root =
                 document.object();
 
@@ -794,9 +693,7 @@ void PlaylistService::loadSimilarPlaylists(
             const QJsonArray items =
                 result.value("items").toArray();
 
-
             QList<Playlist> playlists;
-
 
             for (
                 const QJsonValue &value :
@@ -806,10 +703,8 @@ void PlaylistService::loadSimilarPlaylists(
                     continue;
                 }
 
-
                 const QJsonObject item =
                     value.toObject();
-
 
                 if (
                     item.value("type").toString() !=
@@ -818,7 +713,6 @@ void PlaylistService::loadSimilarPlaylists(
                     continue;
                 }
 
-
                 const QJsonObject playlistObject =
                     item
                         .value("data")
@@ -826,16 +720,13 @@ void PlaylistService::loadSimilarPlaylists(
                         .value("playlist")
                         .toObject();
 
-
                 if (playlistObject.isEmpty()) {
                     continue;
                 }
 
-
                 const Playlist playlist =
                     parseSimilarPlaylist(
                         playlistObject);
-
 
                 if (
                     playlist.uid.isEmpty() ||
@@ -846,15 +737,12 @@ void PlaylistService::loadSimilarPlaylists(
                     continue;
                 }
 
-
                 playlists.append(
                     playlist);
             }
 
-
             emit similarPlaylistsReceived(
                 playlists);
-
 
             reply->deleteLater();
         });

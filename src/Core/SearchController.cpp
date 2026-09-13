@@ -1,5 +1,4 @@
 #include "SearchController.h"
-
 #include "../Playback/PlaybackController.h"
 #include "../Queue/QueueService.h"
 #include "../Yandex/Catalog/SearchService.h"

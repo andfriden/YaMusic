@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Models/Account.h"
-
 #include <QJsonObject>
 
 class AccountParser

@@ -1,28 +1,21 @@
 #include "NewPlaylistsService.h"
-
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
 #include "PlaylistService.h"
-
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkReply>
 #include <QPair>
 
-// =============================================================
 // Constructor
-// =============================================================
 
 NewPlaylistsService::NewPlaylistsService(
     YandexAuth *auth,
     PlaylistService *playlistService,
     QObject *parent)
-    : QObject(parent)
-    , m_auth(auth)
-    , m_yandexClient(
-          new YandexClient(this))
+    : YandexServiceBase(auth, parent)
     , m_playlistService(playlistService)
 {
     if (
@@ -43,25 +36,13 @@ NewPlaylistsService::NewPlaylistsService(
     }
 }
 
-// =============================================================
 // Load
-// =============================================================
 
 void NewPlaylistsService::load()
 {
 
     if (
-        m_auth == nullptr
-    )
-    {
-        emit errorOccurred(
-            "Авторизация недоступна");
-
-        return;
-    }
-
-    if (
-        !m_auth->isAuthenticated()
+        !ensureAuthenticated()
     )
     {
         emit errorOccurred(
@@ -79,10 +60,6 @@ void NewPlaylistsService::load()
 
         return;
     }
-
-    m_yandexClient
-        ->setToken(
-            m_auth->token());
 
     const QString path =
         "/landing3/new-playlists";

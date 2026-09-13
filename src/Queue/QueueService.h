@@ -3,7 +3,6 @@
 #include <QList>
 #include <QObject>
 #include <QString>
-
 #include "../Models/Track.h"
 
 class QueueService : public QObject
@@ -20,14 +19,10 @@ public:
 
     Q_ENUM(RepeatMode)
 
-
     explicit QueueService(
         QObject *parent = nullptr);
 
-
-    // =============================================================
     // Queue
-    // =============================================================
 
     int count() const;
 
@@ -40,10 +35,7 @@ public:
 
     QList<Track> tracks() const;
 
-
-    // =============================================================
     // Source
-    // =============================================================
 
     QString sourceTitle() const;
 
@@ -55,10 +47,7 @@ public:
 
     void clearSource();
 
-
-    // =============================================================
     // Modification
-    // =============================================================
 
     void addTrack(
         const Track &track);
@@ -75,10 +64,7 @@ public:
 
     void clear();
 
-
-    // =============================================================
     // Navigation
-    // =============================================================
 
     bool setCurrentIndex(
         int index);
@@ -91,10 +77,7 @@ public:
 
     bool hasPrevious() const;
 
-
-    // =============================================================
     // Repeat
-    // =============================================================
 
     RepeatMode repeatMode() const;
 
@@ -103,10 +86,7 @@ public:
 
     void cycleRepeatMode();
 
-
-    // =============================================================
     // Shuffle
-    // =============================================================
 
     bool shuffleEnabled() const;
 
@@ -114,7 +94,6 @@ public:
         bool enabled);
 
     void toggleShuffle();
-
 
 signals:
 
@@ -126,17 +105,13 @@ signals:
 
     void shuffleChanged();
 
-
 private:
 
     void rebuildShuffledQueue();
 
-
 private:
 
-    // =============================================================
     // Tracks
-    // =============================================================
 
     QList<Track> m_tracks;
 
@@ -144,19 +119,13 @@ private:
 
     int m_currentIndex = -1;
 
-
-    // =============================================================
     // Source
-    // =============================================================
 
     QString m_sourceTitle;
 
     QString m_sourceType;
 
-
-    // =============================================================
     // Playback options
-    // =============================================================
 
     RepeatMode m_repeatMode =
         RepeatOff;

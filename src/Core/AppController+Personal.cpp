@@ -1,9 +1,6 @@
 #include "AppController.h"
 
-
-// =============================================================
 // Personal
-// =============================================================
 
 void AppController::loadMyWave()
 {
@@ -14,11 +11,9 @@ void AppController::loadMyWave()
         return;
     }
 
-
     m_personalController
         ->loadMyWave();
 }
-
 
 void AppController::loadMoreMyWave()
 {
@@ -29,11 +24,9 @@ void AppController::loadMoreMyWave()
         return;
     }
 
-
     m_personalController
         ->loadMoreMyWave();
 }
-
 
 void AppController::loadRecommendations()
 {
@@ -43,7 +36,6 @@ void AppController::loadRecommendations()
     {
         return;
     }
-
 
     m_personalController
         ->loadRecommendations();

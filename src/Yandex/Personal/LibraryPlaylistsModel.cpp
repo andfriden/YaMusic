@@ -1,16 +1,12 @@
 #include "LibraryPlaylistsModel.h"
 
-
 LibraryPlaylistsModel::LibraryPlaylistsModel(
     QObject *parent)
     : QAbstractListModel(parent)
 {
 }
 
-
-// =============================================================
 // Row count
-// =============================================================
 
 int LibraryPlaylistsModel::rowCount(
     const QModelIndex &parent
@@ -23,14 +19,10 @@ int LibraryPlaylistsModel::rowCount(
         return 0;
     }
 
-
     return m_playlists.size();
 }
 
-
-// =============================================================
 // Data
-// =============================================================
 
 QVariant LibraryPlaylistsModel::data(
     const QModelIndex &index,
@@ -46,11 +38,9 @@ QVariant LibraryPlaylistsModel::data(
         return {};
     }
 
-
     const PersonalPlaylist &playlist =
         m_playlists.at(
             index.row());
-
 
     switch (role)
     {
@@ -80,10 +70,7 @@ QVariant LibraryPlaylistsModel::data(
     }
 }
 
-
-// =============================================================
 // Roles
-// =============================================================
 
 QHash<int, QByteArray>
 LibraryPlaylistsModel::roleNames() const
@@ -120,10 +107,7 @@ LibraryPlaylistsModel::roleNames() const
     };
 }
 
-
-// =============================================================
 // Set playlists
-// =============================================================
 
 void LibraryPlaylistsModel::setPlaylists(
     const QList<PersonalPlaylist> &playlists
@@ -137,10 +121,7 @@ void LibraryPlaylistsModel::setPlaylists(
     endResetModel();
 }
 
-
-// =============================================================
 // Clear
-// =============================================================
 
 void LibraryPlaylistsModel::clear()
 {
@@ -151,20 +132,14 @@ void LibraryPlaylistsModel::clear()
     endResetModel();
 }
 
-
-// =============================================================
 // Count
-// =============================================================
 
 int LibraryPlaylistsModel::count() const
 {
     return m_playlists.size();
 }
 
-
-// =============================================================
 // Playlist at
-// =============================================================
 
 PersonalPlaylist
 LibraryPlaylistsModel::playlistAt(
@@ -177,7 +152,6 @@ LibraryPlaylistsModel::playlistAt(
     {
         return {};
     }
-
 
     return m_playlists.at(
         index);

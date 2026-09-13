@@ -1,5 +1,4 @@
 #include "PersonalController.h"
-
 #include "../Player/PlayerService.h"
 
 void PersonalController::connectPlayback()

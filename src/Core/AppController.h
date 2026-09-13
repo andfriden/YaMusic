@@ -5,7 +5,6 @@
 #include <QString>
 #include <QVariantList>
 #include <QVariantMap>
-
 #include "AlbumController.h"
 #include "ArtistController.h"
 #include "ChartController.h"
@@ -13,7 +12,6 @@
 #include "LibraryController.h"
 #include "PersonalController.h"
 #include "SearchController.h"
-
 #include "../Playback/PlaybackController.h"
 #include "../Yandex/Personal/NewPlaylistsService.h"
 

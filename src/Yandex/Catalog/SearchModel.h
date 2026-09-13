@@ -2,10 +2,8 @@
 
 #include <QHash>
 #include <QVariant>
-
 #include "SearchResult.h"
 #include "TrackListModelBase.h"
-
 
 class SearchModel final : public TrackListModelBase
 {
@@ -26,20 +24,16 @@ public:
     explicit SearchModel(
         QObject *parent = nullptr);
 
-
     QVariant data(
         const QModelIndex &index,
         int role =
             Qt::DisplayRole) const override;
 
-
     QHash<int, QByteArray>
     roleNames() const override;
 
-
     void setResults(
         const SearchResults &results);
-
 
 private:
 };

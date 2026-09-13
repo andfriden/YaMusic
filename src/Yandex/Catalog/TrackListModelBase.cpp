@@ -1,7 +1,5 @@
 #include "TrackListModelBase.h"
-
 #include <QModelIndex>
-
 
 int TrackListModelBase::rowCount(
     const QModelIndex &parent) const
@@ -12,7 +10,6 @@ int TrackListModelBase::rowCount(
 
     return m_tracks.size();
 }
-
 
 Track TrackListModelBase::trackAt(
     int index) const
@@ -27,19 +24,16 @@ Track TrackListModelBase::trackAt(
     return m_tracks.at(index);
 }
 
-
 QList<Track>
 TrackListModelBase::tracks() const
 {
     return m_tracks;
 }
 
-
 int TrackListModelBase::count() const
 {
     return m_tracks.size();
 }
-
 
 void TrackListModelBase::clear()
 {
@@ -56,7 +50,6 @@ void TrackListModelBase::clear()
     emit countChanged();
 }
 
-
 void TrackListModelBase::setTracks(
     const QList<Track> &tracks)
 {
@@ -69,7 +62,6 @@ void TrackListModelBase::setTracks(
 
     emit countChanged();
 }
-
 
 bool TrackListModelBase::setTrackLiked(
     const QString &trackId,
@@ -100,6 +92,35 @@ bool TrackListModelBase::setTrackLiked(
             index(i),
             index(i),
             { likedRole });
+
+        return true;
+    }
+
+    return false;
+}
+
+bool TrackListModelBase::removeTrackById(
+    const QString &trackId)
+{
+    for (
+        int i = 0;
+        i < m_tracks.size();
+        ++i
+    ) {
+        if (
+            m_tracks[i].id != trackId
+        ) {
+            continue;
+        }
+
+        beginRemoveRows(
+            QModelIndex(),
+            i,
+            i);
+
+        m_tracks.removeAt(i);
+
+        endRemoveRows();
 
         return true;
     }

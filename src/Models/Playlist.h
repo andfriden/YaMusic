@@ -2,7 +2,6 @@
 
 #include <QList>
 #include <QString>
-
 #include "Track.h"
 
 struct Playlist

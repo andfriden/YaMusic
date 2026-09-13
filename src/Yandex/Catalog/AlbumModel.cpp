@@ -1,17 +1,12 @@
 #include "AlbumModel.h"
 
-
 AlbumModel::AlbumModel(
     QObject *parent)
     : TrackListModelBase(parent)
 {
 }
 
-
-// =============================================================
 // Model
-// =============================================================
-
 
 QVariant AlbumModel::data(
     const QModelIndex &index,
@@ -26,10 +21,8 @@ QVariant AlbumModel::data(
         return {};
     }
 
-
     const Track &track =
         m_tracks.at(index.row());
-
 
     switch (role)
     {
@@ -59,10 +52,8 @@ QVariant AlbumModel::data(
             return track.liked;
     }
 
-
     return {};
 }
-
 
 QHash<int, QByteArray>
 AlbumModel::roleNames() const
@@ -78,10 +69,7 @@ AlbumModel::roleNames() const
     };
 }
 
-
-// =============================================================
 // Album
-// =============================================================
 
 void AlbumModel::setAlbum(
     const AlbumDetails &album)
@@ -95,7 +83,6 @@ void AlbumModel::setAlbum(
     emit albumChanged();
 }
 
-
 void AlbumModel::clear()
 {
     TrackListModelBase::clear();
@@ -106,10 +93,7 @@ void AlbumModel::clear()
     emit albumChanged();
 }
 
-
-// =============================================================
 // Album info
-// =============================================================
 
 QString
 AlbumModel::title() const
@@ -117,13 +101,11 @@ AlbumModel::title() const
     return m_album.album.title;
 }
 
-
 QString
 AlbumModel::coverUri() const
 {
     return m_album.album.coverUri;
 }
-
 
 int
 AlbumModel::trackCount() const
@@ -131,10 +113,7 @@ AlbumModel::trackCount() const
     return m_tracks.size();
 }
 
-
-// =============================================================
 // Like state
-// =============================================================
 
 void AlbumModel::setTrackLiked(
     const QString &trackId,

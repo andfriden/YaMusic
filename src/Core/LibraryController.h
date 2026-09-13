@@ -3,29 +3,22 @@
 #include <QObject>
 #include <QString>
 #include <QVariantList>
-
 #include "../Playback/PlaybackController.h"
 
 #include "../Yandex/Catalog/ArtistModel.h"
 #include "../Yandex/Catalog/ArtistService.h"
-
 #include "../Yandex/Personal/LibraryPlaylistsModel.h"
 #include "../Yandex/Personal/LikedTracksModel.h"
 #include "../Yandex/Personal/PlaylistModel.h"
 #include "../Yandex/Personal/PlaylistService.h"
 
-
 class LikesService;
-
 
 class LibraryController : public QObject
 {
     Q_OBJECT
 
-
-    // =============================================================
     // Library playlists
-    // =============================================================
 
     Q_PROPERTY(
         bool loadingLibraryPlaylists
@@ -37,10 +30,7 @@ class LibraryController : public QObject
         READ libraryPlaylistsModel
         CONSTANT)
 
-
-    // =============================================================
     // Liked tracks
-    // =============================================================
 
     Q_PROPERTY(
         bool loadingLikedTracks
@@ -52,10 +42,7 @@ class LibraryController : public QObject
         READ likedTracksModel
         CONSTANT)
 
-
-    // =============================================================
     // Playlist state
-    // =============================================================
 
     Q_PROPERTY(
         bool loadingPlaylist
@@ -87,10 +74,7 @@ class LibraryController : public QObject
         READ playlistModel
         CONSTANT)
 
-
-    // =============================================================
     // Artist state
-    // =============================================================
 
     Q_PROPERTY(
         bool loadingArtist
@@ -122,7 +106,6 @@ class LibraryController : public QObject
         READ artistModel
         CONSTANT)
 
-
 public:
 
     explicit LibraryController(
@@ -132,10 +115,7 @@ public:
         PlaybackController *playbackController,
         QObject *parent = nullptr);
 
-
-    // =============================================================
     // Library playlists
-    // =============================================================
 
     void loadUserPlaylists(
         const QString &uid);
@@ -148,10 +128,7 @@ public:
 
     bool isLoadingLibraryPlaylists() const;
 
-
-    // =============================================================
     // Liked tracks
-    // =============================================================
 
     void loadLikedTracks(
         const QString &uid);
@@ -164,10 +141,7 @@ public:
 
     bool isLoadingLikedTracks() const;
 
-
-    // =============================================================
     // Playlist
-    // =============================================================
 
     void loadPlaylist(
         const QString &uid,
@@ -189,10 +163,7 @@ public:
 
     QVariantList similarPlaylists() const;
 
-
-    // =============================================================
     // Artist
-    // =============================================================
 
     void loadArtist(
         const QString &id);
@@ -213,43 +184,28 @@ public:
 
     int currentArtistTrackCount() const;
 
-
-    // =============================================================
     // Likes
-    // =============================================================
 
     void setTrackLiked(
         const QString &trackId,
         bool liked);
 
-
 signals:
 
-    // =============================================================
     // Common
-    // =============================================================
 
     void statusChanged(
         const QString &message);
 
-
-    // =============================================================
     // Library playlists
-    // =============================================================
 
     void loadingLibraryPlaylistsChanged();
 
-
-    // =============================================================
     // Liked tracks
-    // =============================================================
 
     void loadingLikedTracksChanged();
 
-
-    // =============================================================
     // Playlist
-    // =============================================================
 
     void loadingPlaylistChanged();
 
@@ -257,21 +213,15 @@ signals:
 
     void similarPlaylistsChanged();
 
-
-    // =============================================================
     // Artist
-    // =============================================================
 
     void loadingArtistChanged();
 
     void currentArtistChanged();
 
-
 private:
 
-    // =============================================================
     // Services
-    // =============================================================
 
     PlaylistService *
         m_playlistService = nullptr;
@@ -285,10 +235,7 @@ private:
     PlaybackController *
         m_playbackController = nullptr;
 
-
-    // =============================================================
     // Models
-    // =============================================================
 
     LibraryPlaylistsModel *
         m_libraryPlaylistsModel = nullptr;
@@ -302,10 +249,7 @@ private:
     ArtistModel *
         m_artistModel = nullptr;
 
-
-    // =============================================================
     // Library state
-    // =============================================================
 
     bool m_loadingLibraryPlaylists =
         false;
@@ -313,10 +257,7 @@ private:
     bool m_loadingLikedTracks =
         false;
 
-
-    // =============================================================
     // Playlist state
-    // =============================================================
 
     bool m_loadingPlaylist =
         false;
@@ -330,10 +271,7 @@ private:
 
     QVariantList m_similarPlaylists;
 
-
-    // =============================================================
     // Artist state
-    // =============================================================
 
     bool m_loadingArtist =
         false;

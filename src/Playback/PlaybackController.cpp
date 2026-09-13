@@ -1,5 +1,4 @@
 #include "PlaybackController.h"
-
 #include "../Player/PlayerService.h"
 #include "../Yandex/Catalog/TrackService.h"
 

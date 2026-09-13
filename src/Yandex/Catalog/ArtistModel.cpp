@@ -1,5 +1,4 @@
 #include "ArtistModel.h"
-
 #include <QStringList>
 
 ArtistModel::ArtistModel(

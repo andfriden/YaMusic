@@ -1,7 +1,5 @@
 #include "PersonalPlaylistsModel.h"
-
 #include <QVariantMap>
-
 
 PersonalPlaylistsModel::PersonalPlaylistsModel(
     QObject *parent)
@@ -9,10 +7,7 @@ PersonalPlaylistsModel::PersonalPlaylistsModel(
 {
 }
 
-
-// =============================================================
 // Row count
-// =============================================================
 
 int PersonalPlaylistsModel::rowCount(
     const QModelIndex &parent
@@ -25,14 +20,10 @@ int PersonalPlaylistsModel::rowCount(
         return 0;
     }
 
-
     return m_sections.size();
 }
 
-
-// =============================================================
 // Data
-// =============================================================
 
 QVariant PersonalPlaylistsModel::data(
     const QModelIndex &index,
@@ -48,11 +39,9 @@ QVariant PersonalPlaylistsModel::data(
         return {};
     }
 
-
     const PersonalLandingSection &section =
         m_sections.at(
             index.row());
-
 
     switch (role)
     {
@@ -61,17 +50,14 @@ QVariant PersonalPlaylistsModel::data(
             return section.title;
         }
 
-
         case TypeRole:
         {
             return section.type;
         }
 
-
         case PlaylistsRole:
         {
             QVariantList playlists;
-
 
             for (
                 const PersonalPlaylist &playlist :
@@ -80,60 +66,47 @@ QVariant PersonalPlaylistsModel::data(
             {
                 QVariantMap object;
 
-
                 object.insert(
                     "id",
                     playlist.id);
-
 
                 object.insert(
                     "uid",
                     playlist.uid);
 
-
                 object.insert(
                     "kind",
                     playlist.kind);
-
 
                 object.insert(
                     "title",
                     playlist.title);
 
-
                 object.insert(
                     "description",
                     playlist.description);
-
 
                 object.insert(
                     "coverUri",
                     playlist.coverUri);
 
-
                 object.insert(
                     "trackCount",
                     playlist.trackCount);
-
 
                 playlists.append(
                     object);
             }
 
-
             return playlists;
         }
-
 
         default:
             return {};
     }
 }
 
-
-// =============================================================
 // Roles
-// =============================================================
 
 QHash<int, QByteArray>
 PersonalPlaylistsModel::roleNames() const
@@ -154,10 +127,7 @@ PersonalPlaylistsModel::roleNames() const
     };
 }
 
-
-// =============================================================
 // Set sections
-// =============================================================
 
 void PersonalPlaylistsModel::setSections(
     const QList<PersonalLandingSection> &sections
@@ -171,10 +141,7 @@ void PersonalPlaylistsModel::setSections(
     endResetModel();
 }
 
-
-// =============================================================
 // Clear
-// =============================================================
 
 void PersonalPlaylistsModel::clear()
 {
@@ -185,10 +152,7 @@ void PersonalPlaylistsModel::clear()
     endResetModel();
 }
 
-
-// =============================================================
 // Count
-// =============================================================
 
 int PersonalPlaylistsModel::count() const
 {
