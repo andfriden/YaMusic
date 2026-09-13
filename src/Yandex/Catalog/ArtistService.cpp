@@ -1,6 +1,7 @@
 #include "ArtistService.h"
 
 #include "../Auth/YandexAuth.h"
+#include "../Parsers.h"
 #include "../YandexClient.h"
 
 #include <QJsonArray>
@@ -14,330 +15,6 @@
 
 namespace
 {
-
-QString jsonId(
-    const QJsonObject &object)
-{
-    const QString stringId =
-        object
-            .value("id")
-            .toString();
-
-    if (
-        !stringId.isEmpty()
-    ) {
-        return stringId;
-    }
-
-    const qint64 numericId =
-        object
-            .value("id")
-            .toInteger();
-
-    if (
-        numericId > 0
-    ) {
-        return QString::number(
-            numericId);
-    }
-
-    const qint64 realId =
-        object
-            .value("realId")
-            .toInteger();
-
-    if (
-        realId > 0
-    ) {
-        return QString::number(
-            realId);
-    }
-
-    return {};
-}
-
-QString coverUriFromObject(
-    const QJsonObject &object)
-{
-    QString coverUri =
-        object
-            .value("coverUri")
-            .toString();
-
-    if (
-        !coverUri.isEmpty()
-    ) {
-        return coverUri;
-    }
-
-    const QJsonObject cover =
-        object
-            .value("cover")
-            .toObject();
-
-    coverUri =
-        cover
-            .value("uri")
-            .toString();
-
-    if (
-        !coverUri.isEmpty()
-    ) {
-        return coverUri;
-    }
-
-    return object
-        .value("ogImage")
-        .toString();
-}
-
-Track parseTrack(
-    const QJsonObject &object)
-{
-    Track track;
-
-    QJsonObject trackObject =
-        object;
-
-    if (
-        trackObject
-            .value("track")
-            .isObject()
-    ) {
-        trackObject =
-            trackObject
-                .value("track")
-                .toObject();
-    }
-
-    track.id =
-        jsonId(
-            trackObject);
-
-    track.title =
-        trackObject
-            .value("title")
-            .toString();
-
-    track.coverUri =
-        coverUriFromObject(
-            trackObject);
-
-    track.durationMs =
-        trackObject
-            .value("durationMs")
-            .toInt();
-
-    const QJsonArray artists =
-        trackObject
-            .value("artists")
-            .toArray();
-
-    for (
-        const QJsonValue &value :
-        artists
-    ) {
-        if (
-            !value.isObject()
-        ) {
-            continue;
-        }
-
-        QJsonObject artistObject =
-            value.toObject();
-
-        if (
-            artistObject
-                .value("artist")
-                .isObject()
-        ) {
-            artistObject =
-                artistObject
-                    .value("artist")
-                    .toObject();
-        }
-
-        Artist artist;
-
-        artist.id =
-            jsonId(
-                artistObject);
-
-        artist.name =
-            artistObject
-                .value("name")
-                .toString();
-
-        artist.coverUri =
-            coverUriFromObject(
-                artistObject);
-
-        if (
-            !artist.name.isEmpty()
-        ) {
-            track.artists.append(
-                artist);
-        }
-    }
-
-    const QJsonArray albums =
-        trackObject
-            .value("albums")
-            .toArray();
-
-    for (
-        const QJsonValue &value :
-        albums
-    ) {
-        if (
-            !value.isObject()
-        ) {
-            continue;
-        }
-
-        QJsonObject albumObject =
-            value.toObject();
-
-        if (
-            albumObject
-                .value("album")
-                .isObject()
-        ) {
-            albumObject =
-                albumObject
-                    .value("album")
-                    .toObject();
-        }
-
-        Album album;
-
-        album.id =
-            jsonId(
-                albumObject);
-
-        album.title =
-            albumObject
-                .value("title")
-                .toString();
-
-        album.coverUri =
-            coverUriFromObject(
-                albumObject);
-
-        album.year =
-            albumObject
-                .value("year")
-                .toInt();
-
-        if (
-            !album.title.isEmpty()
-        ) {
-            track.albums.append(
-                album);
-        }
-    }
-
-    return track;
-}
-
-Album parseAlbum(
-    const QJsonObject &object)
-{
-    QJsonObject albumObject =
-        object;
-
-    if (
-        albumObject
-            .value("album")
-            .isObject()
-    ) {
-        albumObject =
-            albumObject
-                .value("album")
-                .toObject();
-    }
-
-    Album album;
-
-    album.id =
-        jsonId(
-            albumObject);
-
-    album.title =
-        albumObject
-            .value("title")
-            .toString();
-
-    album.coverUri =
-        coverUriFromObject(
-            albumObject);
-
-    album.year =
-        albumObject
-            .value("year")
-            .toInt();
-
-    return album;
-}
-
-Artist parseArtist(
-    const QJsonObject &object)
-{
-    QJsonObject artistObject =
-        object;
-
-    if (
-        artistObject
-            .value("artist")
-            .isObject()
-    ) {
-        artistObject =
-            artistObject
-                .value("artist")
-                .toObject();
-    }
-
-    Artist artist;
-
-    artist.id =
-        jsonId(
-            artistObject);
-
-    artist.name =
-        artistObject
-            .value("name")
-            .toString();
-
-    artist.coverUri =
-        coverUriFromObject(
-            artistObject);
-
-    return artist;
-}
-
-QJsonObject resultObject(
-    const QJsonDocument &document)
-{
-    if (
-        !document.isObject()
-    ) {
-        return {};
-    }
-
-    const QJsonObject root =
-        document.object();
-
-    const QJsonValue result =
-        root.value("result");
-
-    if (
-        result.isObject()
-    ) {
-        return result.toObject();
-    }
-
-    return root;
-}
 
 QJsonArray firstArray(
     const QJsonObject &object,
@@ -613,7 +290,7 @@ void ArtistService::loadArtistAlbums(
             }
 
             const QJsonObject result =
-                resultObject(
+                unwrapResult(
                     document);
 
             const QJsonArray albumsArray =
@@ -637,7 +314,7 @@ void ArtistService::loadArtistAlbums(
                 }
 
                 const Album album =
-                    parseAlbum(
+                    ::parseAlbum(
                         value.toObject());
 
                 if (
@@ -781,7 +458,7 @@ void ArtistService::loadArtist(
                             document.isObject()
                         ) {
                             const QJsonObject result =
-                                resultObject(
+                                unwrapResult(
                                     document);
 
                             const QJsonArray albums =
@@ -803,7 +480,7 @@ void ArtistService::loadArtist(
                                 }
 
                                 const Album album =
-                                    parseAlbum(
+                                    ::parseAlbum(
                                         value.toObject());
 
                                 if (
@@ -880,7 +557,7 @@ void ArtistService::loadArtist(
                             document.isObject()
                         ) {
                             const QJsonObject result =
-                                resultObject(
+                                unwrapResult(
                                     document);
 
                             const QJsonArray albums =
@@ -897,7 +574,7 @@ void ArtistService::loadArtist(
                             ) {
                                 artistData
                                     ->newRelease =
-                                    parseAlbum(
+                                    ::parseAlbum(
                                         albums.first()
                                             .toObject());
                             }
@@ -949,7 +626,7 @@ void ArtistService::loadArtist(
                             document.isObject()
                         ) {
                             const QJsonObject result =
-                                resultObject(
+                                unwrapResult(
                                     document);
 
                             QJsonArray artists =
@@ -996,7 +673,7 @@ void ArtistService::loadArtist(
                                 }
 
                                 const Artist similarArtist =
-                                    parseArtist(
+                                    ::parseArtist(
                                         value.toObject());
 
                                 if (
@@ -1132,7 +809,7 @@ void ArtistService::loadArtist(
             ArtistDetails artist;
 
             artist.id =
-                jsonId(
+                parseId(
                     artistObject);
 
             if (
@@ -1153,7 +830,7 @@ void ArtistService::loadArtist(
                     .toString();
 
             artist.coverUri =
-                coverUriFromObject(
+                parseCoverUri(
                     artistObject);
 
             const QJsonArray genres =
@@ -1200,7 +877,7 @@ void ArtistService::loadArtist(
                 }
 
                 const Track track =
-                    parseTrack(
+                    ::parseTrack(
                         value.toObject());
 
                 if (
@@ -1282,7 +959,7 @@ void ArtistService::loadArtist(
                         }
 
                         const QJsonObject result =
-                            resultObject(
+                            unwrapResult(
                                 document);
 
                         QJsonArray tracks =
@@ -1322,7 +999,7 @@ void ArtistService::loadArtist(
                             }
 
                             const Track track =
-                                parseTrack(
+                                ::parseTrack(
                                     value.toObject());
 
                             if (

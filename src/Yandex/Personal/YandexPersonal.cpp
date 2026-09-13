@@ -1,6 +1,7 @@
 #include "YandexPersonal.h"
 
 #include "../Auth/YandexAuth.h"
+#include "../Parsers.h"
 #include "../YandexClient.h"
 
 #include <QDateTime>
@@ -271,12 +272,8 @@ void YandexPersonal::loadMyWaveInternal(
                 return;
             }
 
-            const QJsonObject root =
-                document.object();
-
             const QJsonObject result =
-                root.value("result")
-                    .toObject();
+                unwrapResult(document);
 
             if (result.isEmpty()) {
                 emit errorOccurred(

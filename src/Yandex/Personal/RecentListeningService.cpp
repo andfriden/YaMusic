@@ -1,6 +1,7 @@
 #include "RecentListeningService.h"
 
 #include "../Auth/YandexAuth.h"
+#include "../Parsers.h"
 #include "../YandexClient.h"
 
 #include <QJsonArray>
@@ -352,13 +353,8 @@ RecentListeningService::parseResponse(
         return result;
     }
 
-    const QJsonObject root =
-        document.object();
-
     const QJsonObject resultObject =
-        root
-            .value("result")
-            .toObject();
+        unwrapResult(document);
 
     if (
         resultObject.isEmpty()

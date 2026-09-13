@@ -1,6 +1,7 @@
 #include "GenreService.h"
 
 #include "../Auth/YandexAuth.h"
+#include "../Parsers.h"
 #include "../YandexClient.h"
 
 #include <QJsonArray>
@@ -402,10 +403,7 @@ void GenreService::loadTagPlaylistIds(
 
 
             const QJsonObject result =
-                document
-                    .object()
-                    .value("result")
-                    .toObject();
+                unwrapResult(document);
 
 
             const QJsonArray ids =

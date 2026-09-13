@@ -1,6 +1,7 @@
 #include "ChartService.h"
 
 #include "../Auth/YandexAuth.h"
+#include "../Parsers.h"
 #include "../YandexClient.h"
 
 #include <QJsonArray>
@@ -9,167 +10,6 @@
 #include <QJsonParseError>
 #include <QJsonValue>
 #include <QNetworkReply>
-
-
-namespace
-{
-
-Track parseTrack(
-    const QJsonObject &object)
-{
-    Track track;
-
-    track.id =
-        object
-            .value("id")
-            .toString();
-
-    if (track.id.isEmpty())
-    {
-        const qint64 realId =
-            object
-                .value("realId")
-                .toInteger();
-
-        if (realId > 0)
-        {
-            track.id =
-                QString::number(realId);
-        }
-    }
-
-    track.title =
-        object
-            .value("title")
-            .toString();
-
-    track.coverUri =
-        object
-            .value("coverUri")
-            .toString();
-
-    track.durationMs =
-        object
-            .value("durationMs")
-            .toInt();
-
-    const QJsonArray artists =
-        object
-            .value("artists")
-            .toArray();
-
-    for (
-        const QJsonValue &value :
-        artists
-    )
-    {
-        if (!value.isObject())
-        {
-            continue;
-        }
-
-        const QJsonObject artistObject =
-            value.toObject();
-
-        Artist artist;
-
-        const qint64 artistId =
-            artistObject
-                .value("id")
-                .toInteger();
-
-        if (artistId > 0)
-        {
-            artist.id =
-                QString::number(
-                    artistId);
-        }
-
-        artist.name =
-            artistObject
-                .value("name")
-                .toString();
-
-        const QJsonObject cover =
-            artistObject
-                .value("cover")
-                .toObject();
-
-        artist.coverUri =
-            cover
-                .value("uri")
-                .toString();
-
-        if (artist.coverUri.isEmpty())
-        {
-            artist.coverUri =
-                artistObject
-                    .value("coverUri")
-                    .toString();
-        }
-
-        track.artists.append(
-            artist);
-    }
-
-    return track;
-}
-
-
-Track parseTrackItem(
-    const QJsonObject &item)
-{
-    const QJsonObject trackObject =
-        item
-            .value("track")
-            .toObject();
-
-    if (!trackObject.isEmpty())
-    {
-        return parseTrack(
-            trackObject);
-    }
-
-    return parseTrack(
-        item);
-}
-
-
-QList<Track> parseChartTracks(
-    const QJsonArray &tracksArray)
-{
-    QList<Track> tracks;
-
-    tracks.reserve(
-        tracksArray.size());
-
-    for (
-        const QJsonValue &value :
-        tracksArray
-    )
-    {
-        if (!value.isObject())
-        {
-            continue;
-        }
-
-        const Track track =
-            parseTrackItem(
-                value.toObject());
-
-        if (track.id.isEmpty())
-        {
-            continue;
-        }
-
-        tracks.append(
-            track);
-    }
-
-    return tracks;
-}
-
-}
 
 
 ChartService::ChartService(
@@ -267,13 +107,8 @@ void ChartService::loadChart(
                 return;
             }
 
-            const QJsonObject root =
-                document.object();
-
             const QJsonObject result =
-                root
-                    .value("result")
-                    .toObject();
+                unwrapResult(document);
 
             if (result.isEmpty())
             {
@@ -306,7 +141,7 @@ void ChartService::loadChart(
                     .toArray();
 
             const QList<Track> tracks =
-                parseChartTracks(
+                parseTrackArray(
                     tracksArray);
 
             emit chartReceived(

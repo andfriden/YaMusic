@@ -2,6 +2,7 @@
 
 #include "AccountParser.h"
 #include "Catalog/SearchParser.h"
+#include "Parsers.h"
 
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -324,29 +325,6 @@ void YandexClient::getTracks(
         return;
     }
 
-    QNetworkRequest request{
-        QUrl(
-            QString(
-                YandexApiBaseUrl) +
-            "/tracks")
-    };
-
-    request.setHeader(
-        QNetworkRequest::ContentTypeHeader,
-        "application/x-www-form-urlencoded");
-
-    request.setAttribute(
-        QNetworkRequest::Http2AllowedAttribute,
-        false);
-
-    if (hasToken()) {
-
-        request.setRawHeader(
-            "Authorization",
-            QByteArray("OAuth ") +
-                m_token.toUtf8());
-    }
-
     QUrlQuery body;
 
     body.addQueryItem(
@@ -357,15 +335,10 @@ void YandexClient::getTracks(
         "with-positions",
         "false");
 
-    const QByteArray bodyData =
-        body.query(
-            QUrl::FullyEncoded)
-            .toUtf8();
-
     QNetworkReply *reply =
-        m_networkManager.post(
-            request,
-            bodyData);
+        postForm(
+            "/tracks",
+            body);
 
     m_tracksReply =
         reply;
@@ -374,7 +347,7 @@ void YandexClient::getTracks(
         reply,
         &QNetworkReply::finished,
         this,
-        [this, reply, normalizedIds]() {
+        [this, reply]() {
 
             if (
                 reply != m_tracksReply
@@ -424,228 +397,18 @@ void YandexClient::getTracks(
                 return;
             }
 
-            const QList<Track> tracks =
-                parseTracks(
-                    document.object());
+            const QJsonObject result =
+                unwrapResult(document);
 
-            emit tracksReceived(
-                tracks);
+            const QJsonArray results =
+                result.value("result")
+                    .toArray();
+
+            const QList<Track> tracks =
+                parseTrackArray(results);
+
+            emit tracksReceived(tracks);
 
             reply->deleteLater();
         });
-}
-
-QList<Track>
-YandexClient::parseTracks(
-    const QJsonObject &object) const
-{
-    QList<Track> tracks;
-
-    const QJsonArray results =
-        object
-            .value("result")
-            .toArray();
-
-    for (
-        const QJsonValue &value :
-        results
-    ) {
-
-        if (!value.isObject()) {
-            continue;
-        }
-
-        const Track track =
-            parseTrack(
-                value.toObject());
-
-        if (
-            track.id.isEmpty()
-        ) {
-            continue;
-        }
-
-        tracks.append(
-            track);
-    }
-
-    return tracks;
-}
-
-Track YandexClient::parseTrack(
-    const QJsonObject &trackObject) const
-{
-    Track track;
-
-    const QJsonValue idValue =
-        trackObject.value("id");
-
-    if (
-        idValue.isString()
-    ) {
-
-        track.id =
-            idValue.toString();
-
-    } else if (
-        idValue.isDouble()
-    ) {
-
-        const qint64 id =
-            idValue.toInteger();
-
-        if (id > 0) {
-
-            track.id =
-                QString::number(
-                    id);
-        }
-    }
-
-    track.title =
-        trackObject
-            .value("title")
-            .toString();
-
-    track.coverUri =
-        trackObject
-            .value("coverUri")
-            .toString();
-
-    track.durationMs =
-        trackObject
-            .value("durationMs")
-            .toInt();
-
-    const QJsonArray artists =
-        trackObject
-            .value("artists")
-            .toArray();
-
-    for (
-        const QJsonValue &artistValue :
-        artists
-    ) {
-
-        if (
-            !artistValue.isObject()
-        ) {
-            continue;
-        }
-
-        const QJsonObject artistObject =
-            artistValue.toObject();
-
-        Artist artist;
-
-        const QJsonValue artistIdValue =
-            artistObject.value("id");
-
-        if (
-            artistIdValue.isString()
-        ) {
-
-            artist.id =
-                artistIdValue.toString();
-
-        } else if (
-            artistIdValue.isDouble()
-        ) {
-
-            const qint64 id =
-                artistIdValue.toInteger();
-
-            if (id > 0) {
-
-                artist.id =
-                    QString::number(id);
-            }
-        }
-
-        artist.name =
-            artistObject
-                .value("name")
-                .toString();
-
-        if (
-            !artist.id.isEmpty() ||
-            !artist.name.isEmpty()
-        ) {
-
-            track.artists.append(
-                artist);
-        }
-    }
-
-    const QJsonArray albums =
-        trackObject
-            .value("albums")
-            .toArray();
-
-    for (
-        const QJsonValue &albumValue :
-        albums
-    ) {
-
-        if (
-            !albumValue.isObject()
-        ) {
-            continue;
-        }
-
-        const QJsonObject albumObject =
-            albumValue.toObject();
-
-        Album album;
-
-        const QJsonValue albumIdValue =
-            albumObject.value("id");
-
-        if (
-            albumIdValue.isString()
-        ) {
-
-            album.id =
-                albumIdValue.toString();
-
-        } else if (
-            albumIdValue.isDouble()
-        ) {
-
-            const qint64 id =
-                albumIdValue.toInteger();
-
-            if (id > 0) {
-
-                album.id =
-                    QString::number(id);
-            }
-        }
-
-        album.title =
-            albumObject
-                .value("title")
-                .toString();
-
-        album.coverUri =
-            albumObject
-                .value("coverUri")
-                .toString();
-
-        album.year =
-            albumObject
-                .value("year")
-                .toInt();
-
-        if (
-            !album.id.isEmpty() ||
-            !album.title.isEmpty()
-        ) {
-
-            track.albums.append(
-                album);
-        }
-    }
-
-    return track;
 }

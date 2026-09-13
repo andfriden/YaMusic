@@ -1,6 +1,7 @@
 #include "PlaylistService.h"
 
 #include "../Auth/YandexAuth.h"
+#include "../Parsers.h"
 #include "../YandexClient.h"
 
 #include <QJsonArray>
@@ -11,101 +12,6 @@
 
 namespace
 {
-
-// =============================================================
-// Track parser
-// =============================================================
-
-Track parseTrack(const QJsonObject &object)
-{
-    Track track;
-
-    track.id =
-        object.value("id").toString();
-
-    if (track.id.isEmpty()) {
-
-        const qint64 realId =
-            object.value("realId").toInteger();
-
-        if (realId > 0) {
-            track.id =
-                QString::number(realId);
-        }
-    }
-
-    track.title =
-        object.value("title").toString();
-
-    track.coverUri =
-        object.value("coverUri").toString();
-
-    track.durationMs =
-        object.value("durationMs").toInt();
-
-
-    const QJsonArray artists =
-        object.value("artists").toArray();
-
-    for (const QJsonValue &value : artists) {
-
-        if (!value.isObject()) {
-            continue;
-        }
-
-        const QJsonObject artistObject =
-            value.toObject();
-
-        Artist artist;
-
-        artist.id =
-            QString::number(
-                artistObject.value("id").toInteger());
-
-        artist.name =
-            artistObject.value("name").toString();
-
-        if (!artist.name.isEmpty()) {
-            track.artists.append(artist);
-        }
-    }
-
-
-    const QJsonArray albums =
-        object.value("albums").toArray();
-
-    for (const QJsonValue &value : albums) {
-
-        if (!value.isObject()) {
-            continue;
-        }
-
-        const QJsonObject albumObject =
-            value.toObject();
-
-        Album album;
-
-        album.id =
-            QString::number(
-                albumObject.value("id").toInteger());
-
-        album.title =
-            albumObject.value("title").toString();
-
-        album.coverUri =
-            albumObject.value("coverUri").toString();
-
-        album.year =
-            albumObject.value("year").toInt();
-
-        if (!album.title.isEmpty()) {
-            track.albums.append(album);
-        }
-    }
-
-    return track;
-}
-
 
 // =============================================================
 // Playlist parser
@@ -167,7 +73,7 @@ Playlist parsePlaylist(const QJsonObject &object)
         }
 
         const Track track =
-            parseTrack(trackObject);
+            ::parseTrack(trackObject);
 
         if (!track.id.isEmpty()) {
             playlist.tracks.append(track);
@@ -202,23 +108,8 @@ bool parsePlaylistResponse(
     }
 
 
-    const QJsonObject root =
-        document.object();
-
-    QJsonObject playlistObject;
-
-
-    if (root.value("result").isObject()) {
-
-        playlistObject =
-            root.value("result").toObject();
-
-    } else {
-
-        playlistObject =
-            root;
-    }
-
+    const QJsonObject playlistObject =
+        unwrapResult(document);
 
     if (playlistObject.isEmpty()) {
         return false;

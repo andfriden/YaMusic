@@ -154,6 +154,7 @@ set(
 
         # Yandex
         src/Yandex/AccountParser.cpp
+        src/Yandex/Parsers.cpp
         src/Yandex/YandexClient.cpp
 
         # Yandex Account

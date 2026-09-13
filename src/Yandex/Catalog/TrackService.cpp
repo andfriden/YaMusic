@@ -1,6 +1,7 @@
 #include "TrackService.h"
 
 #include "../Auth/YandexAuth.h"
+#include "../Parsers.h"
 #include "../YandexClient.h"
 
 #include <QCryptographicHash>

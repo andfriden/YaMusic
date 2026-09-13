@@ -1,6 +1,7 @@
 #include "NewPlaylistsService.h"
 
 #include "../Auth/YandexAuth.h"
+#include "../Parsers.h"
 #include "../YandexClient.h"
 #include "PlaylistService.h"
 
@@ -150,13 +151,8 @@ void NewPlaylistsService::load()
                 return;
             }
 
-            const QJsonObject root =
-                document.object();
-
             const QJsonObject result =
-                root
-                    .value("result")
-                    .toObject();
+                unwrapResult(document);
 
             if (
                 result.isEmpty()

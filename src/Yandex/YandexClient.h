@@ -84,16 +84,6 @@ private:
         const QString &path) const;
 
 
-    QList<Track>
-    parseTracks(
-        const QJsonObject &object) const;
-
-
-    Track
-    parseTrack(
-        const QJsonObject &object) const;
-
-
     QNetworkAccessManager
         m_networkManager;
 
