@@ -250,6 +250,12 @@ void AppController::connectLibrary()
 
     connect(
         m_libraryController,
+        &LibraryController::similarPlaylistsChanged,
+        this,
+        &AppController::similarPlaylistsChanged);
+
+    connect(
+        m_libraryController,
         &LibraryController::currentArtistChanged,
         this,
         &AppController::currentArtistChanged);
@@ -848,6 +854,13 @@ int AppController::currentPlaylistTrackCount() const
 {
     return m_libraryController
         ->currentPlaylistTrackCount();
+}
+
+
+QVariantList AppController::similarPlaylists() const
+{
+    return m_libraryController
+        ->similarPlaylists();
 }
 
 

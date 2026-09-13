@@ -58,6 +58,9 @@ Item {
             case "library":
                 return "qrc:/qt/qml/YaMusic/Context/ContextPanelLibrary.qml"
 
+            case "playlist":
+                return "qrc:/qt/qml/YaMusic/Context/ContextPanelPlaylist.qml"
+
             case "mywave":
                 return "qrc:/qt/qml/YaMusic/Context/ContextPanelMyWave.qml"
 

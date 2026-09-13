@@ -3,6 +3,7 @@
 #include <QColor>
 #include <QObject>
 #include <QString>
+#include <QVariantList>
 #include <QVariantMap>
 
 #include "AlbumController.h"
@@ -66,6 +67,11 @@ class AppController : public QObject
     Q_PROPERTY(QString currentPlaylistTitle READ currentPlaylistTitle NOTIFY currentPlaylistChanged)
     Q_PROPERTY(QString currentPlaylistCoverUri READ currentPlaylistCoverUri NOTIFY currentPlaylistChanged)
     Q_PROPERTY(int currentPlaylistTrackCount READ currentPlaylistTrackCount NOTIFY currentPlaylistChanged)
+
+    Q_PROPERTY(
+        QVariantList similarPlaylists
+        READ similarPlaylists
+        NOTIFY similarPlaylistsChanged)
 
     Q_PROPERTY(QString currentAlbumTitle READ currentAlbumTitle NOTIFY currentAlbumChanged)
     Q_PROPERTY(int currentAlbumTrackCount READ currentAlbumTrackCount NOTIFY currentAlbumChanged)
@@ -183,6 +189,7 @@ public:
     QString currentPlaylistTitle() const;
     QString currentPlaylistCoverUri() const;
     int currentPlaylistTrackCount() const;
+    QVariantList similarPlaylists() const;
 
     QString currentAlbumTitle() const;
     int currentAlbumTrackCount() const;
@@ -232,6 +239,7 @@ signals:
     void recommendationsLoaded();
 
     void currentPlaylistChanged();
+    void similarPlaylistsChanged();
     void currentAlbumChanged();
     void currentArtistChanged();
     void currentTrackChanged();

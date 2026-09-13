@@ -294,6 +294,7 @@ set(
         "${YAMUSIC_QML_ROOT}/Context/ContextPanelArtist.qml"
         "${YAMUSIC_QML_ROOT}/Context/ContextPanelAlbum.qml"
         "${YAMUSIC_QML_ROOT}/Context/ContextPanelLibrary.qml"
+        "${YAMUSIC_QML_ROOT}/Context/ContextPanelPlaylist.qml"
 
         # Layout
         "${YAMUSIC_QML_ROOT}/Layout/ContextPanel.qml"
@@ -475,6 +476,12 @@ set_source_files_properties(
         "${YAMUSIC_QML_ROOT}/Context/ContextPanelLibrary.qml"
         PROPERTIES QT_RESOURCE_ALIAS "Context/ContextPanelLibrary.qml"
 )
+
+set_source_files_properties(
+        "${YAMUSIC_QML_ROOT}/Context/ContextPanelPlaylist.qml"
+        PROPERTIES QT_RESOURCE_ALIAS "Context/ContextPanelPlaylist.qml"
+)
+
 
 # =============================================================
 # Layout

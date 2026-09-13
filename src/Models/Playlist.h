@@ -9,6 +9,7 @@ struct Playlist
 {
     QString uid;
     int kind = 0;
+    QString uuid;
 
     QString title;
     QString description;

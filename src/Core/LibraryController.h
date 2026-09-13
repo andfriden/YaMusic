@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QVariantList>
 
 #include "../Playback/PlaybackController.h"
 
@@ -75,6 +76,11 @@ class LibraryController : public QObject
         int currentPlaylistTrackCount
         READ currentPlaylistTrackCount
         NOTIFY currentPlaylistChanged)
+
+    Q_PROPERTY(
+        QVariantList similarPlaylists
+        READ similarPlaylists
+        NOTIFY similarPlaylistsChanged)
 
     Q_PROPERTY(
         PlaylistModel *playlistModel
@@ -181,6 +187,8 @@ public:
 
     int currentPlaylistTrackCount() const;
 
+    QVariantList similarPlaylists() const;
+
 
     // =============================================================
     // Artist
@@ -246,6 +254,8 @@ signals:
     void loadingPlaylistChanged();
 
     void currentPlaylistChanged();
+
+    void similarPlaylistsChanged();
 
 
     // =============================================================
@@ -317,6 +327,8 @@ private:
 
     int m_currentPlaylistTrackCount =
         0;
+
+    QVariantList m_similarPlaylists;
 
 
     // =============================================================

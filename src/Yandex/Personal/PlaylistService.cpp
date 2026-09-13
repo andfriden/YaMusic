@@ -3,7 +3,6 @@
 #include "../Auth/YandexAuth.h"
 #include "../YandexClient.h"
 
-#include <QDebug>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -17,174 +16,92 @@ namespace
 // Track parser
 // =============================================================
 
-Track parseTrack(
-    const QJsonObject &object)
+Track parseTrack(const QJsonObject &object)
 {
     Track track;
 
-
     track.id =
-        object
-            .value("id")
-            .toString();
+        object.value("id").toString();
 
+    if (track.id.isEmpty()) {
 
-    if (
-        track.id.isEmpty()
-    )
-    {
         const qint64 realId =
-            object
-                .value("realId")
-                .toInteger();
+            object.value("realId").toInteger();
 
-
-        if (
-            realId > 0
-        )
-        {
+        if (realId > 0) {
             track.id =
-                QString::number(
-                    realId);
+                QString::number(realId);
         }
     }
 
-
     track.title =
-        object
-            .value("title")
-            .toString();
-
+        object.value("title").toString();
 
     track.coverUri =
-        object
-            .value("coverUri")
-            .toString();
-
+        object.value("coverUri").toString();
 
     track.durationMs =
-        object
-            .value("durationMs")
-            .toInt();
+        object.value("durationMs").toInt();
 
-
-    // =============================================================
-    // Artists
-    // =============================================================
 
     const QJsonArray artists =
-        object
-            .value("artists")
-            .toArray();
+        object.value("artists").toArray();
 
+    for (const QJsonValue &value : artists) {
 
-    for (
-        const QJsonValue &value :
-        artists
-    )
-    {
-        if (
-            !value.isObject()
-        )
-        {
+        if (!value.isObject()) {
             continue;
         }
-
 
         const QJsonObject artistObject =
             value.toObject();
 
-
         Artist artist;
-
 
         artist.id =
             QString::number(
-                artistObject
-                    .value("id")
-                    .toInteger());
-
+                artistObject.value("id").toInteger());
 
         artist.name =
-            artistObject
-                .value("name")
-                .toString();
+            artistObject.value("name").toString();
 
-
-        if (
-            !artist.name.isEmpty()
-        )
-        {
-            track.artists.append(
-                artist);
+        if (!artist.name.isEmpty()) {
+            track.artists.append(artist);
         }
     }
 
 
-    // =============================================================
-    // Albums
-    // =============================================================
-
     const QJsonArray albums =
-        object
-            .value("albums")
-            .toArray();
+        object.value("albums").toArray();
 
+    for (const QJsonValue &value : albums) {
 
-    for (
-        const QJsonValue &value :
-        albums
-    )
-    {
-        if (
-            !value.isObject()
-        )
-        {
+        if (!value.isObject()) {
             continue;
         }
-
 
         const QJsonObject albumObject =
             value.toObject();
 
-
         Album album;
-
 
         album.id =
             QString::number(
-                albumObject
-                    .value("id")
-                    .toInteger());
-
+                albumObject.value("id").toInteger());
 
         album.title =
-            albumObject
-                .value("title")
-                .toString();
-
+            albumObject.value("title").toString();
 
         album.coverUri =
-            albumObject
-                .value("coverUri")
-                .toString();
-
+            albumObject.value("coverUri").toString();
 
         album.year =
-            albumObject
-                .value("year")
-                .toInt();
+            albumObject.value("year").toInt();
 
-
-        if (
-            !album.title.isEmpty()
-        )
-        {
-            track.albums.append(
-                album);
+        if (!album.title.isEmpty()) {
+            track.albums.append(album);
         }
     }
-
 
     return track;
 }
@@ -194,115 +111,68 @@ Track parseTrack(
 // Playlist parser
 // =============================================================
 
-Playlist parsePlaylist(
-    const QJsonObject &object)
+Playlist parsePlaylist(const QJsonObject &object)
 {
     Playlist playlist;
 
-
     playlist.uid =
         QString::number(
-            object
-                .value("uid")
-                .toInteger());
-
+            object.value("uid").toInteger());
 
     playlist.kind =
-        object
-            .value("kind")
-            .toInt();
+        object.value("kind").toInt();
 
+    playlist.uuid =
+        object.value("playlistUuid").toString();
 
     playlist.title =
-        object
-            .value("title")
-            .toString();
-
+        object.value("title").toString();
 
     playlist.description =
-        object
-            .value("description")
-            .toString();
-
+        object.value("description").toString();
 
     playlist.trackCount =
-        object
-            .value("trackCount")
-            .toInt();
+        object.value("trackCount").toInt();
 
 
     const QJsonObject cover =
-        object
-            .value("cover")
-            .toObject();
-
+        object.value("cover").toObject();
 
     playlist.coverUri =
-        cover
-            .value("uri")
-            .toString();
+        cover.value("uri").toString();
 
 
     const QJsonArray tracks =
-        object
-            .value("tracks")
-            .toArray();
+        object.value("tracks").toArray();
 
+    for (const QJsonValue &value : tracks) {
 
-    for (
-        const QJsonValue &value :
-        tracks
-    )
-    {
-        if (
-            !value.isObject()
-        )
-        {
+        if (!value.isObject()) {
             continue;
         }
-
 
         const QJsonObject wrapper =
             value.toObject();
 
-
         QJsonObject trackObject =
-            wrapper
-                .value("track")
-                .toObject();
+            wrapper.value("track").toObject();
 
-
-        if (
-            trackObject.isEmpty()
-        )
-        {
+        if (trackObject.isEmpty()) {
             trackObject =
                 wrapper;
         }
 
-
-        if (
-            trackObject.isEmpty()
-        )
-        {
+        if (trackObject.isEmpty()) {
             continue;
         }
 
-
         const Track track =
-            parseTrack(
-                trackObject);
+            parseTrack(trackObject);
 
-
-        if (
-            !track.id.isEmpty()
-        )
-        {
-            playlist.tracks.append(
-                track);
+        if (!track.id.isEmpty()) {
+            playlist.tracks.append(track);
         }
     }
-
 
     return playlist;
 }
@@ -318,19 +188,16 @@ bool parsePlaylistResponse(
 {
     QJsonParseError parseError;
 
-
     const QJsonDocument document =
         QJsonDocument::fromJson(
             data,
             &parseError);
 
-
     if (
         parseError.error !=
             QJsonParseError::NoError ||
         !document.isObject()
-    )
-    {
+    ) {
         return false;
     }
 
@@ -338,39 +205,28 @@ bool parsePlaylistResponse(
     const QJsonObject root =
         document.object();
 
-
     QJsonObject playlistObject;
 
 
-    if (
-        root
-            .value("result")
-            .isObject()
-    )
-    {
+    if (root.value("result").isObject()) {
+
         playlistObject =
-            root
-                .value("result")
-                .toObject();
-    }
-    else
-    {
+            root.value("result").toObject();
+
+    } else {
+
         playlistObject =
             root;
     }
 
 
-    if (
-        playlistObject.isEmpty()
-    )
-    {
+    if (playlistObject.isEmpty()) {
         return false;
     }
 
 
     playlist =
-        parsePlaylist(
-            playlistObject);
+        parsePlaylist(playlistObject);
 
 
     return (
@@ -389,76 +245,44 @@ PersonalPlaylist parseUserPlaylist(
 {
     PersonalPlaylist playlist;
 
-
     playlist.id =
-        object
-            .value("id")
-            .toString();
+        object.value("id").toString();
 
+    if (playlist.id.isEmpty()) {
 
-    if (
-        playlist.id.isEmpty()
-    )
-    {
         const qint64 id =
-            object
-                .value("id")
-                .toInteger();
+            object.value("id").toInteger();
 
-
-        if (
-            id > 0
-        )
-        {
+        if (id > 0) {
             playlist.id =
-                QString::number(
-                    id);
+                QString::number(id);
         }
     }
 
 
     playlist.uid =
         QString::number(
-            object
-                .value("uid")
-                .toInteger());
-
+            object.value("uid").toInteger());
 
     playlist.kind =
-        object
-            .value("kind")
-            .toInt();
-
+        object.value("kind").toInt();
 
     playlist.title =
-        object
-            .value("title")
-            .toString();
-
+        object.value("title").toString();
 
     playlist.description =
-        object
-            .value("description")
-            .toString();
-
+        object.value("description").toString();
 
     playlist.previewDescription =
-        object
-            .value("description")
-            .toString();
-
+        object.value("description").toString();
 
     playlist.trackCount =
-        object
-            .value("trackCount")
-            .toInt();
-
+        object.value("trackCount").toInt();
 
     playlist.generatedPlaylistType =
-        object
-            .value("generatedPlaylistType")
+        object.value(
+            "generatedPlaylistType")
             .toString();
-
 
     playlist.coverUri =
         object
@@ -471,11 +295,44 @@ PersonalPlaylist parseUserPlaylist(
     return playlist;
 }
 
+
+// =============================================================
+// Similar playlist parser
+// =============================================================
+
+Playlist parseSimilarPlaylist(
+    const QJsonObject &object)
+{
+    Playlist playlist;
+
+    playlist.uid =
+        QString::number(
+            object.value("uid").toInteger());
+
+    playlist.kind =
+        object.value("kind").toInt();
+
+    playlist.uuid =
+        object.value("playlistUuid").toString();
+
+    playlist.title =
+        object.value("title").toString();
+
+    playlist.coverUri =
+        object
+            .value("cover")
+            .toObject()
+            .value("uri")
+            .toString();
+
+    return playlist;
+}
+
 }
 
 
 // =============================================================
-// Constructor
+// PlaylistService
 // =============================================================
 
 PlaylistService::PlaylistService(
@@ -483,8 +340,7 @@ PlaylistService::PlaylistService(
     QObject *parent)
     : QObject(parent)
     , m_auth(auth)
-    , m_yandexClient(
-          new YandexClient(this))
+    , m_yandexClient(new YandexClient(this))
 {
 }
 
@@ -500,11 +356,9 @@ void PlaylistService::loadPlaylist(
     if (
         m_auth == nullptr ||
         !m_auth->isAuthenticated()
-    )
-    {
+    ) {
         emit errorOccurred(
             "Токен Яндекс Музыки не установлен");
-
         return;
     }
 
@@ -512,56 +366,38 @@ void PlaylistService::loadPlaylist(
     const QString trimmedUid =
         uid.trimmed();
 
-
-    if (
-        trimmedUid.isEmpty()
-    )
-    {
+    if (trimmedUid.isEmpty()) {
         emit errorOccurred(
             "UID плейлиста не указан");
-
         return;
     }
 
 
-    if (
-        kind <= 0
-    )
-    {
+    if (kind <= 0) {
         emit errorOccurred(
             "Идентификатор плейлиста некорректен");
-
         return;
     }
 
 
-    m_yandexClient
-        ->setToken(
-            m_auth->token());
+    m_yandexClient->setToken(
+        m_auth->token());
 
 
     const QString path =
         QString(
             "/users/%1/playlists/%2")
-        .arg(
-            trimmedUid)
-        .arg(
-            kind);
+            .arg(trimmedUid)
+            .arg(kind);
 
 
     QNetworkReply *reply =
-        m_yandexClient
-            ->get(
-                path);
+        m_yandexClient->get(path);
 
 
-    if (
-        reply == nullptr
-    )
-    {
+    if (reply == nullptr) {
         emit errorOccurred(
             "Не удалось загрузить плейлист");
-
         return;
     }
 
@@ -579,13 +415,11 @@ void PlaylistService::loadPlaylist(
             if (
                 reply->error() !=
                 QNetworkReply::NoError
-            )
-            {
+            ) {
                 emit errorOccurred(
                     reply->errorString());
 
                 reply->deleteLater();
-
                 return;
             }
 
@@ -597,14 +431,18 @@ void PlaylistService::loadPlaylist(
                 !parsePlaylistResponse(
                     data,
                     playlist)
-            )
-            {
+            ) {
                 emit errorOccurred(
                     "Некорректный ответ плейлиста");
 
                 reply->deleteLater();
-
                 return;
+            }
+
+
+            if (!playlist.uuid.isEmpty()) {
+                loadSimilarPlaylists(
+                    playlist.uuid);
             }
 
 
@@ -618,31 +456,25 @@ void PlaylistService::loadPlaylist(
 
 
 // =============================================================
-// Multiple playlists
+// Playlist batch
 // =============================================================
 
 void PlaylistService::loadPlaylists(
     const QList<QPair<QString, int>> &playlists)
 {
     m_playlistBatchQueue.clear();
-
     m_playlistBatchResults.clear();
-
     m_playlistBatchActive = 0;
-
     m_playlistBatchCompleted = 0;
-
     m_playlistBatchError = false;
 
 
     if (
         m_auth == nullptr ||
         !m_auth->isAuthenticated()
-    )
-    {
+    ) {
         emit errorOccurred(
             "Токен Яндекс Музыки не установлен");
-
         return;
     }
 
@@ -650,11 +482,9 @@ void PlaylistService::loadPlaylists(
     for (
         const QPair<QString, int> &playlist :
         playlists
-    )
-    {
+    ) {
         const QString uid =
             playlist.first.trimmed();
-
 
         const int kind =
             playlist.second;
@@ -663,48 +493,31 @@ void PlaylistService::loadPlaylists(
         if (
             uid.isEmpty() ||
             kind <= 0
-        )
-        {
+        ) {
             continue;
         }
 
 
         m_playlistBatchQueue.append(
-            qMakePair(
-                uid,
-                kind));
+            qMakePair(uid, kind));
     }
 
 
-    if (
-        m_playlistBatchQueue.isEmpty()
-    )
-    {
-        emit playlistsReceived(
-            {});
+    if (m_playlistBatchQueue.isEmpty()) {
+
+        emit playlistsReceived({});
 
         return;
     }
 
 
-    m_yandexClient
-        ->setToken(
-            m_auth->token());
-
-
-    qDebug()
-        << "PlaylistService:"
-        << "starting batch:"
-        << m_playlistBatchQueue.size();
+    m_yandexClient->setToken(
+        m_auth->token());
 
 
     startNextPlaylistBatchRequests();
 }
 
-
-// =============================================================
-// Start batch requests
-// =============================================================
 
 void PlaylistService::startNextPlaylistBatchRequests()
 {
@@ -712,48 +525,38 @@ void PlaylistService::startNextPlaylistBatchRequests()
         m_playlistBatchActive <
             MaxConcurrentPlaylistRequests &&
         !m_playlistBatchQueue.isEmpty()
-    )
-    {
-        const QPair<QString, int> reference =
+    ) {
+
+        const QPair<QString, int> playlist =
             m_playlistBatchQueue.takeFirst();
 
-
         const QString uid =
-            reference.first;
-
+            playlist.first;
 
         const int kind =
-            reference.second;
+            playlist.second;
 
 
         const QString path =
             QString(
                 "/users/%1/playlists/%2")
-        .arg(
-            uid)
-        .arg(
-            kind);
+                .arg(uid)
+                .arg(kind);
+
+
+        QNetworkReply *reply =
+            m_yandexClient->get(path);
 
 
         ++m_playlistBatchActive;
 
 
-        QNetworkReply *reply =
-            m_yandexClient
-                ->get(
-                    path);
+        if (reply == nullptr) {
 
-
-        if (
-            reply == nullptr
-        )
-        {
             --m_playlistBatchActive;
-
             ++m_playlistBatchCompleted;
 
-            m_playlistBatchError =
-                true;
+            m_playlistBatchError = true;
 
             continue;
         }
@@ -770,20 +573,18 @@ void PlaylistService::startNextPlaylistBatchRequests()
 
 
                 --m_playlistBatchActive;
-
                 ++m_playlistBatchCompleted;
 
 
                 if (
                     reply->error() !=
                     QNetworkReply::NoError
-                )
-                {
-                    m_playlistBatchError =
-                        true;
-                }
-                else
-                {
+                ) {
+
+                    m_playlistBatchError = true;
+
+                } else {
+
                     Playlist playlist;
 
 
@@ -791,15 +592,14 @@ void PlaylistService::startNextPlaylistBatchRequests()
                         parsePlaylistResponse(
                             data,
                             playlist)
-                    )
-                    {
+                    ) {
+
                         m_playlistBatchResults.append(
                             playlist);
-                    }
-                    else
-                    {
-                        m_playlistBatchError =
-                            true;
+
+                    } else {
+
+                        m_playlistBatchError = true;
                     }
                 }
 
@@ -813,8 +613,7 @@ void PlaylistService::startNextPlaylistBatchRequests()
                 if (
                     m_playlistBatchActive == 0 &&
                     m_playlistBatchQueue.isEmpty()
-                )
-                {
+                ) {
                     finishPlaylistBatch();
                 }
             });
@@ -825,66 +624,29 @@ void PlaylistService::startNextPlaylistBatchRequests()
         m_playlistBatchActive == 0 &&
         m_playlistBatchQueue.isEmpty() &&
         m_playlistBatchCompleted > 0
-    )
-    {
+    ) {
         finishPlaylistBatch();
     }
 }
 
 
-/// =============================================================
-// Finish batch
-// =============================================================
-
 void PlaylistService::finishPlaylistBatch()
 {
-    qDebug()
-        << "PlaylistService:"
-        << "batch completed:"
-        << m_playlistBatchCompleted
-        << "| loaded:"
-        << m_playlistBatchResults.size();
-
-
     const QList<Playlist> results =
         m_playlistBatchResults;
 
-    const bool hadError =
-        m_playlistBatchError;
-
-
-    // =============================================================
-    // Reset state BEFORE emitting the signal.
-    //
-    // playlistsReceived() can synchronously cause the next
-    // loadPlaylists() call. Therefore the old batch must already
-    // be completely reset at this point.
-    // =============================================================
-
     m_playlistBatchQueue.clear();
-
     m_playlistBatchResults.clear();
-
     m_playlistBatchActive = 0;
-
     m_playlistBatchCompleted = 0;
-
     m_playlistBatchError = false;
 
 
     emit playlistsReceived(
         results);
-
-
-    if (
-        hadError
-    )
-    {
-        qDebug()
-            << "PlaylistService:"
-            << "some playlists failed";
-    }
 }
+
+
 // =============================================================
 // User playlists
 // =============================================================
@@ -895,11 +657,9 @@ void PlaylistService::loadUserPlaylists(
     if (
         m_auth == nullptr ||
         !m_auth->isAuthenticated()
-    )
-    {
+    ) {
         emit errorOccurred(
             "Токен Яндекс Музыки не установлен");
-
         return;
     }
 
@@ -908,42 +668,30 @@ void PlaylistService::loadUserPlaylists(
         uid.trimmed();
 
 
-    if (
-        trimmedUid.isEmpty()
-    )
-    {
+    if (trimmedUid.isEmpty()) {
         emit errorOccurred(
             "UID пользователя не указан");
-
         return;
     }
 
 
-    m_yandexClient
-        ->setToken(
-            m_auth->token());
+    m_yandexClient->setToken(
+        m_auth->token());
 
 
     const QString path =
         QString(
             "/users/%1/playlists/list")
-        .arg(
-            trimmedUid);
+            .arg(trimmedUid);
 
 
     QNetworkReply *reply =
-        m_yandexClient
-            ->get(
-                path);
+        m_yandexClient->get(path);
 
 
-    if (
-        reply == nullptr
-    )
-    {
+    if (reply == nullptr) {
         emit errorOccurred(
-            "Не удалось загрузить список плейлистов");
-
+            "Не удалось загрузить плейлисты пользователя");
         return;
     }
 
@@ -961,19 +709,16 @@ void PlaylistService::loadUserPlaylists(
             if (
                 reply->error() !=
                 QNetworkReply::NoError
-            )
-            {
+            ) {
                 emit errorOccurred(
                     reply->errorString());
 
                 reply->deleteLater();
-
                 return;
             }
 
 
             QJsonParseError parseError;
-
 
             const QJsonDocument document =
                 QJsonDocument::fromJson(
@@ -983,72 +728,60 @@ void PlaylistService::loadUserPlaylists(
 
             if (
                 parseError.error !=
-                    QJsonParseError::NoError
-            )
-            {
+                QJsonParseError::NoError
+            ) {
                 emit errorOccurred(
-                    "Некорректный ответ списка плейлистов");
+                    "Некорректный ответ плейлистов пользователя");
 
                 reply->deleteLater();
-
                 return;
             }
 
 
-            QJsonArray playlistsArray;
+            QJsonArray playlistArray;
 
 
-            if (
-                document.isArray()
-            )
-            {
-                playlistsArray =
+            if (document.isArray()) {
+
+                playlistArray =
                     document.array();
-            }
-            else if (
-                document.isObject()
-            )
-            {
+
+            } else if (document.isObject()) {
+
                 const QJsonObject root =
                     document.object();
 
-
                 if (
-                    root
-                        .value("result")
-                        .isArray()
-                )
-                {
-                    playlistsArray =
-                        root
-                            .value("result")
+                    root.value("result").isArray()
+                ) {
+                    playlistArray =
+                        root.value("result")
                             .toArray();
-                }
-                else
-                {
-                    emit errorOccurred(
-                        "Список плейлистов отсутствует");
-
-                    reply->deleteLater();
-
-                    return;
                 }
             }
 
 
-            QList<PersonalPlaylist>
-                playlists;
+            if (
+                playlistArray.isEmpty() &&
+                !document.isArray()
+            ) {
+                emit errorOccurred(
+                    "Некорректная структура плейлистов пользователя");
+
+                reply->deleteLater();
+                return;
+            }
+
+
+            QList<PersonalPlaylist> playlists;
 
 
             for (
                 const QJsonValue &value :
-                playlistsArray
-            )
-            {
-                if (
-                    !value.isObject()
-                )
-                {
+                playlistArray
+            ) {
+
+                if (!value.isObject()) {
                     continue;
                 }
 
@@ -1061,8 +794,7 @@ void PlaylistService::loadUserPlaylists(
                 if (
                     playlist.uid.isEmpty() ||
                     playlist.kind <= 0
-                )
-                {
+                ) {
                     continue;
                 }
 
@@ -1073,6 +805,163 @@ void PlaylistService::loadUserPlaylists(
 
 
             emit userPlaylistsReceived(
+                playlists);
+
+
+            reply->deleteLater();
+        });
+}
+
+
+// =============================================================
+// Similar playlists
+// =============================================================
+
+void PlaylistService::loadSimilarPlaylists(
+    const QString &uuid)
+{
+    if (
+        m_auth == nullptr ||
+        !m_auth->isAuthenticated()
+    ) {
+        emit errorOccurred(
+            "Токен Яндекс Музыки не установлен");
+        return;
+    }
+
+
+    const QString trimmedUuid =
+        uuid.trimmed();
+
+    if (trimmedUuid.isEmpty()) {
+        return;
+    }
+
+
+    m_yandexClient->setToken(
+        m_auth->token());
+
+
+    const QString path =
+        QString(
+            "/playlist/%1/similar-entities")
+            .arg(trimmedUuid);
+
+
+    QNetworkReply *reply =
+        m_yandexClient->get(path);
+
+
+    if (reply == nullptr) {
+        return;
+    }
+
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply]()
+        {
+            const QByteArray data =
+                reply->readAll();
+
+
+            if (
+                reply->error() !=
+                QNetworkReply::NoError
+            ) {
+                reply->deleteLater();
+                return;
+            }
+
+
+            QJsonParseError parseError;
+
+            const QJsonDocument document =
+                QJsonDocument::fromJson(
+                    data,
+                    &parseError);
+
+
+            if (
+                parseError.error !=
+                    QJsonParseError::NoError ||
+                !document.isObject()
+            ) {
+                reply->deleteLater();
+                return;
+            }
+
+
+            const QJsonObject root =
+                document.object();
+
+            const QJsonObject result =
+                root.value("result").toObject();
+
+            const QJsonArray items =
+                result.value("items").toArray();
+
+
+            QList<Playlist> playlists;
+
+
+            for (
+                const QJsonValue &value :
+                items
+            ) {
+                if (!value.isObject()) {
+                    continue;
+                }
+
+
+                const QJsonObject item =
+                    value.toObject();
+
+
+                if (
+                    item.value("type").toString() !=
+                    "playlist_item"
+                ) {
+                    continue;
+                }
+
+
+                const QJsonObject playlistObject =
+                    item
+                        .value("data")
+                        .toObject()
+                        .value("playlist")
+                        .toObject();
+
+
+                if (playlistObject.isEmpty()) {
+                    continue;
+                }
+
+
+                const Playlist playlist =
+                    parseSimilarPlaylist(
+                        playlistObject);
+
+
+                if (
+                    playlist.uid.isEmpty() ||
+                    playlist.uuid.isEmpty() ||
+                    playlist.kind <= 0 ||
+                    playlist.title.isEmpty()
+                ) {
+                    continue;
+                }
+
+
+                playlists.append(
+                    playlist);
+            }
+
+
+            emit similarPlaylistsReceived(
                 playlists);
 
 

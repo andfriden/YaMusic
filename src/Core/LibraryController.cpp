@@ -109,6 +109,59 @@ LibraryController::LibraryController(
                     << playlistWithLikes.title
                     << "| треков:"
                     << playlistWithLikes.trackCount;
+
+            });
+
+
+        connect(
+            m_playlistService,
+            &PlaylistService::similarPlaylistsReceived,
+            this,
+            [this](
+                const QList<Playlist> &playlists)
+            {
+                QVariantList result;
+
+                for (
+                    const Playlist &playlist :
+                    playlists
+                )
+                {
+                    QVariantMap item;
+
+                    item.insert(
+                        "uid",
+                        playlist.uid);
+
+                    item.insert(
+                        "uuid",
+                        playlist.uuid);
+
+                    item.insert(
+                        "kind",
+                        playlist.kind);
+
+                    item.insert(
+                        "title",
+                        playlist.title);
+
+                    item.insert(
+                        "coverUri",
+                        playlist.coverUri);
+
+                    item.insert(
+                        "trackCount",
+                        playlist.trackCount);
+
+                    result.append(
+                        item);
+                }
+
+
+                m_similarPlaylists =
+                    result;
+
+                emit similarPlaylistsChanged();
             });
 
 
@@ -641,6 +694,11 @@ void LibraryController::loadPlaylist(
         ->clear();
 
 
+    m_similarPlaylists.clear();
+
+    emit similarPlaylistsChanged();
+
+
     m_currentPlaylistTitle.clear();
 
     m_currentPlaylistCoverUri.clear();
@@ -773,6 +831,13 @@ int
 LibraryController::currentPlaylistTrackCount() const
 {
     return m_currentPlaylistTrackCount;
+}
+
+
+QVariantList
+LibraryController::similarPlaylists() const
+{
+    return m_similarPlaylists;
 }
 
 

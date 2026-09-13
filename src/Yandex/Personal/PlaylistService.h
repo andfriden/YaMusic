@@ -34,11 +34,16 @@ public:
 
 
     // =============================================================
+    // Similar / recommended playlists
+    // =============================================================
+
+    void loadSimilarPlaylists(const QString &uuid);
+
+    // =============================================================
     // Multiple playlists
     // =============================================================
 
-    void loadPlaylists(
-        const QList<QPair<QString, int>> &playlists);
+    void loadPlaylists(const QList<QPair<QString, int>> &playlists);
 
 
     // =============================================================
@@ -56,6 +61,9 @@ signals:
 
 
     void playlistsReceived(
+        const QList<Playlist> &playlists);
+
+    void similarPlaylistsReceived(
         const QList<Playlist> &playlists);
 
 
