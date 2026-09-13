@@ -977,8 +977,14 @@ void LibraryController::setTrackLiked(
     }
     else
     {
+        /*
+         * Не удаляем трек из модели, а просто
+         * сбрасываем лайк. Иначе повторный лайк
+         * не найдёт трек для обновления.
+         */
         m_likedTracksModel
-            ->removeTrack(
-                id);
+            ->setTrackLiked(
+                id,
+                false);
     }
 }
