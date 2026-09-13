@@ -13,21 +13,23 @@ Item {
      * =============================================================
      */
 
-    readonly property int pageHeight: 900
-
     width:
         parent
             ? parent.width
             : 0
 
     height:
-        pageHeight
+        parent
+            ? parent.height
+            : 900
 
     implicitWidth:
         width
 
     implicitHeight:
-        pageHeight
+        parent
+            ? parent.height
+            : 900
 
 
     /*

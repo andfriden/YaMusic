@@ -6,13 +6,21 @@ Item {
 
     property var controller
 
-    readonly property int pageHeight: 620
+    width:
+        parent
+            ? parent.width
+            : 0
 
-    width: parent ? parent.width : 0
-    height: pageHeight
+    height:
+        parent
+            ? parent.height
+            : 620
 
-    implicitWidth: width
-    implicitHeight: pageHeight
+    implicitWidth:
+        width
+
+    implicitHeight:
+        height
 
     RecentListeningSection {
         anchors.fill: parent

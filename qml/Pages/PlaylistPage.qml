@@ -8,24 +8,21 @@ Item {
     property var controller
 
 
-    readonly property int pageHeight:
-        700
-
-
     width:
         parent
             ? parent.width
             : 0
 
     height:
-        pageHeight
-
+        parent
+            ? parent.height
+            : 700
 
     implicitWidth:
         width
 
     implicitHeight:
-        pageHeight
+        height
 
 
     Rectangle {
