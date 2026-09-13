@@ -144,6 +144,11 @@ QtObject {
             ? macchiatoSurface2
             : latteSurface1
 
+    readonly property color panelSubtle:
+        dark
+            ? macchiatoMantle
+            : latteCrust
+
     readonly property color surface:
         dark
             ? macchiatoSurface0
