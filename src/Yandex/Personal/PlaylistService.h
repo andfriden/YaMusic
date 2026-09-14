@@ -6,11 +6,10 @@
 #include <QString>
 #include "../../Models/PersonalPlaylist.h"
 #include "../../Models/Playlist.h"
+#include "../YandexServiceBase.h"
 
-class YandexAuth;
-class YandexClient;
 
-class PlaylistService : public QObject
+class PlaylistService : public YandexServiceBase
 {
     Q_OBJECT
 
@@ -63,12 +62,6 @@ private:
     void finishPlaylistBatch();
 
 private:
-
-    YandexAuth *
-        m_auth = nullptr;
-
-    YandexClient *
-        m_yandexClient = nullptr;
 
     // Batch state
 

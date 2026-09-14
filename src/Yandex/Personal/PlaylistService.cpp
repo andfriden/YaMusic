@@ -26,6 +26,11 @@ Playlist parsePlaylist(const QJsonObject &object)
     playlist.uuid =
         object.value("playlistUuid").toString();
 
+    if (playlist.uuid.isEmpty()) {
+        playlist.uuid =
+            object.value("uuid").toString();
+    }
+
     playlist.title =
         object.value("title").toString();
 
@@ -185,6 +190,11 @@ Playlist parseSimilarPlaylist(
     playlist.uuid =
         object.value("playlistUuid").toString();
 
+    if (playlist.uuid.isEmpty()) {
+        playlist.uuid =
+            object.value("uuid").toString();
+    }
+
     playlist.title =
         object.value("title").toString();
 
@@ -194,6 +204,11 @@ Playlist parseSimilarPlaylist(
             .toObject()
             .value("uri")
             .toString();
+
+    if (playlist.coverUri.isEmpty()) {
+        playlist.coverUri =
+            object.value("coverUri").toString();
+    }
 
     return playlist;
 }
@@ -205,9 +220,7 @@ Playlist parseSimilarPlaylist(
 PlaylistService::PlaylistService(
     YandexAuth *auth,
     QObject *parent)
-    : QObject(parent)
-    , m_auth(auth)
-    , m_yandexClient(new YandexClient(this))
+    : YandexServiceBase(auth, parent)
 {
 }
 
@@ -217,10 +230,7 @@ void PlaylistService::loadPlaylist(
     const QString &uid,
     int kind)
 {
-    if (
-        m_auth == nullptr ||
-        !m_auth->isAuthenticated()
-    ) {
+    if (!ensureAuthenticated()) {
         emit errorOccurred(
             "Токен Яндекс Музыки не установлен");
         return;
@@ -240,9 +250,6 @@ void PlaylistService::loadPlaylist(
             "Идентификатор плейлиста некорректен");
         return;
     }
-
-    m_yandexClient->setToken(
-        m_auth->token());
 
     const QString path =
         QString(
@@ -316,10 +323,7 @@ void PlaylistService::loadPlaylists(
     m_playlistBatchCompleted = 0;
     m_playlistBatchError = false;
 
-    if (
-        m_auth == nullptr ||
-        !m_auth->isAuthenticated()
-    ) {
+    if (!ensureAuthenticated()) {
         emit errorOccurred(
             "Токен Яндекс Музыки не установлен");
         return;
@@ -352,9 +356,6 @@ void PlaylistService::loadPlaylists(
 
         return;
     }
-
-    m_yandexClient->setToken(
-        m_auth->token());
 
     startNextPlaylistBatchRequests();
 }
@@ -477,10 +478,7 @@ void PlaylistService::finishPlaylistBatch()
 void PlaylistService::loadUserPlaylists(
     const QString &uid)
 {
-    if (
-        m_auth == nullptr ||
-        !m_auth->isAuthenticated()
-    ) {
+    if (!ensureAuthenticated()) {
         emit errorOccurred(
             "Токен Яндекс Музыки не установлен");
         return;
@@ -494,9 +492,6 @@ void PlaylistService::loadUserPlaylists(
             "UID пользователя не указан");
         return;
     }
-
-    m_yandexClient->setToken(
-        m_auth->token());
 
     const QString path =
         QString(
@@ -620,10 +615,7 @@ void PlaylistService::loadUserPlaylists(
 void PlaylistService::loadSimilarPlaylists(
     const QString &uuid)
 {
-    if (
-        m_auth == nullptr ||
-        !m_auth->isAuthenticated()
-    ) {
+    if (!ensureAuthenticated()) {
         emit errorOccurred(
             "Токен Яндекс Музыки не установлен");
         return;
@@ -635,9 +627,6 @@ void PlaylistService::loadSimilarPlaylists(
     if (trimmedUuid.isEmpty()) {
         return;
     }
-
-    m_yandexClient->setToken(
-        m_auth->token());
 
     const QString path =
         QString(
