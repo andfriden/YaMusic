@@ -316,93 +316,104 @@ Item {
                         )
                     }
                 }
-            }
-        }
+}
+    }
 
-        // =========================================================
-        // Settings
-        // =========================================================
+    /*
+     * Кнопка настроек (оверлей поверх строки, прижат к правому краю)
+     */
 
-        Item {
-            id: settingsButton
+    Item {
+        id: settingsButton
 
-            width: 38
-            height: 38
+        anchors.right:
+            parent.right
 
-            anchors.verticalCenter:
-                parent.verticalCenter
+        anchors.rightMargin:
+            20
 
-            Rectangle {
-                anchors.fill:
-                    parent
+        anchors.top:
+            parent.top
 
-                radius: 10
+        anchors.topMargin:
+            15
 
-                color:
-                    settingsMouseArea.containsMouse
-                        ? AppTheme.panelHover
-                        : AppTheme.panelSubtle
+        width: 38
+        height: 38
 
-                border.width:
-                    1
+        z: 10
 
-                border.color:
-                    settingsMouseArea.containsMouse
-                        ? AppTheme.border
-                        : AppTheme.borderSubtle
+        Rectangle {
+            anchors.fill:
+                parent
 
-                Behavior on color {
-                    ColorAnimation {
-                        duration: 120
-                    }
-                }
+            radius: 10
 
-                Behavior on border.color {
-                    ColorAnimation {
-                        duration: 120
-                    }
-                }
-            }
+            color:
+                settingsMouseArea.containsMouse
+                    ? AppTheme.panelHover
+                    : AppTheme.panelSubtle
 
-            Text {
-                anchors.centerIn:
-                    parent
+            border.width:
+                1
 
-                text:
-                    "⚙"
+            border.color:
+                settingsMouseArea.containsMouse
+                    ? AppTheme.border
+                    : AppTheme.borderSubtle
 
-                color:
-                    settingsMouseArea.containsMouse
-                        ? AppTheme.textPrimary
-                        : AppTheme.textSecondary
-
-                font.pixelSize:
-                    16
-
-                Behavior on color {
-                    ColorAnimation {
-                        duration: 120
-                    }
+            Behavior on color {
+                ColorAnimation {
+                    duration: 120
                 }
             }
 
-            MouseArea {
-                id: settingsMouseArea
-
-                anchors.fill:
-                    parent
-
-                hoverEnabled:
-                    true
-
-                cursorShape:
-                    Qt.PointingHandCursor
-
-                onClicked: {
-                    settingsPopup.open()
+            Behavior on border.color {
+                ColorAnimation {
+                    duration: 120
                 }
             }
         }
+
+        Text {
+            anchors.centerIn:
+                parent
+
+            text:
+                "⚙"
+
+            color:
+                settingsMouseArea.containsMouse
+                    ? AppTheme.textPrimary
+                    : AppTheme.textSecondary
+
+            font.pixelSize:
+                16
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 120
+                }
+            }
+        }
+
+        MouseArea {
+            id: settingsMouseArea
+
+            anchors.fill:
+                parent
+
+            hoverEnabled:
+                true
+
+            cursorShape:
+                Qt.PointingHandCursor
+
+            onClicked: {
+                settingsPopup.open()
+            }
+        }
+    }
     }
 
     Popup {

@@ -927,12 +927,12 @@ Rectangle {
                 Label {
                     anchors.centerIn: parent
 
-                    text: "↗"
+                    text: "☰"
 
                     color:
                         AppTheme.textSecondary
 
-                    font.pixelSize: 18
+                    font.pixelSize: 16
                 }
 
                 MouseArea {

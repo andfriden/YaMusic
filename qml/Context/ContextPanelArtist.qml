@@ -103,15 +103,15 @@ Item {
 
                         color:
                             mouseArea.containsMouse
-                                ? "#dedede"
-                                : "#f4f4f4"
+                                ? AppTheme.panelActive
+                                : AppTheme.panelSecondary
 
                         border.width: 1
 
                         border.color:
                             mouseArea.containsMouse
-                                ? "#c6c6c6"
-                                : "#e1e1e1"
+                                ? AppTheme.border
+                                : AppTheme.borderSubtle
 
                         Rectangle {
                             id: artwork
@@ -125,7 +125,7 @@ Item {
 
                             radius: width / 2
 
-                            color: "#d3d3d3"
+                            color: AppTheme.artworkPlaceholder
 
                             clip: true
 
