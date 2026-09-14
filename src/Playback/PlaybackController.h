@@ -9,6 +9,8 @@
 
 class PlayerService;
 class TrackService;
+class QNetworkAccessManager;
+class QNetworkReply;
 
 class PlaybackController : public QObject
 {
@@ -128,6 +130,8 @@ private:
 
     void setupSystemMediaControls();
 
+    void fetchCurrentCover();
+
 private:
     TrackService *m_trackService = nullptr;
 
@@ -142,4 +146,8 @@ private:
 
     std::unique_ptr<SystemMediaControls>
         m_systemMediaControls;
+
+    QNetworkAccessManager *m_coverNetwork = nullptr;
+
+    QString m_pendingCoverUri;
 };

@@ -3,6 +3,26 @@
 #include "../Player/PlayerService.h"
 #include "../Yandex/Catalog/TrackService.h"
 
+#include <QDir>
+#include <QFile>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QStandardPaths>
+#include <QUrl>
+
+static QString coverCacheDir()
+{
+    return QStandardPaths::writableLocation(QStandardPaths::CacheLocation)
+        + QStringLiteral("/covers");
+}
+
+static QString coverFilePath(const QString &trackId)
+{
+    return coverCacheDir() + QStringLiteral("/") + trackId
+        + QStringLiteral(".jpg");
+}
+
 PlaybackController::PlaybackController(
     TrackService *trackService,
     PlayerService *playerService,
@@ -12,6 +32,7 @@ PlaybackController::PlaybackController(
     , m_trackService(trackService)
     , m_playerService(playerService)
     , m_queueService(queueService)
+    , m_coverNetwork(new QNetworkAccessManager(this))
 {
     setupSystemMediaControls();
 
@@ -629,9 +650,16 @@ makeMediaMetadata(const Track &track)
         ? QString() : track.artists.first().name;
     md.album = track.albums.isEmpty()
         ? QString() : track.albums.first().title;
-    md.coverUrl = normalizeCoverUri(track.coverUri);
     md.durationMs = track.durationMs;
     md.trackId = track.id;
+
+    // Use local cached cover when available (file:// — required by MPRIS clients).
+    const QString cached = coverFilePath(track.id);
+    if (QFile::exists(cached))
+        md.coverUrl = QStringLiteral("file://") + cached;
+    else
+        md.coverUrl = normalizeCoverUri(track.coverUri);
+
     return md;
 }
 
@@ -718,6 +746,8 @@ void PlaybackController::setupSystemMediaControls()
             const auto md = makeMediaMetadata(m_currentTrack);
             m_systemMediaControls->setMetadata(md);
             m_systemMediaControls->setDuration(md.durationMs);
+
+            fetchCurrentCover();
         });
 
     connect(
@@ -767,4 +797,48 @@ void PlaybackController::setupSystemMediaControls()
      */
 
     m_systemMediaControls->setEnabled(true);
+}
+
+void PlaybackController::fetchCurrentCover()
+{
+    if (m_currentTrack.id.isEmpty() || m_currentTrack.coverUri.isEmpty())
+        return;
+
+    const QString cached = coverFilePath(m_currentTrack.id);
+    if (QFile::exists(cached))
+        return;
+
+    const QString url = normalizeCoverUri(m_currentTrack.coverUri);
+    m_pendingCoverUri = m_currentTrack.coverUri;
+
+    QNetworkRequest request{QUrl(url)};
+    request.setHeader(QNetworkRequest::UserAgentHeader,
+                      QStringLiteral("YaMusic/1.0 (Qt)"));
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                         QNetworkRequest::NoLessSafeRedirectPolicy);
+
+    QNetworkReply *reply = m_coverNetwork->get(request);
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        reply->deleteLater();
+        if (reply->error() != QNetworkReply::NoError)
+            return;
+
+        const QByteArray data = reply->readAll();
+        if (data.isEmpty())
+            return;
+
+        QDir dir;
+        if (!dir.mkpath(coverCacheDir()))
+            return;
+
+        QFile file(coverFilePath(m_currentTrack.id));
+        if (!file.open(QIODevice::WriteOnly))
+            return;
+        file.write(data);
+        file.close();
+
+        // Re-publish metadata so clients pick up the file:// cover.
+        const auto md = makeMediaMetadata(m_currentTrack);
+        m_systemMediaControls->setMetadata(md);
+    });
 }
