@@ -371,6 +371,12 @@ void AppController::connectPersonal()
             m_libraryController->loadPlaylist(
                 playlist.uid,
                 playlist.kind);
+
+            // Для персональных подборок («Собираем для вас»)
+            // сервер не отдаёт similar-entities, поэтому
+            // подставляем другие плейлисты из лендинга.
+            m_libraryController->setSimilarPlaylistsFallback(
+                m_personalController->recommendationPlaylistsData());
         });
 }
 

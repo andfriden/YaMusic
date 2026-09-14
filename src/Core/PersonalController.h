@@ -104,6 +104,12 @@ public:
     PersonalChartModel *
     chartModel() const;
 
+    /*
+     * Плейлисты из лендинга в виде QVariantList (uid/kind/title/coverUri).
+     * Используется как fallback для раздела «Похожие плейлисты».
+     */
+    QVariantList recommendationPlaylistsData() const;
+
     // Loading state
 
     bool isLoadingMyWave() const;

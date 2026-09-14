@@ -795,6 +795,16 @@ LibraryController::similarPlaylists() const
     return m_similarPlaylists;
 }
 
+
+void LibraryController::setSimilarPlaylistsFallback(
+    const QVariantList &playlists)
+{
+    m_similarPlaylists =
+        playlists;
+
+    emit similarPlaylistsChanged();
+}
+
 // Artist
 
 void LibraryController::loadArtist(

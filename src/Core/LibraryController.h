@@ -215,6 +215,14 @@ public:
 
     QVariantList similarPlaylists() const;
 
+    /*
+     * Заполняет похожие плейлисты из лендинга,
+     * если сервер не вернул родные similar-entities.
+     * Вызывать после loadPlaylist().
+     */
+    void setSimilarPlaylistsFallback(
+        const QVariantList &playlists);
+
     // Artist
 
     void loadArtist(

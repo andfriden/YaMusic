@@ -228,6 +228,50 @@ PersonalController::chartModel() const
     return m_chartModel;
 }
 
+
+QVariantList
+PersonalController::recommendationPlaylistsData() const
+{
+    QVariantList result;
+
+    for (
+        const PersonalPlaylist &playlist :
+        m_recommendationPlaylists
+    )
+    {
+        if (
+            playlist.uid.isEmpty() ||
+            playlist.kind <= 0
+        )
+        {
+            continue;
+        }
+
+        QVariantMap item;
+
+        item.insert(
+            "uid",
+            playlist.uid);
+
+        item.insert(
+            "kind",
+            playlist.kind);
+
+        item.insert(
+            "title",
+            playlist.title);
+
+        item.insert(
+            "coverUri",
+            playlist.coverUri);
+
+        result.append(
+            item);
+    }
+
+    return result;
+}
+
 // Loading state
 
 bool
