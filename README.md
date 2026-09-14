@@ -523,13 +523,13 @@ YaMusic/
 * [x] Показ обычного текста без таймингов
 * [x] Кнопка 🎤 в Now Playing / панель текста в ExpandedNowPlaying
 
-### v0.10 — System Media Controls 🚧
+### v0.10 — System Media Controls ✅
 
-* [ ] MPRIS на Linux (метаданные + управление)
-* [ ] SMTC на Windows (System Media Transport Controls)
-* [ ] MPRemoteCommandCenter на macOS
-* [ ] Обновление метаданных now playing (трек, исполнитель, обложка)
-* [ ] Управление воспроизведением: play/pause, next/prev, seek
+* [x] MPRIS на Linux (метаданные + управление)
+* [x] SMTC на Windows (System Media Transport Controls)
+* [x] MPRemoteCommandCenter на macOS
+* [x] Обновление метаданных now playing (трек, исполнитель, обложка)
+* [x] Управление воспроизведением: play/pause, next/prev, seek
 
 ---
 

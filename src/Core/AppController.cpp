@@ -597,8 +597,10 @@ void AppController::connectPlayer()
         m_playerService,
         &PlayerService::positionChanged,
         this,
-        [this](qint64) {
+        [this](qint64 pos) {
             emit positionChanged();
+            if (m_playbackController)
+                m_playbackController->systemMediaControls()->setPosition(pos);
         });
 
     connect(

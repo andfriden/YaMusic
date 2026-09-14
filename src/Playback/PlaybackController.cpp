@@ -1,4 +1,5 @@
 #include "PlaybackController.h"
+#include "../MediaControls/MediaControlsFactory.h"
 #include "../Player/PlayerService.h"
 #include "../Yandex/Catalog/TrackService.h"
 
@@ -12,6 +13,8 @@ PlaybackController::PlaybackController(
     , m_playerService(playerService)
     , m_queueService(queueService)
 {
+    setupSystemMediaControls();
+
     if (m_playerService != nullptr) {
 
         connect(
@@ -132,6 +135,12 @@ QueueService *
 PlaybackController::queueService() const
 {
     return m_queueService;
+}
+
+SystemMediaControls *
+PlaybackController::systemMediaControls() const
+{
+    return m_systemMediaControls.get();
 }
 
 void PlaybackController::playTrack(
@@ -591,4 +600,153 @@ void PlaybackController::handlePlaybackFinished()
     emit playlistExhausted(
         sourceType,
         sourceTitle);
+}
+
+static SystemMediaControls::Metadata
+makeMediaMetadata(const Track &track)
+{
+    SystemMediaControls::Metadata md;
+    md.title = track.title;
+    md.artist = track.artists.isEmpty()
+        ? QString() : track.artists.first().name;
+    md.album = track.albums.isEmpty()
+        ? QString() : track.albums.first().title;
+    md.coverUrl = track.coverUri;
+    md.durationMs = track.durationMs;
+    md.trackId = track.id;
+    return md;
+}
+
+static QString
+mprisLoopStatus(QueueService::RepeatMode mode)
+{
+    switch (mode)
+    {
+    case QueueService::RepeatOff:  return QStringLiteral("None");
+    case QueueService::RepeatOne:  return QStringLiteral("Track");
+    case QueueService::RepeatAll:  return QStringLiteral("Playlist");
+    }
+    return QStringLiteral("None");
+}
+
+void PlaybackController::setupSystemMediaControls()
+{
+    m_systemMediaControls =
+        MediaControlsFactory::create(this);
+
+    if (m_systemMediaControls == nullptr)
+        return;
+
+    /*
+     * Управление из системы → PlaybackController.
+     */
+
+    connect(
+        m_systemMediaControls.get(),
+        &SystemMediaControls::playRequested,
+        this,
+        &PlaybackController::resume);
+
+    connect(
+        m_systemMediaControls.get(),
+        &SystemMediaControls::pauseRequested,
+        this,
+        &PlaybackController::pause);
+
+    connect(
+        m_systemMediaControls.get(),
+        &SystemMediaControls::togglePlayPauseRequested,
+        this,
+        [this]() {
+            if (state() == Playing)
+                pause();
+            else
+                resume();
+        });
+
+    connect(
+        m_systemMediaControls.get(),
+        &SystemMediaControls::nextRequested,
+        this,
+        &PlaybackController::next);
+
+    connect(
+        m_systemMediaControls.get(),
+        &SystemMediaControls::previousRequested,
+        this,
+        &PlaybackController::previous);
+
+    connect(
+        m_systemMediaControls.get(),
+        &SystemMediaControls::seekRequested,
+        this,
+        [this](qint64 positionMs) {
+            if (m_playerService)
+                m_playerService->seek(positionMs);
+        });
+
+    /*
+     * Состояние воспроизведения → система.
+     */
+
+    connect(
+        this,
+        &PlaybackController::currentTrackChanged,
+        this,
+        [this]() {
+            if (!m_systemMediaControls->isEnabled())
+                m_systemMediaControls->setEnabled(true);
+
+            const auto md = makeMediaMetadata(m_currentTrack);
+            m_systemMediaControls->setMetadata(md);
+            m_systemMediaControls->setDuration(md.durationMs);
+        });
+
+    connect(
+        this,
+        &PlaybackController::stateChanged,
+        this,
+        [this]() {
+            switch (m_state) {
+            case Playing:
+                m_systemMediaControls->setPlaybackStatus(
+                    SystemMediaControls::PlaybackStatus::Playing);
+                break;
+            case Paused:
+                m_systemMediaControls->setPlaybackStatus(
+                    SystemMediaControls::PlaybackStatus::Paused);
+                break;
+            default:
+                m_systemMediaControls->setPlaybackStatus(
+                    SystemMediaControls::PlaybackStatus::Stopped);
+                break;
+            }
+        });
+
+    connect(
+        this,
+        &PlaybackController::repeatModeChanged,
+        this,
+        [this]() {
+            if (m_queueService)
+                m_systemMediaControls->setLoopStatus(
+                    mprisLoopStatus(m_queueService->repeatMode()));
+        });
+
+    connect(
+        this,
+        &PlaybackController::shuffleChanged,
+        this,
+        [this]() {
+            if (m_queueService)
+                m_systemMediaControls->setShuffle(
+                    m_queueService->shuffleEnabled());
+        });
+
+    /*
+     * Позиция — от PlayerService к системе.
+     * (обновляется ~4 раза в секунду из AppController)
+     */
+
+    m_systemMediaControls->setEnabled(true);
 }

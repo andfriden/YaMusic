@@ -2,6 +2,8 @@
 
 #include <QObject>
 #include <QString>
+#include <memory>
+#include "../MediaControls/SystemMediaControls.h"
 #include "../Models/Track.h"
 #include "../Queue/QueueService.h"
 
@@ -35,6 +37,8 @@ public:
     PlaybackState state() const;
 
     QueueService *queueService() const;
+
+    SystemMediaControls *systemMediaControls() const;
 
     /*
      * Playback control
@@ -122,6 +126,8 @@ private:
 
     bool playQueueCurrentTrack();
 
+    void setupSystemMediaControls();
+
 private:
     TrackService *m_trackService = nullptr;
 
@@ -133,4 +139,7 @@ private:
 
     PlaybackState m_state =
         Idle;
+
+    std::unique_ptr<SystemMediaControls>
+        m_systemMediaControls;
 };

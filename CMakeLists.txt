@@ -6,11 +6,15 @@ project(
         LANGUAGES CXX
 )
 
+if(APPLE)
+    enable_language(OBJCXX)
+endif()
+
 # =============================================================
 # Project settings
 # =============================================================
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -25,6 +29,16 @@ find_package(
         Network
         Multimedia
 )
+
+if(UNIX AND NOT APPLE)
+
+    find_package(
+            Qt6 6.10
+            REQUIRED COMPONENTS
+            DBus
+    )
+
+endif()
 
 qt_standard_project_setup(REQUIRES 6.10)
 
@@ -152,6 +166,10 @@ set(
         src/Queue/QueueModel.cpp
         src/Queue/QueueService.cpp
 
+        # Media Controls (base + factory)
+        src/MediaControls/SystemMediaControls.cpp
+        src/MediaControls/MediaControlsFactory.cpp
+
         # Yandex
         src/Yandex/AccountParser.cpp
         src/Yandex/Parsers.cpp
@@ -184,7 +202,7 @@ set(
         src/Yandex/Catalog/TrackListModelBase.cpp
         src/Yandex/Catalog/TrackService.cpp
 
-# Yandex Personal
+        # Yandex Personal
         src/Yandex/Personal/LibraryPlaylistsModel.cpp
         src/Yandex/Personal/LikedAlbumsModel.cpp
         src/Yandex/Personal/LikedArtistsModel.cpp
@@ -201,6 +219,46 @@ set(
         src/Yandex/Personal/RecentListeningService.cpp
         src/Yandex/Personal/YandexPersonal.cpp
 )
+
+# =============================================================
+# Platform-specific sources
+# =============================================================
+
+if(APPLE)
+
+    list(
+            APPEND YAMUSIC_SOURCES
+            src/MediaControls/MediaControlsMacOS.mm
+            src/MediaControls/MediaControlsSMTC.cpp
+    )
+
+    set_source_files_properties(
+            src/MediaControls/MediaControlsMacOS.mm
+            PROPERTIES
+            LANGUAGE
+            OBJCXX
+    )
+
+endif()
+
+if(UNIX AND NOT APPLE)
+
+    list(
+            APPEND YAMUSIC_SOURCES
+            src/MediaControls/MediaControlsMPRIS.cpp
+            src/MediaControls/MediaControlsSMTC.cpp
+    )
+
+endif()
+
+if(WIN32)
+
+    list(
+            APPEND YAMUSIC_SOURCES
+            src/MediaControls/MediaControlsSMTC.cpp
+    )
+
+endif()
 
 # =============================================================
 # Executable
@@ -651,6 +709,31 @@ target_link_libraries(
         Qt6::Network
         Qt6::Multimedia
 )
+
+# =============================================================
+# Platform-specific libraries
+# =============================================================
+
+if(APPLE)
+
+    target_link_libraries(
+            appYaMusic
+            PRIVATE
+            "-framework MediaPlayer"
+            "-framework Cocoa"
+    )
+
+endif()
+
+if(UNIX AND NOT APPLE)
+
+    target_link_libraries(
+            appYaMusic
+            PRIVATE
+            Qt6::DBus
+    )
+
+endif()
 
 # =============================================================
 # Install target
