@@ -602,6 +602,24 @@ void PlaybackController::handlePlaybackFinished()
         sourceTitle);
 }
 
+static QString
+normalizeCoverUri(const QString &uri)
+{
+    if (uri.isEmpty())
+        return {};
+
+    QString result = uri;
+
+    // Replace Yandex size placeholder with a concrete resolution.
+    result.replace(QStringLiteral("%%"), QStringLiteral("1000x1000"));
+
+    // Prepend https:// if there is no scheme.
+    if (!result.contains(QStringLiteral("://")))
+        result.prepend(QStringLiteral("https://"));
+
+    return result;
+}
+
 static SystemMediaControls::Metadata
 makeMediaMetadata(const Track &track)
 {
@@ -611,7 +629,7 @@ makeMediaMetadata(const Track &track)
         ? QString() : track.artists.first().name;
     md.album = track.albums.isEmpty()
         ? QString() : track.albums.first().title;
-    md.coverUrl = track.coverUri;
+    md.coverUrl = normalizeCoverUri(track.coverUri);
     md.durationMs = track.durationMs;
     md.trackId = track.id;
     return md;
