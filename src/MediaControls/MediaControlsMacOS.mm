@@ -7,9 +7,14 @@
 #import <Cocoa/Cocoa.h>
 #import <MediaPlayer/MediaPlayer.h>
 
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QUrl>
+#include <QImage>
+
 /*
  * Private ObjC implementation behind a PIMPL.
- * Keeps the C++ header clean of ObjC types.
  */
 
 class MediaControlsMacOS::Impl
@@ -113,7 +118,8 @@ public:
     void updateInfo(const SystemMediaControls::Metadata &md,
                     SystemMediaControls::PlaybackStatus status,
                     qint64 positionMs,
-                    qint64 durationMs)
+                    qint64 durationMs,
+                    const QImage &artworkImage)
     {
         NSMutableDictionary *info =
             [[NSMutableDictionary alloc] init];
@@ -159,6 +165,27 @@ public:
             break;
         }
 
+        if (!artworkImage.isNull())
+        {
+            CGImageRef cgImage = artworkImage.toCGImage();
+            if (cgImage)
+            {
+                NSImage *nsImage = [[NSImage alloc] initWithCGImage:cgImage
+                                                              size:NSZeroSize];
+                if (nsImage)
+                {
+                    MPMediaItemArtwork *artwork =
+                        [[MPMediaItemArtwork alloc] initWithBoundsSize:nsImage.size
+                                                        requestHandler:^NSImage *(CGSize) {
+                                                            return nsImage;
+                                                        }];
+                    info[MPMediaItemPropertyArtwork] = artwork;
+                    [artwork release];
+                    [nsImage release];
+                }
+            }
+        }
+
         [[MPNowPlayingInfoCenter defaultCenter] setNowPlayingInfo:info];
         [info release];
     }
@@ -179,6 +206,7 @@ private:
 MediaControlsMacOS::MediaControlsMacOS(QObject *parent)
     : SystemMediaControls(parent)
     , d(new Impl())
+    , m_network(new QNetworkAccessManager(this))
 {
 }
 
@@ -205,6 +233,7 @@ void MediaControlsMacOS::platformSetEnabled(bool enabled)
 void MediaControlsMacOS::platformSetMetadata(const Metadata &)
 {
     updateNowPlayingInfo();
+    startArtworkFetch(m_metadata.coverUrl);
 }
 
 void MediaControlsMacOS::platformSetPlaybackStatus(PlaybackStatus)
@@ -228,5 +257,75 @@ void MediaControlsMacOS::updateNowPlayingInfo()
         m_metadata,
         m_status,
         m_positionMs,
-        m_durationMs);
+        m_durationMs,
+        m_artworkImage);
+}
+
+QString MediaControlsMacOS::fullCoverUrl(const QString &coverUri)
+{
+    if (coverUri.isEmpty())
+        return {};
+
+    QString url = coverUri;
+    url.replace(QStringLiteral("%%"), QStringLiteral("200x200"));
+    url.replace(QStringLiteral("%25%25"), QStringLiteral("200x200"));
+
+    if (url.startsWith(QStringLiteral("http://")) ||
+        url.startsWith(QStringLiteral("https://")))
+    {
+        return url;
+    }
+
+    return QStringLiteral("https://") + url;
+}
+
+void MediaControlsMacOS::startArtworkFetch(const QString &coverUri)
+{
+    const QString url = fullCoverUrl(coverUri);
+    if (url.isEmpty())
+    {
+        m_pendingArtworkUri.clear();
+        m_artworkImage = {};
+        updateNowPlayingInfo();
+        return;
+    }
+
+    m_pendingArtworkUri = coverUri;
+
+    QNetworkRequest request{QUrl(url)};
+    request.setHeader(QNetworkRequest::UserAgentHeader,
+                      QStringLiteral("YaMusic/1.0 (Qt)"));
+
+    QNetworkReply *reply = m_network->get(request);
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        reply->deleteLater();
+        handleArtworkReply(reply, m_pendingArtworkUri);
+    });
+}
+
+void MediaControlsMacOS::handleArtworkReply(QNetworkReply *reply,
+                                            const QString &requestedUri)
+{
+    // Если уже переключили трек — игнорируем ответ
+    if (requestedUri != m_metadata.coverUrl)
+        return;
+
+    if (reply->error() != QNetworkReply::NoError)
+    {
+        m_artworkImage = {};
+        updateNowPlayingInfo();
+        return;
+    }
+
+    const QByteArray data = reply->readAll();
+    QImage image;
+    if (!image.loadFromData(data))
+    {
+        m_artworkImage = {};
+        updateNowPlayingInfo();
+        return;
+    }
+
+    m_artworkImage = std::move(image);
+    updateNowPlayingInfo();
 }
