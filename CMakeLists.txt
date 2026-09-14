@@ -264,6 +264,7 @@ set(
         "${YAMUSIC_QML_ROOT}/Components/NowPlayingBar.qml"
         "${YAMUSIC_QML_ROOT}/Components/EntityLink.qml"
         "${YAMUSIC_QML_ROOT}/Components/ExpandedNowPlaying.qml"
+        "${YAMUSIC_QML_ROOT}/Components/LyricsView.qml"
         "${YAMUSIC_QML_ROOT}/Components/ChartTrackRow.qml"
         "${YAMUSIC_QML_ROOT}/Components/PersonalChartSection.qml"
 
@@ -339,6 +340,11 @@ set_source_files_properties(
 set_source_files_properties(
         "${YAMUSIC_QML_ROOT}/Components/ExpandedNowPlaying.qml"
         PROPERTIES QT_RESOURCE_ALIAS "Components/ExpandedNowPlaying.qml"
+)
+
+set_source_files_properties(
+        "${YAMUSIC_QML_ROOT}/Components/LyricsView.qml"
+        PROPERTIES QT_RESOURCE_ALIAS "Components/LyricsView.qml"
 )
 
 set_source_files_properties(

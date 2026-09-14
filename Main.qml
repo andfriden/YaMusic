@@ -19,6 +19,7 @@ ApplicationWindow {
     color: AppTheme.background
 
     property bool expandedNowPlayingVisible: false
+    property bool lyricsVisible: false
 
 Connections {
         target: appController
@@ -79,7 +80,7 @@ Connections {
 
             onLyricsRequested: {
                 appController.loadLyrics()
-                window.expandedNowPlayingVisible = true
+                window.lyricsVisible = true
             }
         }
     }
@@ -103,6 +104,21 @@ Connections {
 
         onClosed: {
             window.expandedNowPlayingVisible = false
+        }
+    }
+
+    LyricsView {
+        id: lyricsView
+
+        anchors.fill: parent
+
+        visible: authController.authenticated &&
+            window.lyricsVisible
+
+        controller: appController
+
+        onClosed: {
+            window.lyricsVisible = false
         }
     }
 }
