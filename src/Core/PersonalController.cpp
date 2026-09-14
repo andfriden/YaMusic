@@ -230,43 +230,68 @@ PersonalController::chartModel() const
 
 
 QVariantList
-PersonalController::recommendationPlaylistsData() const
+PersonalController::recommendationPlaylistsData(
+    const QString &excludeUid,
+    int excludeKind) const
 {
     QVariantList result;
 
+    // Берём только раздел «Собираем для вас» (personal-playlists).
     for (
-        const PersonalPlaylist &playlist :
-        m_recommendationPlaylists
+        const PersonalLandingSection &section :
+        m_recommendationSections
     )
     {
         if (
-            playlist.uid.isEmpty() ||
-            playlist.kind <= 0
+            section.type != "personal-playlists"
         )
         {
             continue;
         }
 
-        QVariantMap item;
+        for (
+            const PersonalPlaylist &playlist :
+            section.playlists
+        )
+        {
+            if (
+                playlist.uid.isEmpty() ||
+                playlist.kind <= 0
+            )
+            {
+                continue;
+            }
 
-        item.insert(
-            "uid",
-            playlist.uid);
+            // Исключаем текущий открытый плейлист.
+            if (
+                playlist.uid == excludeUid &&
+                playlist.kind == excludeKind
+            )
+            {
+                continue;
+            }
 
-        item.insert(
-            "kind",
-            playlist.kind);
+            QVariantMap item;
 
-        item.insert(
-            "title",
-            playlist.title);
+            item.insert(
+                "uid",
+                playlist.uid);
 
-        item.insert(
-            "coverUri",
-            playlist.coverUri);
+            item.insert(
+                "kind",
+                playlist.kind);
 
-        result.append(
-            item);
+            item.insert(
+                "title",
+                playlist.title);
+
+            item.insert(
+                "coverUri",
+                playlist.coverUri);
+
+            result.append(
+                item);
+        }
     }
 
     return result;

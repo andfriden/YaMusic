@@ -41,6 +41,15 @@ void AppController::selectPersonalPlaylist(
     m_libraryController->loadPlaylist(
         playlistUid,
         kind);
+
+    // Для персональных подборок («Собираем для вас»: Премьера,
+    // Дежавю, Тайник, Плейлист дня) сервер не отдаёт
+    // similar-entities, поэтому подставляем остальные плейлисты
+    // из того же раздела лендинга.
+    m_libraryController->setSimilarPlaylistsFallback(
+        m_personalController->recommendationPlaylistsData(
+            playlistUid,
+            kind));
 }
 
 // Playlist track

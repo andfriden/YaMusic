@@ -105,10 +105,14 @@ public:
     chartModel() const;
 
     /*
-     * Плейлисты из лендинга в виде QVariantList (uid/kind/title/coverUri).
-     * Используется как fallback для раздела «Похожие плейлисты».
+     * Плейлисты из раздела «personal-playlists» в виде QVariantList
+     * (uid/kind/title/coverUri), без указанного текущего.
+     * Используется как fallback для «Похожие плейлисты» у личных
+     * подборок (Премьера, Дежавю, Тайник, Плейлист дня).
      */
-    QVariantList recommendationPlaylistsData() const;
+    QVariantList recommendationPlaylistsData(
+        const QString &excludeUid = {},
+        int excludeKind = 0) const;
 
     // Loading state
 
