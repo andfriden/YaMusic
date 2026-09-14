@@ -131,13 +131,7 @@ Item {
 
                 width: parent.width
 
-                text:
-                    root.controller !== null &&
-                    root.controller !== undefined
-                        ? String(
-                            root.controller.lyricsText || ""
-                        )
-                        : ""
+                text: ""
 
                 color: AppTheme.textPrimary
 
@@ -145,6 +139,20 @@ Item {
                 lineHeight: 1.8
 
                 wrapMode: Text.WordWrap
+            }
+
+            Connections {
+                target: root.controller
+
+                function onLyricsChanged() {
+                    lyricsText.text =
+                        root.controller !== null &&
+                        root.controller !== undefined
+                            ? String(
+                                root.controller.lyricsText || ""
+                            )
+                            : ""
+                }
             }
         }
     }

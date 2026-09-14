@@ -434,13 +434,43 @@ void TrackService::loadSupplementary(
             // вариантов текста: fullLyrics и/или
             // синхронизированные lines.
 
-            const QJsonArray lyricsArray =
-                result.value("lyrics").toArray();
+            const QJsonValue lyricsVal =
+                result.value("lyrics");
 
-            TrackSupplementary supplementary;
+            QJsonArray lyricsArray;
 
-            supplementary.trackId =
-                trimmedTrackId;
+            if (lyricsVal.isArray()) {
+                lyricsArray = lyricsVal.toArray();
+            } else if (lyricsVal.isObject()) {
+                // Иногда lyrics — объект с вложенным массивом
+                const QJsonObject lyricsObj =
+                    lyricsVal.toObject();
+
+                const QJsonValue inner =
+                    lyricsObj.value("lyrics");
+
+                if (inner.isArray()) {
+                    lyricsArray = inner.toArray();
+                } else if (inner.isObject()) {
+                    lyricsArray.append(
+                        inner.toObject());
+                } else {
+                    lyricsArray.append(lyricsObj);
+                }
+            } else if (lyricsVal.isString()) {
+                // Иногда приходит строкой
+                TrackSupplementary supplementary;
+                supplementary.trackId = trimmedTrackId;
+                supplementary.fullText = lyricsVal.toString().trimmed();
+                reply->deleteLater();
+                emit supplementReceived(supplementary);
+                return;
+            }
+
+TrackSupplementary supplementary;
+
+supplementary.trackId =
+    trimmedTrackId;
 
             for (const QJsonValue &lyricsValue : lyricsArray) {
 
