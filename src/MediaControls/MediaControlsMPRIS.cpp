@@ -1,5 +1,6 @@
 #include "MediaControlsMPRIS.h"
 
+#include <QDBusAbstractAdaptor>
 #include <QDBusConnection>
 #include <QDBusObjectPath>
 #include <QVariantMap>
@@ -10,6 +11,10 @@
  *
  * Спецификация:
  * https://specifications.freedesktop.org/mpris-spec/latest/
+ *
+ * Используем QDBusAbstractAdaptor (ExportAdaptors), чтобы Qt
+ * корректно маршрутизировал Properties.Get/GetAll/PropertiesChanged
+ * по именам интерфейсов.
  */
 
 namespace
@@ -18,87 +23,77 @@ namespace
 constexpr auto kServiceName     = "org.mpris.MediaPlayer2.YaMusic";
 constexpr auto kObjectPath      = "/org/mpris/MediaPlayer2";
 
-constexpr auto kIntrospectionXml = R"(<node>
-  <interface name="org.freedesktop.DBus.Introspectable">
-    <method name="Introspect">
-      <arg name="data" type="s" direction="out"/>
-    </method>
-  </interface>
-  <interface name="org.mpris.MediaPlayer2">
-    <method name="Raise"/>
-    <method name="Quit"/>
-    <property name="CanQuit" type="b" access="read"/>
-    <property name="CanRaise" type="b" access="read"/>
-    <property name="HasTrackList" type="b" access="read"/>
-    <property name="Identity" type="s" access="read"/>
-    <property name="DesktopEntry" type="s" access="read"/>
-    <property name="SupportedUriSchemes" type="as" access="read"/>
-    <property name="SupportedMimeTypes" type="as" access="read"/>
-  </interface>
-  <interface name="org.mpris.MediaPlayer2.Player">
-    <method name="Next"/>
-    <method name="Previous"/>
-    <method name="Pause"/>
-    <method name="PlayPause"/>
-    <method name="Stop"/>
-    <method name="Play"/>
-    <method name="Seek">
-      <arg name="Offset" type="x" direction="in"/>
-    </method>
-    <method name="SetPosition">
-      <arg name="TrackId" type="o" direction="in"/>
-      <arg name="Position" type="x" direction="in"/>
-    </method>
-    <method name="OpenUri">
-      <arg name="Uri" type="s" direction="in"/>
-    </method>
-    <property name="PlaybackStatus" type="s" access="read"/>
-    <property name="LoopStatus" type="s" access="read"/>
-    <property name="Rate" type="d" access="read"/>
-    <property name="Shuffle" type="b" access="read"/>
-    <property name="Metadata" type="a{sv}" access="read"/>
-    <property name="Volume" type="d" access="read"/>
-    <property name="Position" type="x" access="read"/>
-    <property name="MinimumRate" type="d" access="read"/>
-    <property name="MaximumRate" type="d" access="read"/>
-    <property name="CanGoNext" type="b" access="read"/>
-    <property name="CanGoPrevious" type="b" access="read"/>
-    <property name="CanPlay" type="b" access="read"/>
-    <property name="CanPause" type="b" access="read"/>
-    <property name="CanSeek" type="b" access="read"/>
-    <property name="CanControl" type="b" access="read"/>
-    <signal name="Seeked">
-      <arg name="Position" type="x"/>
-    </signal>
-  </interface>
-</node>)";
-
 QString playbackStatusToString(SystemMediaControls::PlaybackStatus status)
 {
     switch (status)
     {
-    case SystemMediaControls::PlaybackStatus::Playing:
-        return QStringLiteral("Playing");
-    case SystemMediaControls::PlaybackStatus::Paused:
-        return QStringLiteral("Paused");
-    case SystemMediaControls::PlaybackStatus::Stopped:
-        return QStringLiteral("Stopped");
+    case SystemMediaControls::PlaybackStatus::Playing: return QStringLiteral("Playing");
+    case SystemMediaControls::PlaybackStatus::Paused:  return QStringLiteral("Paused");
+    case SystemMediaControls::PlaybackStatus::Stopped: return QStringLiteral("Stopped");
     }
     return QStringLiteral("Stopped");
 }
 
 } // anonymous namespace
 
-/*
- * Impl — QObject, регистрируемый на шине.
- * Вложенный класс имеет доступ к protected-членам владельца,
- * поэтому свойства читают актуальное состояние напрямую.
- */
-class MediaControlsMPRIS::Impl : public QObject
+// =============================================================
+// Impl — основной QObject, регистрируемый на шине.
+// Содержит адаптеры как дочерние объекты.
+// =============================================================
+
+class Impl : public QObject
 {
     Q_OBJECT
 
-    // ---- org.mpris.MediaPlayer2 ----
+public:
+    explicit Impl(MediaControlsMPRIS *owner)
+        : QObject(owner)
+        , m_owner(owner)
+    {
+    }
+
+    bool registerService();
+    void unregisterService();
+
+    // Прокси к protected-членам владельца
+    SystemMediaControls::PlaybackStatus playbackStatus() const
+    { return m_owner->mediaPlaybackStatus(); }
+
+    QString loopStatus() const              { return m_owner->mediaLoopStatus(); }
+    bool shuffle() const                    { return m_owner->mediaShuffle(); }
+    const SystemMediaControls::Metadata &metadata() const
+    { return m_owner->mediaMetadata(); }
+
+    qint64 positionMs() const              { return m_owner->mediaPositionMs(); }
+
+    void requestPlay()     { Q_EMIT m_owner->playRequested(); }
+    void requestPause()    { Q_EMIT m_owner->pauseRequested(); }
+    void requestToggle()   { Q_EMIT m_owner->togglePlayPauseRequested(); }
+    void requestNext()     { Q_EMIT m_owner->nextRequested(); }
+    void requestPrevious() { Q_EMIT m_owner->previousRequested(); }
+
+    void requestSeek(qint64 positionMs)
+    { Q_EMIT m_owner->seekRequested(positionMs); }
+
+    void notifyAllChanged();
+    void notifySeeked(qint64 positionMs);
+
+private:
+    MediaControlsMPRIS *m_owner = nullptr;
+    qint64 m_lastSeekedMs = 0;
+};
+
+// =============================================================
+// Адаптеры — по одному на D-Bus интерфейс.
+// =============================================================
+
+namespace
+{
+
+class RootAdaptor : public QDBusAbstractAdaptor
+{
+    Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.mpris.MediaPlayer2")
 
     Q_PROPERTY(bool CanQuit READ canQuit CONSTANT)
     Q_PROPERTY(bool CanRaise READ canRaise CONSTANT)
@@ -108,7 +103,30 @@ class MediaControlsMPRIS::Impl : public QObject
     Q_PROPERTY(QStringList SupportedUriSchemes READ supportedUriSchemes CONSTANT)
     Q_PROPERTY(QStringList SupportedMimeTypes READ supportedMimeTypes CONSTANT)
 
-    // ---- org.mpris.MediaPlayer2.Player ----
+public:
+    explicit RootAdaptor(Impl *parent)
+        : QDBusAbstractAdaptor(parent)
+    {
+    }
+
+public slots:
+    void Raise() {}
+    void Quit() {}
+
+    bool canQuit() const { return false; }
+    bool canRaise() const { return false; }
+    bool hasTrackList() const { return false; }
+    QString identity() const { return QStringLiteral("YaMusic"); }
+    QString desktopEntry() const { return QStringLiteral("yamusic"); }
+
+    QStringList supportedUriSchemes() const { return {QStringLiteral("https")}; }
+    QStringList supportedMimeTypes() const { return {QStringLiteral("audio/mpeg")}; }
+};
+
+class PlayerAdaptor : public QDBusAbstractAdaptor
+{
+    Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.mpris.MediaPlayer2.Player")
 
     Q_PROPERTY(QString PlaybackStatus READ playbackStatus NOTIFY playbackStatusChanged)
     Q_PROPERTY(QString LoopStatus READ loopStatus NOTIFY loopStatusChanged)
@@ -127,163 +145,61 @@ class MediaControlsMPRIS::Impl : public QObject
     Q_PROPERTY(bool CanControl READ canControl CONSTANT)
 
 public:
-    explicit Impl(MediaControlsMPRIS *owner)
-        : QObject(owner)
-        , m_owner(owner)
+    explicit PlayerAdaptor(Impl *parent)
+        : QDBusAbstractAdaptor(parent)
+        , m_impl(parent)
     {
     }
-
-    bool registerService()
-    {
-        QDBusConnection &bus = QDBusConnection::sessionBus();
-
-        if (!bus.registerService(kServiceName))
-        {
-            qWarning("MPRIS: cannot register service %s", kServiceName);
-            return false;
-        }
-
-        const QDBusConnection::RegisterOptions options =
-            QDBusConnection::ExportAllSlots |
-            QDBusConnection::ExportAllSignals |
-            QDBusConnection::ExportAllProperties;
-
-        if (!bus.registerObject(kObjectPath, kIntrospectionXml, this, options))
-        {
-            qWarning("MPRIS: cannot register object %s", kObjectPath);
-            bus.unregisterService(kServiceName);
-            return false;
-        }
-
-        return true;
-    }
-
-    void unregisterService()
-    {
-        QDBusConnection &bus = QDBusConnection::sessionBus();
-        bus.unregisterObject(kObjectPath);
-        bus.unregisterService(kServiceName);
-    }
-
-    // ---- Методы org.mpris.MediaPlayer2 ----
 
 public slots:
-    void Raise() {}
-    void Quit() {}
-
-    // ---- Методы org.mpris.MediaPlayer2.Player ----
-
-    void Next()
-    {
-        Q_EMIT m_owner->nextRequested();
-    }
-
-    void Previous()
-    {
-        Q_EMIT m_owner->previousRequested();
-    }
-
-    void Pause()
-    {
-        Q_EMIT m_owner->pauseRequested();
-    }
-
-    void PlayPause()
-    {
-        Q_EMIT m_owner->togglePlayPauseRequested();
-    }
-
-    void Stop()
-    {
-        Q_EMIT m_owner->pauseRequested();
-    }
-
-    void Play()
-    {
-        Q_EMIT m_owner->playRequested();
-    }
+    void Next()      { m_impl->requestNext(); }
+    void Previous()  { m_impl->requestPrevious(); }
+    void Pause()     { m_impl->requestPause(); }
+    void PlayPause() { m_impl->requestToggle(); }
+    void Stop()      { m_impl->requestPause(); }
+    void Play()      { m_impl->requestPlay(); }
 
     void Seek(qint64 offsetMicroseconds)
     {
-        const qint64 currentUs = m_owner->mediaPositionMs() * 1000;
-        const qint64 targetUs = qMax<qint64>(0, currentUs + offsetMicroseconds);
-        Q_EMIT m_owner->seekRequested(targetUs / 1000);
+        const qint64 targetUs = qMax<qint64>(0, m_impl->positionMs() * 1000 + offsetMicroseconds);
+        m_impl->requestSeek(targetUs / 1000);
     }
 
-    void SetPosition(const QDBusObjectPath &trackId, qint64 positionMicroseconds)
+    void SetPosition(const QDBusObjectPath &trackId, qint64 posUs)
     {
         Q_UNUSED(trackId);
-        Q_EMIT m_owner->seekRequested(
-            qMax<qint64>(0, positionMicroseconds) / 1000);
+        m_impl->requestSeek(qMax<qint64>(0, posUs) / 1000);
     }
 
-    void OpenUri(const QString &uri)
-    {
-        Q_UNUSED(uri);
-    }
+    void OpenUri(const QString &uri) { Q_UNUSED(uri); }
 
-    // ---- Геттеры org.mpris.MediaPlayer2 ----
-
-    bool canQuit() const { return false; }
-    bool canRaise() const { return false; }
-    bool hasTrackList() const { return false; }
-    QString identity() const { return QStringLiteral("YaMusic"); }
-    QString desktopEntry() const { return QStringLiteral("yamusic"); }
-
-    QStringList supportedUriSchemes() const
-    {
-        return {QStringLiteral("https")};
-    }
-
-    QStringList supportedMimeTypes() const
-    {
-        return {QStringLiteral("audio/mpeg")};
-    }
-
-    // ---- Геттеры org.mpris.MediaPlayer2.Player ----
+    // ---- Геттеры ----
 
     QString playbackStatus() const
-    {
-        return playbackStatusToString(m_owner->mediaPlaybackStatus());
-    }
+    { return playbackStatusToString(m_impl->playbackStatus()); }
 
-    QString loopStatus() const
-    {
-        return m_owner->mediaLoopStatus();
-    }
-
-    double rate() const { return 1.0; }
-
-    bool shuffle() const
-    {
-        return m_owner->mediaShuffle();
-    }
+    QString loopStatus() const   { return m_impl->loopStatus(); }
+    double rate() const          { return 1.0; }
+    bool shuffle() const         { return m_impl->shuffle(); }
 
     QVariantMap metadata() const
     {
         QVariantMap md;
-        const auto &t = m_owner->mediaMetadata();
+        const auto &t = m_impl->metadata();
 
         if (!t.trackId.isEmpty())
-        {
             md[QStringLiteral("mpris:trackid")] =
                 QVariant::fromValue(QDBusObjectPath(
-                    QStringLiteral("/org/mpris/MediaPlayer2/YaMusic/%1")
-                        .arg(t.trackId)));
-        }
+                    QStringLiteral("/org/mpris/MediaPlayer2/YaMusic/%1").arg(t.trackId)));
 
         if (!t.title.isEmpty())
             md[QStringLiteral("xesam:title")] = t.title;
-
         if (!t.artist.isEmpty())
             md[QStringLiteral("xesam:artist")] = QStringList{t.artist};
-
         if (!t.album.isEmpty())
             md[QStringLiteral("xesam:album")] = t.album;
-
         if (t.durationMs > 0)
             md[QStringLiteral("mpris:length")] = t.durationMs * 1000;
-
         if (!t.coverUrl.isEmpty())
             md[QStringLiteral("mpris:artUrl")] = t.coverUrl;
 
@@ -291,30 +207,22 @@ public slots:
     }
 
     double volume() const { return 1.0; }
-
-    void setVolume(double)
-    {
-        // Громкость не управляется через MPRIS.
-    }
+    void setVolume(double) {}
 
     qint64 position() const
-    {
-        return m_owner->mediaPositionMs() * 1000;
-    }
+    { return m_impl->positionMs() * 1000; }
 
     double minimumRate() const { return 1.0; }
     double maximumRate() const { return 1.0; }
 
-    bool canGoNext() const { return true; }
+    bool canGoNext() const     { return true; }
     bool canGoPrevious() const { return true; }
-    bool canPlay() const { return true; }
-    bool canPause() const { return true; }
-    bool canSeek() const { return true; }
-    bool canControl() const { return true; }
+    bool canPlay() const       { return true; }
+    bool canPause() const      { return true; }
+    bool canSeek() const       { return true; }
+    bool canControl() const    { return true; }
 
-    // ---- Нотификации для D-Bus ----
-
-    void notifyAllChanged()
+    void emitAllChanged()
     {
         Q_EMIT playbackStatusChanged();
         Q_EMIT loopStatusChanged();
@@ -322,11 +230,9 @@ public slots:
         Q_EMIT metadataChanged();
     }
 
-    void notifySeeked(qint64 positionMs)
+    void emitSeeked(qint64 positionMs)
     {
-        if (qAbs(positionMs - m_lastSeekedMs) >= 1000)
-            Q_EMIT Seeked(positionMs * 1000);
-        m_lastSeekedMs = positionMs;
+        Q_EMIT Seeked(positionMs * 1000);
     }
 
 signals:
@@ -338,11 +244,67 @@ signals:
     void Seeked(qint64 positionMicroseconds);
 
 private:
-    MediaControlsMPRIS *m_owner = nullptr;
-    qint64 m_lastSeekedMs = 0;
+    Impl *m_impl = nullptr;
 };
 
-// ---------- C++ интерфейс ----------
+} // anonymous namespace
+
+// =============================================================
+// Регистрация на шине
+// =============================================================
+
+bool Impl::registerService()
+{
+    QDBusConnection bus = QDBusConnection::sessionBus();
+
+    if (!bus.registerService(kServiceName))
+    {
+        qWarning("MPRIS: cannot register service %s", kServiceName);
+        return false;
+    }
+
+    // Адаптеры создаются как дочерние объекты Impl
+    new RootAdaptor(this);
+    new PlayerAdaptor(this);
+
+    if (!bus.registerObject(kObjectPath, this, QDBusConnection::ExportAdaptors))
+    {
+        qWarning("MPRIS: cannot register object %s", kObjectPath);
+        bus.unregisterService(kServiceName);
+        return false;
+    }
+
+    return true;
+}
+
+void Impl::unregisterService()
+{
+    QDBusConnection bus = QDBusConnection::sessionBus();
+    bus.unregisterObject(kObjectPath);
+    bus.unregisterService(kServiceName);
+}
+
+void Impl::notifyAllChanged()
+{
+    auto *pa = findChild<PlayerAdaptor *>(QString(), Qt::FindDirectChildrenOnly);
+    if (pa)
+        pa->emitAllChanged();
+}
+
+void Impl::notifySeeked(qint64 positionMs)
+{
+    if (qAbs(positionMs - m_lastSeekedMs) < 1000)
+        return;
+
+    auto *pa = findChild<PlayerAdaptor *>(QString(), Qt::FindDirectChildrenOnly);
+    if (pa)
+        pa->emitSeeked(positionMs);
+    m_lastSeekedMs = positionMs;
+}
+
+// =============================================================
+// C++ интерфейс (MediaControlsMPRIS)
+// =============================================================
 
 MediaControlsMPRIS::MediaControlsMPRIS(QObject *parent)
     : SystemMediaControls(parent)
@@ -366,20 +328,17 @@ void MediaControlsMPRIS::platformSetEnabled(bool enabled)
 
 void MediaControlsMPRIS::platformSetMetadata(const Metadata &)
 {
-    if (d)
-        d->notifyAllChanged();
+    if (d) d->notifyAllChanged();
 }
 
 void MediaControlsMPRIS::platformSetPlaybackStatus(PlaybackStatus)
 {
-    if (d)
-        d->notifyAllChanged();
+    if (d) d->notifyAllChanged();
 }
 
 void MediaControlsMPRIS::platformSetPosition(qint64 positionMs)
 {
-    if (d)
-        d->notifySeeked(positionMs);
+    if (d) d->notifySeeked(positionMs);
 }
 
 void MediaControlsMPRIS::platformSetDuration(qint64)
@@ -388,14 +347,12 @@ void MediaControlsMPRIS::platformSetDuration(qint64)
 
 void MediaControlsMPRIS::platformSetLoopStatus(const QString &)
 {
-    if (d)
-        d->notifyAllChanged();
+    if (d) d->notifyAllChanged();
 }
 
 void MediaControlsMPRIS::platformSetShuffle(bool)
 {
-    if (d)
-        d->notifyAllChanged();
+    if (d) d->notifyAllChanged();
 }
 
 #include "MediaControlsMPRIS.moc"

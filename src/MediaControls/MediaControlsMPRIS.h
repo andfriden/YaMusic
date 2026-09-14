@@ -12,6 +12,8 @@
  * (KDE, GNOME, playerctl, etc.).
  */
 
+class Impl;
+
 class MediaControlsMPRIS : public SystemMediaControls
 {
     Q_OBJECT
@@ -30,6 +32,6 @@ protected:
     void platformSetShuffle(bool enabled) override;
 
 private:
-    class Impl;
+    friend class Impl;
     Impl *d = nullptr;
 };
