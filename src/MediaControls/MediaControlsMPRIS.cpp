@@ -2,6 +2,7 @@
 
 #include <QDBusAbstractAdaptor>
 #include <QDBusConnection>
+#include <QDBusMessage>
 #include <QDBusObjectPath>
 #include <QVariantMap>
 
@@ -228,11 +229,36 @@ public slots:
         Q_EMIT loopStatusChanged();
         Q_EMIT shuffleChanged();
         Q_EMIT metadataChanged();
+        sendPropertiesChanged();
     }
 
     void emitSeeked(qint64 positionMs)
     {
         Q_EMIT Seeked(positionMs * 1000);
+    }
+
+    void sendPropertiesChanged()
+    {
+        QVariantMap changed;
+        changed.insert(QStringLiteral("PlaybackStatus"), playbackStatus());
+        changed.insert(QStringLiteral("LoopStatus"), loopStatus());
+        changed.insert(QStringLiteral("Shuffle"), shuffle());
+        changed.insert(QStringLiteral("Metadata"), metadata());
+
+        QVariantMap all;
+        all.insert(QStringLiteral("interface_name"),
+                   QStringLiteral("org.mpris.MediaPlayer2.Player"));
+        all.insert(QStringLiteral("changed_properties"), changed);
+        all.insert(QStringLiteral("invalidated_properties"), QStringList());
+
+        QDBusMessage msg = QDBusMessage::createSignal(
+            QStringLiteral("/org/mpris/MediaPlayer2"),
+            QStringLiteral("org.freedesktop.DBus.Properties"),
+            QStringLiteral("PropertiesChanged"));
+        msg << QStringLiteral("org.mpris.MediaPlayer2.Player")
+            << changed
+            << QStringList();
+        QDBusConnection::sessionBus().send(msg);
     }
 
 signals:
