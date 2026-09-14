@@ -12,6 +12,12 @@ Item {
     anchors.fill: parent
 
 
+    readonly property bool lyricsPanelVisible:
+        root.controller !== null &&
+        root.controller !== undefined &&
+        root.controller.lyricsAvailable
+
+
     // ============================================================
     // Player state
     // ============================================================
@@ -179,6 +185,99 @@ Item {
 
         height:
             40
+
+
+        /*
+         * Кнопка текста песни
+         */
+
+        Item {
+            id: lyricsButton
+
+            anchors.right:
+                closeButton.left
+
+            anchors.rightMargin:
+                10
+
+            anchors.verticalCenter:
+                parent.verticalCenter
+
+            width:
+                42
+
+            height:
+                42
+
+            visible:
+                root.lyricsPanelVisible
+
+
+            Rectangle {
+                anchors.fill:
+                    parent
+
+                radius:
+                    width / 2
+
+                color:
+                    lyricsMouseArea.containsMouse
+                        ? Qt.rgba(
+                            root.playerAccent.r,
+                            root.playerAccent.g,
+                            root.playerAccent.b,
+                            0.16
+                        )
+                        : "transparent"
+            }
+
+
+            Text {
+                anchors.centerIn:
+                    parent
+
+                text:
+                    "🎤"
+
+                color:
+                    Qt.rgba(
+                        root.playerAccent.r,
+                        root.playerAccent.g,
+                        root.playerAccent.b,
+                        0.85
+                    )
+
+                font.pixelSize:
+                    15
+            }
+
+
+            MouseArea {
+                id: lyricsMouseArea
+
+                anchors.fill:
+                    parent
+
+                hoverEnabled:
+                    true
+
+                cursorShape:
+                    Qt.PointingHandCursor
+
+                onClicked:
+                {
+                    if (
+                        root.controller !== null &&
+                        root.controller !== undefined &&
+                        root.controller.lyricsText !== "" &&
+                        root.controller.lyricsText !== undefined
+                    ) {
+                        root.lyricsPanelVisible =
+                            !root.lyricsPanelVisible
+                    }
+                }
+            }
+        }
 
 
         Item {
@@ -1443,6 +1542,97 @@ Item {
                             )
                         }
                     }
+                }
+            }
+        }
+    }
+
+
+    /*
+     * ============================================================
+     * Панель текста (оверлей поверх mainRow)
+     * ============================================================
+     */
+
+    Rectangle {
+        anchors.fill:
+            parent
+
+        color:
+            AppTheme.background
+
+        visible:
+            root.lyricsPanelVisible
+
+
+        Item {
+            anchors.fill:
+                parent
+
+            anchors.leftMargin:
+                72
+
+            anchors.rightMargin:
+                72
+
+            anchors.topMargin:
+                80
+
+            anchors.bottomMargin:
+                40
+
+
+            Flickable {
+                id: lyricsFlickable
+
+                anchors.fill:
+                    parent
+
+                contentWidth:
+                    parent.width
+
+                contentHeight:
+                    lyricsBody.implicitHeight + 40
+
+                clip:
+                    true
+
+
+                ScrollBar.vertical:
+                    ScrollBar {
+                        policy:
+                            ScrollBar.AsNeeded
+                    }
+
+
+                Text {
+                    id: lyricsBody
+
+                    width:
+                        lyricsFlickable.width - 20
+
+                    x:
+                        10
+
+                    text:
+                            root.controller !== null &&
+                        root.controller !== undefined
+                            ? String(
+                                root.controller.lyricsText || ""
+                            )
+                            : ""
+
+                    color:
+                        AppTheme.textPrimary
+
+                    font.pixelSize:
+                        16
+
+                    lineHeight:
+                        1.7
+
+                    wrapMode:
+                        Text.WordWrap
                 }
             }
         }
