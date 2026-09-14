@@ -9,6 +9,7 @@ Rectangle {
     property var controller
 
     signal expandedRequested()
+    signal lyricsRequested()
 
     readonly property bool hasTrack:
         root.controller !== null &&
@@ -714,6 +715,57 @@ Rectangle {
 
             Item {
                 Layout.fillWidth: true
+            }
+
+            // -----------------------------------------------------
+            // Lyrics button
+            // -----------------------------------------------------
+
+            Item {
+                width: 38
+                height: 38
+
+                visible:
+                    root.controller !== null &&
+                    root.controller !== undefined &&
+                    String(
+                        root.controller.currentTrackTitle || ""
+                    ).length > 0
+
+                Rectangle {
+                    anchors.fill: parent
+
+                    radius: 19
+
+                    color:
+                        lyricsMouseArea.containsMouse
+                            ? AppTheme.panelHover
+                            : "transparent"
+                }
+
+                Label {
+                    anchors.centerIn: parent
+
+                    text: "🎤"
+
+                    color:
+                        AppTheme.textSecondary
+
+                    font.pixelSize: 15
+                }
+
+                MouseArea {
+                    id: lyricsMouseArea
+
+                    anchors.fill: parent
+
+                    cursorShape:
+                        Qt.PointingHandCursor
+
+                    onClicked: {
+                        root.lyricsRequested()
+                    }
+                }
             }
 
             // -----------------------------------------------------

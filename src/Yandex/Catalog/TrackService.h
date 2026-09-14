@@ -2,6 +2,7 @@
 
 #include <QList>
 #include <QString>
+#include "../../Models/Track.h"
 #include "../YandexServiceBase.h"
 
 class YandexClient;
@@ -30,6 +31,13 @@ public:
     void loadStreamInfo(
         const QString &trackId);
 
+    /*
+     * Загружает дополнительную информацию о треке
+     * (текст песни) через /tracks/{id}/supplement.
+     */
+    void loadSupplementary(
+        const QString &trackId);
+
     signals:
         void streamInfoReceived(
             const QList<TrackStreamInfo> &streams);
@@ -37,6 +45,9 @@ public:
     void streamUrlReceived(
         const QString &trackId,
         const QString &url);
+
+    void supplementReceived(
+        const TrackSupplementary &supplement);
 
     void errorOccurred(
         const QString &message);

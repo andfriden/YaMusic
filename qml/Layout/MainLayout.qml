@@ -6,6 +6,7 @@ Item {
     id: root
 
     property var controller
+    property var authController
 
     NavigationController {
         id: navigationController
@@ -47,6 +48,8 @@ Item {
 
         height: root.topBarHeight
 
+        controller: root.controller
+        authController: root.authController
         currentSection: root.currentSection
         canGoBack: root.canGoBack
 

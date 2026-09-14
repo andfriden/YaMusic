@@ -12,6 +12,7 @@
 #include "LibraryController.h"
 #include "PersonalController.h"
 #include "SearchController.h"
+#include "../Models/Track.h"
 #include "../Playback/PlaybackController.h"
 #include "../Yandex/Personal/NewPlaylistsService.h"
 
@@ -92,6 +93,14 @@ class AppController : public QObject
     Q_PROPERTY(QString currentTrackAlbumId READ currentTrackAlbumId NOTIFY currentTrackChanged)
     Q_PROPERTY(QString currentTrackCoverUri READ currentTrackCoverUri NOTIFY currentTrackChanged)
     Q_PROPERTY(bool currentTrackLiked READ currentTrackLiked NOTIFY currentTrackChanged)
+
+    /*
+     * Lyrics
+     */
+
+    Q_PROPERTY(QString lyricsText READ lyricsText NOTIFY lyricsChanged)
+    Q_PROPERTY(int lyricsLineCount READ lyricsLineCount NOTIFY lyricsChanged)
+    Q_PROPERTY(bool lyricsAvailable READ lyricsAvailable NOTIFY lyricsChanged)
 
     Q_PROPERTY(qint64 position READ position NOTIFY positionChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
@@ -228,6 +237,18 @@ public:
     QString currentTrackAlbumId() const;
     QString currentTrackCoverUri() const;
 
+    /*
+     * Lyrics
+     */
+
+    Q_INVOKABLE void loadLyrics();
+
+    QString lyricsText() const;
+
+    int lyricsLineCount() const;
+
+    bool lyricsAvailable() const;
+
     qint64 position() const;
     qint64 duration() const;
     PlaybackController::PlaybackState playbackState() const;
@@ -292,6 +313,12 @@ public:
 
     void darkThemeChanged();
 
+    /*
+     * Lyrics
+     */
+
+    void lyricsChanged();
+
 private:
     void connectAccount();
     void connectSearch();
@@ -339,4 +366,10 @@ private:
      */
 
     bool m_darkTheme = false;
+
+    /*
+     * Lyrics
+     */
+
+    TrackSupplementary m_supplementary;
 };

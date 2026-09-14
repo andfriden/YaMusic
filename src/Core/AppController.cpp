@@ -103,6 +103,29 @@ AppController::AppController(
     QSettings settings;
     m_darkTheme = settings.value("theme/dark", false).toBool();
 
+    /*
+     * Lyrics: при смене трека сбрасываем текст,
+     * при получении нового — обновляем.
+     */
+
+    connect(
+        m_playbackController,
+        &PlaybackController::currentTrackChanged,
+        this,
+        [this]() {
+            m_supplementary = {};
+            emit lyricsChanged();
+        });
+
+    connect(
+        m_trackService,
+        &TrackService::supplementReceived,
+        this,
+        [this](const TrackSupplementary &supplement) {
+            m_supplementary = supplement;
+            emit lyricsChanged();
+        });
+
     connect(
         m_queueService,
         &QueueService::queueChanged,
@@ -1098,4 +1121,56 @@ void AppController::setDarkTheme(bool dark)
     settings.setValue("theme/dark", dark);
 
     emit darkThemeChanged();
+}
+
+/*
+ * =============================================================
+ * Lyrics
+ * =============================================================
+ */
+
+void AppController::loadLyrics()
+{
+    const QString id =
+        currentTrackId();
+
+    if (id.isEmpty())
+        return;
+
+    m_supplementary = {};
+
+    emit lyricsChanged();
+
+    m_trackService->loadSupplementary(
+        id);
+}
+
+
+QString AppController::lyricsText() const
+{
+    if (m_supplementary.hasTimedLines()) {
+
+        QString result;
+
+        for (const LyricLine &line : m_supplementary.lines) {
+            result += line.text + "\n";
+        }
+
+        return result.trimmed();
+    }
+
+    return m_supplementary.fullText;
+}
+
+
+int AppController::lyricsLineCount() const
+{
+    return m_supplementary.lines.size();
+}
+
+
+bool AppController::lyricsAvailable() const
+{
+    return !m_supplementary.fullText.isEmpty() ||
+           !m_supplementary.lines.isEmpty();
 }

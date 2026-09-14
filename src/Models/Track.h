@@ -31,3 +31,31 @@ struct Track
 
     bool liked = false;
 };
+
+
+/*
+ * Одна строка синхронизированного текста.
+ */
+struct LyricLine
+{
+    qint64 timestampMs = 0;
+    QString text;
+};
+
+
+/*
+ * Текст песни из /tracks/{id}/supplement.
+ */
+struct TrackSupplementary
+{
+    QString trackId;
+
+    QString fullText;
+
+    QList<LyricLine> lines;
+
+    bool hasTimedLines() const
+    {
+        return !lines.isEmpty();
+    }
+};

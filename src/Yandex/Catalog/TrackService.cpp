@@ -356,3 +356,148 @@ void TrackService::resolveStream(
             reply->deleteLater();
         });
 }
+
+/*
+ * =============================================================
+ * Supplementary (lyrics)
+ * =============================================================
+ */
+
+void TrackService::loadSupplementary(
+    const QString &trackId)
+{
+    if (!ensureAuthenticated()) {
+
+        emit errorOccurred(
+            "Токен Яндекс Музыки не установлен");
+
+        return;
+    }
+
+    const QString trimmedTrackId =
+        trackId.trimmed();
+
+    if (trimmedTrackId.isEmpty()) {
+
+        emit errorOccurred(
+            "Track ID is empty");
+
+        return;
+    }
+
+    const QString path =
+        "/tracks/" +
+        trimmedTrackId +
+        "/supplement";
+
+    QNetworkReply *reply =
+        m_yandexClient->get(path);
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply, trimmedTrackId]() {
+
+            const QByteArray data =
+                reply->readAll();
+
+            if (reply->error() !=
+                QNetworkReply::NoError) {
+
+                emit errorOccurred(
+                    reply->errorString());
+
+                reply->deleteLater();
+                return;
+            }
+
+            QJsonParseError parseError;
+
+            const QJsonDocument document =
+                QJsonDocument::fromJson(
+                    data,
+                    &parseError);
+
+            if (parseError.error !=
+                    QJsonParseError::NoError ||
+                !document.isObject()) {
+
+                reply->deleteLater();
+                return;
+            }
+
+            const QJsonObject result =
+                unwrapResult(document);
+
+            // Supplement поддерживает несколько
+            // вариантов текста: fullLyrics и/или
+            // синхронизированные lines.
+
+            const QJsonArray lyricsArray =
+                result.value("lyrics").toArray();
+
+            TrackSupplementary supplementary;
+
+            supplementary.trackId =
+                trimmedTrackId;
+
+            for (const QJsonValue &lyricsValue : lyricsArray) {
+
+                if (!lyricsValue.isObject())
+                    continue;
+
+                const QJsonObject lyrics =
+                    lyricsValue.toObject();
+
+                const QString fullLyrics =
+                    lyrics.value("fullLyrics").toString().trimmed();
+
+                if (!fullLyrics.isEmpty()) {
+
+                    supplementary.fullText =
+                        fullLyrics;
+                }
+
+                const QJsonArray lines =
+                    lyrics.value("lines").toArray();
+
+                for (const QJsonValue &lineValue : lines) {
+
+                    if (!lineValue.isObject())
+                        continue;
+
+                    const QJsonObject line =
+                        lineValue.toObject();
+
+                    LyricLine lyricLine;
+
+                    lyricLine.timestampMs =
+                        line.value("timestamp").toInteger();
+
+                    lyricLine.text =
+                        line.value("text").toString().trimmed();
+
+                    if (!lyricLine.text.isEmpty()) {
+
+                        supplementary.lines.append(
+                            lyricLine);
+                    }
+                }
+            }
+
+            reply->deleteLater();
+
+            if (supplementary.fullText.isEmpty() &&
+                supplementary.lines.isEmpty()) {
+
+                emit errorOccurred(
+                    "Текст для трека не найден");
+
+                return;
+            }
+
+            emit supplementReceived(
+                supplementary);
+        });
+}
