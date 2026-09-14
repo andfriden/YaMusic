@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Layouts
 import YaMusic 1.0
 
 Item {
@@ -20,12 +21,10 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-
-        color:
-            AppTheme.backgroundPrimary
+        color: AppTheme.backgroundPrimary
     }
 
-    Row {
+    RowLayout {
         anchors.fill: parent
 
         anchors.leftMargin: 28
@@ -40,66 +39,48 @@ Item {
         Item {
             id: backArea
 
-            width:
+            Layout.preferredWidth:
                 root.canGoBack
                     ? 40
                     : 0
 
-            height:
-                parent.height
+            Layout.preferredHeight: 36
 
             visible:
                 root.canGoBack
 
-            Item {
-                width: 36
-                height: 36
+            Rectangle {
+                anchors.fill: parent
+                radius: 10
 
-                anchors.verticalCenter:
-                    parent.verticalCenter
+                color:
+                    backMouseArea.containsMouse
+                        ? AppTheme.panelHover
+                        : "transparent"
+            }
 
-                Rectangle {
-                    anchors.fill: parent
+            Text {
+                anchors.centerIn: parent
 
-                    radius: 10
+                text: "‹"
 
-                    color:
-                        backMouseArea.containsMouse
-                            ? AppTheme.panelHover
-                            : "transparent"
-                }
+                color:
+                    backMouseArea.containsMouse
+                        ? AppTheme.textPrimary
+                        : AppTheme.textSecondary
 
-                Text {
-                    anchors.centerIn: parent
+                font.pixelSize: 30
+                font.weight: Font.Light
+            }
 
-                    text: "‹"
+            MouseArea {
+                id: backMouseArea
 
-                    color:
-                        backMouseArea.containsMouse
-                            ? AppTheme.textPrimary
-                            : AppTheme.textSecondary
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
 
-                    font.pixelSize: 30
-                    font.weight: Font.Light
-
-                    verticalAlignment:
-                        Text.AlignVCenter
-                }
-
-                MouseArea {
-                    id: backMouseArea
-
-                    anchors.fill: parent
-
-                    hoverEnabled: true
-
-                    cursorShape:
-                        Qt.PointingHandCursor
-
-                    onClicked: {
-                        root.backRequested()
-                    }
-                }
+                onClicked: root.backRequested()
             }
         }
 
@@ -108,19 +89,11 @@ Item {
         // =========================================================
 
         Item {
-            id: brand
-
-            width: 150
-            height: parent.height
+            Layout.preferredWidth: 150
 
             Text {
-                id: brandText
-
-                anchors.left:
-                    parent.left
-
-                anchors.verticalCenter:
-                    parent.verticalCenter
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
 
                 text: "YaMusic"
 
@@ -133,26 +106,18 @@ Item {
                 font.weight: Font.Bold
 
                 Behavior on color {
-                    ColorAnimation {
-                        duration: 120
-                    }
+                    ColorAnimation { duration: 120 }
                 }
             }
 
             MouseArea {
                 id: brandMouseArea
 
-                anchors.fill:
-                    parent
-
+                anchors.fill: parent
                 hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
 
-                cursorShape:
-                    Qt.PointingHandCursor
-
-                onClicked: {
-                    root.sectionSelected("home")
-                }
+                onClicked: root.sectionSelected("home")
             }
         }
 
@@ -162,30 +127,12 @@ Item {
 
         Repeater {
             model: [
-                {
-                    title: "Моя волна",
-                    section: "wave"
-                },
-                {
-                    title: "Чарты",
-                    section: "chart"
-                },
-                {
-                    title: "Жанры",
-                    section: "genres"
-                },
-                {
-                    title: "Плейлисты",
-                    section: "playlists"
-                },
-                {
-                    title: "Спорт",
-                    section: "sport"
-                },
-                {
-                    title: "Мне нравится",
-                    section: "liked"
-                }
+                { title: "Моя волна", section: "wave" },
+                { title: "Чарты", section: "chart" },
+                { title: "Жанры", section: "genres" },
+                { title: "Плейлисты", section: "playlists" },
+                { title: "Спорт", section: "sport" },
+                { title: "Мне нравится", section: "liked" }
             ]
 
             delegate: Item {
@@ -193,66 +140,36 @@ Item {
 
                 required property var modelData
 
-                width:
+                Layout.preferredWidth:
                     navigationText.implicitWidth + 28
 
-                height:
-                    parent.height
+                Layout.preferredHeight: 38
 
                 readonly property bool active:
-                    root.currentSection ===
-                    modelData.section
-
-                // -------------------------------------------------
-                // Navigation background
-                // -------------------------------------------------
+                    root.currentSection === modelData.section
 
                 Rectangle {
-                    anchors.left:
-                        parent.left
-
-                    anchors.right:
-                        parent.right
-
-                    anchors.verticalCenter:
-                        parent.verticalCenter
-
-                    height: 38
-
+                    anchors.fill: parent
                     radius: 10
 
                     color:
                         navigationItem.active
                             ? AppTheme.panelActive
-                            : (
-                                navigationMouseArea.containsMouse
-                                    ? AppTheme.panelHover
-                                    : "transparent"
-                            )
+                            : navigationMouseArea.containsMouse
+                                ? AppTheme.panelHover
+                                : "transparent"
 
                     Behavior on color {
-                        ColorAnimation {
-                            duration: 100
-                        }
+                        ColorAnimation { duration: 100 }
                     }
                 }
 
-                // -------------------------------------------------
-                // Active indicator
-                // -------------------------------------------------
-
                 Rectangle {
-                    anchors.left:
-                        parent.left
-
-                    anchors.right:
-                        parent.right
-
-                    anchors.bottom:
-                        parent.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
 
                     height: 2
-
                     radius: 1
 
                     color:
@@ -261,24 +178,16 @@ Item {
                             : "transparent"
 
                     Behavior on color {
-                        ColorAnimation {
-                            duration: 120
-                        }
+                        ColorAnimation { duration: 120 }
                     }
                 }
-
-                // -------------------------------------------------
-                // Text
-                // -------------------------------------------------
 
                 Text {
                     id: navigationText
 
-                    anchors.centerIn:
-                        parent
+                    anchors.centerIn: parent
 
-                    text:
-                        navigationItem.modelData.title
+                    text: navigationItem.modelData.title
 
                     color:
                         navigationItem.active
@@ -293,127 +202,94 @@ Item {
                             : Font.Normal
 
                     Behavior on color {
-                        ColorAnimation {
-                            duration: 100
-                        }
+                        ColorAnimation { duration: 100 }
                     }
                 }
 
                 MouseArea {
                     id: navigationMouseArea
 
-                    anchors.fill:
-                        parent
-
+                    anchors.fill: parent
                     hoverEnabled: true
-
-                    cursorShape:
-                        Qt.PointingHandCursor
+                    cursorShape: Qt.PointingHandCursor
 
                     onClicked: {
-                        root.sectionSelected(
-                            navigationItem.modelData.section
-                        )
+                        root.sectionSelected(navigationItem.modelData.section)
                     }
                 }
-}
-    }
-
-    /*
-     * Кнопка настроек (оверлей поверх строки, прижат к правому краю)
-     */
-
-    Item {
-        id: settingsButton
-
-        anchors.right:
-            parent.right
-
-        anchors.rightMargin:
-            20
-
-        anchors.top:
-            parent.top
-
-        anchors.topMargin:
-            15
-
-        width: 38
-        height: 38
-
-        z: 10
-
-        Rectangle {
-            anchors.fill:
-                parent
-
-            radius: 10
-
-            color:
-                settingsMouseArea.containsMouse
-                    ? AppTheme.panelHover
-                    : AppTheme.panelSubtle
-
-            border.width:
-                1
-
-            border.color:
-                settingsMouseArea.containsMouse
-                    ? AppTheme.border
-                    : AppTheme.borderSubtle
-
-            Behavior on color {
-                ColorAnimation {
-                    duration: 120
-                }
-            }
-
-            Behavior on border.color {
-                ColorAnimation {
-                    duration: 120
-                }
             }
         }
 
-        Text {
-            anchors.centerIn:
-                parent
+        // =========================================================
+        // Spacer — прижимает настройки к правому краю
+        // =========================================================
 
-            text:
-                "⚙"
+        Item {
+            Layout.fillWidth: true
+        }
 
-            color:
-                settingsMouseArea.containsMouse
-                    ? AppTheme.textPrimary
-                    : AppTheme.textSecondary
+        // =========================================================
+        // Settings
+        // =========================================================
 
-            font.pixelSize:
-                16
+        Item {
+            id: settingsButton
 
-            Behavior on color {
-                ColorAnimation {
-                    duration: 120
+            Layout.preferredWidth: 38
+            Layout.preferredHeight: 38
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 10
+
+                color:
+                    settingsMouseArea.containsMouse
+                        ? AppTheme.panelHover
+                        : AppTheme.panelSubtle
+
+                border.width: 1
+
+                border.color:
+                    settingsMouseArea.containsMouse
+                        ? AppTheme.border
+                        : AppTheme.borderSubtle
+
+                Behavior on color {
+                    ColorAnimation { duration: 120 }
+                }
+
+                Behavior on border.color {
+                    ColorAnimation { duration: 120 }
                 }
             }
-        }
 
-        MouseArea {
-            id: settingsMouseArea
+            Text {
+                anchors.centerIn: parent
 
-            anchors.fill:
-                parent
+                text: "⚙"
 
-            hoverEnabled:
-                true
+                color:
+                    settingsMouseArea.containsMouse
+                        ? AppTheme.textPrimary
+                        : AppTheme.textSecondary
 
-            cursorShape:
-                Qt.PointingHandCursor
+                font.pixelSize: 16
 
-            onClicked: {
-                settingsPopup.open()
+                Behavior on color {
+                    ColorAnimation { duration: 120 }
+                }
+            }
+
+            MouseArea {
+                id: settingsMouseArea
+
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+
+                onClicked: settingsPopup.open()
             }
         }
-    }
     }
 
     Popup {
@@ -431,113 +307,73 @@ Item {
 
         background:
             Rectangle {
-                color:
-                    AppTheme.panel
+                color: AppTheme.panel
 
-                border.width:
-                    1
-
-                border.color:
-                    AppTheme.borderSubtle
+                border.width: 1
+                border.color: AppTheme.borderSubtle
 
                 radius: 10
             }
 
         Column {
-            anchors.fill:
-                parent
+            anchors.fill: parent
+            anchors.margins: 10
 
-            anchors.margins:
-                10
-
-            spacing:
-                8
+            spacing: 8
 
             // Theme switcher
 
             Row {
-                width:
-                    parent.width
-
-                height:
-                    30
-
-                spacing:
-                    8
+                width: parent.width
+                height: 30
+                spacing: 8
 
                 Text {
-                    text:
-                        "Тёмная тема"
+                    text: "Тёмная тема"
 
-                    color:
-                        AppTheme.textPrimary
+                    color: AppTheme.textPrimary
+                    font.pixelSize: 13
 
-                    font.pixelSize:
-                        13
-
-                    anchors.verticalCenter:
-                        parent.verticalCenter
+                    anchors.verticalCenter: parent.verticalCenter
                 }
 
                 Item {
-                    width:
-                        20
+                    width: 20
+                    height: 20
 
-                    height:
-                        20
-
-                    anchors.verticalCenter:
-                        parent.verticalCenter
+                    anchors.verticalCenter: parent.verticalCenter
 
                     Rectangle {
-                        anchors.fill:
-                            parent
-
-                        radius:
-                            4
+                        anchors.fill: parent
+                        radius: 4
 
                         color:
                             AppTheme.dark
                                 ? AppTheme.accent
                                 : AppTheme.panelSecondary
 
-                        border.width:
-                            1
-
-                        border.color:
-                            AppTheme.border
+                        border.width: 1
+                        border.color: AppTheme.border
 
                         Text {
-                            anchors.centerIn:
-                                parent
+                            anchors.centerIn: parent
 
                             text:
                                 AppTheme.dark
                                     ? "✓"
                                     : ""
 
-                            color:
-                                AppTheme.textPrimary
-
-                            font.pixelSize:
-                                12
+                            color: AppTheme.textPrimary
+                            font.pixelSize: 12
                         }
 
                         MouseArea {
-                            anchors.fill:
-                                parent
-
-                            cursorShape:
-                                Qt.PointingHandCursor
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
 
                             onClicked: {
-                                if (
-                                    root.controller !== null &&
-                                    root.controller !== undefined
-                                ) {
-                                    root.controller.setDarkTheme(
-                                        !AppTheme.dark
-                                    )
+                                if (root.controller) {
+                                    root.controller.setDarkTheme(!AppTheme.dark)
                                 }
                             }
                         }
@@ -548,64 +384,43 @@ Item {
             // Logout
 
             Rectangle {
-                width:
-                    parent.width
-
-                height:
-                    34
-
-                radius:
-                    8
+                width: parent.width
+                height: 34
+                radius: 8
 
                 color:
                     logoutArea.containsMouse
                         ? AppTheme.panelActive
                         : AppTheme.panelSecondary
 
-                border.width:
-                    1
-
-                border.color:
-                    AppTheme.borderSubtle
+                border.width: 1
+                border.color: AppTheme.borderSubtle
 
                 Text {
-                    anchors.centerIn:
-                        parent
+                    anchors.centerIn: parent
 
-                    text:
-                        "Выйти"
+                    text: "Выйти"
 
                     color:
                         logoutArea.containsMouse
                             ? AppTheme.error
                             : AppTheme.textPrimary
 
-                    font.pixelSize:
-                        13
-
-                    font.weight:
-                        Font.Medium
+                    font.pixelSize: 13
+                    font.weight: Font.Medium
                 }
 
                 MouseArea {
                     id: logoutArea
 
-                    anchors.fill:
-                        parent
-
-                    hoverEnabled:
-                        true
-
-                    cursorShape:
-                        Qt.PointingHandCursor
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
 
                     onClicked: {
                         settingsPopup.close()
 
-                        if (
-                            root.authController !== null &&
-                            root.authController !== undefined
-                        ) {
+                        if (root.authController) {
                             root.authController.logout()
                         }
                     }
