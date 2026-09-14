@@ -90,6 +90,7 @@ Item {
 
         Item {
             Layout.preferredWidth: 150
+            Layout.fillHeight: true
 
             Text {
                 anchors.left: parent.left
