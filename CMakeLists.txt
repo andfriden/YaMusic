@@ -265,12 +265,6 @@ if(WIN32)
                 src/MediaControls/MediaControlsSMTC.cpp
         )
 
-        target_compile_definitions(
-                appYaMusic
-                PRIVATE
-                HAS_CPPWINRT=$<BOOL:${HAS_CPPWINRT}>
-        )
-
     endif()
 
 endif()
@@ -294,6 +288,16 @@ if(WIN32 AND EXISTS "${YAMUSIC_RC}")
             appYaMusic
             PRIVATE
             "${YAMUSIC_RC}"
+    )
+
+endif()
+
+if(WIN32 AND HAS_CPPWINRT)
+
+    target_compile_definitions(
+            appYaMusic
+            PRIVATE
+            YAMUSIC_HAS_CPPWINRT=1
     )
 
 endif()
