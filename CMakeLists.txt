@@ -260,8 +260,19 @@ if(WIN32)
 
     # C++/WinRT (winrt/*.h) is required for full SMTC and only
     # available when targeting the Windows SDK (MSVC, not MinGW).
-    include(CheckIncludeFileCXX)
-    check_include_file_cxx("winrt/Windows.Foundation.h" HAS_CPPWINRT)
+    # The projection headers live in the SDK's cppwinrt subfolder,
+    # which is NOT in the default INCLUDE path.
+    find_path(CPPWINRT_INCLUDE_DIR
+        NAMES "winrt/Windows.Media.SystemMediaTransportControls.h"
+        PATHS
+            "$ENV{ProgramFiles}/Windows Kits/10/Include/$ENV{WindowsSDKVersion}cppwinrt"
+            "$ENV{ProgramFiles(x86)}/Windows Kits/10/Include/$ENV{WindowsSDKVersion}cppwinrt"
+            "$ENV{WindowsSdkDir}Include/$ENV{WindowsSDKVersion}cppwinrt"
+    )
+
+    if(NOT CPPWINRT_INCLUDE_DIR)
+        message(STATUS "C++/WinRT headers not found — SMTC support will be stubbed out")
+    endif()
 
 endif()
 
@@ -288,12 +299,18 @@ if(WIN32 AND EXISTS "${YAMUSIC_RC}")
 
 endif()
 
-if(WIN32 AND HAS_CPPWINRT)
+if(WIN32 AND CPPWINRT_INCLUDE_DIR)
 
     target_compile_definitions(
             appYaMusic
             PRIVATE
             YAMUSIC_HAS_CPPWINRT=1
+    )
+
+    target_include_directories(
+            appYaMusic
+            PRIVATE
+            "${CPPWINRT_INCLUDE_DIR}"
     )
 
     target_link_libraries(
