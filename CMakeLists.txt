@@ -296,6 +296,12 @@ if(WIN32 AND HAS_CPPWINRT)
             YAMUSIC_HAS_CPPWINRT=1
     )
 
+    target_link_libraries(
+            appYaMusic
+            PRIVATE
+            windowsapp
+    )
+
 endif()
 
 if(APPLE AND EXISTS "${YAMUSIC_ICON_ICNS}")

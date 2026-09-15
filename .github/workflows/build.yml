@@ -143,13 +143,19 @@ jobs:
   # =============================================================
 
   windows:
-    name: Windows x64
-    runs-on: windows-2025
+    name: Windows x64 (MSVC/SMTC)
+    runs-on: windows-latest
 
     steps:
 
       - name: Checkout
         uses: actions/checkout@v4
+
+
+      - name: Setup MSVC compiler
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
 
 
       - name: Install Qt
@@ -158,11 +164,9 @@ jobs:
           version: ${{ env.QT_VERSION }}
           host: windows
           target: desktop
-          arch: win64_mingw
+          arch: win64_msvc2022_64
           modules: qtmultimedia
-          tools: tools_mingw1310
           cache: true
-          add-tools-to-path: true
 
 
       - name: Configure
@@ -173,9 +177,7 @@ jobs:
             -B build `
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_INSTALL_PREFIX="$env:GITHUB_WORKSPACE\dist" `
-            -DCMAKE_C_COMPILER=gcc `
-            -DCMAKE_CXX_COMPILER=g++
+            -DCMAKE_INSTALL_PREFIX="$env:GITHUB_WORKSPACE\dist"
       - name: Build
         shell: pwsh
         run: |
