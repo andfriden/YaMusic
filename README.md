@@ -7,7 +7,7 @@
 Построен на C++17 · Qt 6 · QML · macOS, Linux и Windows
 
 [![License](https://img.shields.io/github/license/andfriden/YaMusic)](https://github.com/andfriden/YaMusic/blob/main/LICENSE)
-[![Release](https://img.shields.io/github/v/release/andfriden/YaMusic)](https://github.com/andfriden/YaMusic/releases)
+[![Release](https://img.shields.io/github/v/tag/andfriden/YaMusic)](https://github.com/andfriden/YaMusic/releases)
 
 </div>
 
