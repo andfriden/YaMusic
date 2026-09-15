@@ -2,6 +2,24 @@
 
 #ifdef Q_OS_WIN
 
+#ifndef YAMUSIC_HAS_CPPWINRT
+
+/*
+ * C++/WinRT unavailable (MinGW) — no-op stubs.
+ * vtable is emitted here so the linker doesn't fail.
+ */
+
+MediaControlsSMTC::MediaControlsSMTC(QObject *parent)
+    : SystemMediaControls(parent) {}
+MediaControlsSMTC::~MediaControlsSMTC() = default;
+void MediaControlsSMTC::platformSetEnabled(bool) {}
+void MediaControlsSMTC::platformSetMetadata(const Metadata &) {}
+void MediaControlsSMTC::platformSetPlaybackStatus(PlaybackStatus) {}
+void MediaControlsSMTC::platformSetPosition(qint64) {}
+void MediaControlsSMTC::platformSetDuration(qint64) {}
+
+#else
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
@@ -193,5 +211,7 @@ void MediaControlsSMTC::platformSetDuration(qint64)
 {
     d->updateInfo(m_metadata, m_status, m_positionMs, m_durationMs);
 }
+
+#endif // YAMUSIC_HAS_CPPWINRT
 
 #endif // Q_OS_WIN

@@ -2,7 +2,7 @@
 
 #include "SystemMediaControls.h"
 
-#ifdef YAMUSIC_HAS_CPPWINRT
+#ifdef Q_OS_WIN
 
 /*
  * Windows: System Media Transport Controls (SMTC).
@@ -34,9 +34,7 @@ private:
 #else
 
 /*
- * Windows only — no-op stub used when C++/WinRT is unavailable
- * (e.g. MinGW). Satisfies the interface without including
- * winrt/*.h headers.
+ * Windows only — no-op stub on other platforms.
  */
 class MediaControlsSMTC : public SystemMediaControls
 {
