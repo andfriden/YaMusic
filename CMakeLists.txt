@@ -253,10 +253,25 @@ endif()
 
 if(WIN32)
 
-    list(
-            APPEND YAMUSIC_SOURCES
-            src/MediaControls/MediaControlsSMTC.cpp
-    )
+    # C++/WinRT (winrt/*.h) is required for SMTC and only available
+    # when targeting the Windows SDK (MSVC, not MinGW).
+    include(CheckIncludeFileCXX)
+    check_include_file_cxx("winrt/Windows.Foundation.h" HAS_CPPWINRT)
+
+    if(HAS_CPPWINRT)
+
+        list(
+                APPEND YAMUSIC_SOURCES
+                src/MediaControls/MediaControlsSMTC.cpp
+        )
+
+        target_compile_definitions(
+                appYaMusic
+                PRIVATE
+                HAS_CPPWINRT=$<BOOL:${HAS_CPPWINRT}>
+        )
+
+    endif()
 
 endif()
 
