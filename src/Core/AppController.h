@@ -88,11 +88,13 @@ class AppController : public QObject
     Q_PROPERTY(QString currentAlbumTitle READ currentAlbumTitle NOTIFY currentAlbumChanged)
     Q_PROPERTY(int currentAlbumTrackCount READ currentAlbumTrackCount NOTIFY currentAlbumChanged)
     Q_PROPERTY(QString currentAlbumCoverUri READ currentAlbumCoverUri NOTIFY currentAlbumChanged)
+    Q_PROPERTY(bool currentAlbumLiked READ currentAlbumLiked NOTIFY currentAlbumChanged)
 
     Q_PROPERTY(QString currentArtistName READ currentArtistName NOTIFY currentArtistChanged)
     Q_PROPERTY(QString currentArtistCoverUri READ currentArtistCoverUri NOTIFY currentArtistChanged)
     Q_PROPERTY(QString currentArtistGenres READ currentArtistGenres NOTIFY currentArtistChanged)
     Q_PROPERTY(int currentArtistTrackCount READ currentArtistTrackCount NOTIFY currentArtistChanged)
+    Q_PROPERTY(bool currentArtistLiked READ currentArtistLiked NOTIFY currentArtistChanged)
 
     Q_PROPERTY(QString currentTrackId READ currentTrackId NOTIFY currentTrackChanged)
     Q_PROPERTY(QString currentTrackTitle READ currentTrackTitle NOTIFY currentTrackChanged)
@@ -178,6 +180,8 @@ public:
     Q_INVOKABLE void selectSimilarArtist(int index);
 
     Q_INVOKABLE void toggleLike(const QString &trackId,bool liked);
+    Q_INVOKABLE void toggleAlbumLike();
+    Q_INVOKABLE void toggleArtistLike();
 
     Q_INVOKABLE void play();
     Q_INVOKABLE void pause();
@@ -240,11 +244,13 @@ public:
     QString currentAlbumTitle() const;
     int currentAlbumTrackCount() const;
     QString currentAlbumCoverUri() const;
+    bool currentAlbumLiked() const;
 
     QString currentArtistName() const;
     QString currentArtistCoverUri() const;
     QString currentArtistGenres() const;
     int currentArtistTrackCount() const;
+    bool currentArtistLiked() const;
 
     QString currentTrackId() const;
     QString currentTrackTitle() const;

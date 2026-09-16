@@ -339,29 +339,66 @@ Item {
                         }
 
 
-                        Label {
-                            width:
-                                parent.width
+                        Row {
+                            width: parent.width
+                            spacing: 10
 
-                            text:
-                                    root.albumTitle.length > 0
-                                ? root.albumTitle
-                                : qsTr("Альбом")
+                            Label {
+                                width:
+                                    parent.width - albumLikeButton.width - parent.spacing
 
-                            color:
-                                AppTheme.textPrimary
+                                text:
+                                        root.albumTitle.length > 0
+                                    ? root.albumTitle
+                                    : qsTr("Альбом")
 
-                            font.pixelSize:
-                                30
+                                color:
+                                    AppTheme.textPrimary
 
-                            font.weight:
-                                Font.DemiBold
+                                font.pixelSize:
+                                    30
 
-                            elide:
-                                Text.ElideRight
+                                font.weight:
+                                    Font.DemiBold
 
-                            maximumLineCount:
-                                2
+                                elide:
+                                    Text.ElideRight
+
+                                maximumLineCount:
+                                    2
+                            }
+
+                            Item {
+                                id: albumLikeButton
+
+                                width: 36
+                                height: 36
+                                anchors.verticalCenter: parent.verticalCenter
+                                visible: root.albumController !== null &&
+                                         root.albumController.albumId !== ""
+
+                                Label {
+                                    anchors.centerIn: parent
+                                    text: root.controller && root.controller.currentAlbumLiked
+                                        ? "♥"
+                                        : "♡"
+                                    color: root.controller && root.controller.currentAlbumLiked
+                                        ? AppTheme.accent
+                                        : AppTheme.textSecondary
+                                    font.pixelSize: 22
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (root.controller) {
+                                            root.controller.toggleAlbumLike()
+                                        }
+                                    }
+                                }
+                            }
                         }
 
 

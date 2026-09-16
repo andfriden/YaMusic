@@ -364,29 +364,67 @@ Item {
                         }
 
 
-                        Label {
-                            width:
-                                parent.width
+                        Row {
+                            width: parent.width
+                            spacing: 10
 
-                            text:
-                                    root.artistName.length > 0
-                                ? root.artistName
-                                : qsTr("Исполнитель")
+                            Label {
+                                width:
+                                    parent.width - artistLikeButton.width - parent.spacing
 
-                            color:
-                                AppTheme.textPrimary
+                                text:
+                                        root.artistName.length > 0
+                                    ? root.artistName
+                                    : qsTr("Исполнитель")
 
-                            font.pixelSize:
-                                32
+                                color:
+                                    AppTheme.textPrimary
 
-                            font.bold:
-                                true
+                                font.pixelSize:
+                                    32
 
-                            elide:
-                                Text.ElideRight
+                                font.bold:
+                                    true
 
-                            maximumLineCount:
-                                1
+                                elide:
+                                    Text.ElideRight
+
+                                maximumLineCount:
+                                    1
+                            }
+
+                            Item {
+                                id: artistLikeButton
+
+                                width: 36
+                                height: 36
+                                anchors.verticalCenter: parent.verticalCenter
+                                visible: root.controller !== null &&
+                                         root.controller.artistController !== null &&
+                                         root.controller.artistController.artistId !== ""
+
+                                Label {
+                                    anchors.centerIn: parent
+                                    text: root.controller && root.controller.currentArtistLiked
+                                        ? "♥"
+                                        : "♡"
+                                    color: root.controller && root.controller.currentArtistLiked
+                                        ? AppTheme.accent
+                                        : AppTheme.textSecondary
+                                    font.pixelSize: 22
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (root.controller) {
+                                            root.controller.toggleArtistLike()
+                                        }
+                                    }
+                                }
+                            }
                         }
 
 

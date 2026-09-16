@@ -167,6 +167,34 @@ AppController::AppController(
             }
         });
 
+    connect(
+        m_likesService,
+        &LikesService::albumLikeChanged,
+        this,
+        [this](
+            const QString &albumId,
+            bool liked) {
+
+            Q_UNUSED(albumId);
+            Q_UNUSED(liked);
+
+            emit currentAlbumChanged();
+        });
+
+    connect(
+        m_likesService,
+        &LikesService::artistLikeChanged,
+        this,
+        [this](
+            const QString &artistId,
+            bool liked) {
+
+            Q_UNUSED(artistId);
+            Q_UNUSED(liked);
+
+            emit currentArtistChanged();
+        });
+
     // Similar tracks: when new data arrives, update the model
     connect(
         m_trackService,
@@ -759,6 +787,60 @@ void AppController::toggleLike(
     }
 }
 
+// Album like
+
+void AppController::toggleAlbumLike()
+{
+    const QString albumId =
+        m_albumController->albumId();
+
+    if (m_accountUid.isEmpty() ||
+        albumId.isEmpty() ||
+        m_likesService == nullptr) {
+
+        return;
+    }
+
+    if (m_likesService->isAlbumLiked(albumId)) {
+
+        m_likesService->removeAlbumLike(
+            m_accountUid,
+            albumId);
+    } else {
+
+        m_likesService->addAlbumLike(
+            m_accountUid,
+            albumId);
+    }
+}
+
+// Artist like
+
+void AppController::toggleArtistLike()
+{
+    const QString artistId =
+        m_artistController->artistId();
+
+    if (m_accountUid.isEmpty() ||
+        artistId.isEmpty() ||
+        m_likesService == nullptr) {
+
+        return;
+    }
+
+    if (m_likesService->isArtistLiked(artistId)) {
+
+        m_likesService->removeArtistLike(
+            m_accountUid,
+            artistId);
+    } else {
+
+        m_likesService->addArtistLike(
+            m_accountUid,
+            artistId);
+    }
+}
+
 // Queue
 
 QString AppController::playbackSourceTitle() const
@@ -1011,6 +1093,21 @@ QString AppController::currentAlbumCoverUri() const
         ->albumCoverUri();
 }
 
+bool AppController::currentAlbumLiked() const
+{
+    const QString albumId =
+        m_albumController->albumId();
+
+    if (albumId.isEmpty() ||
+        m_likesService == nullptr) {
+
+        return false;
+    }
+
+    return m_likesService->isAlbumLiked(
+        albumId);
+}
+
 // Current artist
 
 QString AppController::currentArtistName() const
@@ -1036,6 +1133,21 @@ int AppController::currentArtistTrackCount() const
     return m_artistController
         ->artistModel()
         ->count();
+}
+
+bool AppController::currentArtistLiked() const
+{
+    const QString artistId =
+        m_artistController->artistId();
+
+    if (artistId.isEmpty() ||
+        m_likesService == nullptr) {
+
+        return false;
+    }
+
+    return m_likesService->isArtistLiked(
+        artistId);
 }
 
 // Current track

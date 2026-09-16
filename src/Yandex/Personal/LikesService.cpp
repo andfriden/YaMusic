@@ -299,6 +299,8 @@ void LikesService::loadLikedAlbums(
             const QJsonObject library = result.value("library").toObject();
             const QJsonArray albumData = library.value("albums").toArray();
 
+            m_likedAlbumIds.clear();
+
             albums.reserve(albumData.size());
 
             for (const QJsonValue &value : albumData)
@@ -316,6 +318,9 @@ void LikesService::loadLikedAlbums(
                     album.id = idValue.toString();
                 else if (idValue.isDouble())
                     album.id = QString::number(static_cast<qint64>(idValue.toDouble()));
+
+                if (!album.id.isEmpty())
+                    m_likedAlbumIds.insert(album.id);
 
                 album.title = obj.value("title").toString();
 
@@ -418,6 +423,8 @@ void LikesService::loadLikedArtists(
             const QJsonObject library = result.value("library").toObject();
             const QJsonArray artistData = library.value("artists").toArray();
 
+            m_likedArtistIds.clear();
+
             artists.reserve(artistData.size());
 
             for (const QJsonValue &value : artistData)
@@ -435,6 +442,9 @@ void LikesService::loadLikedArtists(
                     artist.id = idValue.toString();
                 else if (idValue.isDouble())
                     artist.id = QString::number(static_cast<qint64>(idValue.toDouble()));
+
+                if (!artist.id.isEmpty())
+                    m_likedArtistIds.insert(artist.id);
 
                 artist.name = obj.value("name").toString();
 
@@ -682,4 +692,204 @@ void LikesService::changeLike(
                 id,
                 liked);
         });
+}
+
+// Album like
+
+void LikesService::addAlbumLike(
+    const QString &uid,
+    const QString &albumId)
+{
+    const QString userId = uid.trimmed();
+    const QString id = albumId.trimmed();
+
+    if (userId.isEmpty() || id.isEmpty())
+        return;
+
+    if (m_yandexClient == nullptr || !m_yandexClient->hasToken())
+        return;
+
+    const QString path =
+        QStringLiteral("/users/%1/likes/albums/add-multiple")
+            .arg(userId);
+
+    QUrlQuery body;
+    body.addQueryItem(QStringLiteral("album-ids"), id);
+
+    QNetworkReply *reply = m_yandexClient->postForm(path, body);
+
+    if (reply == nullptr)
+        return;
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply, id]()
+        {
+            Q_UNUSED(reply->readAll());
+
+            if (reply->error() != QNetworkReply::NoError)
+            {
+                reply->deleteLater();
+                return;
+            }
+
+            m_likedAlbumIds.insert(id);
+            reply->deleteLater();
+            emit albumLikeChanged(id, true);
+        });
+}
+
+void LikesService::removeAlbumLike(
+    const QString &uid,
+    const QString &albumId)
+{
+    const QString userId = uid.trimmed();
+    const QString id = albumId.trimmed();
+
+    if (userId.isEmpty() || id.isEmpty())
+        return;
+
+    if (m_yandexClient == nullptr || !m_yandexClient->hasToken())
+        return;
+
+    const QString path =
+        QStringLiteral("/users/%1/likes/albums/remove")
+            .arg(userId);
+
+    QUrlQuery body;
+    body.addQueryItem(QStringLiteral("album-ids"), id);
+
+    QNetworkReply *reply = m_yandexClient->postForm(path, body);
+
+    if (reply == nullptr)
+        return;
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply, id]()
+        {
+            Q_UNUSED(reply->readAll());
+
+            if (reply->error() != QNetworkReply::NoError)
+            {
+                reply->deleteLater();
+                return;
+            }
+
+            m_likedAlbumIds.remove(id);
+            reply->deleteLater();
+            emit albumLikeChanged(id, false);
+        });
+}
+
+// Artist like
+
+void LikesService::addArtistLike(
+    const QString &uid,
+    const QString &artistId)
+{
+    const QString userId = uid.trimmed();
+    const QString id = artistId.trimmed();
+
+    if (userId.isEmpty() || id.isEmpty())
+        return;
+
+    if (m_yandexClient == nullptr || !m_yandexClient->hasToken())
+        return;
+
+    const QString path =
+        QStringLiteral("/users/%1/likes/artists/add-multiple")
+            .arg(userId);
+
+    QUrlQuery body;
+    body.addQueryItem(QStringLiteral("artist-ids"), id);
+
+    QNetworkReply *reply = m_yandexClient->postForm(path, body);
+
+    if (reply == nullptr)
+        return;
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply, id]()
+        {
+            Q_UNUSED(reply->readAll());
+
+            if (reply->error() != QNetworkReply::NoError)
+            {
+                reply->deleteLater();
+                return;
+            }
+
+            m_likedArtistIds.insert(id);
+            reply->deleteLater();
+            emit artistLikeChanged(id, true);
+        });
+}
+
+void LikesService::removeArtistLike(
+    const QString &uid,
+    const QString &artistId)
+{
+    const QString userId = uid.trimmed();
+    const QString id = artistId.trimmed();
+
+    if (userId.isEmpty() || id.isEmpty())
+        return;
+
+    if (m_yandexClient == nullptr || !m_yandexClient->hasToken())
+        return;
+
+    const QString path =
+        QStringLiteral("/users/%1/likes/artists/remove")
+            .arg(userId);
+
+    QUrlQuery body;
+    body.addQueryItem(QStringLiteral("artist-ids"), id);
+
+    QNetworkReply *reply = m_yandexClient->postForm(path, body);
+
+    if (reply == nullptr)
+        return;
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply, id]()
+        {
+            Q_UNUSED(reply->readAll());
+
+            if (reply->error() != QNetworkReply::NoError)
+            {
+                reply->deleteLater();
+                return;
+            }
+
+            m_likedArtistIds.remove(id);
+            reply->deleteLater();
+            emit artistLikeChanged(id, false);
+        });
+}
+
+// Like state queries
+
+bool LikesService::isAlbumLiked(
+    const QString &albumId) const
+{
+    const QString id = albumId.trimmed();
+    return !id.isEmpty() && m_likedAlbumIds.contains(id);
+}
+
+bool LikesService::isArtistLiked(
+    const QString &artistId) const
+{
+    const QString id = artistId.trimmed();
+    return !id.isEmpty() && m_likedArtistIds.contains(id);
 }

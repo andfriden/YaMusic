@@ -34,8 +34,30 @@ public:
         const QString &uid,
         const QString &trackId);
 
+    void addAlbumLike(
+        const QString &uid,
+        const QString &albumId);
+
+    void removeAlbumLike(
+        const QString &uid,
+        const QString &albumId);
+
+    void addArtistLike(
+        const QString &uid,
+        const QString &artistId);
+
+    void removeArtistLike(
+        const QString &uid,
+        const QString &artistId);
+
     bool isLiked(
         const QString &trackId) const;
+
+    bool isAlbumLiked(
+        const QString &albumId) const;
+
+    bool isArtistLiked(
+        const QString &artistId) const;
 
     signals:
 
@@ -58,6 +80,14 @@ public:
         const QString &trackId,
         bool liked);
 
+    void albumLikeChanged(
+        const QString &albumId,
+        bool liked);
+
+    void artistLikeChanged(
+        const QString &artistId,
+        bool liked);
+
 private:
 
     void loadTracksByIds(
@@ -73,4 +103,6 @@ private:
     bool m_loadingArtists = false;
 
     QSet<QString> m_likedTrackIds;
+    QSet<QString> m_likedAlbumIds;
+    QSet<QString> m_likedArtistIds;
 };
