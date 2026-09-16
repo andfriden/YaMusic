@@ -10,6 +10,33 @@ void AppController::selectSearchResult(int index)
     m_searchController->selectResult(index);
 }
 
+void AppController::selectSearchArtist(int index)
+{
+    if (m_searchController == nullptr) {
+        return;
+    }
+
+    m_searchController->selectArtistResult(index);
+}
+
+void AppController::selectSearchAlbum(int index)
+{
+    if (m_searchController == nullptr) {
+        return;
+    }
+
+    m_searchController->selectAlbumResult(index);
+}
+
+void AppController::selectSearchPlaylist(int index)
+{
+    if (m_searchController == nullptr) {
+        return;
+    }
+
+    m_searchController->selectPlaylistResult(index);
+}
+
 // My Wave
 void AppController::selectMyWaveTrack(int index)
 {

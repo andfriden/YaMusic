@@ -14,6 +14,12 @@ SearchController::SearchController(
           playbackController)
     , m_model(
           new SearchModel(this))
+    , m_artistsModel(
+          new SearchArtistsModel(this))
+    , m_albumsModel(
+          new SearchAlbumsModel(this))
+    , m_playlistsModel(
+          new SearchPlaylistsModel(this))
 {
     if (
         m_searchService == nullptr
@@ -58,6 +64,18 @@ SearchController::SearchController(
                 ->setResults(
                     results);
 
+            m_artistsModel
+                ->setArtists(
+                    results.artists);
+
+            m_albumsModel
+                ->setAlbums(
+                    results.albums);
+
+            m_playlistsModel
+                ->setPlaylists(
+                    results.playlists);
+
             emit statusChanged(
                 QString(
                     "Найдено результатов: %1")
@@ -80,6 +98,15 @@ SearchController::SearchController(
             m_model
                 ->clear();
 
+            m_artistsModel
+                ->clear();
+
+            m_albumsModel
+                ->clear();
+
+            m_playlistsModel
+                ->clear();
+
             emit statusChanged(
                 message);
         });
@@ -95,6 +122,15 @@ void SearchController::search(
         trimmedQuery.isEmpty()
     ) {
         m_model
+            ->clear();
+
+        m_artistsModel
+            ->clear();
+
+        m_albumsModel
+            ->clear();
+
+        m_playlistsModel
             ->clear();
 
         if (
@@ -161,13 +197,6 @@ void SearchController::selectResult(
         return;
     }
 
-    /*
-     * SearchModel является QAbstractItemModel.
-     *
-     * Собираем все результаты через
-     * trackAt(), используя rowCount().
-     */
-
     const int count =
         m_model
             ->rowCount();
@@ -207,8 +236,6 @@ void SearchController::selectResult(
         return;
     }
 
-    // Заменяем очередь результатами поиска
-    // и запускаем выбранный трек.
     m_playbackController
         ->playFromSource(
             tracks,
@@ -217,10 +244,102 @@ void SearchController::selectResult(
             "search");
 }
 
+void SearchController::selectArtistResult(
+    int index)
+{
+    if (
+        m_artistsModel == nullptr
+    ) {
+        return;
+    }
+
+    const Artist artist =
+        m_artistsModel
+            ->artistAt(
+                index);
+
+    if (
+        artist.id.isEmpty()
+    ) {
+        return;
+    }
+
+    emit artistClicked(
+        artist.id);
+}
+
+void SearchController::selectAlbumResult(
+    int index)
+{
+    if (
+        m_albumsModel == nullptr
+    ) {
+        return;
+    }
+
+    const Album album =
+        m_albumsModel
+            ->albumAt(
+                index);
+
+    if (
+        album.id.isEmpty()
+    ) {
+        return;
+    }
+
+    emit albumClicked(
+        album.id);
+}
+
+void SearchController::selectPlaylistResult(
+    int index)
+{
+    if (
+        m_playlistsModel == nullptr
+    ) {
+        return;
+    }
+
+    const PersonalPlaylist playlist =
+        m_playlistsModel
+            ->playlistAt(
+                index);
+
+    if (
+        playlist.uid.isEmpty() ||
+        playlist.kind <= 0
+    ) {
+        return;
+    }
+
+    emit playlistClicked(
+        playlist.uid,
+        playlist.kind);
+}
+
 SearchModel *
 SearchController::model() const
 {
     return m_model;
+}
+
+SearchArtistsModel *
+SearchController::artistsModel() const
+{
+    return m_artistsModel;
+}
+
+SearchAlbumsModel *
+SearchController::albumsModel() const
+{
+    return m_albumsModel;
+}
+
+SearchPlaylistsModel *
+SearchController::playlistsModel() const
+{
+    return m_playlistsModel;
 }
 
 bool

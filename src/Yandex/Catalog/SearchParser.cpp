@@ -1,8 +1,8 @@
 #include "SearchParser.h"
+#include "../Parsers.h"
 #include <QJsonArray>
 #include <QJsonObject>
 
-// Parses the Yandex Music search response.
 SearchResults SearchParser::parse(
     const QJsonObject &object)
 {
@@ -18,95 +18,97 @@ SearchResults SearchParser::parse(
     searchResults.query =
         resultObject.value("text").toString();
 
+    // --- Tracks ---
+
     const QJsonObject tracksObject =
         resultObject.value("tracks").toObject();
 
-    if (tracksObject.isEmpty()) {
-        return searchResults;
+    if (!tracksObject.isEmpty()) {
+        searchResults.total =
+            tracksObject.value("total").toInt();
+        searchResults.page =
+            tracksObject.value("page").toInt();
+        searchResults.perPage =
+            tracksObject.value("perPage").toInt();
+
+        const QJsonArray trackArray =
+            tracksObject.value("results").toArray();
+
+        for (const QJsonValue &trackValue : trackArray) {
+            const QJsonObject trackObject =
+                trackValue.toObject();
+
+            Track track = parseTrack(trackObject);
+            searchResults.tracks.append(track);
+        }
     }
 
-    searchResults.page =
-        tracksObject.value("page").toInt();
+    // --- Artists ---
 
-    searchResults.perPage =
-        tracksObject.value("perPage").toInt();
+    const QJsonObject artistsObject =
+        resultObject.value("artists").toObject();
 
-    searchResults.total =
-        tracksObject.value("total").toInt();
-
-    const QJsonArray trackArray =
-        tracksObject.value("results").toArray();
-
-    for (const QJsonValue &trackValue : trackArray) {
-
-        const QJsonObject trackObject =
-            trackValue.toObject();
-
-        Track track;
-
-        track.id =
-            QString::number(
-                trackObject.value("id").toInteger());
-
-        track.title =
-            trackObject.value("title").toString();
-
-        track.coverUri =
-            trackObject.value("coverUri").toString();
-
-        track.durationMs =
-            trackObject.value("durationMs").toInt();
-
+    if (!artistsObject.isEmpty()) {
         const QJsonArray artistArray =
-            trackObject.value("artists").toArray();
+            artistsObject.value("results").toArray();
 
         for (const QJsonValue &artistValue : artistArray) {
-
             const QJsonObject artistObject =
                 artistValue.toObject();
 
-            Artist artist;
-
-            artist.id =
-                QString::number(
-                    artistObject.value("id").toInteger());
-
-            artist.name =
-                artistObject.value("name").toString();
-
-            track.artists.append(
-                artist);
+            Artist artist = parseArtist(artistObject);
+            searchResults.artists.append(artist);
         }
+    }
 
+    // --- Albums ---
+
+    const QJsonObject albumsObject =
+        resultObject.value("albums").toObject();
+
+    if (!albumsObject.isEmpty()) {
         const QJsonArray albumArray =
-            trackObject.value("albums").toArray();
+            albumsObject.value("results").toArray();
 
         for (const QJsonValue &albumValue : albumArray) {
-
             const QJsonObject albumObject =
                 albumValue.toObject();
 
-            Album album;
-
-            album.id =
-                QString::number(
-                    albumObject.value("id").toInteger());
-
-            album.title =
-                albumObject.value("title").toString();
-
-            album.coverUri =
-                albumObject.value("coverUri").toString();
-
-            album.year =
-                albumObject.value("year").toInt();
-
-            track.albums.append(
-                album);
+            Album album = parseAlbum(albumObject);
+            searchResults.albums.append(album);
         }
+    }
 
-        searchResults.tracks.append(
-            track);
+    // --- Playlists ---
+
+    const QJsonObject playlistsObject =
+        resultObject.value("playlists").toObject();
+
+    if (!playlistsObject.isEmpty()) {
+        const QJsonArray playlistArray =
+            playlistsObject.value("results").toArray();
+
+        for (const QJsonValue &playlistValue : playlistArray) {
+            const QJsonObject playlistObject =
+                playlistValue.toObject();
+
+            PersonalPlaylist playlist;
+            playlist.id = QString::number(
+                playlistObject.value("uid").toInt());
+            playlist.uid = playlist.id;
+            playlist.kind =
+                playlistObject.value("kind").toInt();
+            playlist.title =
+                playlistObject.value("title").toString();
+            playlist.description =
+                playlistObject.value("description").toString();
+            playlist.coverUri =
+                playlistObject.value("coverUri").toString();
+            playlist.trackCount =
+                playlistObject.value("trackCount").toInt();
+
+            searchResults.playlists.append(playlist);
+        }
     }
 
     return searchResults;

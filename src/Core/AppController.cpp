@@ -223,6 +223,30 @@ void AppController::connectSearch()
         &SearchController::searchingChanged,
         this,
         &AppController::searchingChanged);
+
+    connect(
+        m_searchController,
+        &SearchController::artistClicked,
+        this,
+        [this](const QString &artistId) {
+            loadArtist(artistId);
+        });
+
+    connect(
+        m_searchController,
+        &SearchController::albumClicked,
+        this,
+        [this](const QString &albumId) {
+            loadAlbum(albumId);
+        });
+
+    connect(
+        m_searchController,
+        &SearchController::playlistClicked,
+        this,
+        [this](const QString &uid, int kind) {
+            selectPersonalPlaylist(uid, kind);
+        });
 }
 
 // Library
@@ -794,6 +818,24 @@ SearchModel *
 AppController::searchModel() const
 {
     return m_searchController->model();
+}
+
+SearchArtistsModel *
+AppController::searchArtistsModel() const
+{
+    return m_searchController->artistsModel();
+}
+
+SearchAlbumsModel *
+AppController::searchAlbumsModel() const
+{
+    return m_searchController->albumsModel();
+}
+
+SearchPlaylistsModel *
+AppController::searchPlaylistsModel() const
+{
+    return m_searchController->playlistsModel();
 }
 
 MyWaveModel *

@@ -12,6 +12,9 @@
 #include "LibraryController.h"
 #include "PersonalController.h"
 #include "SearchController.h"
+#include "../Yandex/Catalog/SearchAlbumsModel.h"
+#include "../Yandex/Catalog/SearchArtistsModel.h"
+#include "../Yandex/Catalog/SearchPlaylistsModel.h"
 #include "../Models/Track.h"
 #include "../Playback/PlaybackController.h"
 #include "../Yandex/Personal/NewPlaylistsService.h"
@@ -53,6 +56,9 @@ class AppController : public QObject
     Q_PROPERTY(bool loadingArtist READ isLoadingArtist NOTIFY loadingArtistChanged)
 
     Q_PROPERTY(SearchModel *searchModel READ searchModel CONSTANT)
+    Q_PROPERTY(SearchArtistsModel *searchArtistsModel READ searchArtistsModel CONSTANT)
+    Q_PROPERTY(SearchAlbumsModel *searchAlbumsModel READ searchAlbumsModel CONSTANT)
+    Q_PROPERTY(SearchPlaylistsModel *searchPlaylistsModel READ searchPlaylistsModel CONSTANT)
     Q_PROPERTY(MyWaveModel *myWaveModel READ myWaveModel CONSTANT)
     Q_PROPERTY(PersonalPlaylistsModel *personalPlaylistsModel READ personalPlaylistsModel CONSTANT)
     Q_PROPERTY(LibraryPlaylistsModel *libraryPlaylistsModel READ libraryPlaylistsModel CONSTANT)
@@ -156,6 +162,9 @@ public:
     Q_INVOKABLE void selectLikedArtist(int index);
 
     Q_INVOKABLE void selectSearchResult(int index);
+    Q_INVOKABLE void selectSearchArtist(int index);
+    Q_INVOKABLE void selectSearchAlbum(int index);
+    Q_INVOKABLE void selectSearchPlaylist(int index);
     Q_INVOKABLE void selectMyWaveTrack(int index);
     Q_INVOKABLE void selectPersonalPlaylist(const QString &uid, int kind);
     Q_INVOKABLE void selectPlaylistTrack(int index);
@@ -185,6 +194,9 @@ public:
     Q_INVOKABLE QVariantMap queueTrackData(int index) const;
 
     SearchModel *searchModel() const;
+    SearchArtistsModel *searchArtistsModel() const;
+    SearchAlbumsModel *searchAlbumsModel() const;
+    SearchPlaylistsModel *searchPlaylistsModel() const;
     MyWaveModel *myWaveModel() const;
     PersonalPlaylistsModel *personalPlaylistsModel() const;
     LibraryPlaylistsModel *libraryPlaylistsModel() const;

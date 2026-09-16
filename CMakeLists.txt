@@ -198,6 +198,9 @@ set(
         src/Yandex/Catalog/SearchParser.cpp
         src/Yandex/Catalog/SearchResult.cpp
         src/Yandex/Catalog/SearchService.cpp
+        src/Yandex/Catalog/SearchAlbumsModel.cpp
+        src/Yandex/Catalog/SearchArtistsModel.cpp
+        src/Yandex/Catalog/SearchPlaylistsModel.cpp
         src/Yandex/Catalog/SimilarArtistsModel.cpp
         src/Yandex/Catalog/TrackListModelBase.cpp
         src/Yandex/Catalog/TrackService.cpp

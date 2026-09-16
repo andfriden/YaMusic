@@ -2,6 +2,7 @@
 
 #include <QList>
 #include <QString>
+#include "../../Models/PersonalPlaylist.h"
 #include "../../Models/Track.h"
 
 struct SearchResults
@@ -13,4 +14,7 @@ struct SearchResults
     int perPage = 0;
 
     QList<Track> tracks;
+    QList<Artist> artists;
+    QList<Album> albums;
+    QList<PersonalPlaylist> playlists;
 };
