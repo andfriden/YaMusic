@@ -87,6 +87,11 @@ Item {
      * =============================================================
      */
 
+    PlaylistPicker {
+        id: addToPlaylistPopup
+        controller: root.controller
+    }
+
     Rectangle {
         anchors.fill:
             parent
@@ -816,7 +821,7 @@ Item {
                                         44
 
                                     anchors.right:
-                                        likeButton.left
+                                        addButton.left
 
                                     anchors.rightMargin:
                                         8
@@ -842,7 +847,79 @@ Item {
 
                                 /*
                                  * ----------------------------------------
-                                 * Whole row
+                                 * Add to playlist
+                                 * ----------------------------------------
+                                 */
+
+                                Item {
+                                    id: addButton
+
+                                    width:
+                                        30
+
+                                    height:
+                                        30
+
+                                    anchors.right:
+                                        likeButton.left
+
+                                    anchors.rightMargin:
+                                        4
+
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+
+                                    z:
+                                        25
+
+                                    Label {
+                                        anchors.centerIn:
+                                            parent
+
+                                        text:
+                                            "+"
+
+                                        color:
+                                            addMouse.containsMouse
+                                                ? AppTheme.accent
+                                                : AppTheme.textMuted
+
+                                        font.pixelSize:
+                                            20
+
+                                        font.bold:
+                                            true
+                                    }
+
+
+                                    MouseArea {
+                                        id: addMouse
+
+                                        anchors.fill:
+                                            parent
+
+                                        hoverEnabled:
+                                            true
+
+                                        cursorShape:
+                                            Qt.PointingHandCursor
+
+                                        onClicked: {
+                                            addToPlaylistPopup.trackId =
+                                                trackRow.trackId
+
+                                            addToPlaylistPopup.albumId =
+                                                ""   // album context is implicit
+
+                                            addToPlaylistPopup.open()
+                                        }
+                                    }
+                                }
+
+
+                                /*
+                                 * ----------------------------------------
+                                 * Whole row click
                                  * ----------------------------------------
                                  */
 

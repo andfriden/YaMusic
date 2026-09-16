@@ -144,16 +144,13 @@ Item {
 
     /*
      * =============================================================
-     * Background
+     * Playlist picker popup
      * =============================================================
      */
 
-    Rectangle {
-        anchors.fill:
-            parent
-
-        color:
-            AppTheme.backgroundPrimary
+    PlaylistPicker {
+        id: addToPlaylistPopup
+        controller: root.controller
     }
 
 
@@ -858,10 +855,10 @@ Item {
                                             44
 
                                         anchors.right:
-                                            parent.right
+                                            addButton.left
 
                                         anchors.rightMargin:
-                                            14
+                                            8
 
                                         anchors.verticalCenter:
                                             parent.verticalCenter
@@ -879,6 +876,78 @@ Item {
 
                                         horizontalAlignment:
                                             Text.AlignRight
+                                    }
+
+
+                                    /*
+                                     * ----------------------------------------
+                                     * Add to playlist
+                                     * ----------------------------------------
+                                     */
+
+                                    Item {
+                                        id: addButton
+
+                                        width:
+                                            30
+
+                                        height:
+                                            30
+
+                                        anchors.right:
+                                            parent.right
+
+                                        anchors.rightMargin:
+                                            8
+
+                                        anchors.verticalCenter:
+                                            parent.verticalCenter
+
+                                        z:
+                                            25
+
+                                        Label {
+                                            anchors.centerIn:
+                                                parent
+
+                                            text:
+                                                "+"
+
+                                            color:
+                                                addMouse.containsMouse
+                                                    ? AppTheme.accent
+                                                    : AppTheme.textMuted
+
+                                            font.pixelSize:
+                                                20
+
+                                            font.bold:
+                                                true
+                                        }
+
+
+                                        MouseArea {
+                                            id: addMouse
+
+                                            anchors.fill:
+                                                parent
+
+                                            hoverEnabled:
+                                                true
+
+                                            cursorShape:
+                                                Qt.PointingHandCursor
+
+                                            onClicked: {
+                                                addToPlaylistPopup.trackId =
+                                                    trackRow.trackId
+
+                                                addToPlaylistPopup.albumId =
+                                                    ""
+
+                                                addToPlaylistPopup.open()
+                                            }
+                                        }
                                     }
 
 

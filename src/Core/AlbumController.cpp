@@ -155,13 +155,14 @@ void AlbumController::selectAlbumTrack(
         return;
     }
 
-    const Track track =
-        tracks.at(index);
+    emit trackSelected(
+        tracks.at(index));
 
-    emit trackSelected(track);
-
-    m_playbackController->playTrack(
-        track);
+    m_playbackController->playFromSource(
+        tracks,
+        index,
+        m_albumModel->title(),
+        "album");
 }
 
 void AlbumController::playAlbum()

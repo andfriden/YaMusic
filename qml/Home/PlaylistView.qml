@@ -7,6 +7,11 @@ Item {
 
     property var controller
 
+    PlaylistPicker {
+        id: addToPlaylistPopup
+        controller: root.controller
+    }
+
 
     // =============================================================
     // Background
@@ -573,7 +578,7 @@ Label {
                                 30
 
                             anchors.right:
-                                likeButton.left
+                                addButton.left
 
                             anchors.rightMargin:
                                  4
@@ -627,6 +632,78 @@ Label {
                                     root.controller.removeTrackFromPlaylist(
                                         trackDelegate.index
                                     )
+                                }
+                            }
+                        }
+
+
+                        /*
+                         * ------------------------------------------------
+                         * Add to playlist
+                         * ------------------------------------------------
+                         */
+
+                        Item {
+                            id: addButton
+
+                            width:
+                                30
+
+                            height:
+                                30
+
+                            anchors.right:
+                                likeButton.left
+
+                            anchors.rightMargin:
+                                 4
+
+                            anchors.verticalCenter:
+                                parent.verticalCenter
+
+                            z:
+                                25
+
+                            Label {
+                                anchors.centerIn:
+                                    parent
+
+                                text:
+                                    "+"
+
+                                color:
+                                    addMouse.containsMouse
+                                        ? AppTheme.accent
+                                        : AppTheme.textMuted
+
+                                font.pixelSize:
+                                    18
+
+                                font.bold:
+                                    true
+                            }
+
+
+                            MouseArea {
+                                id: addMouse
+
+                                anchors.fill:
+                                    parent
+
+                                hoverEnabled:
+                                    true
+
+                                cursorShape:
+                                    Qt.PointingHandCursor
+
+                                onClicked: {
+                                    addToPlaylistPopup.trackId =
+                                        trackDelegate.trackId
+
+                                    addToPlaylistPopup.albumId =
+                                        trackDelegate.albumId
+
+                                    addToPlaylistPopup.open()
                                 }
                             }
                         }

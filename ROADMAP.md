@@ -8,10 +8,10 @@
 
 Приоритет: **высокий** — заметный пробел в базовых возможностях.
 
-- [ ] Парсинг результатов поиска по типам (треки, исполнители, альбомы, плейлисты)
-- [ ] Вкладки/секции на странице поиска: Треки | Альбомы | Исполнители | Плейлисты
-- [ ] Навигация по найденным альбомам/исполнителям/плейлистам из результатов
-- [ ] Вертикальная интеграция с существующими страницами (AlbumPage, ArtistPage, PlaylistPage)
+- [x] Парсинг результатов поиска по типам (треки, исполнители, альбомы, плейлисты)
+- [x] Вкладки/секции на странице поиска: Треки | Альбомы | Исполнители | Плейлисты
+- [x] Навигация по найденным альбомам/исполнителям/плейлистам из результатов
+- [x] Вертикальная интеграция с существующими страницами (AlbumPage, ArtistPage, PlaylistPage)
 
 ---
 
@@ -19,11 +19,11 @@
 
 Приоритет: **средний**. Задел уже есть: `SimilarTracksModel.h` (без .cpp), API endpoint `/tracks/{id}/similar` известен.
 
-- [ ] `TrackService::loadSimilarTracks(trackId)` → GET `/tracks/{id}/similar`
-- [ ] `SimilarTracksModel.cpp` — реализация на базе `TrackListModelBase`
-- [ ] Контроллер: загрузка похожих треков при смене текущего трека
-- [ ] UI: вкладка «Похожие» в ExpandedNowPlaying (рядом с «Далее в очереди»)
-- [ ] Запуск трека из списка похожих (добавление в очередь)
+- [x] `TrackService::loadSimilarTracks(trackId)` → GET `/tracks/{id}/similar`
+- [x] `SimilarTracksModel.cpp` — реализация на базе `TrackListModelBase`
+- [x] Контроллер: загрузка похожих треков при смене текущего трека
+- [x] UI: вкладка «Похожие» в ExpandedNowPlaying (рядом с «Далее в очереди»)
+- [x] Запуск трека из списка похожих (добавление в очередь)
 
 ---
 
@@ -31,14 +31,14 @@
 
 ### Genre Radio Stations
 
-- [ ] Ротор/dashboard для жанров: получить станции через API ротора
-- [ ] UI для станций (запуск, управление)
+- [x] Ротор/dashboard для жанров: получить станции через API ротора
+- [x] UI для станций (запуск, управление)
 
 ### Album/Artist Likes — Write
 
-- [ ] Кнопка лайка альбома на AlbumPage (POST /users/{uid}/likes/albums/add-multiple)
-- [ ] Кнопка лайка исполнителя на ArtistPage (POST /users/{uid}/likes/artists/add-multiple)
-- [ ] Обновление состояния likedAlbumsModel / likedArtistsModel после операции
+- [x] Кнопка лайка альбома на AlbumPage (POST /users/{uid}/likes/albums/add-multiple)
+- [x] Кнопка лайка исполнителя на ArtistPage (POST /users/{uid}/likes/artists/add-multiple)
+- [x] Обновление состояния likedAlbumsModel / likedArtistsModel после операции
 
 ---
 
@@ -46,19 +46,20 @@
 
 Приоритет: **средний**. CRUD для пользовательских плейлистов.
 
-- [ ] Создание пустого плейлиста (POST /users/{uid}/playlists/create)
-- [ ] Удаление плейлиста (POST /users/{uid}/playlists/{kind}/delete)
-- [ ] Переименование плейлиста (POST /users/{uid}/playlists/{kind}/name)
-- [ ] Добавление треков в плейлист (POST /users/{uid}/playlists/{kind}/change-relative)
-- [ ] Удаление треков из плейлиста (POST /users/{uid}/playlists/{kind}/change-relative)
-- [ ] UI: контекстное меню «Добавить в плейлист» на треке
-- [ ] UI: кнопка удаления трека при просмотре плейлиста
+- [x] Создание пустого плейлиста (POST /users/{uid}/playlists/create)
+- [x] Удаление плейлиста (POST /users/{uid}/playlists/{kind}/delete)
+- [x] Переименование плейлиста (POST /users/{uid}/playlists/{kind}/name)
+- [x] Добавление треков в плейлист (POST /users/{uid}/playlists/{kind}/change-relative)
+- [x] Удаление треков из плейлиста (POST /users/{uid}/playlists/{kind}/change-relative)
+- [x] UI: контекстное меню «Добавить в плейлист» на треке
+- [x] UI: кнопка удаления трека при просмотре плейлиста
+- [x] UI: кнопка «Добавить в плейлист» на треках в альбоме, исполнителе и плейлисте
 
 ---
 
 ## v0.15 — Artist Albums & Search Pagination (P2)
 
-- [ ] Все альбомы исполнителя (включая сборники): пагинация по `/artists/{id}/direct-albums`
+- [x] Все альбомы исполнителя (включая сборники): пагинация по `/artists/{id}/direct-albums`
 - [ ] Выбор фильтра: альбомы / синглы / сборники
 - [ ] Пагинация поиска (offset/page) — догрузка результатов при скролле
 

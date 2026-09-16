@@ -350,6 +350,38 @@ emit statusChanged(
                     trackId,
                     liked);
             });
+
+        connect(
+            m_likesService,
+            &LikesService::albumLikeChanged,
+            this,
+            [this](
+                const QString &albumId,
+                bool liked)
+            {
+                Q_UNUSED(albumId);
+                Q_UNUSED(liked);
+
+                if (!m_userId.isEmpty()) {
+                    loadLikedAlbums(m_userId);
+                }
+            });
+
+        connect(
+            m_likesService,
+            &LikesService::artistLikeChanged,
+            this,
+            [this](
+                const QString &artistId,
+                bool liked)
+            {
+                Q_UNUSED(artistId);
+                Q_UNUSED(liked);
+
+                if (!m_userId.isEmpty()) {
+                    loadLikedArtists(m_userId);
+                }
+            });
     }
 
     // Artist service
