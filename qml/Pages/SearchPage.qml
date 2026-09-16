@@ -17,6 +17,11 @@ Item {
         color: AppTheme.backgroundPrimary
     }
 
+    PlaylistPicker {
+        id: addToPlaylistPopup
+        controller: root.controller
+    }
+
     Column {
         anchors.fill: parent
         spacing: 16
@@ -228,12 +233,43 @@ Item {
 
                         Label {
                             id: durationLabel
-                            anchors.right: parent.right
-                            anchors.rightMargin: 14
+                            anchors.right: addButton.left
+                            anchors.rightMargin: 6
                             anchors.verticalCenter: parent.verticalCenter
                             text: formatDuration(durationMs)
                             color: AppTheme.textSecondary
                             font.pixelSize: 11
+                        }
+
+                        // Add to playlist button
+                        Item {
+                            id: addButton
+                            width: 30
+                            height: 30
+                            anchors.right: parent.right
+                            anchors.rightMargin: 8
+                            anchors.verticalCenter: parent.verticalCenter
+                            z: 20
+
+                            Label {
+                                anchors.centerIn: parent
+                                text: "+"
+                                color: addMouse.containsMouse ? AppTheme.accent : AppTheme.textMuted
+                                font.pixelSize: 20
+                                font.bold: true
+                            }
+
+                            MouseArea {
+                                id: addMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    addToPlaylistPopup.trackId = trackId
+                                    addToPlaylistPopup.albumId = albumId
+                                    addToPlaylistPopup.open()
+                                }
+                            }
                         }
                     }
 

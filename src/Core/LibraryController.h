@@ -268,6 +268,11 @@ public:
     Q_INVOKABLE void removeTrackFromPlaylist(
         int index);
 
+    Q_INVOKABLE void addTrackToPlaylist(
+        int kind,
+        const QString &trackId,
+        const QString &albumId);
+
 signals:
 
     // Common

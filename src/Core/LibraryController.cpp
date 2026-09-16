@@ -1189,3 +1189,30 @@ void LibraryController::removeTrackFromPlaylist(
             kind,
             {track.id});
 }
+
+void LibraryController::addTrackToPlaylist(
+    int kind,
+    const QString &trackId,
+    const QString &albumId)
+{
+    if (
+        m_playlistService == nullptr ||
+        m_userId.isEmpty()
+    ) {
+        emit statusChanged(
+            "Не удалось добавить трек");
+        return;
+    }
+
+    if (kind <= 0 ||
+        trackId.trimmed().isEmpty() ||
+        albumId.trimmed().isEmpty()) {
+        return;
+    }
+
+    m_playlistService->addTracksToPlaylist(
+        m_userId,
+        kind,
+        {trackId.trimmed()},
+        {albumId.trimmed()});
+}

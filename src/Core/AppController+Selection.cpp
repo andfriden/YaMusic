@@ -218,3 +218,12 @@ void AppController::removeTrackFromPlaylist(int index)
 
     m_libraryController->removeTrackFromPlaylist(index);
 }
+
+void AppController::addTrackToPlaylist(int kind, const QString &trackId, const QString &albumId)
+{
+    if (m_libraryController == nullptr) {
+        return;
+    }
+
+    m_libraryController->addTrackToPlaylist(kind, trackId, albumId);
+}

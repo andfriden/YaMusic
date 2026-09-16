@@ -924,7 +924,8 @@ void PlaylistService::renamePlaylist(
 void PlaylistService::addTracksToPlaylist(
     const QString &uid,
     int kind,
-    const QStringList &trackIds)
+    const QStringList &trackIds,
+    const QStringList &albumIds)
 {
     if (!ensureAuthenticated()) {
         emit errorOccurred(
@@ -940,35 +941,42 @@ void PlaylistService::addTracksToPlaylist(
         return;
     }
 
-    QStringList ids;
-    for (const QString &id : trackIds) {
-        const QString trimmed = id.trimmed();
-        if (!trimmed.isEmpty()) {
-            ids.append(trimmed);
-        }
+    QJsonArray operations;
+    QJsonObject op;
+    op["op"] = "insert";
+    op["at"] = 0;
+
+    QJsonArray trackList;
+    const int count = qMin(trackIds.size(), albumIds.size());
+    for (int i = 0; i < count; ++i) {
+        const QString tid = trackIds.at(i).trimmed();
+        const QString aid = albumIds.at(i).trimmed();
+        if (tid.isEmpty() || aid.isEmpty())
+            continue;
+
+        QJsonObject t;
+        t["id"] = tid.toInt();
+        t["albumId"] = aid.toInt();
+        trackList.append(t);
     }
+    op["tracks"] = trackList;
+    operations.append(op);
 
-    if (ids.isEmpty()) {
-        emit errorOccurred(
-            "Нет треков для добавления");
-        return;
-    }
+    const QString diffStr = QString::fromUtf8(
+        QJsonDocument(operations).toJson(QJsonDocument::Compact));
 
-    QUrlQuery body;
-    body.addQueryItem(
-        "track-ids",
-        ids.join(","));
-
-    // add-ids: добавить в начало очереди изменений
-    body.addQueryItem("add-ids", ids.join(","));
+    QUrlQuery formBody;
+    formBody.addQueryItem("kind", QString::number(kind));
+    formBody.addQueryItem("revision", "1");
+    formBody.addQueryItem("diff", diffStr);
 
     const QString path =
-        QString("/users/%1/playlists/%2/change-relative")
+        QString("/users/%1/playlists/%2/change")
             .arg(userId)
             .arg(kind);
 
     QNetworkReply *reply =
-        m_yandexClient->postForm(path, body);
+        m_yandexClient->postForm(path, formBody);
 
     if (reply == nullptr) {
         emit errorOccurred(
@@ -980,10 +988,8 @@ void PlaylistService::addTracksToPlaylist(
         reply,
         &QNetworkReply::finished,
         this,
-        [this, reply, ids]()
+        [this, reply, trackList]()
         {
-            Q_UNUSED(reply->readAll());
-
             if (reply->error() !=
                 QNetworkReply::NoError) {
 
@@ -994,7 +1000,7 @@ void PlaylistService::addTracksToPlaylist(
             }
 
             reply->deleteLater();
-            emit tracksAdded(ids.size());
+            emit tracksAdded(trackList.size());
         });
 }
 

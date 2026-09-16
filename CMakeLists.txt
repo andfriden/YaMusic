@@ -371,6 +371,7 @@ set(
         "${YAMUSIC_QML_ROOT}/Components/LyricsView.qml"
         "${YAMUSIC_QML_ROOT}/Components/ChartTrackRow.qml"
         "${YAMUSIC_QML_ROOT}/Components/PersonalChartSection.qml"
+        "${YAMUSIC_QML_ROOT}/Components/PlaylistPicker.qml"
 
         # Pages
         "${YAMUSIC_QML_ROOT}/Pages/HomePage.qml"
@@ -459,6 +460,11 @@ set_source_files_properties(
 set_source_files_properties(
         "${YAMUSIC_QML_ROOT}/Components/PersonalChartSection.qml"
         PROPERTIES QT_RESOURCE_ALIAS "Components/PersonalChartSection.qml"
+)
+
+set_source_files_properties(
+        "${YAMUSIC_QML_ROOT}/Components/PlaylistPicker.qml"
+        PROPERTIES QT_RESOURCE_ALIAS "Components/PlaylistPicker.qml"
 )
 
 set_source_files_properties(

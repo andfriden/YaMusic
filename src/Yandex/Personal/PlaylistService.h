@@ -56,7 +56,8 @@ public:
     void addTracksToPlaylist(
         const QString &uid,
         int kind,
-        const QStringList &trackIds);
+        const QStringList &trackIds,
+        const QStringList &albumIds);
 
     void removeTracksFromPlaylist(
         const QString &uid,
