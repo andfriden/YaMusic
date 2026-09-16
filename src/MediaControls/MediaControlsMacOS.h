@@ -44,4 +44,5 @@ private:
 
     QString m_pendingArtworkUri;
     QImage m_artworkImage;
+    QString m_lastArtworkTrackId;
 };

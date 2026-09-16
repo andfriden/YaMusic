@@ -12,6 +12,7 @@
 #include <QNetworkRequest>
 #include <QUrl>
 #include <QImage>
+#include <QFile>
 
 /*
  * Private ObjC implementation behind a PIMPL.
@@ -165,13 +166,14 @@ public:
             break;
         }
 
-        if (!artworkImage.isNull())
+if (!artworkImage.isNull())
         {
             CGImageRef cgImage = artworkImage.toCGImage();
             if (cgImage)
             {
                 NSImage *nsImage = [[NSImage alloc] initWithCGImage:cgImage
-                                                              size:NSZeroSize];
+                                                               size:NSZeroSize];
+                CGImageRelease(cgImage);
                 if (nsImage)
                 {
                     MPMediaItemArtwork *artwork =
@@ -232,8 +234,28 @@ void MediaControlsMacOS::platformSetEnabled(bool enabled)
 
 void MediaControlsMacOS::platformSetMetadata(const Metadata &)
 {
-    updateNowPlayingInfo();
-    startArtworkFetch(m_metadata.coverUrl);
+    /*
+     * Only clear artwork and restart the fetch when the
+     * track actually changes (not when fetchCurrentCover
+     * re-publishes metadata with a cached file:// URL).
+     */
+
+    if (m_metadata.trackId != m_lastArtworkTrackId)
+    {
+        m_artworkImage = {};
+        m_lastArtworkTrackId = m_metadata.trackId;
+        updateNowPlayingInfo();
+        startArtworkFetch(m_metadata.coverUrl);
+    }
+    else
+    {
+        /*
+         * Same track — coverUrl may have changed from a
+         * remote URL to a cached file:// path. Re-fetch
+         * but keep the existing artwork visible.
+         */
+        startArtworkFetch(m_metadata.coverUrl);
+    }
 }
 
 void MediaControlsMacOS::platformSetPlaybackStatus(PlaybackStatus)
@@ -266,6 +288,12 @@ QString MediaControlsMacOS::fullCoverUrl(const QString &coverUri)
     if (coverUri.isEmpty())
         return {};
 
+    /*
+     * Local file path — pass through unchanged.
+     */
+    if (coverUri.startsWith(QStringLiteral("file://")))
+        return coverUri;
+
     QString url = coverUri;
     url.replace(QStringLiteral("%%"), QStringLiteral("200x200"));
     url.replace(QStringLiteral("%25%25"), QStringLiteral("200x200"));
@@ -291,6 +319,22 @@ void MediaControlsMacOS::startArtworkFetch(const QString &coverUri)
     }
 
     m_pendingArtworkUri = coverUri;
+
+    /*
+     * Local file (cached cover) – load directly.
+     * QNetworkAccessManager does not handle file:// reliably.
+     */
+
+    if (url.startsWith(QStringLiteral("file://")))
+    {
+        QImage image(QUrl(url).toLocalFile());
+        if (!image.isNull())
+        {
+            m_artworkImage = std::move(image);
+        }
+        updateNowPlayingInfo();
+        return;
+    }
 
     QNetworkRequest request{QUrl(url)};
     request.setHeader(QNetworkRequest::UserAgentHeader,
