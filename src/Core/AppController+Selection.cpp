@@ -128,3 +128,38 @@ void AppController::selectSimilarArtist(int index)
 
     m_artistController->selectSimilarArtist(index);
 }
+
+// Similar track
+void AppController::selectSimilarTrack(int index)
+{
+    if (m_similarTracksModel == nullptr) {
+        return;
+    }
+
+    const Track track =
+        m_similarTracksModel->trackAt(index);
+
+    if (track.id.isEmpty()) {
+        emit statusChanged(
+            "Некорректный трек");
+        return;
+    }
+
+    if (m_playbackController == nullptr) {
+        return;
+    }
+
+    // Collect all similar tracks and start playing from selected
+    const QList<Track> tracks =
+        m_similarTracksModel->tracks();
+
+    if (tracks.isEmpty()) {
+        return;
+    }
+
+    m_playbackController->playFromSource(
+        tracks,
+        index,
+        "Похожие треки",
+        "similar");
+}

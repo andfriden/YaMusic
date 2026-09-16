@@ -202,6 +202,7 @@ set(
         src/Yandex/Catalog/SearchArtistsModel.cpp
         src/Yandex/Catalog/SearchPlaylistsModel.cpp
         src/Yandex/Catalog/SimilarArtistsModel.cpp
+        src/Yandex/Catalog/SimilarTracksModel.cpp
         src/Yandex/Catalog/TrackListModelBase.cpp
         src/Yandex/Catalog/TrackService.cpp
 

@@ -71,6 +71,13 @@ Item {
 
 
     // ============================================================
+    // Similar tracks tab state
+    // ============================================================
+
+    property bool showingSimilar: false
+
+
+    // ============================================================
     // Background
     // ============================================================
 
@@ -1164,11 +1171,11 @@ Item {
 
 
             // ----------------------------------------------------
-            // Queue title
+            // Queue title + tabs
             // ----------------------------------------------------
 
-            Text {
-                id: queueTitle
+            Row {
+                id: queueHeader
 
                 anchors.left:
                     parent.left
@@ -1194,22 +1201,133 @@ Item {
                                 : 0
                         )
 
-                text:
-                    "Далее в очереди"
+                height:
+                    36
 
-                color:
-                    AppTheme.textPrimary
+                spacing:
+                    16
 
-                font.pixelSize:
-                    19
+                Rectangle {
+                    id: upNextTab
 
-                font.weight:
-                    Font.DemiBold
+                    width:
+                        upNextLabel.implicitWidth + 16
+
+                    height:
+                        32
+
+                    radius:
+                        6
+
+                    color:
+                        !root.showingSimilar
+                            ? Qt.rgba(
+                                root.playerAccent.r,
+                                root.playerAccent.g,
+                                root.playerAccent.b,
+                                0.14
+                            )
+                            : "transparent"
+
+                    Text {
+                        id: upNextLabel
+
+                        anchors.centerIn:
+                            parent
+
+                        text:
+                            "Далее"
+
+                        color:
+                            !root.showingSimilar
+                                ? root.playerAccent
+                                : AppTheme.textSecondary
+
+                        font.pixelSize:
+                            14
+
+                        font.weight:
+                            Font.DemiBold
+                    }
+
+                    MouseArea {
+                        anchors.fill:
+                            parent
+
+                        hoverEnabled:
+                            true
+
+                        cursorShape:
+                            Qt.PointingHandCursor
+
+                        onClicked:
+                            root.showingSimilar = false
+                    }
+                }
+
+
+                Rectangle {
+                    id: similarTab
+
+                    width:
+                        similarLabel.implicitWidth + 16
+
+                    height:
+                        32
+
+                    radius:
+                        6
+
+                    color:
+                        root.showingSimilar
+                            ? Qt.rgba(
+                                root.playerAccent.r,
+                                root.playerAccent.g,
+                                root.playerAccent.b,
+                                0.14
+                            )
+                            : "transparent"
+
+                    Text {
+                        id: similarLabel
+
+                        anchors.centerIn:
+                            parent
+
+                        text:
+                            "Похожие"
+
+                        color:
+                            root.showingSimilar
+                                ? root.playerAccent
+                                : AppTheme.textSecondary
+
+                        font.pixelSize:
+                            14
+
+                        font.weight:
+                            Font.DemiBold
+                    }
+
+                    MouseArea {
+                        anchors.fill:
+                            parent
+
+                        hoverEnabled:
+                            true
+
+                        cursorShape:
+                            Qt.PointingHandCursor
+
+                        onClicked:
+                            root.showingSimilar = true
+                    }
+                }
             }
 
 
             // ----------------------------------------------------
-            // Up next
+            // Up next list (queue)
             // ----------------------------------------------------
 
             ListView {
@@ -1222,7 +1340,7 @@ Item {
                     parent.right
 
                 anchors.top:
-                    queueTitle.bottom
+                    queueHeader.bottom
 
                 anchors.bottom:
                     parent.bottom
@@ -1235,6 +1353,9 @@ Item {
 
                 clip:
                     true
+
+                visible:
+                    !root.showingSimilar
 
                 model:
                     upNextModel
@@ -1441,6 +1562,261 @@ Item {
                         onClicked:
                         {
                             root.selectQueueTrack(
+                                Number(
+                                    model.sourceIndex
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+
+
+            // ----------------------------------------------------
+            // Similar tracks list
+            // ----------------------------------------------------
+
+            ListView {
+                id: similarView
+
+                anchors.left:
+                    parent.left
+
+                anchors.right:
+                    parent.right
+
+                anchors.top:
+                    queueHeader.bottom
+
+                anchors.bottom:
+                    parent.bottom
+
+                anchors.topMargin:
+                    10
+
+                spacing:
+                    5
+
+                clip:
+                    true
+
+                visible:
+                    root.showingSimilar
+
+                model:
+                    root.controller !== null
+                        ? root.controller.similarTracksModel
+                        : null
+
+
+                delegate: Item {
+                    id: similarItem
+
+                    width:
+                        similarView.width
+
+                    height:
+                        60
+
+
+                    Rectangle {
+                        anchors.fill:
+                            parent
+
+                        radius:
+                            8
+
+                        color:
+                            similarMouse.containsMouse
+                                ? Qt.rgba(
+                                    root.playerAccent.r,
+                                    root.playerAccent.g,
+                                    root.playerAccent.b,
+                                    0.14
+                                )
+                                : "transparent"
+
+
+                        Behavior on color {
+                            ColorAnimation {
+                                duration:
+                                    140
+
+                                easing.type:
+                                    Easing.OutCubic
+                            }
+                        }
+                    }
+
+
+                    Image {
+                        id: similarArtwork
+
+                        anchors.left:
+                            parent.left
+
+                        anchors.verticalCenter:
+                            parent.verticalCenter
+
+                        width:
+                            46
+
+                        height:
+                            46
+
+                        fillMode:
+                            Image.PreserveAspectCrop
+
+                        asynchronous:
+                            true
+
+                        cache:
+                            true
+
+                        source:
+                                String(
+                                    model.coverUri || ""
+                                ).length > 0
+                            ? "image://yandex/" +
+                            model.coverUri
+                            : ""
+
+
+                        Rectangle {
+                            anchors.fill:
+                                parent
+
+                            visible:
+                                similarArtwork.status !==
+                                Image.Ready
+
+                            radius:
+                                6
+
+                            color:
+                                AppTheme.artworkPlaceholder
+
+
+                            Text {
+                                anchors.centerIn:
+                                    parent
+
+                                text:
+                                    "♪"
+
+                                color:
+                                    AppTheme.textMuted
+
+                                font.pixelSize:
+                                    18
+                            }
+                        }
+                    }
+
+
+                    Column {
+                        anchors.left:
+                            similarArtwork.right
+
+                        anchors.right:
+                            similarDuration.left
+
+                        anchors.verticalCenter:
+                            parent.verticalCenter
+
+                        anchors.leftMargin:
+                            12
+
+                        anchors.rightMargin:
+                            8
+
+                        spacing:
+                            2
+
+
+                        Text {
+                            width:
+                                parent.width
+
+                            text:
+                                model.title || ""
+
+                            color:
+                                AppTheme.textPrimary
+
+                            font.pixelSize:
+                                13
+
+                            elide:
+                                Text.ElideRight
+                        }
+
+
+                        EntityLink {
+                            text:
+                                model.artist || ""
+
+                            entityId:
+                                model.artistId || ""
+
+                            entityType:
+                                "artist"
+
+                            controller:
+                                root.controller
+                        }
+                    }
+
+
+                    Text {
+                        id: similarDuration
+
+                        anchors.right:
+                            parent.right
+
+                        anchors.rightMargin:
+                            8
+
+                        anchors.verticalCenter:
+                            parent.verticalCenter
+
+                        text:
+                            root.formatTime(
+                                Number(
+                                    model.durationMs || 0
+                                )
+                            )
+
+                        color:
+                            AppTheme.textMuted
+
+                        font.pixelSize:
+                            11
+                    }
+
+
+                    MouseArea {
+                        id: similarMouse
+
+                        anchors.fill:
+                            parent
+
+                        hoverEnabled:
+                            true
+
+                        cursorShape:
+                            Qt.PointingHandCursor
+
+                        onClicked:
+                        {
+                            if (
+                                root.controller === null ||
+                                root.controller === undefined
+                            ) {
+                                return
+                            }
+
+                            root.controller.selectSimilarTrack(
                                 Number(
                                     model.sourceIndex
                                 )

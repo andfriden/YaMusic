@@ -38,6 +38,9 @@ public:
     void loadSupplementary(
         const QString &trackId);
 
+    void loadSimilarTracks(
+        const QString &trackId);
+
     signals:
         void streamInfoReceived(
             const QList<TrackStreamInfo> &streams);
@@ -48,6 +51,9 @@ public:
 
     void supplementReceived(
         const TrackSupplementary &supplement);
+
+    void similarTracksReceived(
+        const QList<Track> &tracks);
 
     void errorOccurred(
         const QString &message);

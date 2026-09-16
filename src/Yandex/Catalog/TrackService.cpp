@@ -531,3 +531,110 @@ supplementary.trackId =
                 supplementary);
         });
 }
+
+/*
+ * =============================================================
+ * Similar tracks
+ * =============================================================
+ */
+
+void TrackService::loadSimilarTracks(
+    const QString &trackId)
+{
+    if (!ensureAuthenticated()) {
+
+        emit errorOccurred(
+            "Токен Яндекс Музыки не установлен");
+
+        return;
+    }
+
+    const QString trimmedTrackId =
+        trackId.trimmed();
+
+    if (trimmedTrackId.isEmpty()) {
+
+        emit errorOccurred(
+            "Track ID is empty");
+
+        return;
+    }
+
+    const QString path =
+        "/tracks/" +
+        trimmedTrackId +
+        "/similar";
+
+    QNetworkReply *reply =
+        m_yandexClient->get(path);
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply]() {
+
+            const QByteArray data =
+                reply->readAll();
+
+            if (reply->error() !=
+                QNetworkReply::NoError) {
+
+                emit errorOccurred(
+                    reply->errorString());
+
+                reply->deleteLater();
+                return;
+            }
+
+            QJsonParseError parseError;
+
+            const QJsonDocument document =
+                QJsonDocument::fromJson(
+                    data,
+                    &parseError);
+
+            if (parseError.error !=
+                    QJsonParseError::NoError ||
+                !document.isObject()) {
+
+                emit errorOccurred(
+                    "Invalid similar tracks response");
+
+                reply->deleteLater();
+                return;
+            }
+
+            const QJsonObject root =
+                document.object();
+
+            const QJsonValue resultVal =
+                root.value("result");
+
+            QJsonArray trackArray;
+
+            if (resultVal.isArray()) {
+                trackArray =
+                    resultVal.toArray();
+            } else if (resultVal.isObject()) {
+                const QJsonObject resultObj =
+                    resultVal.toObject();
+
+                if (resultObj.contains("similarTracks")) {
+                    trackArray =
+                        resultObj.value("similarTracks").toArray();
+                } else {
+                    trackArray =
+                        resultObj.value("tracks").toArray();
+                }
+            }
+
+            const QList<Track> tracks =
+                parseTrackArray(trackArray);
+
+            reply->deleteLater();
+
+            emit similarTracksReceived(
+                tracks);
+        });
+}

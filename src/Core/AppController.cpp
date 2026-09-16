@@ -69,6 +69,7 @@ AppController::AppController(
           m_searchService,
           m_playbackController,
           this))
+    , m_similarTracksModel(new SimilarTracksModel(this))
     , m_albumController(new AlbumController(
           m_albumService,
           m_artistService,
@@ -164,6 +165,19 @@ AppController::AppController(
 
                 emit currentTrackChanged();
             }
+        });
+
+    // Similar tracks: when new data arrives, update the model
+    connect(
+        m_trackService,
+        &TrackService::similarTracksReceived,
+        this,
+        [this](
+            const QList<Track> &tracks) {
+
+            m_similarTracksModel
+                ->setSimilarTracks(
+                    tracks);
         });
 
     if (m_accountService != nullptr)
@@ -469,6 +483,12 @@ void AppController::connectPlayback()
 
             if (track.id.isEmpty())
                 return;
+
+            // Load similar tracks for the new track
+            if (m_trackService != nullptr) {
+                m_trackService->loadSimilarTracks(
+                    track.id);
+            }
 
             m_playerAccentService->updateForCover(
                 track.coverUri);
@@ -836,6 +856,12 @@ SearchPlaylistsModel *
 AppController::searchPlaylistsModel() const
 {
     return m_searchController->playlistsModel();
+}
+
+SimilarTracksModel *
+AppController::similarTracksModel() const
+{
+    return m_similarTracksModel;
 }
 
 MyWaveModel *
