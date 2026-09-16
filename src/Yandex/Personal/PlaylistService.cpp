@@ -765,15 +765,16 @@ void PlaylistService::createPlaylist(
         return;
     }
 
-    QUrlQuery body;
-    body.addQueryItem("title", playlistTitle);
+    QUrlQuery formBody;
+    formBody.addQueryItem("title", playlistTitle);
+    formBody.addQueryItem("visibility", "public");
 
     const QString path =
         QString("/users/%1/playlists/create")
             .arg(userId);
 
     QNetworkReply *reply =
-        m_yandexClient->postForm(path, body);
+        m_yandexClient->postForm(path, formBody);
 
     if (reply == nullptr) {
         emit errorOccurred(
@@ -787,8 +788,6 @@ void PlaylistService::createPlaylist(
         this,
         [this, reply, playlistTitle]()
         {
-            Q_UNUSED(reply->readAll());
-
             if (reply->error() !=
                 QNetworkReply::NoError) {
 

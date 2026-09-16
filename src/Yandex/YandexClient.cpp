@@ -72,6 +72,10 @@ YandexClient::createRequest(
                 m_token.toUtf8());
     }
 
+    request.setRawHeader(
+        "X-Yandex-Music-Client",
+        "YandexMusicAndroid/24023621");
+
     return request;
 }
 
@@ -114,6 +118,16 @@ YandexClient::postForm(
         body.query(
             QUrl::FullyEncoded)
             .toUtf8());
+}
+
+QNetworkReply *
+YandexClient::rawPost(
+    const QNetworkRequest &request,
+    const QByteArray &data)
+{
+    return m_networkManager.post(
+        request,
+        data);
 }
 
 void YandexClient::getAccountStatus()

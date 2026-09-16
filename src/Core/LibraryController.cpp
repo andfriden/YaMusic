@@ -169,6 +169,11 @@ emit statusChanged(
                 [this](const QString &title) {
                     emit statusChanged(
                         QString("Плейлист «%1» создан").arg(title));
+
+                    // Reload user playlists
+                    if (!m_userId.isEmpty()) {
+                        loadUserPlaylists(m_userId);
+                    }
                 });
 
             connect(
@@ -214,6 +219,17 @@ emit statusChanged(
                     emit playlistTracksChanged();
                     emit statusChanged(
                         QString("Удалено треков: %1").arg(count));
+
+                    // Reload current playlist to reflect changes
+                    if (!m_userId.isEmpty()) {
+                        const int kind =
+                            m_playlistModel->kind();
+                        if (kind > 0) {
+                            loadPlaylist(
+                                m_userId,
+                                kind);
+                        }
+                    }
                 });
         }
 

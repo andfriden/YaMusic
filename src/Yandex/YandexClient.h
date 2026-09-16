@@ -41,7 +41,15 @@ public:
         const QString &path,
         const QUrlQuery &body);
 
+    QNetworkReply *
+    rawPost(
+        const QNetworkRequest &request,
+        const QByteArray &data);
+
     void getAccountStatus();
+
+    QNetworkRequest createRequest(
+        const QString &path) const;
 
     void search(
         const QString &query);
@@ -64,9 +72,6 @@ public:
         const QList<Track> &tracks);
 
 private:
-
-    QNetworkRequest createRequest(
-        const QString &path) const;
 
     QNetworkAccessManager
         m_networkManager;
