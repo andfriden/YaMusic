@@ -264,10 +264,12 @@ if(WIN32)
     # which is NOT in the default INCLUDE path.
     find_path(CPPWINRT_INCLUDE_DIR
         NAMES "winrt/Windows.Media.SystemMediaTransportControls.h"
-        PATHS
-            "$ENV{ProgramFiles}/Windows Kits/10/Include/$ENV{WindowsSDKVersion}cppwinrt"
-            "$ENV{ProgramFiles(x86)}/Windows Kits/10/Include/$ENV{WindowsSDKVersion}cppwinrt"
+        HINTS
             "$ENV{WindowsSdkDir}Include/$ENV{WindowsSDKVersion}cppwinrt"
+        PATHS
+            "C:/Program Files/Windows Kits/10/Include"
+        PATH_SUFFIXES
+            "cppwinrt"
     )
 
     if(NOT CPPWINRT_INCLUDE_DIR)
