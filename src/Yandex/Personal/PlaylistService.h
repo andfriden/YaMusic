@@ -57,7 +57,8 @@ public:
         const QString &uid,
         int kind,
         const QStringList &trackIds,
-        const QStringList &albumIds);
+        const QStringList &albumIds,
+        int revision = 1);
 
     void removeTracksFromPlaylist(
         const QString &uid,

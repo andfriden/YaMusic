@@ -209,6 +209,17 @@ emit statusChanged(
                 [this](int count) {
                     emit statusChanged(
                         QString("Добавлено треков: %1").arg(count));
+
+                    // Reload current playlist
+                    if (!m_userId.isEmpty()) {
+                        const int kind =
+                            m_playlistModel->kind();
+                        if (kind > 0) {
+                            loadPlaylist(
+                                m_userId,
+                                kind);
+                        }
+                    }
                 });
 
             connect(
@@ -1214,5 +1225,6 @@ void LibraryController::addTrackToPlaylist(
         m_userId,
         kind,
         {trackId.trimmed()},
-        {albumId.trimmed()});
+        {albumId.trimmed()},
+        m_playlistModel->revision());
 }

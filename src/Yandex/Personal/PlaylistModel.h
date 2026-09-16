@@ -44,6 +44,8 @@ public:
 
     int kind() const;
 
+    int revision() const;
+
     int trackCount() const;
 
     void setTrackLiked(

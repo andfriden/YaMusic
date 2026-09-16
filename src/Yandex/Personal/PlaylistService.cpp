@@ -40,6 +40,9 @@ Playlist parsePlaylist(const QJsonObject &object)
     playlist.trackCount =
         object.value("trackCount").toInt();
 
+    playlist.revision =
+        object.value("revision").toInt();
+
     const QJsonObject cover =
         object.value("cover").toObject();
 
@@ -925,7 +928,8 @@ void PlaylistService::addTracksToPlaylist(
     const QString &uid,
     int kind,
     const QStringList &trackIds,
-    const QStringList &albumIds)
+    const QStringList &albumIds,
+    int revision)
 {
     if (!ensureAuthenticated()) {
         emit errorOccurred(
@@ -967,7 +971,7 @@ void PlaylistService::addTracksToPlaylist(
 
     QUrlQuery formBody;
     formBody.addQueryItem("kind", QString::number(kind));
-    formBody.addQueryItem("revision", "1");
+    formBody.addQueryItem("revision", QString::number(revision));
     formBody.addQueryItem("diff", diffStr);
 
     const QString path =

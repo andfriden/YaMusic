@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Dialogs
+import QtQuick.Layouts
 import YaMusic 1.0
 
 Item {
@@ -166,8 +167,9 @@ Column {
                     Label {
                         width:
                             parent.width -
+                            renameButton.width -
                             deleteButton.width -
-                            parent.spacing
+                            parent.spacing * 2
 
                         text:
                                 root.controller !== null &&
@@ -190,6 +192,71 @@ Column {
 
                         anchors.verticalCenter:
                             parent.verticalCenter
+                    }
+
+
+                    // Rename button
+                    Rectangle {
+                        id: renameButton
+
+                        width:
+                            32
+
+                        height:
+                            32
+
+                        radius:
+                            7
+
+                        color:
+                            renameMouse.containsMouse
+                                ? AppTheme.panelHover
+                                : AppTheme.panel
+
+                        border.width:
+                            1
+
+                        border.color:
+                            AppTheme.borderSubtle
+
+                        visible:
+                            root.controller &&
+                            root.controller.currentPlaylistKind > 0
+
+                        Label {
+                            anchors.centerIn:
+                                parent
+
+                            text:
+                                "✎"
+
+                            color:
+                                renameMouse.containsMouse
+                                    ? AppTheme.accent
+                                    : AppTheme.textSecondary
+
+                            font.pixelSize:
+                                16
+                        }
+
+                        MouseArea {
+                            id: renameMouse
+
+                            anchors.fill:
+                                parent
+
+                            hoverEnabled:
+                                true
+
+                            cursorShape:
+                                Qt.PointingHandCursor
+
+                            onClicked: {
+                                renameDialog.newName =
+                                    root.controller.currentPlaylistTitle
+                                renameDialog.open()
+                            }
+                        }
                     }
 
 
@@ -292,6 +359,40 @@ Column {
                 onAccepted: {
                     if (root.controller) {
                         root.controller.deleteCurrentPlaylist()
+                    }
+                }
+            }
+
+            // Rename dialog
+            Dialog {
+                id: renameDialog
+
+                property string newName: ""
+
+                title: "Новое название"
+                standardButtons: Dialog.Ok | Dialog.Cancel
+
+                anchors.centerIn:
+                    parent
+
+                contentItem: ColumnLayout {
+                    spacing: 12
+
+                    TextField {
+                        id: nameField
+                        Layout.fillWidth: true
+                        text: renameDialog.newName
+                        selectByMouse: true
+                        onAccepted: renameDialog.accept()
+                        Component.onCompleted: forceActiveFocus()
+                    }
+                }
+
+                onAccepted: {
+                    if (root.controller) {
+                        root.controller.renameCurrentPlaylist(
+                            nameField.text.trim()
+                        )
                     }
                 }
             }

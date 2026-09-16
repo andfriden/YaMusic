@@ -15,6 +15,7 @@ struct Playlist
     QString coverUri;
 
     int trackCount = 0;
+    int revision = 0;
 
     QList<Track> tracks;
 };

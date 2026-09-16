@@ -115,6 +115,12 @@ PlaylistModel::kind() const
 }
 
 int
+PlaylistModel::revision() const
+{
+    return m_playlist.revision;
+}
+
+int
 PlaylistModel::trackCount() const
 {
     return m_tracks.size();
