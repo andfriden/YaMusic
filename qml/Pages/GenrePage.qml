@@ -110,118 +110,500 @@ Item {
         anchors.margins:
             root.margin
 
-        spacing:
-            28
+spacing:
+                28
 
 
-        // =========================================================
-        // Genre header
-        // =========================================================
+            // =========================================================
+            // Genre header
+            // =========================================================
 
-        Row {
-            width:
-                parent.width
-
-            height:
-                180
-
-            spacing:
-                24
-
-
-            Rectangle {
+            Row {
                 width:
-                    180
+                    parent.width
 
                 height:
                     180
 
+                spacing:
+                    24
+
+
+                Rectangle {
+                    width:
+                        180
+
+                    height:
+                        180
+
+                    radius:
+                        14
+
+                    color:
+                            root.genreColor.length > 0
+                        ? root.genreColor
+                        : AppTheme.panel
+
+                    clip:
+                        true
+
+
+                    Image {
+                        anchors.fill:
+                            parent
+
+                        source:
+                                root.genreImage.length > 0
+                            ? "image://yandex/" +
+                            root.genreImage
+                            : ""
+
+                        fillMode:
+                            Image.PreserveAspectCrop
+
+                        asynchronous:
+                            true
+
+                        cache:
+                            true
+                    }
+                }
+
+
+                Column {
+                    anchors.verticalCenter:
+                        parent.verticalCenter
+
+                    width:
+                        parent.width - 204
+
+                    spacing:
+                        8
+
+
+                    Label {
+                        width:
+                            parent.width
+
+                        text:
+                            root.genreTitle
+
+                        color:
+                            AppTheme.textPrimary
+
+                        font.pixelSize:
+                            32
+
+                        font.bold:
+                            true
+
+                        elide:
+                            Text.ElideRight
+                    }
+
+
+                    Label {
+                        text:
+                                root.genreController &&
+                            root.genreController.genreLoading
+                            ? "Загрузка плейлистов..."
+                            : root.genreController &&
+                                root.genreController.genrePlaylists &&
+                                root.genreController.genrePlaylists.length > 0
+                                ? root.genreController.genrePlaylists.length +
+                                " плейлистов"
+                                : ""
+
+                        color:
+                            AppTheme.textSecondary
+
+                        font.pixelSize:
+                            15
+                    }
+
+
+                    // =====================================================
+                    // Radio button
+                    // =====================================================
+
+                    Button {
+                        visible:
+                            root.genreId.length > 0
+
+                        width:
+                            160
+
+                        height:
+                            36
+
+                        text:
+                            root.genreController &&
+                            root.genreController.stationLoading
+                            ? "Загрузка..."
+                            : "▶  Радио"
+
+                        enabled:
+                            !root.genreController ||
+                            !root.genreController.stationLoading
+
+                        onClicked: {
+                            if (
+                                root.genreController
+                            ) {
+                                root.genreController.loadGenreStation(
+                                    root.genreId
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            // =========================================================
+            // Station tracks
+            // =========================================================
+
+            Rectangle {
+                width:
+                    parent.width
+
+                height:
+                        root.genreController !== null &&
+                        root.genreController.stationModel !== null &&
+                        root.genreController.stationModel.count > 0
+                    ? 60 + Math.min(
+                        root.genreController.stationModel.count,
+                        6
+                    ) * 68
+                    : 0
+
                 radius:
-                    14
+                    12
 
                 color:
-                        root.genreColor.length > 0
-                    ? root.genreColor
-                    : AppTheme.panel
+                    AppTheme.panel
 
-                clip:
-                    true
+                border.width:
+                    1
+
+                border.color:
+                    AppTheme.borderSubtle
+
+                visible:
+                    height > 0
 
 
-                Image {
+                Column {
                     anchors.fill:
                         parent
 
-                    source:
-                            root.genreImage.length > 0
-                        ? "image://yandex/" +
-                        root.genreImage
-                        : ""
+                    anchors.margins:
+                        14
 
-                    fillMode:
-                        Image.PreserveAspectCrop
+                    spacing:
+                        10
 
-                    asynchronous:
-                        true
 
-                    cache:
-                        true
+                    Label {
+                        width:
+                            parent.width
+
+                        text:
+                            "Радиостанция"
+
+                        color:
+                            AppTheme.textPrimary
+
+                        font.pixelSize:
+                            22
+
+                        font.bold:
+                            true
+                    }
+
+
+                    ListView {
+                        id:
+                            stationView
+
+                        width:
+                            parent.width
+
+                        height:
+                            Math.min(
+                                count,
+                                6
+                            ) * 68
+
+                        model:
+                            root.genreController !== null
+                                ? root.genreController.stationModel
+                                : null
+
+                        clip:
+                            true
+
+                        spacing:
+                            4
+
+                        interactive:
+                            count > 6
+
+                        ScrollBar.vertical:
+                            ScrollBar {
+                                policy:
+                                        stationView.count > 6
+                                    ? ScrollBar.AsNeeded
+                                    : ScrollBar.AlwaysOff
+                            }
+
+
+                        delegate:
+                            Rectangle {
+                                id:
+                                    stationRow
+
+                                required property int index
+                                required property string trackId
+                                required property string title
+                                required property string artist
+                                required property string artistId
+                                required property string coverUri
+                                required property int durationMs
+
+                                width:
+                                    stationView.width
+
+                                height:
+                                    64
+
+                                radius:
+                                    8
+
+                                color:
+                                    root.controller &&
+                                    root.controller.currentTrackId !== "" &&
+                                    stationRow.trackId ===
+                                        root.controller.currentTrackId
+                                        ? AppTheme.panelActive
+                                        : (
+                                            stationMouse.containsMouse
+                                                ? AppTheme.panelActive
+                                                : AppTheme.panelSecondary
+                                        )
+
+                                border.width:
+                                    root.controller &&
+                                    root.controller.currentTrackId !== "" &&
+                                    stationRow.trackId ===
+                                        root.controller.currentTrackId
+                                        ? 1
+                                        : 0
+
+                                border.color:
+                                    AppTheme.accent
+
+
+                                Rectangle {
+                                    width:
+                                        48
+
+                                    height:
+                                        48
+
+                                    anchors.left:
+                                        parent.left
+
+                                    anchors.leftMargin:
+                                        8
+
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+
+                                    radius:
+                                        6
+
+                                    color:
+                                        AppTheme.artworkPlaceholder
+
+                                    clip:
+                                        true
+
+
+                                    Image {
+                                        anchors.fill:
+                                            parent
+
+                                        source:
+                                                stationRow.coverUri.length > 0
+                                            ? "image://yandex/" +
+                                            stationRow.coverUri
+                                            : ""
+
+                                        fillMode:
+                                            Image.PreserveAspectCrop
+
+                                        asynchronous:
+                                            true
+
+                                        cache:
+                                            true
+
+                                        visible:
+                                            status === Image.Ready
+                                    }
+
+
+                                    Label {
+                                        anchors.centerIn:
+                                            parent
+
+                                        text:
+                                            "♪"
+
+                                        color:
+                                            AppTheme.textMuted
+
+                                        font.pixelSize:
+                                            18
+
+                                        visible:
+                                            parent.children[0].status !==
+                                            Image.Ready
+                                    }
+                                }
+
+
+                                Column {
+                                    anchors.left:
+                                        parent.left
+
+                                    anchors.leftMargin:
+                                        68
+
+                                    anchors.right:
+                                        durationLabel.left
+
+                                    anchors.rightMargin:
+                                        12
+
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+
+                                    spacing:
+                                        2
+
+
+                                    Label {
+                                        width:
+                                            parent.width
+
+                                        text:
+                                                stationRow.title.length > 0
+                                            ? stationRow.title
+                                            : "Без названия"
+
+                                        color:
+                                            AppTheme.textPrimary
+
+                                        font.pixelSize:
+                                            14
+
+                                        font.bold:
+                                            true
+
+                                        elide:
+                                            Text.ElideRight
+                                    }
+
+
+                                    Label {
+                                        width:
+                                            Math.min(
+                                                implicitWidth,
+                                                parent.width
+                                            )
+
+                                        text:
+                                                stationRow.artist.length > 0
+                                            ? stationRow.artist
+                                            : ""
+
+                                        color:
+                                            AppTheme.textSecondary
+
+                                        font.pixelSize:
+                                            12
+
+                                        elide:
+                                            Text.ElideRight
+                                    }
+                                }
+
+
+                                Label {
+                                    id:
+                                        durationLabel
+
+                                    width:
+                                        44
+
+                                    anchors.right:
+                                        parent.right
+
+                                    anchors.rightMargin:
+                                        14
+
+                                    anchors.verticalCenter:
+                                        parent.verticalCenter
+
+                                    text:
+                                        root.formatDuration(
+                                            stationRow.durationMs
+                                        )
+
+                                    color:
+                                        AppTheme.textMuted
+
+                                    font.pixelSize:
+                                        11
+
+                                    horizontalAlignment:
+                                        Text.AlignRight
+                                }
+
+
+                                MouseArea {
+                                    id:
+                                        stationMouse
+
+                                    anchors.fill:
+                                        parent
+
+                                    hoverEnabled:
+                                        true
+
+                                    cursorShape:
+                                        Qt.PointingHandCursor
+
+                                    z:
+                                        0
+
+                                    onClicked: {
+                                        if (
+                                            root.controller
+                                        ) {
+                                            root.controller.selectGenreStationTrack(
+                                                stationRow.index
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                    }
                 }
             }
-
-
-            Column {
-                anchors.verticalCenter:
-                    parent.verticalCenter
-
-                width:
-                    parent.width - 204
-
-                spacing:
-                    8
-
-
-                Label {
-                    width:
-                        parent.width
-
-                    text:
-                        root.genreTitle
-
-                    color:
-                        AppTheme.textPrimary
-
-                    font.pixelSize:
-                        32
-
-                    font.bold:
-                        true
-
-                    elide:
-                        Text.ElideRight
-                }
-
-
-                Label {
-                    text:
-                            root.genreController &&
-                        root.genreController.genreLoading
-                        ? "Загрузка плейлистов..."
-                        : root.genreController &&
-                            root.genreController.genrePlaylists &&
-                            root.genreController.genrePlaylists.length > 0
-                            ? root.genreController.genrePlaylists.length +
-                            " плейлистов"
-                            : ""
-
-                    color:
-                        AppTheme.textSecondary
-
-                    font.pixelSize:
-                        15
-                }
-            }
-        }
 
 
         // =========================================================
@@ -668,5 +1050,15 @@ Item {
                 root.genreId
             )
         }
+    }
+
+    function formatDuration(milliseconds) {
+        var value = Number(milliseconds)
+        if (!isFinite(value) || value <= 0)
+            return "0:00"
+        var totalSeconds = Math.floor(value / 1000)
+        var minutes = Math.floor(totalSeconds / 60)
+        var seconds = totalSeconds % 60
+        return minutes + ":" + (seconds < 10 ? "0" : "") + seconds
     }
 }

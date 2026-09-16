@@ -8,9 +8,12 @@
 #include <QVariantList>
 #include "../Models/Playlist.h"
 #include "../Yandex/Catalog/GenreModel.h"
+#include "../Yandex/Catalog/GenreStationModel.h"
 
 class GenreService;
+class PlaybackController;
 class PlaylistService;
+class StationService;
 
 class GenreController : public QObject
 {
@@ -40,11 +43,25 @@ class GenreController : public QObject
         NOTIFY genreContentChanged
     )
 
+    Q_PROPERTY(
+        GenreStationModel *stationModel
+        READ stationModel
+        CONSTANT
+    )
+
+    Q_PROPERTY(
+        bool stationLoading
+        READ stationLoading
+        NOTIFY stationLoadingChanged
+    )
+
 public:
 
     explicit GenreController(
         GenreService *genreService,
         PlaylistService *playlistService,
+        StationService *stationService,
+        PlaybackController *playbackController,
         QObject *parent = nullptr);
 
     // Genres
@@ -61,6 +78,16 @@ public:
     Q_INVOKABLE void loadTagPlaylists(
         const QString &tagId);
 
+    // Genre radio
+
+    Q_INVOKABLE void loadGenreStation(
+        const QString &genreId);
+
+    Q_INVOKABLE void loadMoreGenreStation();
+
+    Q_INVOKABLE void selectStationTrack(
+        int index);
+
     // Properties
 
     bool loading() const;
@@ -71,6 +98,10 @@ public:
 
     QVariantList genrePlaylists() const;
 
+    GenreStationModel *stationModel() const;
+
+    bool stationLoading() const;
+
 signals:
 
     void loadingChanged();
@@ -78,6 +109,11 @@ signals:
     void genreLoadingChanged();
 
     void genreContentChanged();
+
+    void stationLoadingChanged();
+
+    void stationTrackSelected(
+        int index);
 
     void statusChanged(
         const QString &status);
@@ -123,8 +159,23 @@ private:
     PlaylistService *
         m_playlistService = nullptr;
 
+    StationService *
+        m_stationService = nullptr;
+
+    PlaybackController *
+        m_playbackController = nullptr;
+
     GenreModel *
         m_model = nullptr;
+
+    GenreStationModel *
+        m_stationModel = nullptr;
+
+    QString
+        m_stationGenreId;
+
+    QString
+        m_stationBatchId;
 
     QList<Playlist>
         m_genrePlaylists;
@@ -139,6 +190,9 @@ private:
 
     bool
         m_genreLoading = false;
+
+    bool
+        m_stationLoading = false;
 
     bool
         m_waitingForPlaylists = false;

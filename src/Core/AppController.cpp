@@ -10,6 +10,7 @@
 #include "../Yandex/Catalog/ChartService.h"
 #include "../Yandex/Catalog/GenreService.h"
 #include "../Yandex/Catalog/SearchService.h"
+#include "../Yandex/Catalog/StationService.h"
 #include "../Yandex/Catalog/TrackService.h"
 #include "../Yandex/Personal/LikesService.h"
 #include "../Yandex/Personal/NewPlaylistsService.h"
@@ -43,6 +44,7 @@ AppController::AppController(
     , m_artistService(new ArtistService(m_auth, this))
     , m_chartService(new ChartService(m_auth, this))
     , m_genreService(new GenreService(m_auth, this))
+    , m_stationService(new StationService(m_auth, this))
     , m_playerService(new PlayerService(this))
     , m_queueService(new QueueService(this))
     , m_playerAccentService(new PlayerAccentService(this))
@@ -87,6 +89,8 @@ AppController::AppController(
     , m_genreController(new GenreController(
           m_genreService,
           m_playlistService,
+          m_stationService,
+          m_playbackController,
           this))
 {
     connectAccount();
@@ -493,6 +497,15 @@ void AppController::connectGenre()
         &GenreController::statusChanged,
         this,
         &AppController::statusChanged);
+
+    connect(
+        m_genreController,
+        &GenreController::stationLoadingChanged,
+        this,
+        [this]() {
+            // Not exposed as separate AppController property,
+            // but GenreController is accessible from QML
+        });
 }
 
 // Playback

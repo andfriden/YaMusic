@@ -33,6 +33,7 @@ class PlaylistService;
 class QueueService;
 class RecentListeningService;
 class SearchService;
+class StationService;
 class TrackService;
 class YandexAuth;
 class YandexPersonal;
@@ -171,6 +172,8 @@ public:
     Q_INVOKABLE void selectSearchAlbum(int index);
     Q_INVOKABLE void selectSearchPlaylist(int index);
     Q_INVOKABLE void selectSimilarTrack(int index);
+    Q_INVOKABLE void loadMoreGenreStation();
+    Q_INVOKABLE void selectGenreStationTrack(int index);
     Q_INVOKABLE void selectMyWaveTrack(int index);
     Q_INVOKABLE void selectPersonalPlaylist(const QString &uid, int kind);
     Q_INVOKABLE void selectPlaylistTrack(int index);
@@ -368,6 +371,7 @@ private:
     ArtistService *m_artistService;
     ChartService *m_chartService;
     GenreService *m_genreService;
+    StationService *m_stationService;
     PlayerService *m_playerService;
     QueueService *m_queueService;
     PlayerAccentService *m_playerAccentService;

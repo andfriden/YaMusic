@@ -149,7 +149,6 @@ void AppController::selectSimilarTrack(int index)
         return;
     }
 
-    // Collect all similar tracks and start playing from selected
     const QList<Track> tracks =
         m_similarTracksModel->tracks();
 
@@ -162,4 +161,23 @@ void AppController::selectSimilarTrack(int index)
         index,
         "Похожие треки",
         "similar");
+}
+
+// Genre station
+void AppController::loadMoreGenreStation()
+{
+    if (m_genreController == nullptr) {
+        return;
+    }
+
+    m_genreController->loadMoreGenreStation();
+}
+
+void AppController::selectGenreStationTrack(int index)
+{
+    if (m_genreController == nullptr) {
+        return;
+    }
+
+    m_genreController->selectStationTrack(index);
 }

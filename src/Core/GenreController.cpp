@@ -1,6 +1,9 @@
 #include "GenreController.h"
 #include "../Yandex/Catalog/GenreService.h"
+#include "../Yandex/Catalog/GenreStationModel.h"
+#include "../Yandex/Catalog/StationService.h"
 #include "../Yandex/Personal/PlaylistService.h"
+#include "../Playback/PlaybackController.h"
 #include <QCoreApplication>
 #include <QFile>
 #include <QFileInfo>
@@ -82,11 +85,16 @@ QStringList splitCsvLineInternal(
 GenreController::GenreController(
     GenreService *genreService,
     PlaylistService *playlistService,
+    StationService *stationService,
+    PlaybackController *playbackController,
     QObject *parent)
     : QObject(parent)
     , m_genreService(genreService)
     , m_playlistService(playlistService)
+    , m_stationService(stationService)
+    , m_playbackController(playbackController)
     , m_model(new GenreModel(this))
+    , m_stationModel(new GenreStationModel(this))
 {
     if (
         m_genreService != nullptr
@@ -311,6 +319,52 @@ GenreController::GenreController(
                 }
 
                 finishGenrePlaylistLoading();
+            });
+    }
+
+    if (
+        m_stationService != nullptr
+    )
+    {
+        connect(
+            m_stationService,
+            &StationService::stationTracksReceived,
+            this,
+            [this](
+                const QList<Track> &tracks,
+                const QString &batchId)
+            {
+                m_stationLoading = false;
+
+                emit stationLoadingChanged();
+
+                m_stationBatchId =
+                    batchId;
+
+                m_stationModel
+                    ->appendTracks(
+                        tracks);
+            });
+
+        connect(
+            m_stationService,
+            &StationService::errorOccurred,
+            this,
+            [this](
+                const QString &message)
+            {
+                if (
+                    m_stationLoading
+                )
+                {
+                    m_stationLoading =
+                        false;
+
+                    emit stationLoadingChanged();
+                }
+
+                emit errorOccurred(
+                    message);
             });
     }
 }
@@ -808,6 +862,112 @@ void GenreController::finishGenrePlaylistLoading()
 
     emit statusChanged(
         QString());
+}
+
+// Station model
+
+GenreStationModel *
+GenreController::stationModel() const
+{
+    return m_stationModel;
+}
+
+bool GenreController::stationLoading() const
+{
+    return m_stationLoading;
+}
+
+// Genre radio
+
+void GenreController::loadGenreStation(
+    const QString &genreId)
+{
+    const QString id =
+        genreId.trimmed();
+
+    if (id.isEmpty()) {
+        return;
+    }
+
+    if (m_stationLoading) {
+        return;
+    }
+
+    m_stationGenreId =
+        id;
+
+    m_stationBatchId.clear();
+
+    m_stationLoading = true;
+
+    emit stationLoadingChanged();
+
+    m_stationModel->clear();
+
+    emit statusChanged(
+        "Загрузка радиостанции...");
+
+    m_stationService->loadStationTracks(
+        "genre",
+        id);
+}
+
+void GenreController::loadMoreGenreStation()
+{
+    if (
+        m_stationService == nullptr ||
+        m_stationLoading
+    ) {
+        return;
+    }
+
+    const QString lastId =
+        m_stationModel->lastTrackId();
+
+    if (lastId.isEmpty()) {
+        return;
+    }
+
+    m_stationLoading = true;
+
+    emit stationLoadingChanged();
+
+    m_stationService->loadMoreStationTracks(
+        "genre",
+        m_stationGenreId,
+        lastId);
+}
+
+void GenreController::selectStationTrack(
+    int index)
+{
+    if (
+        m_playbackController == nullptr ||
+        m_stationModel == nullptr
+    ) {
+        return;
+    }
+
+    const QList<Track> tracks =
+        m_stationModel->tracks();
+
+    if (
+        index < 0 ||
+        index >= tracks.size()
+    ) {
+        return;
+    }
+
+    emit stationTrackSelected(
+        index);
+
+    m_playbackController
+        ->playFromSource(
+            tracks,
+            index,
+            QString("Радио: %1")
+                .arg(m_stationGenreId),
+            "station");
 }
 
 // CSV loader
