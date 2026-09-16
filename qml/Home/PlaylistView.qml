@@ -534,14 +534,14 @@ Item {
                         // Duration
                         // =============================================
 
-                        Label {
+Label {
                             id: durationLabel
 
                             anchors.right:
-                                likeButton.left
+                                removeButton.left
 
                             anchors.rightMargin:
-                                6
+                                 6
 
                             anchors.verticalCenter:
                                 parent.verticalCenter
@@ -556,6 +556,79 @@ Item {
 
                             font.pixelSize:
                                 11
+                        }
+
+
+                        // =============================================
+                        // Remove track button
+                        // =============================================
+
+                        Item {
+                            id: removeButton
+
+                            width:
+                                30
+
+                            height:
+                                30
+
+                            anchors.right:
+                                likeButton.left
+
+                            anchors.rightMargin:
+                                 4
+
+                            anchors.verticalCenter:
+                                parent.verticalCenter
+
+                            z:
+                                25
+
+                            visible:
+                                root.controller !== null &&
+                                root.controller.currentPlaylistKind > 0
+
+                            Label {
+                                anchors.centerIn:
+                                    parent
+
+                                text:
+                                    "×"
+
+                                color:
+                                    removeMouse.containsMouse
+                                        ? AppTheme.accent
+                                        : AppTheme.textMuted
+
+                                font.pixelSize:
+                                    18
+
+                                font.bold:
+                                    true
+                            }
+
+
+                            MouseArea {
+                                id: removeMouse
+
+                                anchors.fill:
+                                    parent
+
+                                hoverEnabled:
+                                    true
+
+                                cursorShape:
+                                    Qt.PointingHandCursor
+
+                                onClicked: {
+                                    if (!root.controller)
+                                        return
+
+                                    root.controller.removeTrackFromPlaylist(
+                                        trackDelegate.index
+                                    )
+                                }
+                            }
                         }
 
 

@@ -80,6 +80,7 @@ class AppController : public QObject
     Q_PROPERTY(QString currentPlaylistTitle READ currentPlaylistTitle NOTIFY currentPlaylistChanged)
     Q_PROPERTY(QString currentPlaylistCoverUri READ currentPlaylistCoverUri NOTIFY currentPlaylistChanged)
     Q_PROPERTY(int currentPlaylistTrackCount READ currentPlaylistTrackCount NOTIFY currentPlaylistChanged)
+    Q_PROPERTY(int currentPlaylistKind READ currentPlaylistKind NOTIFY currentPlaylistChanged)
 
     Q_PROPERTY(
         QVariantList similarPlaylists
@@ -174,6 +175,10 @@ public:
     Q_INVOKABLE void selectSimilarTrack(int index);
     Q_INVOKABLE void loadMoreGenreStation();
     Q_INVOKABLE void selectGenreStationTrack(int index);
+    Q_INVOKABLE void createPlaylist(const QString &title);
+    Q_INVOKABLE void deleteCurrentPlaylist();
+    Q_INVOKABLE void renameCurrentPlaylist(const QString &newTitle);
+    Q_INVOKABLE void removeTrackFromPlaylist(int index);
     Q_INVOKABLE void selectMyWaveTrack(int index);
     Q_INVOKABLE void selectPersonalPlaylist(const QString &uid, int kind);
     Q_INVOKABLE void selectPlaylistTrack(int index);
@@ -242,6 +247,7 @@ public:
     QString currentPlaylistTitle() const;
     QString currentPlaylistCoverUri() const;
     int currentPlaylistTrackCount() const;
+    int currentPlaylistKind() const;
     QVariantList similarPlaylists() const;
 
     QString currentAlbumTitle() const;

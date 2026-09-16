@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Dialogs
 import YaMusic 1.0
 
 Item {
@@ -143,7 +144,7 @@ Item {
             // Information
             // -----------------------------------------------------
 
-            Column {
+Column {
                 anchors.verticalCenter:
                     parent.verticalCenter
 
@@ -155,28 +156,106 @@ Item {
                     8
 
 
-                Label {
+                Row {
                     width:
                         parent.width
 
-                    text:
-                            root.controller !== null &&
-                        root.controller !== undefined &&
-                        root.controller.currentPlaylistTitle.length > 0
-                        ? root.controller.currentPlaylistTitle
-                        : "Плейлист"
+                    spacing:
+                        10
 
-                    color:
-                        AppTheme.textPrimary
+                    Label {
+                        width:
+                            parent.width -
+                            deleteButton.width -
+                            parent.spacing
 
-                    font.pixelSize:
-                        28
+                        text:
+                                root.controller !== null &&
+                            root.controller !== undefined &&
+                            root.controller.currentPlaylistTitle.length > 0
+                            ? root.controller.currentPlaylistTitle
+                            : "Плейлист"
 
-                    font.bold:
-                        true
+                        color:
+                            AppTheme.textPrimary
 
-                    elide:
-                        Text.ElideRight
+                        font.pixelSize:
+                            28
+
+                        font.bold:
+                            true
+
+                        elide:
+                            Text.ElideRight
+
+                        anchors.verticalCenter:
+                            parent.verticalCenter
+                    }
+
+
+                    Rectangle {
+                        id: deleteButton
+
+                        width:
+                            32
+
+                        height:
+                            32
+
+                        radius:
+                            7
+
+                        color:
+                            deleteMouse.containsMouse
+                                ? AppTheme.panelHover
+                                : AppTheme.panel
+
+                        border.width:
+                            1
+
+                        border.color:
+                            AppTheme.borderSubtle
+
+                        visible:
+                            root.controller &&
+                            root.controller.currentPlaylistKind > 0
+
+                        Label {
+                            anchors.centerIn:
+                                parent
+
+                            text:
+                                "🗑"
+
+                            color:
+                                deleteMouse.containsMouse
+                                    ? AppTheme.accent
+                                    : AppTheme.textSecondary
+
+                            font.pixelSize:
+                                14
+                        }
+
+                        MouseArea {
+                            id: deleteMouse
+
+                            anchors.fill:
+                                parent
+
+                            hoverEnabled:
+                                true
+
+                            cursorShape:
+                                Qt.PointingHandCursor
+
+                            onClicked: {
+                                if (!root.controller)
+                                    return
+
+                                deleteConfirmDialog.open()
+                            }
+                        }
+                    }
                 }
 
 
@@ -196,6 +275,24 @@ Item {
 
                     font.pixelSize:
                         13
+                }
+            }
+
+
+            // Delete confirmation dialog
+            Dialog {
+                id: deleteConfirmDialog
+
+                title: "Удалить плейлист?"
+                standardButtons: Dialog.Yes | Dialog.No
+
+                anchors.centerIn:
+                    parent
+
+                onAccepted: {
+                    if (root.controller) {
+                        root.controller.deleteCurrentPlaylist()
+                    }
                 }
             }
         }

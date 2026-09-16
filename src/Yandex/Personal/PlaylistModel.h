@@ -42,6 +42,8 @@ public:
 
     QString title() const;
 
+    int kind() const;
+
     int trackCount() const;
 
     void setTrackLiked(

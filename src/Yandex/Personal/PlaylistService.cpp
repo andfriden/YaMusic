@@ -736,3 +736,343 @@ void PlaylistService::loadSimilarPlaylists(
             reply->deleteLater();
         });
 }
+
+// =============================================================
+// Playlist CRUD
+// =============================================================
+
+void PlaylistService::createPlaylist(
+    const QString &uid,
+    const QString &title)
+{
+    if (!ensureAuthenticated()) {
+        emit errorOccurred(
+            "Токен Яндекс Музыки не установлен");
+        return;
+    }
+
+    const QString userId = uid.trimmed();
+    const QString playlistTitle = title.trimmed();
+
+    if (userId.isEmpty()) {
+        emit errorOccurred("UID не указан");
+        return;
+    }
+
+    if (playlistTitle.isEmpty()) {
+        emit errorOccurred(
+            "Название плейлиста не указано");
+        return;
+    }
+
+    QUrlQuery body;
+    body.addQueryItem("title", playlistTitle);
+
+    const QString path =
+        QString("/users/%1/playlists/create")
+            .arg(userId);
+
+    QNetworkReply *reply =
+        m_yandexClient->postForm(path, body);
+
+    if (reply == nullptr) {
+        emit errorOccurred(
+            "Не удалось создать плейлист");
+        return;
+    }
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply, playlistTitle]()
+        {
+            Q_UNUSED(reply->readAll());
+
+            if (reply->error() !=
+                QNetworkReply::NoError) {
+
+                emit errorOccurred(
+                    reply->errorString());
+                reply->deleteLater();
+                return;
+            }
+
+            reply->deleteLater();
+            emit playlistCreated(playlistTitle);
+        });
+}
+
+void PlaylistService::deletePlaylist(
+    const QString &uid,
+    int kind)
+{
+    if (!ensureAuthenticated()) {
+        emit errorOccurred(
+            "Токен Яндекс Музыки не установлен");
+        return;
+    }
+
+    const QString userId = uid.trimmed();
+
+    if (userId.isEmpty() || kind <= 0) {
+        emit errorOccurred(
+            "Некорректный плейлист");
+        return;
+    }
+
+    const QString path =
+        QString("/users/%1/playlists/%2/delete")
+            .arg(userId)
+            .arg(kind);
+
+    QNetworkReply *reply =
+        m_yandexClient->postForm(path, {});
+
+    if (reply == nullptr) {
+        emit errorOccurred(
+            "Не удалось удалить плейлист");
+        return;
+    }
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply, kind]()
+        {
+            Q_UNUSED(reply->readAll());
+
+            if (reply->error() !=
+                QNetworkReply::NoError) {
+
+                emit errorOccurred(
+                    reply->errorString());
+                reply->deleteLater();
+                return;
+            }
+
+            reply->deleteLater();
+            emit playlistDeleted(kind);
+        });
+}
+
+void PlaylistService::renamePlaylist(
+    const QString &uid,
+    int kind,
+    const QString &newTitle)
+{
+    if (!ensureAuthenticated()) {
+        emit errorOccurred(
+            "Токен Яндекс Музыки не установлен");
+        return;
+    }
+
+    const QString userId = uid.trimmed();
+    const QString title = newTitle.trimmed();
+
+    if (userId.isEmpty() || kind <= 0) {
+        emit errorOccurred(
+            "Некорректный плейлист");
+        return;
+    }
+
+    if (title.isEmpty()) {
+        emit errorOccurred(
+            "Новое название не указано");
+        return;
+    }
+
+    QUrlQuery body;
+    body.addQueryItem("value", title);
+
+    const QString path =
+        QString("/users/%1/playlists/%2/name")
+            .arg(userId)
+            .arg(kind);
+
+    QNetworkReply *reply =
+        m_yandexClient->postForm(path, body);
+
+    if (reply == nullptr) {
+        emit errorOccurred(
+            "Не удалось переименовать плейлист");
+        return;
+    }
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply, title]()
+        {
+            Q_UNUSED(reply->readAll());
+
+            if (reply->error() !=
+                QNetworkReply::NoError) {
+
+                emit errorOccurred(
+                    reply->errorString());
+                reply->deleteLater();
+                return;
+            }
+
+            reply->deleteLater();
+            emit playlistRenamed(title);
+        });
+}
+
+void PlaylistService::addTracksToPlaylist(
+    const QString &uid,
+    int kind,
+    const QStringList &trackIds)
+{
+    if (!ensureAuthenticated()) {
+        emit errorOccurred(
+            "Токен Яндекс Музыки не установлен");
+        return;
+    }
+
+    const QString userId = uid.trimmed();
+
+    if (userId.isEmpty() || kind <= 0) {
+        emit errorOccurred(
+            "Некорректный плейлист");
+        return;
+    }
+
+    QStringList ids;
+    for (const QString &id : trackIds) {
+        const QString trimmed = id.trimmed();
+        if (!trimmed.isEmpty()) {
+            ids.append(trimmed);
+        }
+    }
+
+    if (ids.isEmpty()) {
+        emit errorOccurred(
+            "Нет треков для добавления");
+        return;
+    }
+
+    QUrlQuery body;
+    body.addQueryItem(
+        "track-ids",
+        ids.join(","));
+
+    // add-ids: добавить в начало очереди изменений
+    body.addQueryItem("add-ids", ids.join(","));
+
+    const QString path =
+        QString("/users/%1/playlists/%2/change-relative")
+            .arg(userId)
+            .arg(kind);
+
+    QNetworkReply *reply =
+        m_yandexClient->postForm(path, body);
+
+    if (reply == nullptr) {
+        emit errorOccurred(
+            "Не удалось добавить треки");
+        return;
+    }
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply, ids]()
+        {
+            Q_UNUSED(reply->readAll());
+
+            if (reply->error() !=
+                QNetworkReply::NoError) {
+
+                emit errorOccurred(
+                    reply->errorString());
+                reply->deleteLater();
+                return;
+            }
+
+            reply->deleteLater();
+            emit tracksAdded(ids.size());
+        });
+}
+
+void PlaylistService::removeTracksFromPlaylist(
+    const QString &uid,
+    int kind,
+    const QStringList &trackIds)
+{
+    if (!ensureAuthenticated()) {
+        emit errorOccurred(
+            "Токен Яндекс Музыки не установлен");
+        return;
+    }
+
+    const QString userId = uid.trimmed();
+
+    if (userId.isEmpty() || kind <= 0) {
+        emit errorOccurred(
+            "Некорректный плейлист");
+        return;
+    }
+
+    QStringList ids;
+    for (const QString &id : trackIds) {
+        const QString trimmed = id.trimmed();
+        if (!trimmed.isEmpty()) {
+            ids.append(trimmed);
+        }
+    }
+
+    if (ids.isEmpty()) {
+        emit errorOccurred(
+            "Нет треков для удаления");
+        return;
+    }
+
+    QUrlQuery body;
+    body.addQueryItem(
+        "track-ids",
+        ids.join(","));
+
+    body.addQueryItem(
+        "remove-ids",
+        ids.join(","));
+
+    const QString path =
+        QString("/users/%1/playlists/%2/change-relative")
+            .arg(userId)
+            .arg(kind);
+
+    QNetworkReply *reply =
+        m_yandexClient->postForm(path, body);
+
+    if (reply == nullptr) {
+        emit errorOccurred(
+            "Не удалось удалить треки");
+        return;
+    }
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply, ids]()
+        {
+            Q_UNUSED(reply->readAll());
+
+            if (reply->error() !=
+                QNetworkReply::NoError) {
+
+                emit errorOccurred(
+                    reply->errorString());
+                reply->deleteLater();
+                return;
+            }
+
+            reply->deleteLater();
+            emit tracksRemoved(ids.size());
+        });
+}

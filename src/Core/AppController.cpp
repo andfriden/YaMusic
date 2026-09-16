@@ -238,6 +238,9 @@ void AppController::connectAccount()
                 50,
                 10);
 
+            m_libraryController->setUserId(
+                m_accountUid);
+
             m_personalController->loadMyWave();
             m_personalController->loadRecommendations();
 
@@ -1078,6 +1081,12 @@ int AppController::currentPlaylistTrackCount() const
 {
     return m_libraryController
         ->currentPlaylistTrackCount();
+}
+
+int AppController::currentPlaylistKind() const
+{
+    return m_libraryController
+        ->currentPlaylistKind();
 }
 
 QVariantList AppController::similarPlaylists() const

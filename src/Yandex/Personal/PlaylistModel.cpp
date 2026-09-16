@@ -109,6 +109,12 @@ PlaylistModel::title() const
 }
 
 int
+PlaylistModel::kind() const
+{
+    return m_playlist.kind;
+}
+
+int
 PlaylistModel::trackCount() const
 {
     return m_tracks.size();

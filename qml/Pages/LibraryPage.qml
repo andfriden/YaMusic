@@ -123,21 +123,102 @@ Item {
                     12
 
 
-                Label {
+                Row {
                     width:
                         parent.width
 
-                    text:
-                        "Мои плейлисты"
+                    spacing:
+                        12
 
-                    color:
-                        AppTheme.textPrimary
+                    Label {
+                        width:
+                            parent.width -
+                            createButton.width -
+                            parent.spacing
 
-                    font.pixelSize:
-                        20
+                        text:
+                            "Мои плейлисты"
 
-                    font.bold:
-                        true
+                        color:
+                            AppTheme.textPrimary
+
+                        font.pixelSize:
+                            20
+
+                        font.bold:
+                            true
+
+                        anchors.verticalCenter:
+                            parent.verticalCenter
+                    }
+
+
+                    Rectangle {
+                        id: createButton
+
+                        width:
+                            createLabel.implicitWidth + 20
+
+                        height:
+                            30
+
+                        radius:
+                            7
+
+                        color:
+                            createMouse.containsMouse
+                                ? AppTheme.panelHover
+                                : AppTheme.panel
+
+                        border.width:
+                            1
+
+                        border.color:
+                            AppTheme.borderSubtle
+
+
+                        Label {
+                            id: createLabel
+
+                            anchors.centerIn:
+                                parent
+
+                            text:
+                                "+"
+
+                            color:
+                                AppTheme.textPrimary
+
+                            font.pixelSize:
+                                16
+
+                            font.bold:
+                                true
+                        }
+
+
+                        MouseArea {
+                            id: createMouse
+
+                            anchors.fill:
+                                parent
+
+                            hoverEnabled:
+                                true
+
+                            cursorShape:
+                                Qt.PointingHandCursor
+
+                            onClicked: {
+                                if (!root.controller)
+                                    return
+
+                                root.controller.createPlaylist(
+                                    "Новый плейлист"
+                                )
+                            }
+                        }
+                    }
                 }
 
 

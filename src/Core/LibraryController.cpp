@@ -152,13 +152,70 @@ LibraryController::LibraryController(
                     emit loadingLibraryPlaylistsChanged();
                 }
 
-                emit statusChanged(
-                    QString(
-                        "Ошибка плейлистов: %1")
-                        .arg(
-                            message));
+emit statusChanged(
+                        QString(
+                            "Ошибка плейлистов: %1")
+                            .arg(
+                                message));
             });
-    }
+        }
+
+        // Playlist CRUD signals
+        if (m_playlistService != nullptr) {
+            connect(
+                m_playlistService,
+                &PlaylistService::playlistCreated,
+                this,
+                [this](const QString &title) {
+                    emit statusChanged(
+                        QString("Плейлист «%1» создан").arg(title));
+                });
+
+            connect(
+                m_playlistService,
+                &PlaylistService::playlistDeleted,
+                this,
+                [this](int kind) {
+                    Q_UNUSED(kind);
+                    m_playlistModel->clear();
+                    emit statusChanged("Плейлист удалён");
+
+                    // Reload user playlists
+                    if (!m_userId.isEmpty()) {
+                        loadUserPlaylists(m_userId);
+                    }
+                });
+
+            connect(
+                m_playlistService,
+                &PlaylistService::playlistRenamed,
+                this,
+                [this](const QString &newTitle) {
+                    m_currentPlaylistTitle = newTitle;
+                    emit currentPlaylistChanged();
+                    emit statusChanged(
+                        QString("Плейлист переименован в «%1»").arg(newTitle));
+                });
+
+            connect(
+                m_playlistService,
+                &PlaylistService::tracksAdded,
+                this,
+                [this](int count) {
+                    emit statusChanged(
+                        QString("Добавлено треков: %1").arg(count));
+                });
+
+            connect(
+                m_playlistService,
+                &PlaylistService::tracksRemoved,
+                this,
+                [this](int count) {
+                    emit playlistTracksChanged();
+                    emit statusChanged(
+                        QString("Удалено треков: %1").arg(count));
+                });
+        }
 
     // Likes service
 
@@ -789,6 +846,16 @@ LibraryController::currentPlaylistTrackCount() const
     return m_currentPlaylistTrackCount;
 }
 
+int
+LibraryController::currentPlaylistKind() const
+{
+    if (m_playlistModel == nullptr) {
+        return 0;
+    }
+
+    return m_playlistModel->kind();
+}
+
 QVariantList
 LibraryController::similarPlaylists() const
 {
@@ -987,12 +1054,122 @@ void LibraryController::setTrackLiked(
     }
     else
     {
-        /*
-         * Сняли лайк — убираем трек из списка
-         * (на сервере он тоже удалён).
-         */
         m_likedTracksModel
             ->removeTrack(
                 id);
     }
+}
+
+// User ID
+
+void LibraryController::setUserId(
+    const QString &uid)
+{
+    m_userId = uid.trimmed();
+}
+
+// Playlist CRUD
+
+void LibraryController::createPlaylist(
+    const QString &title)
+{
+    if (
+        m_playlistService == nullptr ||
+        m_userId.isEmpty()
+    ) {
+        emit statusChanged(
+            "Не удалось создать плейлист");
+        return;
+    }
+
+    m_playlistService->createPlaylist(
+        m_userId,
+        title);
+}
+
+void LibraryController::deleteCurrentPlaylist()
+{
+    if (
+        m_playlistService == nullptr ||
+        m_userId.isEmpty()
+    ) {
+        emit statusChanged(
+            "Не удалось удалить плейлист");
+        return;
+    }
+
+    const int kind =
+        m_playlistModel->kind();
+
+    if (kind <= 0) {
+        emit statusChanged(
+            "Плейлист не загружен");
+        return;
+    }
+
+    m_playlistService->deletePlaylist(
+        m_userId,
+        kind);
+}
+
+void LibraryController::renameCurrentPlaylist(
+    const QString &newTitle)
+{
+    if (
+        m_playlistService == nullptr ||
+        m_userId.isEmpty()
+    ) {
+        emit statusChanged(
+            "Не удалось переименовать плейлист");
+        return;
+    }
+
+    const int kind =
+        m_playlistModel->kind();
+
+    if (kind <= 0) {
+        emit statusChanged(
+            "Плейлист не загружен");
+        return;
+    }
+
+    m_playlistService->renamePlaylist(
+        m_userId,
+        kind,
+        newTitle);
+}
+
+void LibraryController::removeTrackFromPlaylist(
+    int index)
+{
+    if (
+        m_playlistService == nullptr ||
+        m_userId.isEmpty() ||
+        m_playlistModel == nullptr
+    ) {
+        emit statusChanged(
+            "Не удалось удалить трек");
+        return;
+    }
+
+    const int kind =
+        m_playlistModel->kind();
+
+    if (kind <= 0) {
+        return;
+    }
+
+    const Track track =
+        m_playlistModel->trackAt(
+            index);
+
+    if (track.id.isEmpty()) {
+        return;
+    }
+
+    m_playlistService
+        ->removeTracksFromPlaylist(
+            m_userId,
+            kind,
+            {track.id});
 }

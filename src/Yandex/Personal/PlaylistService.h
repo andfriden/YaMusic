@@ -38,6 +38,31 @@ public:
     void loadUserPlaylists(
         const QString &uid);
 
+    // Playlist CRUD
+
+    void createPlaylist(
+        const QString &uid,
+        const QString &title);
+
+    void deletePlaylist(
+        const QString &uid,
+        int kind);
+
+    void renamePlaylist(
+        const QString &uid,
+        int kind,
+        const QString &newTitle);
+
+    void addTracksToPlaylist(
+        const QString &uid,
+        int kind,
+        const QStringList &trackIds);
+
+    void removeTracksFromPlaylist(
+        const QString &uid,
+        int kind,
+        const QStringList &trackIds);
+
 signals:
 
     void playlistReceived(
@@ -51,6 +76,21 @@ signals:
 
     void userPlaylistsReceived(
         const QList<PersonalPlaylist> &playlists);
+
+    void playlistCreated(
+        const QString &title);
+
+    void playlistDeleted(
+        int kind);
+
+    void playlistRenamed(
+        const QString &newTitle);
+
+    void tracksAdded(
+        int count);
+
+    void tracksRemoved(
+        int count);
 
     void errorOccurred(
         const QString &message);

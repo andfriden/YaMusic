@@ -181,3 +181,40 @@ void AppController::selectGenreStationTrack(int index)
 
     m_genreController->selectStationTrack(index);
 }
+
+// Playlist CRUD
+void AppController::createPlaylist(const QString &title)
+{
+    if (m_libraryController == nullptr) {
+        return;
+    }
+
+    m_libraryController->createPlaylist(title);
+}
+
+void AppController::deleteCurrentPlaylist()
+{
+    if (m_libraryController == nullptr) {
+        return;
+    }
+
+    m_libraryController->deleteCurrentPlaylist();
+}
+
+void AppController::renameCurrentPlaylist(const QString &newTitle)
+{
+    if (m_libraryController == nullptr) {
+        return;
+    }
+
+    m_libraryController->renameCurrentPlaylist(newTitle);
+}
+
+void AppController::removeTrackFromPlaylist(int index)
+{
+    if (m_libraryController == nullptr) {
+        return;
+    }
+
+    m_libraryController->removeTrackFromPlaylist(index);
+}

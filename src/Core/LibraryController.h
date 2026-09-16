@@ -141,6 +141,9 @@ public:
         PlaybackController *playbackController,
         QObject *parent = nullptr);
 
+    void setUserId(
+        const QString &uid);
+
     // Library playlists
 
     void loadUserPlaylists(
@@ -213,6 +216,8 @@ public:
 
     int currentPlaylistTrackCount() const;
 
+    int currentPlaylistKind() const;
+
     QVariantList similarPlaylists() const;
 
     /*
@@ -250,9 +255,24 @@ public:
         const QString &trackId,
         bool liked);
 
+    // Playlist CRUD
+
+    Q_INVOKABLE void createPlaylist(
+        const QString &title);
+
+    Q_INVOKABLE void deleteCurrentPlaylist();
+
+    Q_INVOKABLE void renameCurrentPlaylist(
+        const QString &newTitle);
+
+    Q_INVOKABLE void removeTrackFromPlaylist(
+        int index);
+
 signals:
 
     // Common
+
+    void playlistTracksChanged();
 
     void statusChanged(
         const QString &message);
@@ -374,4 +394,8 @@ private:
 
     int m_currentArtistTrackCount =
         0;
+
+    // User ID
+
+    QString m_userId;
 };
