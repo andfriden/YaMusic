@@ -344,6 +344,14 @@ GenreController::GenreController(
                 m_stationModel
                     ->appendTracks(
                         tracks);
+
+                // Auto-play first batch
+                if (
+                    !tracks.isEmpty() &&
+                    m_stationModel->count() == tracks.size()
+                ) {
+                    selectStationTrack(0);
+                }
             });
 
         connect(

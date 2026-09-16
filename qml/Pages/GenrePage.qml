@@ -33,6 +33,21 @@ Item {
 
 
     // =============================================================
+    // Radio button theme colors
+    // =============================================================
+
+    readonly property color radioButtonColor:
+        AppTheme.dark
+            ? AppTheme.accent
+            : Qt.rgba(0, 0, 0, 0.84)
+
+    readonly property color radioButtonHoverColor:
+        AppTheme.dark
+            ? AppTheme.accentHover
+            : Qt.rgba(0.15, 0.15, 0.15, 1.0)
+
+
+    // =============================================================
     // Page size
     // =============================================================
 
@@ -226,33 +241,85 @@ spacing:
                     // Radio button
                     // =====================================================
 
-                    Button {
+                    Rectangle {
+                        id: radioButton
+
                         visible:
                             root.genreId.length > 0
 
                         width:
-                            160
+                            radioLabel.implicitWidth + 32
 
                         height:
                             36
 
-                        text:
-                            root.genreController &&
-                            root.genreController.stationLoading
-                            ? "Загрузка..."
-                            : "▶  Радио"
+                        radius:
+                            8
+
+                        color:
+                            radioMouse.containsMouse
+                                ? root.radioButtonHoverColor
+                                : root.radioButtonColor
+
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: 140
+                                easing.type: Easing.OutCubic
+                            }
+                        }
 
                         enabled:
                             !root.genreController ||
                             !root.genreController.stationLoading
 
-                        onClicked: {
-                            if (
-                                root.genreController
-                            ) {
-                                root.genreController.loadGenreStation(
-                                    root.genreId
-                                )
+                        opacity:
+                            enabled ? 1.0 : 0.5
+
+                        Label {
+                            id: radioLabel
+
+                            anchors.centerIn:
+                                parent
+
+                            text:
+                                root.genreController &&
+                                root.genreController.stationLoading
+                                ? "Загрузка..."
+                                : "▶  Радио"
+
+                            color:
+                                "#ffffff"
+
+                            font.pixelSize:
+                                13
+
+                            font.bold:
+                                true
+                        }
+
+                        MouseArea {
+                            id: radioMouse
+
+                            anchors.fill:
+                                parent
+
+                            hoverEnabled:
+                                true
+
+                            cursorShape:
+                                Qt.PointingHandCursor
+
+                            enabled:
+                                parent.enabled
+
+                            onClicked: {
+                                if (
+                                    root.genreController
+                                ) {
+                                    root.genreController.loadGenreStation(
+                                        root.genreId
+                                    )
+                                }
                             }
                         }
                     }
