@@ -6,6 +6,7 @@
 #include <QString>
 #include "../../Models/PersonalPlaylist.h"
 #include "../../Models/Playlist.h"
+#include "../MemoryCache.h"
 #include "../YandexServiceBase.h"
 
 
@@ -106,6 +107,10 @@ private:
 
     void finishPlaylistBatch();
 
+    QString cacheKeyFor(
+        const QString &uid,
+        int kind) const;
+
 private:
 
     // Batch state
@@ -121,6 +126,13 @@ private:
     int m_playlistBatchCompleted = 0;
 
     bool m_playlistBatchError = false;
+
+    /*
+     * L1-кэш открытого плейлиста. Ключ — "uid:kind".
+     * Инвалидируется при любых мутациях (add/remove/rename/delete).
+     */
+
+    MemoryCache<Playlist> m_playlistCache;
 
     static constexpr int
         MaxConcurrentPlaylistRequests = 5;

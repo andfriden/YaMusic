@@ -39,6 +39,16 @@ void AlbumService::loadAlbum(
     }
 
     /*
+     * L1-кэш: отдаём сразу, если данные ещё свежие.
+     */
+    AlbumDetails cached;
+
+    if (m_cache.get(albumId, cached)) {
+        emit albumReceived(cached);
+        return;
+    }
+
+    /*
      * -------------------------------------------------
      * Album endpoint
      * -------------------------------------------------
@@ -265,6 +275,8 @@ void AlbumService::loadAlbum(
             /*
              * Notify listeners
              */
+
+            m_cache.put(albumId, albumDetails);
 
             emit albumReceived(
                 albumDetails);

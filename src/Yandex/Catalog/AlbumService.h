@@ -4,6 +4,7 @@
 #include <QList>
 #include <QString>
 #include "../../Models/Track.h"
+#include "../MemoryCache.h"
 #include "../YandexServiceBase.h"
 
 struct AlbumDetails
@@ -35,4 +36,7 @@ public:
 
     void errorOccurred(
         const QString &message);
+
+private:
+    MemoryCache<AlbumDetails> m_cache;
 };

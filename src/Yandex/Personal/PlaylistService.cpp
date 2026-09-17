@@ -257,6 +257,19 @@ void PlaylistService::loadPlaylist(
         return;
     }
 
+    /*
+     * L1-кэш: отдаём сразу, если данные ещё свежие.
+     */
+    const QString cacheKey =
+        trimmedUid + ":" + QString::number(kind);
+
+    Playlist cached;
+
+    if (m_playlistCache.get(cacheKey, cached)) {
+        emit playlistReceived(cached);
+        return;
+    }
+
     const QString path =
         QString(
             "/users/%1/playlists/%2")
@@ -276,7 +289,7 @@ void PlaylistService::loadPlaylist(
         reply,
         &QNetworkReply::finished,
         this,
-        [this, reply]()
+        [this, reply, cacheKey]()
         {
             const QByteArray data =
                 reply->readAll();
@@ -310,6 +323,10 @@ void PlaylistService::loadPlaylist(
                 loadSimilarPlaylists(
                     playlist.uuid);
             }
+
+            m_playlistCache.put(
+                cacheKey,
+                playlist);
 
             emit playlistReceived(
                 playlist);
@@ -404,14 +421,14 @@ void PlaylistService::startNextPlaylistBatchRequests()
             continue;
         }
 
-        connect(
-            reply,
-            &QNetworkReply::finished,
-            this,
-            [this, reply]()
-            {
-                const QByteArray data =
-                    reply->readAll();
+connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply]()
+        {
+            const QByteArray data =
+                reply->readAll();
 
                 --m_playlistBatchActive;
                 ++m_playlistBatchCompleted;
@@ -844,7 +861,7 @@ void PlaylistService::deletePlaylist(
         reply,
         &QNetworkReply::finished,
         this,
-        [this, reply, kind]()
+        [this, reply, userId, kind]()
         {
             Q_UNUSED(reply->readAll());
 
@@ -858,8 +875,19 @@ void PlaylistService::deletePlaylist(
             }
 
             reply->deleteLater();
+            m_playlistCache.remove(
+                cacheKeyFor(userId, kind));
             emit playlistDeleted(kind);
         });
+}
+
+QString PlaylistService::cacheKeyFor(
+    const QString &uid,
+    int kind) const
+{
+    return QString("%1:%2")
+        .arg(uid.trimmed())
+        .arg(kind);
 }
 
 void PlaylistService::renamePlaylist(
@@ -909,7 +937,7 @@ void PlaylistService::renamePlaylist(
         reply,
         &QNetworkReply::finished,
         this,
-        [this, reply, title]()
+        [this, reply, title, userId, kind]()
         {
             Q_UNUSED(reply->readAll());
 
@@ -923,6 +951,8 @@ void PlaylistService::renamePlaylist(
             }
 
             reply->deleteLater();
+            m_playlistCache.remove(
+                cacheKeyFor(userId, kind));
             emit playlistRenamed(title);
         });
 }
@@ -995,7 +1025,7 @@ void PlaylistService::addTracksToPlaylist(
         reply,
         &QNetworkReply::finished,
         this,
-        [this, reply, trackList, kind]()
+        [this, reply, trackList, kind, userId]()
         {
             if (reply->error() !=
                 QNetworkReply::NoError) {
@@ -1018,6 +1048,8 @@ void PlaylistService::addTracksToPlaylist(
                        << "response=" << QString::fromUtf8(data).left(200);
 
             reply->deleteLater();
+            m_playlistCache.remove(
+                cacheKeyFor(userId, kind));
             emit tracksAdded(kind, trackList.size());
         });
 }
@@ -1081,7 +1113,7 @@ void PlaylistService::removeTrackFromPlaylist(
         reply,
         &QNetworkReply::finished,
         this,
-        [this, reply, kind]()
+        [this, reply, kind, userId]()
         {
             const QByteArray data =
                 reply->readAll();
@@ -1107,6 +1139,8 @@ void PlaylistService::removeTrackFromPlaylist(
                        << "response=" << QString::fromUtf8(data).left(200);
 
             reply->deleteLater();
+            m_playlistCache.remove(
+                cacheKeyFor(userId, kind));
             emit tracksRemoved(kind, 1);
         });
 }

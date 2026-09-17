@@ -207,6 +207,19 @@ void ArtistService::loadArtistAlbums(
         return;
     }
 
+    /*
+     * L1-кэш: отдаём сразу, если данные ещё свежие.
+     */
+    const QString cacheKey =
+        "albums/" + artistId;
+
+    QList<Album> cached;
+
+    if (m_albumsCache.get(cacheKey, cached)) {
+        emit artistAlbumsReceived(cached);
+        return;
+    }
+
     QUrlQuery query;
 
     query.addQueryItem(
@@ -239,7 +252,8 @@ void ArtistService::loadArtistAlbums(
         this,
         [this,
          reply,
-         artistId]() {
+         artistId,
+         cacheKey]() {
 
             const QByteArray data =
                 reply->readAll();
@@ -319,6 +333,8 @@ void ArtistService::loadArtistAlbums(
 
             reply->deleteLater();
 
+            m_albumsCache.put(cacheKey, albums);
+
             emit artistAlbumsReceived(
                 albums);
         });
@@ -348,6 +364,16 @@ void ArtistService::loadArtist(
         return;
     }
 
+    /*
+     * L1-кэш: отдаём сразу, если данные ещё свежие.
+     */
+    ArtistDetails cachedArtist;
+
+    if (m_artistCache.get(artistId, cachedArtist)) {
+        emit artistReceived(cachedArtist);
+        return;
+    }
+
     auto loadAdditionalData =
         [this,
          artistId](
@@ -365,6 +391,7 @@ void ArtistService::loadArtist(
             auto finalize =
                 [this,
                  artistData,
+                 artistId,
                  completed]() {
 
                     ++(*completed);
@@ -382,6 +409,10 @@ void ArtistService::loadArtist(
                         *artistData);
 
                     restoreSimilarArtistArtwork(
+                        *artistData);
+
+                    m_artistCache.put(
+                        artistId,
                         *artistData);
 
                     emit artistReceived(
