@@ -53,6 +53,9 @@ QVariant LibraryPlaylistsModel::data(
         case KindRole:
             return playlist.kind;
 
+        case RevisionRole:
+            return playlist.revision;
+
         case TitleRole:
             return playlist.title;
 
@@ -87,6 +90,10 @@ LibraryPlaylistsModel::roleNames() const
         {
             KindRole,
             "kind"
+        },
+        {
+            RevisionRole,
+            "revision"
         },
         {
             TitleRole,

@@ -646,6 +646,7 @@ Item {
                                     required property string title
                                     required property string artist
                                     required property string artistId
+                                    required property string albumId
                                     required property string coverUri
                                     required property int durationMs
 
@@ -943,7 +944,7 @@ Item {
                                                     trackRow.trackId
 
                                                 addToPlaylistPopup.albumId =
-                                                    ""
+                                                    trackRow.albumId
 
                                                 addToPlaylistPopup.open()
                                             }

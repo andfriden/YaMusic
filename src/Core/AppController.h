@@ -179,7 +179,7 @@ public:
     Q_INVOKABLE void deleteCurrentPlaylist();
     Q_INVOKABLE void renameCurrentPlaylist(const QString &newTitle);
     Q_INVOKABLE void removeTrackFromPlaylist(int index);
-    Q_INVOKABLE void addTrackToPlaylist(int kind, const QString &trackId, const QString &albumId);
+    Q_INVOKABLE void addTrackToPlaylist(int kind, const QString &trackId, const QString &albumId, int revision = 1);
     Q_INVOKABLE void selectMyWaveTrack(int index);
     Q_INVOKABLE void selectPersonalPlaylist(const QString &uid, int kind);
     Q_INVOKABLE void selectPlaylistTrack(int index);

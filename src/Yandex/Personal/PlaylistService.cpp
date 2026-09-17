@@ -149,6 +149,9 @@ PersonalPlaylist parseUserPlaylist(
     playlist.kind =
         object.value("kind").toInt();
 
+    playlist.revision =
+        object.value("revision").toInt();
+
     playlist.title =
         object.value("title").toString();
 
@@ -992,7 +995,7 @@ void PlaylistService::addTracksToPlaylist(
         reply,
         &QNetworkReply::finished,
         this,
-        [this, reply, trackList]()
+        [this, reply, trackList, kind]()
         {
             if (reply->error() !=
                 QNetworkReply::NoError) {
@@ -1003,15 +1006,27 @@ void PlaylistService::addTracksToPlaylist(
                 return;
             }
 
+            const QByteArray data =
+                reply->readAll();
+
+            // Ответ /change описывает целевой плейлист, а не тот,
+            // что открыт сейчас — не эмитим playlistReceived, чтобы
+            // не затереть текущую модель. LibraryController сам
+            // перезагрузит открытый плейлист и обновит список.
+            qWarning() << "[add] success, kind=" << kind
+                       << "added=" << trackList.size()
+                       << "response=" << QString::fromUtf8(data).left(200);
+
             reply->deleteLater();
-            emit tracksAdded(trackList.size());
+            emit tracksAdded(kind, trackList.size());
         });
 }
 
-void PlaylistService::removeTracksFromPlaylist(
+void PlaylistService::removeTrackFromPlaylist(
     const QString &uid,
     int kind,
-    const QStringList &trackIds)
+    int trackIndex,
+    int revision)
 {
     if (!ensureAuthenticated()) {
         emit errorOccurred(
@@ -1027,40 +1042,38 @@ void PlaylistService::removeTracksFromPlaylist(
         return;
     }
 
-    QStringList ids;
-    for (const QString &id : trackIds) {
-        const QString trimmed = id.trimmed();
-        if (!trimmed.isEmpty()) {
-            ids.append(trimmed);
-        }
-    }
-
-    if (ids.isEmpty()) {
+    if (trackIndex < 0) {
         emit errorOccurred(
-            "Нет треков для удаления");
+            "Некорректный индекс трека");
         return;
     }
 
-    QUrlQuery body;
-    body.addQueryItem(
-        "track-ids",
-        ids.join(","));
+    QJsonArray operations;
+    QJsonObject op;
+    op["op"] = "delete";
+    op["from"] = trackIndex;
+    op["to"] = trackIndex + 1;
+    operations.append(op);
 
-    body.addQueryItem(
-        "remove-ids",
-        ids.join(","));
+    const QString diffStr = QString::fromUtf8(
+        QJsonDocument(operations).toJson(QJsonDocument::Compact));
+
+    QUrlQuery formBody;
+    formBody.addQueryItem("kind", QString::number(kind));
+    formBody.addQueryItem("revision", QString::number(revision));
+    formBody.addQueryItem("diff", diffStr);
 
     const QString path =
-        QString("/users/%1/playlists/%2/change-relative")
+        QString("/users/%1/playlists/%2/change")
             .arg(userId)
             .arg(kind);
 
     QNetworkReply *reply =
-        m_yandexClient->postForm(path, body);
+        m_yandexClient->postForm(path, formBody);
 
     if (reply == nullptr) {
         emit errorOccurred(
-            "Не удалось удалить треки");
+            "Не удалось удалить трек");
         return;
     }
 
@@ -1068,20 +1081,32 @@ void PlaylistService::removeTracksFromPlaylist(
         reply,
         &QNetworkReply::finished,
         this,
-        [this, reply, ids]()
+        [this, reply, kind]()
         {
-            Q_UNUSED(reply->readAll());
+            const QByteArray data =
+                reply->readAll();
 
             if (reply->error() !=
                 QNetworkReply::NoError) {
 
                 emit errorOccurred(
-                    reply->errorString());
+                    QString("Удаление трека: %1 (HTTP %2) %3")
+                        .arg(reply->errorString())
+                        .arg(reply->attribute(
+                            QNetworkRequest::HttpStatusCodeAttribute).toInt())
+                        .arg(QString::fromUtf8(data).left(300)));
                 reply->deleteLater();
                 return;
             }
 
+            // Ответ /change описывает изменённый плейлист, но треки
+            // в нём могут отсутствовать, а главное — открытая модель
+            // может быть другим плейлистом. Не эмитим playlistReceived,
+            // чтобы не затереть текущий открытый плейлист.
+            qWarning() << "[remove] success, kind=" << kind
+                       << "response=" << QString::fromUtf8(data).left(200);
+
             reply->deleteLater();
-            emit tracksRemoved(ids.size());
+            emit tracksRemoved(kind, 1);
         });
 }

@@ -60,10 +60,11 @@ public:
         const QStringList &albumIds,
         int revision = 1);
 
-    void removeTracksFromPlaylist(
+    void removeTrackFromPlaylist(
         const QString &uid,
         int kind,
-        const QStringList &trackIds);
+        int trackIndex,
+        int revision = 1);
 
 signals:
 
@@ -89,9 +90,11 @@ signals:
         const QString &newTitle);
 
     void tracksAdded(
+        int kind,
         int count);
 
     void tracksRemoved(
+        int kind,
         int count);
 
     void errorOccurred(

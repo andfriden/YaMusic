@@ -28,6 +28,16 @@ LibraryController::LibraryController(
             &PlaylistService::playlistReceived,
             this,
             [this](const Playlist &playlist) {
+                // Если мы уже открыли другой плейлист, а этот ответ
+                // пришёл для другой цели (например, /change вернул
+                // целевой плейлист) — не затираем текущую модель.
+                const int currentKind =
+                    m_playlistModel->kind();
+                if (currentKind > 0 &&
+                    currentKind != playlist.kind) {
+                    return;
+                }
+
                 m_loadingPlaylist = false;
 
                 emit loadingPlaylistChanged();
@@ -206,18 +216,28 @@ emit statusChanged(
                 m_playlistService,
                 &PlaylistService::tracksAdded,
                 this,
-                [this](int count) {
+                [this](int kind, int count) {
                     emit statusChanged(
                         QString("Добавлено треков: %1").arg(count));
 
-                    // Reload current playlist
+                    // Обновляем список пользовательских плейлистов,
+                    // чтобы счётчики треков в пикере были актуальными.
                     if (!m_userId.isEmpty()) {
-                        const int kind =
+                        loadUserPlaylists(m_userId);
+                    }
+
+                    // Перезагружаем открытый плейлист только если
+                    // изменения коснулись именно его — иначе не трогаем
+                    // текущий экран (например, добавляли в другой плейлист
+                    // или в персональную подборку).
+                    if (!m_userId.isEmpty()) {
+                        const int currentKind =
                             m_playlistModel->kind();
-                        if (kind > 0) {
+                        if (currentKind > 0 &&
+                            currentKind == kind) {
                             loadPlaylist(
                                 m_userId,
-                                kind);
+                                currentKind);
                         }
                     }
                 });
@@ -226,19 +246,27 @@ emit statusChanged(
                 m_playlistService,
                 &PlaylistService::tracksRemoved,
                 this,
-                [this](int count) {
+                [this](int kind, int count) {
                     emit playlistTracksChanged();
                     emit statusChanged(
                         QString("Удалено треков: %1").arg(count));
 
-                    // Reload current playlist to reflect changes
+                    // Обновляем список пользовательских плейлистов,
+                    // чтобы счётчики треков были актуальными.
                     if (!m_userId.isEmpty()) {
-                        const int kind =
+                        loadUserPlaylists(m_userId);
+                    }
+
+                    // Reload current playlist only if it is the one
+                    // that was modified.
+                    if (!m_userId.isEmpty()) {
+                        const int currentKind =
                             m_playlistModel->kind();
-                        if (kind > 0) {
+                        if (currentKind > 0 &&
+                            currentKind == kind) {
                             loadPlaylist(
                                 m_userId,
-                                kind);
+                                currentKind);
                         }
                     }
                 });
@@ -1227,16 +1255,18 @@ void LibraryController::removeTrackFromPlaylist(
     }
 
     m_playlistService
-        ->removeTracksFromPlaylist(
+        ->removeTrackFromPlaylist(
             m_userId,
             kind,
-            {track.id});
+            index,
+            m_playlistModel->revision());
 }
 
 void LibraryController::addTrackToPlaylist(
     int kind,
     const QString &trackId,
-    const QString &albumId)
+    const QString &albumId,
+    int revision)
 {
     if (
         m_playlistService == nullptr ||
@@ -1258,5 +1288,5 @@ void LibraryController::addTrackToPlaylist(
         kind,
         {trackId.trimmed()},
         {albumId.trimmed()},
-        m_playlistModel->revision());
+        revision);
 }

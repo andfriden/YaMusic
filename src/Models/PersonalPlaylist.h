@@ -8,6 +8,7 @@ struct PersonalPlaylist
     QString uid;
 
     int kind = 0;
+    int revision = 0;
 
     QString title;
     QString description;

@@ -34,6 +34,7 @@ public:
         TitleRole,
         ArtistRole,
         ArtistIdRole,
+        AlbumIdRole,
         CoverUriRole,
         DurationMsRole,
         LikedRole

@@ -9,11 +9,10 @@ Popup {
     property string trackId: ""
     property string albumId: ""
 
-    x: Math.round((parent.width - width) / 2)
-    y: Math.round((parent.height - height) / 2)
+    anchors.centerIn: Overlay.overlay
 
-    width: Math.min(320, parent.width * 0.8)
-    height: Math.min(400, parent.height * 0.6)
+    width: Math.min(320, Overlay.overlay ? Overlay.overlay.width * 0.8 : 320)
+    height: Math.min(400, Overlay.overlay ? Overlay.overlay.height * 0.6 : 400)
 
     modal: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
@@ -51,11 +50,12 @@ Popup {
 
             delegate: Rectangle {
                 required property int kind
+                required property int revision
                 required property string title
                 required property string coverUri
                 required property int trackCount
 
-                width: parent.width
+                width: parent ? parent.width : 0
                 height: 56
                 radius: 8
                 color: mouseArea.containsMouse
@@ -72,7 +72,8 @@ Popup {
                             root.controller.addTrackToPlaylist(
                                 kind,
                                 root.trackId,
-                                root.albumId
+                                root.albumId,
+                                revision
                             )
                             root.close()
                         }

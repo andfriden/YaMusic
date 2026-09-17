@@ -42,6 +42,11 @@ QVariant AlbumModel::data(
                 ? QString()
                 : track.artists.first().id;
 
+        case AlbumIdRole:
+            return track.albums.isEmpty()
+                ? QString()
+                : track.albums.first().id;
+
         case CoverUriRole:
             return track.coverUri;
 
@@ -63,6 +68,7 @@ AlbumModel::roleNames() const
         { TitleRole, "title" },
         { ArtistRole, "artist" },
         { ArtistIdRole, "artistId" },
+        { AlbumIdRole, "albumId" },
         { CoverUriRole, "coverUri" },
         { DurationMsRole, "durationMs" },
         { LikedRole, "liked" }

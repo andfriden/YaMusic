@@ -271,7 +271,8 @@ public:
     Q_INVOKABLE void addTrackToPlaylist(
         int kind,
         const QString &trackId,
-        const QString &albumId);
+        const QString &albumId,
+        int revision = 1);
 
 signals:
 

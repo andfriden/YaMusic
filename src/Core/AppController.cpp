@@ -241,6 +241,12 @@ void AppController::connectAccount()
             m_libraryController->setUserId(
                 m_accountUid);
 
+            // Список личных плейлистов нужен в пикере «Добавить
+            // в плейлист» на всех страницах — грузим сразу при
+            // входе, а не только при открытии Медиатеки.
+            m_libraryController->loadUserPlaylists(
+                m_accountUid);
+
             m_personalController->loadMyWave();
             m_personalController->loadRecommendations();
 
