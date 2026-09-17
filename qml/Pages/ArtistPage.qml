@@ -18,18 +18,11 @@ Item {
             ? parent.width
             : 0
 
-    height:
-        parent
-            ? parent.height
-            : 900
-
     implicitWidth:
         width
 
     implicitHeight:
-        parent
-            ? parent.height
-            : 900
+        pageColumn.implicitHeight + 56
 
 
     /*
@@ -156,34 +149,22 @@ Item {
 
     /*
      * =============================================================
-     * Main scroll
+     * Main content
+     *
+     * No nested ScrollView here: the outer ScrollView in MainLayout
+     * owns the vertical scrolling. A nested ScrollView would swallow
+     * the mouse wheel and block the page from scrolling.
      * =============================================================
      */
 
-    ScrollView {
-        id: pageScroll
+    Column {
+        id: pageColumn
 
-        anchors.fill:
-            parent
+        width:
+            root.width
 
-        clip:
-            true
-
-        ScrollBar.vertical:
-            ScrollBar {
-                policy:
-                    ScrollBar.AsNeeded
-            }
-
-
-        Column {
-            id: pageColumn
-
-            width:
-                pageScroll.availableWidth
-
-            spacing:
-                20
+        spacing:
+            20
 
 
             /*
@@ -1322,123 +1303,21 @@ Column {
                          8
 
 
-                    Row {
+                    Label {
                         width:
                             parent.width
 
-                        spacing:
-                             12
+                        text:
+                            qsTr("Все альбомы")
 
+                        color:
+                            AppTheme.textPrimary
 
-                        Label {
-                            width:
-                                parent.width -
-                                240
+                        font.pixelSize:
+                            22
 
-                            text:
-                                qsTr("Все альбомы")
-
-                            color:
-                                AppTheme.textPrimary
-
-                            font.pixelSize:
-                                22
-
-                            font.bold:
-                                true
-
-                            anchors.verticalCenter:
-                                parent.verticalCenter
-                        }
-
-
-                        // Filter buttons
-                        Repeater {
-                            model: [
-                                { label: "Все", type: "" },
-                                { label: "Альбомы", type: "album" },
-                                { label: "Синглы", type: "single" },
-                                { label: "Сборники", type: "compilation" }
-                            ]
-
-                            Rectangle {
-                                required property string label
-                                required property string type
-
-                                width:
-                                    filterLabel.implicitWidth + 20
-
-                                height:
-                                     30
-
-                                radius:
-                                     7
-
-                                color:
-                                        root.artistController &&
-                                    root.artistController.albumFilterType === type
-                                        ? AppTheme.accent
-                                        : (
-                                            filterMouse.containsMouse
-                                                ? AppTheme.panelHover
-                                                : AppTheme.panel
-                                        )
-
-                                border.width:
-                                    1
-
-                                border.color:
-                                    AppTheme.borderSubtle
-
-
-                                Label {
-                                    id: filterLabel
-
-                                    anchors.centerIn:
-                                        parent
-
-                                    text:
-                                        modelData.label
-
-                                    color:
-                                            root.artistController &&
-                                        root.artistController.albumFilterType === type
-                                            ? "#ffffff"
-                                            : AppTheme.textPrimary
-
-                                    font.pixelSize:
-                                        12
-
-                                    font.bold:
-                                        true
-                                }
-
-
-                                MouseArea {
-                                    id: filterMouse
-
-                                    anchors.fill:
-                                        parent
-
-                                    hoverEnabled:
-                                        true
-
-                                    cursorShape:
-                                        Qt.PointingHandCursor
-
-                                    onClicked: {
-                                        if (
-                                            root.artistController
-                                        ) {
-                                            root.artistController
-                                                .setAlbumFilterType(
-                                                type
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        font.bold:
+                            true
                     }
 
 
@@ -1709,7 +1588,6 @@ Column {
                     140
             }
         }
-    }
 
 
     /*
