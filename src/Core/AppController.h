@@ -114,6 +114,7 @@ class AppController : public QObject
     Q_PROPERTY(QString lyricsText READ lyricsText NOTIFY lyricsChanged)
     Q_PROPERTY(int lyricsLineCount READ lyricsLineCount NOTIFY lyricsChanged)
     Q_PROPERTY(bool lyricsAvailable READ lyricsAvailable NOTIFY lyricsChanged)
+    Q_PROPERTY(int currentLyricLine READ currentLyricLine NOTIFY currentLyricLineChanged)
 
     Q_PROPERTY(qint64 position READ position NOTIFY positionChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
@@ -282,6 +283,20 @@ public:
 
     bool lyricsAvailable() const;
 
+    /*
+     * Индекс текущей строки по позиции воспроизведения
+     * (−1, если таймингов нет).
+     */
+
+    int currentLyricLine() const;
+
+    /*
+     * Текст строки по индексу (для построчного вывода).
+     */
+
+    Q_INVOKABLE QString lyricLineText(
+        int index) const;
+
     qint64 position() const;
     qint64 duration() const;
     PlaybackController::PlaybackState playbackState() const;
@@ -352,9 +367,12 @@ public:
 
     void lyricsChanged();
 
+    void currentLyricLineChanged();
+
 private:
     void connectAccount();
     void connectSearch();
+    void updateCurrentLyricLine();
     void connectLibrary();
     void connectAlbum();
     void connectPersonal();
@@ -407,4 +425,5 @@ private:
      */
 
     TrackSupplementary m_supplementary;
+    int m_currentLyricLine = -1;
 };

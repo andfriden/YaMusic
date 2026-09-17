@@ -2,6 +2,7 @@
 
 #include <QList>
 #include <QString>
+#include <QRegularExpression>
 #include "../../Models/Track.h"
 #include "../YandexServiceBase.h"
 
@@ -38,6 +39,13 @@ public:
     void loadSupplementary(
         const QString &trackId);
 
+    /*
+     * Загружает синхронизированный текст через
+     * /tracks/{id}/lyrics (LRC по downloadUrl).
+     */
+    void loadTrackLyrics(
+        const QString &trackId);
+
     void loadSimilarTracks(
         const QString &trackId);
 
@@ -65,4 +73,8 @@ private:
     void resolveStream(
         const QString &trackId,
         const TrackStreamInfo &stream);
+
+    void parseLrc(
+        const QString &lrcText,
+        TrackSupplementary &out) const;
 };

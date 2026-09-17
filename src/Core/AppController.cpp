@@ -119,7 +119,9 @@ AppController::AppController(
         this,
         [this]() {
             m_supplementary = {};
+            m_currentLyricLine = -1;
             emit lyricsChanged();
+            emit currentLyricLineChanged();
         });
 
     connect(
@@ -128,7 +130,9 @@ AppController::AppController(
         this,
         [this](const TrackSupplementary &supplement) {
             m_supplementary = supplement;
+            m_currentLyricLine = -1;
             emit lyricsChanged();
+            emit currentLyricLineChanged();
         });
 
     connect(
@@ -695,6 +699,7 @@ void AppController::connectPlayer()
             emit positionChanged();
             if (m_playbackController)
                 m_playbackController->systemMediaControls()->setPosition(pos);
+            updateCurrentLyricLine();
         });
 
     connect(
@@ -1356,8 +1361,10 @@ void AppController::loadLyrics()
         return;
 
     m_supplementary = {};
+    m_currentLyricLine = -1;
 
     emit lyricsChanged();
+    emit currentLyricLineChanged();
 
     m_trackService->loadSupplementary(
         id);
@@ -1391,4 +1398,61 @@ bool AppController::lyricsAvailable() const
 {
     return !m_supplementary.fullText.isEmpty() ||
            !m_supplementary.lines.isEmpty();
+}
+
+
+int AppController::currentLyricLine() const
+{
+    return m_currentLyricLine;
+}
+
+
+QString AppController::lyricLineText(
+    int index) const
+{
+    if (
+        index < 0 ||
+        index >= m_supplementary.lines.size()
+    ) {
+        return {};
+    }
+
+    return m_supplementary.lines.at(
+        index).text;
+}
+
+
+/*
+ * Обновляет индекс текущей строки по позиции воспроизведения.
+ * Вызывается из слота positionChanged.
+ */
+void AppController::updateCurrentLyricLine()
+{
+    if (!m_supplementary.hasTimedLines()) {
+        if (m_currentLyricLine != -1) {
+            m_currentLyricLine = -1;
+            emit currentLyricLineChanged();
+        }
+        return;
+    }
+
+    const qint64 pos =
+        position();
+
+    const QList<LyricLine> &lines =
+        m_supplementary.lines;
+
+    int index = 0;
+
+    while (
+        index < lines.size() - 1 &&
+        lines.at(index + 1).timestampMs <= pos
+    ) {
+        ++index;
+    }
+
+    if (index != m_currentLyricLine) {
+        m_currentLyricLine = index;
+        emit currentLyricLineChanged();
+    }
 }
