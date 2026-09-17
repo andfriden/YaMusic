@@ -38,6 +38,9 @@ public:
     void setAlbums(
         const QList<Album> &albums);
 
+    void appendAlbums(
+        const QList<Album> &albums);
+
     void clear();
 
     Album albumAt(

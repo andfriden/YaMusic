@@ -173,6 +173,7 @@ public:
     Q_INVOKABLE void selectSearchArtist(int index);
     Q_INVOKABLE void selectSearchAlbum(int index);
     Q_INVOKABLE void selectSearchPlaylist(int index);
+    Q_INVOKABLE void loadMoreSearchResults();
     Q_INVOKABLE void selectSimilarTrack(int index);
     Q_INVOKABLE void loadMoreGenreStation();
     Q_INVOKABLE void selectGenreStationTrack(int index);

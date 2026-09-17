@@ -104,3 +104,24 @@ void SearchModel::setResults(
     setTracks(
         results.tracks);
 }
+
+
+void SearchModel::appendResults(
+    const QList<Track> &tracks)
+{
+    if (tracks.isEmpty()) {
+        return;
+    }
+
+    beginInsertRows(
+        QModelIndex(),
+        m_tracks.size(),
+        m_tracks.size() + tracks.size() - 1);
+
+    m_tracks.append(
+        tracks);
+
+    endInsertRows();
+
+    emit countChanged();
+}

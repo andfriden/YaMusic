@@ -100,6 +100,12 @@ Item {
 
                     ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
+                    onAtYEndChanged: {
+                        if (atYEnd && root.controller) {
+                            root.controller.loadMoreSearchResults()
+                        }
+                    }
+
                     delegate: Rectangle {
                         required property int index
                         required property string trackId
@@ -381,6 +387,12 @@ Item {
                         }
                     }
 
+                    onAtYEndChanged: {
+                        if (atYEnd && root.controller) {
+                            root.controller.loadMoreSearchResults()
+                        }
+                    }
+
                     Label {
                         anchors.centerIn: parent
                         text: root.controller && root.controller.searching
@@ -463,6 +475,12 @@ Item {
                             font.pixelSize: 14
                             font.bold: true
                             elide: Text.ElideRight
+                        }
+                    }
+
+                    onAtYEndChanged: {
+                        if (atYEnd && root.controller) {
+                            root.controller.loadMoreSearchResults()
                         }
                     }
 
@@ -562,6 +580,12 @@ Item {
                                 font.pixelSize: 11
                                 elide: Text.ElideRight
                             }
+                        }
+                    }
+
+                    onAtYEndChanged: {
+                        if (atYEnd && root.controller) {
+                            root.controller.loadMoreSearchResults()
                         }
                     }
 

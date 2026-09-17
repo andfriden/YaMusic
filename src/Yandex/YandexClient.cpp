@@ -191,7 +191,8 @@ void YandexClient::getAccountStatus()
 }
 
 void YandexClient::search(
-    const QString &query)
+    const QString &query,
+    int page)
 {
     if (m_searchReply) {
 
@@ -212,7 +213,7 @@ void YandexClient::search(
 
     queryParameters.addQueryItem(
         "page",
-        "0");
+        QString::number(qMax(0, page)));
 
     queryParameters.addQueryItem(
         "type",

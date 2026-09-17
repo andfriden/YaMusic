@@ -139,6 +139,11 @@ Album parseAlbum(
         obj.value("year")
             .toInt();
 
+    album.type =
+        obj.value("type")
+            .toString()
+            .trimmed();
+
     return album;
 }
 

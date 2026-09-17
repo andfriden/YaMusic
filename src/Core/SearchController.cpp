@@ -60,21 +60,61 @@ SearchController::SearchController(
 
             emit searchingChanged();
 
-            m_model
-                ->setResults(
-                    results);
+            // Пагинация: страница 0 заменяет результаты,
+            // последующие — дописывают к текущим.
+            if (results.page <= 0) {
 
-            m_artistsModel
-                ->setArtists(
-                    results.artists);
+                m_model
+                    ->setResults(
+                        results);
 
-            m_albumsModel
-                ->setAlbums(
-                    results.albums);
+                m_artistsModel
+                    ->setArtists(
+                        results.artists);
 
-            m_playlistsModel
-                ->setPlaylists(
-                    results.playlists);
+                m_albumsModel
+                    ->setAlbums(
+                        results.albums);
+
+                m_playlistsModel
+                    ->setPlaylists(
+                        results.playlists);
+
+            } else {
+
+                m_model
+                    ->appendResults(
+                        results.tracks);
+
+                m_artistsModel
+                    ->appendArtists(
+                        results.artists);
+
+                m_albumsModel
+                    ->appendAlbums(
+                        results.albums);
+
+                m_playlistsModel
+                    ->appendPlaylists(
+                        results.playlists);
+            }
+
+            m_currentPage =
+                results.page;
+
+            const bool canLoadMore =
+                results.total > 0 &&
+                (
+                    results.total >
+                    (results.page + 1) * qMax(1, results.perPage)
+                );
+
+            if (canLoadMore != m_canLoadMore) {
+                m_canLoadMore =
+                    canLoadMore;
+
+                emit canLoadMoreSearchChanged();
+            }
 
             emit statusChanged(
                 QString(
@@ -95,17 +135,29 @@ SearchController::SearchController(
 
             emit searchingChanged();
 
-            m_model
-                ->clear();
+            // При ошибке новой страницы очищаем всё: результаты
+            // больше не имеют смысла без стабильного состояния.
+            if (m_currentPage > 0) {
+                m_model
+                    ->clear();
 
-            m_artistsModel
-                ->clear();
+                m_artistsModel
+                    ->clear();
 
-            m_albumsModel
-                ->clear();
+                m_albumsModel
+                    ->clear();
 
-            m_playlistsModel
-                ->clear();
+                m_playlistsModel
+                    ->clear();
+
+                m_currentPage = 0;
+                m_currentQuery.clear();
+            }
+
+            if (m_canLoadMore) {
+                m_canLoadMore = false;
+                emit canLoadMoreSearchChanged();
+            }
 
             emit statusChanged(
                 message);
@@ -133,6 +185,14 @@ void SearchController::search(
         m_playlistsModel
             ->clear();
 
+        m_currentPage = 0;
+        m_currentQuery.clear();
+
+        if (m_canLoadMore) {
+            m_canLoadMore = false;
+            emit canLoadMoreSearchChanged();
+        }
+
         if (
             m_searching
         ) {
@@ -157,9 +217,42 @@ void SearchController::search(
         return;
     }
 
+    m_currentQuery =
+        trimmedQuery;
+
     m_searchService
         ->search(
-            trimmedQuery);
+            trimmedQuery,
+            0);
+}
+
+
+void SearchController::loadMoreSearchResults()
+{
+    if (
+        !m_canLoadMore ||
+        m_searching ||
+        m_searchService == nullptr ||
+        m_currentQuery.isEmpty()
+    ) {
+        return;
+    }
+
+    m_searching =
+        true;
+
+    emit searchingChanged();
+
+    m_searchService
+        ->search(
+            m_currentQuery,
+            m_currentPage + 1);
+}
+
+
+bool SearchController::canLoadMoreSearch() const
+{
+    return m_canLoadMore;
 }
 
 void SearchController::selectResult(

@@ -80,6 +80,11 @@ class ArtistController : public QObject
         READ newReleaseYear
         NOTIFY artistChanged)
 
+    Q_PROPERTY(
+        QString albumFilterType
+        READ albumFilterType
+        NOTIFY albumFilterChanged)
+
 public:
     explicit ArtistController(
         ArtistService *artistService,
@@ -96,6 +101,13 @@ public:
         int index);
 
     Q_INVOKABLE void playArtist();
+
+    /*
+     * Устанавливает фильтр альбомов: "", "album", "single", "compilation".
+     * Пустая строка — показать всё.
+     */
+    Q_INVOKABLE void setAlbumFilterType(
+        const QString &filterType);
 
     ArtistModel *artistModel() const;
 
@@ -123,6 +135,8 @@ public:
 
     int newReleaseYear() const;
 
+    QString albumFilterType() const;
+
 signals:
     void statusChanged(
         const QString &message);
@@ -137,7 +151,12 @@ signals:
     void similarArtistSelected(
         const QString &artistId);
 
+    void albumFilterChanged();
+
 private:
+
+    void applyAlbumFilter();
+
     ArtistService *m_artistService =
         nullptr;
 
@@ -163,4 +182,8 @@ private:
     QString m_artistGenres;
 
     Album m_newRelease;
+
+    QString m_albumFilterType;
+
+    QList<Album> m_allAlbums;
 };

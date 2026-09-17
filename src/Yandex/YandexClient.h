@@ -52,7 +52,8 @@ public:
         const QString &path) const;
 
     void search(
-        const QString &query);
+        const QString &query,
+        int page = 0);
 
     void getTracks(
         const QStringList &trackIds);

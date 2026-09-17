@@ -16,6 +16,12 @@ struct Album
     QString title;
     QString coverUri;
     int year = 0;
+
+    /*
+     * Тип релиза из API: "album", "single", "compilation".
+     * Пустая строка, если тип не указан.
+     */
+    QString type;
 };
 
 struct Track

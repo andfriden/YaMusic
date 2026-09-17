@@ -14,7 +14,8 @@ public:
         QObject *parent = nullptr);
 
     void search(
-        const QString &query);
+        const QString &query,
+        int page = 0);
 
     signals:
         void searchStarted();

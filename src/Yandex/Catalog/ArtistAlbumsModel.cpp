@@ -46,6 +46,9 @@ QVariant ArtistAlbumsModel::data(
         case YearRole:
             return album.year;
 
+        case TypeRole:
+            return album.type;
+
         default:
             return {};
     }
@@ -58,7 +61,8 @@ ArtistAlbumsModel::roleNames() const
         {IdRole, "albumId"},
         {TitleRole, "title"},
         {CoverUriRole, "coverUri"},
-        {YearRole, "year"}
+        {YearRole, "year"},
+        {TypeRole, "type"}
     };
 }
 

@@ -73,6 +73,26 @@ void SearchAlbumsModel::setAlbums(
     endResetModel();
 }
 
+
+void SearchAlbumsModel::appendAlbums(
+    const QList<Album> &albums)
+{
+    if (albums.isEmpty()) {
+        return;
+    }
+
+    beginInsertRows(
+        QModelIndex(),
+        m_albums.size(),
+        m_albums.size() + albums.size() - 1);
+
+    m_albums.append(
+        albums);
+
+    endInsertRows();
+}
+
+
 void SearchAlbumsModel::clear()
 {
     beginResetModel();

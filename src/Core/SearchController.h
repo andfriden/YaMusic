@@ -21,6 +21,11 @@ class SearchController : public QObject
         NOTIFY searchingChanged)
 
     Q_PROPERTY(
+        bool canLoadMoreSearch
+        READ canLoadMoreSearch
+        NOTIFY canLoadMoreSearchChanged)
+
+    Q_PROPERTY(
         SearchModel *model
         READ model
         CONSTANT)
@@ -49,6 +54,13 @@ public:
     void search(
         const QString &query);
 
+    /*
+     * Догружает следующую страницу результатов поиска.
+     * Безопасен для вызова — игнорируется, если нет
+     * активного запроса или загружены все страницы.
+     */
+    Q_INVOKABLE void loadMoreSearchResults();
+
     void selectResult(
         int index);
 
@@ -68,11 +80,15 @@ public:
 
     bool isSearching() const;
 
+    bool canLoadMoreSearch() const;
+
     signals:
         void statusChanged(
             const QString &message);
 
     void searchingChanged();
+
+    void canLoadMoreSearchChanged();
 
     void artistClicked(
         const QString &artistId);
@@ -96,4 +112,7 @@ private:
     SearchPlaylistsModel *m_playlistsModel = nullptr;
 
     bool m_searching = false;
+    bool m_canLoadMore = false;
+    int m_currentPage = 0;
+    QString m_currentQuery;
 };

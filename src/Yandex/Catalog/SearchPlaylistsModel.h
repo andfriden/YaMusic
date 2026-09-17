@@ -44,6 +44,9 @@ public:
     void setPlaylists(
         const QList<PersonalPlaylist> &playlists);
 
+    void appendPlaylists(
+        const QList<PersonalPlaylist> &playlists);
+
     void clear();
 
     int count() const;

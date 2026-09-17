@@ -17,7 +17,8 @@ public:
         IdRole = Qt::UserRole + 1,
         TitleRole,
         CoverUriRole,
-        YearRole
+        YearRole,
+        TypeRole
     };
 
     explicit ArtistAlbumsModel(

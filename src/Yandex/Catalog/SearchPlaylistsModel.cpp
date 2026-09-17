@@ -113,6 +113,27 @@ void SearchPlaylistsModel::setPlaylists(
     endResetModel();
 }
 
+
+void SearchPlaylistsModel::appendPlaylists(
+    const QList<PersonalPlaylist> &playlists
+)
+{
+    if (playlists.isEmpty()) {
+        return;
+    }
+
+    beginInsertRows(
+        QModelIndex(),
+        m_playlists.size(),
+        m_playlists.size() + playlists.size() - 1);
+
+    m_playlists.append(
+        playlists);
+
+    endInsertRows();
+}
+
+
 void SearchPlaylistsModel::clear()
 {
     beginResetModel();

@@ -35,5 +35,12 @@ public:
     void setResults(
         const SearchResults &results);
 
+    /*
+     * Дописывает треки из новой страницы результатов
+     * к уже загруженным (для пагинации).
+     */
+    void appendResults(
+        const QList<Track> &tracks);
+
 private:
 };

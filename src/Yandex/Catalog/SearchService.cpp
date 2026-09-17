@@ -30,7 +30,8 @@ SearchService::SearchService(
 }
 
 void SearchService::search(
-    const QString &query)
+    const QString &query,
+    int page)
 {
     if (!ensureAuthenticated()) {
 
@@ -54,5 +55,6 @@ void SearchService::search(
     emit searchStarted();
 
     m_yandexClient->search(
-        trimmedQuery);
+        trimmedQuery,
+        page);
 }

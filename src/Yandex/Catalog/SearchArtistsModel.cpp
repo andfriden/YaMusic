@@ -69,6 +69,26 @@ void SearchArtistsModel::setArtists(
     endResetModel();
 }
 
+
+void SearchArtistsModel::appendArtists(
+    const QList<Artist> &artists)
+{
+    if (artists.isEmpty()) {
+        return;
+    }
+
+    beginInsertRows(
+        QModelIndex(),
+        m_artists.size(),
+        m_artists.size() + artists.size() - 1);
+
+    m_artists.append(
+        artists);
+
+    endInsertRows();
+}
+
+
 void SearchArtistsModel::clear()
 {
     beginResetModel();

@@ -145,6 +145,23 @@ ArtistController::ArtistController(
                     .arg(
                         message));
         });
+
+    /*
+     * Все альбомы исполнителя (direct-albums). Исполнитель может
+     * иметь больше релизов, чем popularAlbums из brief-info, поэтому
+     * догружаем полный список и применяем к нему активный фильтр.
+     */
+    connect(
+        m_artistService,
+        &ArtistService::artistAlbumsReceived,
+        this,
+        [this](const QList<Album> &albums) {
+
+            m_allAlbums =
+                albums;
+
+            applyAlbumFilter();
+        });
 }
 
 void ArtistController::loadArtist(
@@ -189,6 +206,9 @@ void ArtistController::loadArtist(
 
     m_newRelease = {};
 
+    m_albumFilterType.clear();
+    m_allAlbums.clear();
+
     m_artistModel
         ->clear();
 
@@ -200,6 +220,8 @@ void ArtistController::loadArtist(
 
     emit artistChanged();
 
+    emit albumFilterChanged();
+
     emit statusChanged(
         QString(
             "Загрузка исполнителя: %1")
@@ -208,6 +230,12 @@ void ArtistController::loadArtist(
 
     m_artistService
         ->loadArtist(
+            artistId);
+
+    // Догружаем полный список релизов для фильтра
+    // (альбомы / синглы / сборники).
+    m_artistService
+        ->loadArtistAlbums(
             artistId);
 }
 
@@ -405,4 +433,60 @@ QString ArtistController::newReleaseCoverUri() const
 int ArtistController::newReleaseYear() const
 {
     return m_newRelease.year;
+}
+
+QString ArtistController::albumFilterType() const
+{
+    return m_albumFilterType;
+}
+
+void ArtistController::setAlbumFilterType(
+    const QString &filterType)
+{
+    const QString type =
+        filterType.trimmed();
+
+    // Нормализуем: пустая строка = все релизы.
+    if (
+        type != "" &&
+        type != "album" &&
+        type != "single" &&
+        type != "compilation"
+    ) {
+        return;
+    }
+
+    if (
+        m_albumFilterType == type
+    ) {
+        return;
+    }
+
+    m_albumFilterType =
+        type;
+
+    emit albumFilterChanged();
+
+    applyAlbumFilter();
+}
+
+void ArtistController::applyAlbumFilter()
+{
+    QList<Album> filtered;
+
+    for (
+        const Album &album :
+        m_allAlbums
+    ) {
+        if (
+            m_albumFilterType.isEmpty() ||
+            album.type == m_albumFilterType
+        ) {
+            filtered.append(
+                album);
+        }
+    }
+
+    m_albumsModel->setAlbums(
+        filtered);
 }

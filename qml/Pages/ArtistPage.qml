@@ -1311,32 +1311,134 @@ Item {
                     AppTheme.borderSubtle
 
 
-                Column {
+Column {
                     anchors.fill:
                         parent
 
                     anchors.margins:
-                        14
+                         14
 
                     spacing:
-                        8
+                         8
 
 
-                    Label {
+                    Row {
                         width:
                             parent.width
 
-                        text:
-                            qsTr("Популярные альбомы")
+                        spacing:
+                             12
 
-                        color:
-                            AppTheme.textPrimary
 
-                        font.pixelSize:
-                            22
+                        Label {
+                            width:
+                                parent.width -
+                                240
 
-                        font.bold:
-                            true
+                            text:
+                                qsTr("Все альбомы")
+
+                            color:
+                                AppTheme.textPrimary
+
+                            font.pixelSize:
+                                22
+
+                            font.bold:
+                                true
+
+                            anchors.verticalCenter:
+                                parent.verticalCenter
+                        }
+
+
+                        // Filter buttons
+                        Repeater {
+                            model: [
+                                { label: "Все", type: "" },
+                                { label: "Альбомы", type: "album" },
+                                { label: "Синглы", type: "single" },
+                                { label: "Сборники", type: "compilation" }
+                            ]
+
+                            Rectangle {
+                                required property string label
+                                required property string type
+
+                                width:
+                                    filterLabel.implicitWidth + 20
+
+                                height:
+                                     30
+
+                                radius:
+                                     7
+
+                                color:
+                                        root.artistController &&
+                                    root.artistController.albumFilterType === type
+                                        ? AppTheme.accent
+                                        : (
+                                            filterMouse.containsMouse
+                                                ? AppTheme.panelHover
+                                                : AppTheme.panel
+                                        )
+
+                                border.width:
+                                    1
+
+                                border.color:
+                                    AppTheme.borderSubtle
+
+
+                                Label {
+                                    id: filterLabel
+
+                                    anchors.centerIn:
+                                        parent
+
+                                    text:
+                                        modelData.label
+
+                                    color:
+                                            root.artistController &&
+                                        root.artistController.albumFilterType === type
+                                            ? "#ffffff"
+                                            : AppTheme.textPrimary
+
+                                    font.pixelSize:
+                                        12
+
+                                    font.bold:
+                                        true
+                                }
+
+
+                                MouseArea {
+                                    id: filterMouse
+
+                                    anchors.fill:
+                                        parent
+
+                                    hoverEnabled:
+                                        true
+
+                                    cursorShape:
+                                        Qt.PointingHandCursor
+
+                                    onClicked: {
+                                        if (
+                                            root.artistController
+                                        ) {
+                                            root.artistController
+                                                .setAlbumFilterType(
+                                                type
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
 
 

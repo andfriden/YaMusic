@@ -27,3 +27,16 @@ void AppController::search(
         ->search(
             trimmedQuery);
 }
+
+void AppController::loadMoreSearchResults()
+{
+    if (
+        m_searchController == nullptr
+    )
+    {
+        return;
+    }
+
+    m_searchController
+        ->loadMoreSearchResults();
+}

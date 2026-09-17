@@ -37,6 +37,9 @@ public:
     void setArtists(
         const QList<Artist> &artists);
 
+    void appendArtists(
+        const QList<Artist> &artists);
+
     void clear();
 
     Artist artistAt(
