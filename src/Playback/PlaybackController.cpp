@@ -953,7 +953,7 @@ void PlaybackController::downloadAndPlayStream(
         if (m_playerService)
         {
             m_playerService->playUrl(
-                QStringLiteral("file://") + dest);
+                QUrl::fromLocalFile(dest).toString());
         }
     });
 
@@ -1159,8 +1159,7 @@ makeMediaMetadata(
     if (QFile::exists(cached)) {
 
         md.coverUrl =
-            QStringLiteral("file://")
-            + cached;
+            QUrl::fromLocalFile(cached).toString();
 
     } else {
 
