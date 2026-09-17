@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QHash>
 #include <QImage>
 #include <QQuickAsyncImageProvider>
 #include <QQuickImageResponse>

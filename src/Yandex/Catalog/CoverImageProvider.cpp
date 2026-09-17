@@ -1,9 +1,16 @@
 #include "CoverImageProvider.h"
+#include <QCryptographicHash>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QMutex>
+#include <QMutexLocker>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QPainter>
 #include <QPainterPath>
+#include <QStandardPaths>
 #include <QUrl>
 
 namespace
@@ -11,6 +18,109 @@ namespace
 
 constexpr auto kCirclePrefix =
     "circle/";
+
+/*
+ * ---------------------------------------------------------
+ * Кэш обложек: память (QHash) + диск (CacheLocation).
+ *
+ * Храним СЫРОЕ изображение по ключу URL — до круговой
+ * обрезки, поэтому одна запись обслуживает и обычные,
+ * и круглые запросы одного и того же арта.
+ *
+ * Кэш защищён мьютексом: QQuickAsyncImageProvider
+ * вызывает requestImageResponse в рабочих потоках.
+ * ---------------------------------------------------------
+ */
+class CoverCache
+{
+public:
+    static CoverCache &instance()
+    {
+        static CoverCache cache;
+        return cache;
+    }
+
+    // Пытается достать сырое изображение из памяти или с диска.
+    // Возвращает null-QImage при промахе.
+    QImage find(const QString &url)
+    {
+        QMutexLocker locker(&m_mutex);
+
+        const auto it =
+            m_memory.find(url);
+
+        if (it != m_memory.end()) {
+            return it.value();
+        }
+
+        const QString path =
+            filePathFor(url);
+
+        QFile file(path);
+
+        if (!file.open(QIODevice::ReadOnly)) {
+            return {};
+        }
+
+        QImage image;
+
+        if (!image.loadFromData(file.readAll())) {
+            return {};
+        }
+
+        m_memory.insert(url, image);
+
+        return image;
+    }
+
+    void store(const QString &url, const QImage &image)
+    {
+        if (image.isNull()) {
+            return;
+        }
+
+        QMutexLocker locker(&m_mutex);
+
+        m_memory.insert(url, image);
+
+        const QString path =
+            filePathFor(url);
+
+        QDir().mkpath(QFileInfo(path).absolutePath());
+
+        // Записываем побайтово, чтобы не тянуть PNG-энкодер
+        // на каждый кадр; читается через image.loadFromData.
+        if (!image.save(path, "PNG")) {
+            return;
+        }
+    }
+
+private:
+    QString filePathFor(const QString &url) const
+    {
+        const QByteArray hash =
+            QCryptographicHash::hash(
+                url.toUtf8(),
+                QCryptographicHash::Sha1);
+
+        return QDir(m_cacheDir).filePath(
+            QString::fromLatin1(hash.toHex()) + ".png");
+    }
+
+    CoverCache()
+    {
+        m_cacheDir =
+            QStandardPaths::writableLocation(
+                QStandardPaths::CacheLocation) +
+            "/covers";
+
+        QDir().mkpath(m_cacheDir);
+    }
+
+    QMutex m_mutex;
+    QHash<QString, QImage> m_memory;
+    QString m_cacheDir;
+};
 
 }
 
@@ -200,6 +310,23 @@ void CoverImageResponse::load()
         return;
     }
 
+    // 1) Пытаемся достать из кэша (память + диск).
+    const QImage cached =
+        CoverCache::instance().find(m_url);
+
+    if (!cached.isNull()) {
+
+        m_image =
+            m_circular
+                ? makeCircular(cached)
+                : cached;
+
+        emit finished();
+
+        return;
+    }
+
+    // 2) Промах — сетевой запрос.
     auto *networkManager =
         new QNetworkAccessManager();
 
@@ -226,10 +353,6 @@ void CoverImageResponse::load()
         &QNetworkReply::finished,
         this,
         [this, reply, networkManager]() {
-
-            const QVariant statusCode =
-                reply->attribute(
-                    QNetworkRequest::HttpStatusCodeAttribute);
 
             if (
                 reply->error() !=
@@ -266,30 +389,16 @@ void CoverImageResponse::load()
                 return;
             }
 
-            /*
-             * -------------------------------------------------
-             * Normal artwork
-             * -------------------------------------------------
-             */
+            // Сохраняем сырое изображение в кэш —
+            // и для обычных, и для круглых запросов.
+            CoverCache::instance().store(
+                m_url,
+                image);
 
-            if (!m_circular) {
-
-                m_image =
-                    image;
-            }
-
-            /*
-             * -------------------------------------------------
-             * Circular artwork
-             * -------------------------------------------------
-             */
-
-            else {
-
-                m_image =
-                    makeCircular(
-                        image);
-            }
+            m_image =
+                m_circular
+                    ? makeCircular(image)
+                    : image;
 
             if (m_image.isNull()) {
 

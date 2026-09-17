@@ -104,9 +104,17 @@ ArtistController::ArtistController(
                 ->setArtist(
                     artist);
 
-            m_albumsModel
-                ->setAlbums(
-                    artist.popularAlbums);
+            /*
+             * Не затираем модели альбомов популярной выборкой,
+             * если полный список (direct-albums) уже пришёл —
+             * иначе гонка между artistReceived и artistAlbumsReceived
+             * оставляет на странице только популярные (или пусто).
+             */
+            if (m_allAlbums.isEmpty()) {
+                m_allAlbums =
+                    artist.popularAlbums;
+                applyAlbumFilter();
+            }
 
             m_similarArtistsModel
                 ->setArtists(
