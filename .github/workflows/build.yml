@@ -264,7 +264,7 @@ jobs:
 
 
   # =============================================================
-  # Windows x64 — installer (NSIS) + portable zip
+  # Windows x64 — portable zip
   # =============================================================
 
   windows:
@@ -339,42 +339,11 @@ jobs:
             -DestinationPath "YaMusic-$env:VERSION-windows-x64-portable.zip"
 
 
-      - name: Install NSIS
-        shell: pwsh
-        run: |
-          choco install nsis -y
-          # Обновляем PATH для текущего и последующих шагов
-          $nsisDir = "${env:ProgramFiles}\NSIS"
-          if (-not (Test-Path "$nsisDir\makensis.exe")) {
-            $nsisDir = "${env:ProgramFiles(x86)}\NSIS"
-          }
-          "makensis.exe" | ForEach-Object {
-            $exe = Get-Command $_ -ErrorAction SilentlyContinue
-            if ($exe) { $nsisDir = Split-Path $exe.Source }
-          }
-          Add-Content $env:GITHUB_PATH "$nsisDir"
-          "$nsisDir added to GITHUB_PATH"
-
-
-      - name: Build installer (NSIS)
-        shell: pwsh
-        run: |
-          makensis `
-            /DVERSION=$env:VERSION `
-            /DINSTALL_DIR="$env:GITHUB_WORKSPACE\dist" `
-            packaging/windows/installer.nsi
-
-
       - name: Upload portable zip
         uses: actions/upload-artifact@v4
         with:
           name: YaMusic-Windows-x64-portable
           path: YaMusic-${{ env.VERSION }}-windows-x64-portable.zip
-      - name: Upload installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: YaMusic-Windows-x64-installer
-          path: YaMusic-${{ env.VERSION }}-windows-x64.exe
 
 
   # =============================================================
@@ -414,7 +383,7 @@ jobs:
 
             ### Установка
 
-            - **Windows** — `YaMusic-<version>-windows-x64.exe` (установщик) или `YaMusic-<version>-windows-x64-portable.zip` (portable)
+            - **Windows** — `YaMusic-<version>-windows-x64-portable.zip` (portable, без установки)
             - **macOS** — `YaMusic-<version>-macos-x64.dmg` (Intel) или `YaMusic-<version>-macos-arm64.dmg` (Apple Silicon)
             - **Linux** — `YaMusic-<version>-linux-x86_64.AppImage` (запуск: `chmod +x` и запуск) или `YaMusic-<version>-linux-x86_64.tar.gz`
 
