@@ -58,6 +58,25 @@ public:
     void getTracks(
         const QStringList &trackIds);
 
+    /*
+     * Отправляет факт прослушивания трека на сервер
+     * (POST /play-audio). Сервер сам добавляет трек
+     * в «Недавно прослушаны» и учитывает в рекомендациях.
+     *
+     * Параметры передаются как form-urlencoded:
+     *   track-id, album-id, uid, from, from-cache,
+     *   timestamp, client-now, track-length-seconds,
+     *   total-played-seconds, end-position-seconds.
+     */
+    void reportPlayback(
+        const QString &trackId,
+        const QString &albumId,
+        const QString &uid,
+        bool fromCache,
+        int trackLengthSeconds,
+        int playedSeconds,
+        int endPositionSeconds);
+
     signals:
 
         void requestError(
@@ -71,6 +90,12 @@ public:
 
     void tracksReceived(
         const QList<Track> &tracks);
+
+    /*
+     * true — сервер принял факт прослушивания (result == "ok").
+     */
+    void playbackReported(
+        bool ok);
 
 private:
 

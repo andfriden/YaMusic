@@ -21,6 +21,13 @@ TrackService::TrackService(
     QObject *parent)
     : YandexServiceBase(auth, parent)
 {
+    connect(
+        m_yandexClient,
+        &YandexClient::playbackReported,
+        this,
+        [this](bool ok) {
+            emit playbackReported(ok);
+        });
 }
 
 void TrackService::loadStreamInfo(
@@ -785,6 +792,34 @@ void TrackService::parseLrc(
  * Similar tracks
  * =============================================================
  */
+
+void TrackService::reportPlayback(
+    const QString &trackId,
+    const QString &albumId,
+    const QString &uid,
+    bool fromCache,
+    int trackLengthSeconds,
+    int playedSeconds,
+    int endPositionSeconds)
+{
+    if (!ensureAuthenticated()) {
+        return;
+    }
+
+    if (trackId.trimmed().isEmpty() ||
+        uid.trimmed().isEmpty()) {
+        return;
+    }
+
+    m_yandexClient->reportPlayback(
+        trackId.trimmed(),
+        albumId.trimmed(),
+        uid.trimmed(),
+        fromCache,
+        trackLengthSeconds,
+        playedSeconds,
+        endPositionSeconds);
+}
 
 void TrackService::loadSimilarTracks(
     const QString &trackId)

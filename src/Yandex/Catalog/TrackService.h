@@ -49,6 +49,20 @@ public:
     void loadSimilarTracks(
         const QString &trackId);
 
+    /*
+     * Отправляет факт прослушивания трека на сервер
+     * (POST /play-audio), чтобы трек попал в «Недавно
+     * прослушаны» и рекомендации.
+     */
+    void reportPlayback(
+        const QString &trackId,
+        const QString &albumId,
+        const QString &uid,
+        bool fromCache,
+        int trackLengthSeconds,
+        int playedSeconds,
+        int endPositionSeconds);
+
     signals:
         void streamInfoReceived(
             const QList<TrackStreamInfo> &streams);
@@ -65,6 +79,12 @@ public:
 
     void errorOccurred(
         const QString &message);
+
+    /*
+     * true — сервер принял факт прослушивания.
+     */
+    void playbackReported(
+        bool ok);
 
 private:
     TrackStreamInfo selectBestStream(

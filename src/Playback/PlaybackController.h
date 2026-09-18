@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QString>
 #include <QPointer>
+#include <functional>
 #include <memory>
 
 #include "../MediaControls/SystemMediaControls.h"
@@ -98,6 +99,15 @@ public:
 
     Q_INVOKABLE void clearOfflineCache();
 
+    /*
+     * Источник uid пользователя. Провайдер передаёт AppController
+     * после получения аккаунта, чтобы PlaybackController мог
+     * отправлять факты прослушивания (POST /play-audio) без
+     * прямой зависимости от AccountService.
+     */
+    void setUidProvider(
+        const std::function<QString()> &provider);
+
     signals:
 
     void playlistExhausted(
@@ -131,6 +141,14 @@ private:
         const QString &streamUrl);
 
     void cancelStreamDownload();
+
+    /*
+     * Пороговая отправка факта прослушивания.
+     */
+
+    void maybeReportPlayback();
+
+    void resetReportState();
 
 private:
 
@@ -173,4 +191,13 @@ private:
     // =============================================================
 
     bool m_offlineMode = false;
+
+    // =============================================================
+    // Playback reporting (POST /play-audio)
+    // =============================================================
+
+    std::function<QString()>
+        m_uidProvider;
+
+    bool m_reportSubmitted = false;
 };

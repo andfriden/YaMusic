@@ -463,6 +463,12 @@ void PlaybackController::playTrack(
 
     cancelStreamDownload();
 
+    /*
+     * Новый трек — новый отчёт прослушивания.
+     */
+
+    resetReportState();
+
     if (m_queueService != nullptr) {
 
         const QList<Track> queueTracks =
@@ -676,6 +682,8 @@ void PlaybackController::pause()
         return;
     }
 
+    maybeReportPlayback();
+
     m_playerService->pause();
 }
 
@@ -706,6 +714,8 @@ void PlaybackController::stop()
         0;
 
     m_recoveryTrackId.clear();
+
+    maybeReportPlayback();
 
     cancelStreamDownload();
 
@@ -1082,6 +1092,8 @@ bool PlaybackController::playQueueCurrentTrack()
 
 void PlaybackController::handlePlaybackFinished()
 {
+    maybeReportPlayback();
+
     if (m_queueService == nullptr) {
 
         setState(
@@ -1599,20 +1611,114 @@ bool PlaybackController::isTrackCached(
 
 void PlaybackController::clearOfflineCache()
 {
-    const QString dirPath =
-        m_streamCacheDir;
+    const QDir cacheDir(
+        m_streamCacheDir);
 
-    QDir dir(dirPath);
-
-    if (!dir.exists()) {
+    if (
+        !cacheDir.exists()
+    ) {
         return;
     }
 
     const QStringList files =
-        dir.entryList(
+        cacheDir.entryList(
             QDir::Files);
 
-    for (const QString &file : files) {
-        dir.remove(file);
+    for (
+        const QString &fileName :
+        files
+    ) {
+
+        QFile::remove(
+            cacheDir.filePath(
+                fileName));
     }
+}
+
+void PlaybackController::setUidProvider(
+    const std::function<QString()> &provider)
+{
+    m_uidProvider = provider;
+}
+
+/*
+ * Отправка факта прослушивания, когда трек дослушан
+ * до порога: не менее 30 секунд или 50% длительности.
+ * Вызывается при паузе, остановке и окончании трека.
+ */
+void PlaybackController::maybeReportPlayback()
+{
+    if (
+        m_reportSubmitted ||
+        m_currentTrack.id.isEmpty() ||
+        m_trackService == nullptr
+    ) {
+        return;
+    }
+
+    if (
+        !m_uidProvider
+    ) {
+        return;
+    }
+
+    const QString uid =
+        m_uidProvider();
+
+    if (uid.isEmpty()) {
+        return;
+    }
+
+    if (
+        m_playerService == nullptr
+    ) {
+        return;
+    }
+
+    const qint64 positionMs =
+        m_playerService->position();
+
+    const qint64 durationMs =
+        m_playerService->duration();
+
+    if (durationMs <= 0) {
+        return;
+    }
+
+    const bool reachedThreshold =
+        positionMs >= 30000 ||
+        positionMs * 2 >= durationMs;
+
+    if (!reachedThreshold) {
+        return;
+    }
+
+    m_reportSubmitted =
+        true;
+
+    QString albumId;
+
+    if (
+        !m_currentTrack.albums.isEmpty()
+    ) {
+        albumId =
+            m_currentTrack.albums
+                .first()
+                .id;
+    }
+
+    m_trackService->reportPlayback(
+        m_currentTrack.id,
+        albumId,
+        uid,
+        m_offlineMode,
+        int(durationMs / 1000),
+        int(positionMs / 1000),
+        int(positionMs / 1000));
+}
+
+void PlaybackController::resetReportState()
+{
+    m_reportSubmitted =
+        false;
 }

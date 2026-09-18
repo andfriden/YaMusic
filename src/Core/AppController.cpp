@@ -245,6 +245,17 @@ void AppController::connectAccount()
             m_libraryController->setUserId(
                 m_accountUid);
 
+            /*
+             * Провайдер uid для отчётов о прослушивании
+             * (POST /play-audio). Лямбда всегда читает
+             * актуальное значение m_accountUid.
+             */
+
+            m_playbackController->setUidProvider(
+                [this]() -> QString {
+                    return m_accountUid;
+                });
+
             // Список личных плейлистов нужен в пикере «Добавить
             // в плейлист» на всех страницах — грузим сразу при
             // входе, а не только при открытии Медиатеки.

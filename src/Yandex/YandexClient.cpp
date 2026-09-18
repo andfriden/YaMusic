@@ -2,11 +2,13 @@
 #include "AccountParser.h"
 #include "Catalog/SearchParser.h"
 #include "Parsers.h"
+#include <QDateTime>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkRequest>
 #include <QUrlQuery>
+#include <QUrl>
 
 namespace
 {
@@ -423,5 +425,92 @@ void YandexClient::getTracks(
             emit tracksReceived(tracks);
 
             reply->deleteLater();
+        });
+}
+
+void YandexClient::reportPlayback(
+    const QString &trackId,
+    const QString &albumId,
+    const QString &uid,
+    bool fromCache,
+    int trackLengthSeconds,
+    int playedSeconds,
+    int endPositionSeconds)
+{
+    if (trackId.isEmpty() || uid.isEmpty()) {
+        return;
+    }
+
+    QUrlQuery body;
+
+    body.addQueryItem(
+        "track-id",
+        trackId);
+
+    body.addQueryItem(
+        "album-id",
+        albumId);
+
+    body.addQueryItem(
+        "uid",
+        uid);
+
+    body.addQueryItem(
+        "from",
+        "desktop-ya-music");
+
+    body.addQueryItem(
+        "from-cache",
+        fromCache ? "true" : "false");
+
+    const QString now =
+        QDateTime::currentDateTimeUtc()
+            .toString(Qt::ISODateWithMs);
+
+    body.addQueryItem(
+        "timestamp",
+        now);
+
+    body.addQueryItem(
+        "client-now",
+        now);
+
+    body.addQueryItem(
+        "track-length-seconds",
+        QString::number(
+            qMax(0, trackLengthSeconds)));
+
+    body.addQueryItem(
+        "total-played-seconds",
+        QString::number(
+            qMax(0, playedSeconds)));
+
+    body.addQueryItem(
+        "end-position-seconds",
+        QString::number(
+            qMax(0, endPositionSeconds)));
+
+    QNetworkReply *reply =
+        postForm(
+            "/play-audio",
+            body);
+
+    connect(
+        reply,
+        &QNetworkReply::finished,
+        this,
+        [this, reply]() {
+
+            const QByteArray data =
+                reply->readAll();
+
+            const bool ok =
+                reply->error() ==
+                    QNetworkReply::NoError &&
+                data.contains("ok");
+
+            reply->deleteLater();
+
+            emit playbackReported(ok);
         });
 }
