@@ -340,6 +340,17 @@ jobs:
         shell: pwsh
         run: |
           choco install nsis -y
+          # Обновляем PATH для текущего и последующих шагов
+          $nsisDir = "${env:ProgramFiles}\NSIS"
+          if (-not (Test-Path "$nsisDir\makensis.exe")) {
+            $nsisDir = "${env:ProgramFiles(x86)}\NSIS"
+          }
+          "makensis.exe" | ForEach-Object {
+            $exe = Get-Command $_ -ErrorAction SilentlyContinue
+            if ($exe) { $nsisDir = Split-Path $exe.Source }
+          }
+          Add-Content $env:GITHUB_PATH "$nsisDir"
+          "$nsisDir added to GITHUB_PATH"
 
 
       - name: Build installer (NSIS)
