@@ -72,10 +72,14 @@ main() {
   ensure_tool "${LINUXDEPLOY_QT}" "${LINUXDEPLOY_QT_URL}"
   ensure_tool "${LINUXDEPLOY_APPIMAGE}" "${LINUXDEPLOY_APPIMAGE_URL}"
 
-  # linuxdeploy ищет плагины рядом со своим исполняемым файлом —
-  # кладём рядом с ним ссылку на linuxdeploy-plugin-qt.
+  # linuxdeploy ищет плагины рядом со своим бинарником (usr/bin внутри
+  # squashfs-root) и в $PATH. Кладём ссылку на плагин в оба места.
   ln -sf "${LINUXDEPLOY_QT%.AppImage}.squashfs-root/AppRun" \
-    "${LINUXDEPLOY%.AppImage}.squashfs-root/linuxdeploy-plugin-qt"
+    "${LINUXDEPLOY%.AppImage}.squashfs-root/usr/bin/linuxdeploy-plugin-qt"
+
+  ln -sf "${LINUXDEPLOY_QT%.AppImage}.squashfs-root/AppRun" \
+    "${TOOLS_DIR}/linuxdeploy-plugin-qt"
+  export PATH="${TOOLS_DIR}:${PATH}"
 
   export VERSION
   export QML_SOURCES_PATHS="${ROOT_DIR}/qml"
