@@ -586,6 +586,12 @@ void AppController::connectPlayback()
 
     connect(
         m_playbackController,
+        &PlaybackController::offlineModeChanged,
+        this,
+        &AppController::offlineModeChanged);
+
+    connect(
+        m_playbackController,
         &PlaybackController::playbackError,
         this,
         &AppController::statusChanged);
@@ -1308,6 +1314,53 @@ void AppController::setVolume(
 {
     m_playerService
         ->setVolume(volume);
+}
+
+bool AppController::offlineMode() const
+{
+    if (m_playbackController == nullptr) {
+        return false;
+    }
+
+    return m_playbackController
+        ->offlineMode();
+}
+
+void AppController::setOfflineMode(
+    bool enabled)
+{
+    if (m_playbackController == nullptr) {
+        return;
+    }
+
+    m_playbackController
+        ->setOfflineMode(
+            enabled);
+}
+
+void AppController::clearOfflineCache()
+{
+    if (m_playbackController == nullptr) {
+        return;
+    }
+
+    m_playbackController
+        ->clearOfflineCache();
+
+    emit statusChanged(
+        "Офлайн-кэш очищен");
+}
+
+bool AppController::isTrackCached(
+    const QString &trackId) const
+{
+    if (m_playbackController == nullptr) {
+        return false;
+    }
+
+    return m_playbackController
+        ->isTrackCached(
+            trackId);
 }
 
 // Genres

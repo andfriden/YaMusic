@@ -19,6 +19,12 @@ class PlaybackController : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(
+        bool offlineMode
+        READ offlineMode
+        WRITE setOfflineMode
+        NOTIFY offlineModeChanged)
+
 public:
 
     enum PlaybackState {
@@ -67,7 +73,32 @@ public:
     void setShuffleEnabled(bool enabled);
     void toggleShuffle();
 
-signals:
+    /*
+     * Офлайн-режим: воспроизведение только из локального кэша,
+     * без сетевых запросов за стрим-URL.
+     */
+
+    bool offlineMode() const;
+
+    Q_INVOKABLE void setOfflineMode(
+        bool enabled);
+
+    Q_INVOKABLE void toggleOfflineMode();
+
+    /*
+     * true, если файл трека уже лежит в кэше стримов.
+     */
+
+    bool isTrackCached(
+        const QString &trackId) const;
+
+    /*
+     * Удаляет все файлы кэша стримов.
+     */
+
+    Q_INVOKABLE void clearOfflineCache();
+
+    signals:
 
     void playlistExhausted(
         const QString &sourceType,
@@ -78,6 +109,7 @@ signals:
     void playbackError(const QString &message);
     void repeatModeChanged();
     void shuffleChanged();
+    void offlineModeChanged();
 
 private:
 
@@ -123,6 +155,7 @@ private:
     QPointer<QNetworkReply> m_streamDownloadReply;
     QString m_streamCacheDir;
     QString m_pendingStreamTrackId;
+    bool m_streamDownloadInProgress = false;
 
     // =============================================================
     // Playback recovery
@@ -134,4 +167,10 @@ private:
     qint64 m_recoveryPosition = 0;
 
     QString m_recoveryTrackId;
+
+    // =============================================================
+    // Offline mode
+    // =============================================================
+
+    bool m_offlineMode = false;
 };

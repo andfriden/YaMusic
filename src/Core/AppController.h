@@ -122,6 +122,7 @@ class AppController : public QObject
     Q_PROPERTY(int repeatMode READ repeatMode NOTIFY repeatModeChanged)
     Q_PROPERTY(bool shuffleEnabled READ shuffleEnabled NOTIFY shuffleChanged)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PROPERTY(bool offlineMode READ offlineMode WRITE setOfflineMode NOTIFY offlineModeChanged)
 
     Q_PROPERTY(QString playbackSourceTitle READ playbackSourceTitle NOTIFY playbackSourceChanged)
     Q_PROPERTY(QString playbackSourceType READ playbackSourceType NOTIFY playbackSourceChanged)
@@ -205,6 +206,11 @@ public:
     Q_INVOKABLE void setShuffle(bool enabled);
     Q_INVOKABLE void seek(qint64 position);
     Q_INVOKABLE void setVolume(float volume);
+
+    Q_INVOKABLE void setOfflineMode(bool enabled);
+    Q_INVOKABLE bool offlineMode() const;
+    Q_INVOKABLE void clearOfflineCache();
+    Q_INVOKABLE bool isTrackCached(const QString &trackId) const;
 
     QString playbackSourceTitle() const;
     QString playbackSourceType() const;
@@ -351,6 +357,7 @@ public:
     void repeatModeChanged();
     void shuffleChanged();
     void volumeChanged();
+    void offlineModeChanged();
 
     void playbackSourceChanged();
     void queueChanged();

@@ -32,6 +32,22 @@ static QString coverFilePath(
 }
 
 
+/*
+ * Путь к кэшированному файлу стрима для трека.
+ * Используется и для записи при скачивании, и для
+ * чтения в офлайн-режиме.
+ */
+static QString streamCachePath(
+    const QString &trackId)
+{
+    return QStandardPaths::writableLocation(
+               QStandardPaths::CacheLocation)
+        + QStringLiteral("/stream_cache/")
+        + trackId
+        + QStringLiteral(".mp3");
+}
+
+
 PlaybackController::PlaybackController(
     TrackService *trackService,
     PlayerService *playerService,
@@ -480,6 +496,51 @@ void PlaybackController::playTrack(
     setState(
         Loading);
 
+    /*
+     * Офлайн-приоритет: если файл трека уже в кэше стримов —
+     * играем его без сетевых запросов.
+     */
+
+    const QString cachedPath =
+        streamCachePath(
+            track.id);
+
+    if (QFile::exists(cachedPath)) {
+
+        if (m_playerService == nullptr) {
+
+            setState(
+                Error);
+
+            emit playbackError(
+                "PlayerService недоступен");
+
+            return;
+        }
+
+        m_playerService->playUrl(
+            QStringLiteral("file://") + cachedPath);
+
+        return;
+    }
+
+    /*
+     * В офлайн-режиме и без кэша играть нечего.
+     */
+
+    if (m_offlineMode) {
+
+        setState(
+            Error);
+
+        emit playbackError(
+            QStringLiteral(
+                "Трек недоступен офлайн: %1")
+                .arg(track.title));
+
+        return;
+    }
+
     if (m_trackService == nullptr) {
 
         setState(
@@ -862,16 +923,6 @@ void PlaybackController::handleStreamUrl(
  * into a local cache file, then play the local file.
  */
 
-static QString streamCachePath(
-    const QString &trackId)
-{
-    return QStandardPaths::writableLocation(
-               QStandardPaths::CacheLocation)
-        + QStringLiteral("/stream_cache/")
-        + trackId
-        + QStringLiteral(".mp3");
-}
-
 void PlaybackController::downloadAndPlayStream(
     const QString &trackId,
     const QString &streamUrl)
@@ -893,6 +944,8 @@ void PlaybackController::downloadAndPlayStream(
         m_streamDownloadReply->deleteLater();
         m_streamDownloadReply = nullptr;
     }
+
+    m_streamDownloadInProgress = true;
 
     const QString dest = streamCachePath(trackId);
     QDir().mkpath(QFileInfo(dest).absolutePath());
@@ -934,6 +987,8 @@ void PlaybackController::downloadAndPlayStream(
         QPointer<QNetworkReply> reply = m_streamDownloadReply;
         m_streamDownloadReply = nullptr;
 
+        m_streamDownloadInProgress = false;
+
         cacheFile->close();
 
         if (reply && reply->error() != QNetworkReply::NoError)
@@ -944,9 +999,12 @@ void PlaybackController::downloadAndPlayStream(
             return;
         }
 
+        m_pendingStreamTrackId.clear();
+
         if (trackId != m_currentTrack.id)
         {
-            cacheFile->remove();
+            // Трек сменился до конца загрузки — файл всё равно
+            // оставляем в кэше (offline).
             return;
         }
 
@@ -979,11 +1037,21 @@ void PlaybackController::cancelStreamDownload()
         m_streamDownloadReply = nullptr;
     }
 
-    if (!m_pendingStreamTrackId.isEmpty())
+    /*
+     * Не удаляем файл скачанного стрима: это наш offline-кэш.
+     * Удаляем только незавершённую запись (невалидный файл
+     * можно отличить по отсутствию сигнала finished).
+     */
+
+    if (!m_pendingStreamTrackId.isEmpty() &&
+        m_streamDownloadInProgress)
     {
         QFile::remove(streamCachePath(m_pendingStreamTrackId));
-        m_pendingStreamTrackId.clear();
     }
+
+    m_streamDownloadInProgress = false;
+
+    m_pendingStreamTrackId.clear();
 }
 
 
@@ -1482,4 +1550,69 @@ void PlaybackController::fetchCurrentCover()
                 ->setMetadata(
                     md);
         });
+}
+
+
+/*
+ * Offline mode
+ */
+
+bool PlaybackController::offlineMode() const
+{
+    return m_offlineMode;
+}
+
+
+void PlaybackController::setOfflineMode(
+    bool enabled)
+{
+    if (m_offlineMode == enabled) {
+        return;
+    }
+
+    m_offlineMode =
+        enabled;
+
+    emit offlineModeChanged();
+}
+
+
+void PlaybackController::toggleOfflineMode()
+{
+    setOfflineMode(
+        !m_offlineMode);
+}
+
+
+bool PlaybackController::isTrackCached(
+    const QString &trackId) const
+{
+    if (trackId.trimmed().isEmpty()) {
+        return false;
+    }
+
+    return QFile::exists(
+        streamCachePath(
+            trackId.trimmed()));
+}
+
+
+void PlaybackController::clearOfflineCache()
+{
+    const QString dirPath =
+        m_streamCacheDir;
+
+    QDir dir(dirPath);
+
+    if (!dir.exists()) {
+        return;
+    }
+
+    const QStringList files =
+        dir.entryList(
+            QDir::Files);
+
+    for (const QString &file : files) {
+        dir.remove(file);
+    }
 }
