@@ -84,3 +84,8 @@ CMakeLists.txt.user*
 cmake-build-*/
 /.qtcreator/
 .idea/
+
+# Packaging
+/.tools/
+/build/appdir/
+*.AppImage

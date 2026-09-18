@@ -21,7 +21,7 @@ env:
 jobs:
 
   # =============================================================
-  # Linux x64
+  # Linux x64 — AppImage + tar.gz
   # =============================================================
 
   linux:
@@ -40,7 +40,8 @@ jobs:
           sudo apt-get install -y \
             build-essential \
             cmake \
-            ninja-build
+            ninja-build \
+            file
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
@@ -67,26 +68,48 @@ jobs:
         run: |
           rm -rf dist
           cmake --install build
-      - name: Package
+
+
+      - name: Build AppImage
+        run: |
+          ./scripts/build-appimage.sh
+
+      - name: Extract version
+        run: |
+          VERSION="$(awk '/^project\(/{f=1} f && /VERSION/{print $2; exit}' CMakeLists.txt)"
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+
+      - name: Package tar.gz
         run: |
           tar \
             -C dist \
-            -czf YaMusic-Linux-x64.tar.gz \
+            -czf "YaMusic-${VERSION}-linux-x86_64.tar.gz" \
             .
-      - name: Upload artifact
+
+      - name: List artifacts
+        run: |
+          ls -la YaMusic-*
+
+
+      - name: Upload AppImage
         uses: actions/upload-artifact@v4
         with:
-          name: YaMusic-Linux-x64
-          path: YaMusic-Linux-x64.tar.gz
+          name: YaMusic-Linux-x86_64.AppImage
+          path: YaMusic-*.AppImage
+      - name: Upload tar.gz
+        uses: actions/upload-artifact@v4
+        with:
+          name: YaMusic-Linux-x86_64.tar.gz
+          path: YaMusic-*.tar.gz
 
 
   # =============================================================
-  # macOS
+  # macOS x64 (Intel)
   # =============================================================
 
-  macos:
-    name: macOS
-    runs-on: macos-14
+  macos-x64:
+    name: macOS x64 (Intel)
+    runs-on: macos-15-intel
 
     steps:
 
@@ -123,6 +146,25 @@ jobs:
         run: |
           rm -rf dist
           cmake --install build
+
+
+      - name: Extract version
+        run: |
+          VERSION="$(awk '/^project\(/{f=1} f && /VERSION/{print $2; exit}' CMakeLists.txt)"
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+
+      - name: Bundle (macdeployqt + qt.conf)
+        run: |
+          $QT_ROOT_DIR/bin/macdeployqt \
+            dist/YaMusic.app \
+            -qmldir=qml \
+            -always-overwrite
+          cat > dist/YaMusic.app/Contents/Resources/qt.conf <<'EOF'
+          [Paths]
+          Plugins = PlugIns
+          QmlImports = qml
+          EOF
+
       - name: Create DMG
         run: |
           hdiutil create \
@@ -130,16 +172,96 @@ jobs:
             -srcfolder dist/YaMusic.app \
             -ov \
             -format UDZO \
-            YaMusic-macOS.dmg
+            "YaMusic-${VERSION}-macos-x64.dmg"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: YaMusic-macOS
-          path: YaMusic-macOS.dmg
+          name: YaMusic-macOS-x64
+          path: YaMusic-*.dmg
 
 
   # =============================================================
-  # Windows x64
+  # macOS arm64 (Apple Silicon)
+  # =============================================================
+
+  macos-arm64:
+    name: macOS arm64 (Apple Silicon)
+    runs-on: macos-15
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          host: mac
+          target: desktop
+          arch: clang_64
+          modules: qtmultimedia
+          cache: true
+
+
+      - name: Install build tools
+        run: |
+          brew install cmake ninja
+      - name: Configure (arm64)
+        run: |
+          cmake \
+            -S . \
+            -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/dist" \
+            -DCMAKE_OSX_ARCHITECTURES=arm64
+      - name: Build
+        run: |
+          cmake --build build --parallel
+      - name: Install
+        run: |
+          rm -rf dist
+          cmake --install build
+
+
+      - name: Extract version
+        run: |
+          VERSION="$(awk '/^project\(/{f=1} f && /VERSION/{print $2; exit}' CMakeLists.txt)"
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+
+      - name: Bundle (macdeployqt + qt.conf)
+        run: |
+          $QT_ROOT_DIR/bin/macdeployqt \
+            dist/YaMusic.app \
+            -qmldir=qml \
+            -always-overwrite
+          cat > dist/YaMusic.app/Contents/Resources/qt.conf <<'EOF'
+          [Paths]
+          Plugins = PlugIns
+          QmlImports = qml
+          EOF
+
+      - name: Create DMG
+        run: |
+          hdiutil create \
+            -volname "YaMusic" \
+            -srcfolder dist/YaMusic.app \
+            -ov \
+            -format UDZO \
+            "YaMusic-${VERSION}-macos-arm64.dmg"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: YaMusic-macOS-arm64
+          path: YaMusic-*.dmg
+
+
+  # =============================================================
+  # Windows x64 — installer (NSIS) + portable zip
   # =============================================================
 
   windows:
@@ -189,17 +311,56 @@ jobs:
             Remove-Item dist -Recurse -Force
           }
           cmake --install build
-      - name: Package
+
+
+      - name: Bundle Qt runtime
+        shell: pwsh
+        run: |
+          windeployqt `
+            --qmldir qml `
+            --release `
+            --no-translations `
+            "$env:GITHUB_WORKSPACE\dist\YaMusic.exe"
+
+          $content = Get-Content CMakeLists.txt -Raw
+          $m = [regex]::Match($content, 'project\([^)]*?VERSION\s+([0-9.]+)')
+          $version = $m.Groups[1].Value
+          "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+
+      - name: Package portable zip
         shell: pwsh
         run: |
           Compress-Archive `
             -Path dist\* `
-            -DestinationPath YaMusic-Windows-x64.zip
-      - name: Upload artifact
+            -DestinationPath "YaMusic-$env:VERSION-windows-x64-portable.zip"
+
+
+      - name: Install NSIS
+        shell: pwsh
+        run: |
+          choco install nsis -y
+
+
+      - name: Build installer (NSIS)
+        shell: pwsh
+        run: |
+          makensis `
+            /DVERSION=$env:VERSION `
+            /DINSTALL_DIR="$env:GITHUB_WORKSPACE\dist" `
+            packaging/windows/installer.nsi
+
+
+      - name: Upload portable zip
         uses: actions/upload-artifact@v4
         with:
-          name: YaMusic-Windows-x64
-          path: YaMusic-Windows-x64.zip
+          name: YaMusic-Windows-x64-portable
+          path: YaMusic-${{ env.VERSION }}-windows-x64-portable.zip
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: YaMusic-Windows-x64-installer
+          path: YaMusic-${{ env.VERSION }}-windows-x64.exe
 
 
   # =============================================================
@@ -209,7 +370,7 @@ jobs:
   release:
     name: Publish Release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [linux, macos, windows]
+    needs: [linux, macos-x64, macos-arm64, windows]
     runs-on: ubuntu-24.04
 
     permissions:
@@ -235,13 +396,13 @@ jobs:
           body: |
             ## YaMusic ${{ github.ref_name }}
 
-            Бета-сборка для macOS, Linux и Windows.
+            Бета-сборка для macOS (Intel и Apple Silicon), Linux и Windows.
 
             ### Установка
 
-            - **Linux** — распаковать `YaMusic-Linux-x64.tar.gz`
-            - **macOS** — открыть `YaMusic-macOS.dmg`
-            - **Windows** — распаковать `YaMusic-Windows-x64.zip`
+            - **Windows** — `YaMusic-<version>-windows-x64.exe` (установщик) или `YaMusic-<version>-windows-x64-portable.zip` (portable)
+            - **macOS** — `YaMusic-<version>-macos-x64.dmg` (Intel) или `YaMusic-<version>-macos-arm64.dmg` (Apple Silicon)
+            - **Linux** — `YaMusic-<version>-linux-x86_64.AppImage` (запуск: `chmod +x` и запуск) или `YaMusic-<version>-linux-x86_64.tar.gz`
 
             ### Возможности
 
