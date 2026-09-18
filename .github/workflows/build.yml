@@ -34,6 +34,12 @@ jobs:
         uses: actions/checkout@v4
 
 
+      - name: Extract version
+        run: |
+          VERSION="$(sed -nE '/^project\(/,/^\)/s/.*VERSION[[:space:]]+([0-9.]+).*/\1/p' CMakeLists.txt | head -1)"
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+
+
       - name: Install build dependencies
         run: |
           sudo apt-get update
@@ -74,17 +80,14 @@ jobs:
         run: |
           ./scripts/build-appimage.sh
 
-      - name: Extract version
-        run: |
-          VERSION="$(awk '/^project\(/{f=1} f && /VERSION/{print $2; exit}' CMakeLists.txt)"
-          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
-
       - name: Package tar.gz
         run: |
+          mkdir -p pkg/YaMusic
+          cp -a dist/. pkg/YaMusic/
           tar \
-            -C dist \
+            -C pkg \
             -czf "YaMusic-${VERSION}-linux-x86_64.tar.gz" \
-            .
+            YaMusic
 
       - name: List artifacts
         run: |
@@ -150,7 +153,7 @@ jobs:
 
       - name: Extract version
         run: |
-          VERSION="$(awk '/^project\(/{f=1} f && /VERSION/{print $2; exit}' CMakeLists.txt)"
+          VERSION="$(sed -nE '/^project\(/,/^\)/s/.*VERSION[[:space:]]+([0-9.]+).*/\1/p' CMakeLists.txt | head -1)"
           echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
 
       - name: Bundle (macdeployqt + qt.conf)
@@ -229,7 +232,7 @@ jobs:
 
       - name: Extract version
         run: |
-          VERSION="$(awk '/^project\(/{f=1} f && /VERSION/{print $2; exit}' CMakeLists.txt)"
+          VERSION="$(sed -nE '/^project\(/,/^\)/s/.*VERSION[[:space:]]+([0-9.]+).*/\1/p' CMakeLists.txt | head -1)"
           echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
 
       - name: Bundle (macdeployqt + qt.conf)
@@ -334,23 +337,6 @@ jobs:
           Compress-Archive `
             -Path dist\* `
             -DestinationPath "YaMusic-$env:VERSION-windows-x64-portable.zip"
-
-
-      - name: Install NSIS
-        shell: pwsh
-        run: |
-          choco install nsis -y
-          # Обновляем PATH для текущего и последующих шагов
-          $nsisDir = "${env:ProgramFiles}\NSIS"
-          if (-not (Test-Path "$nsisDir\makensis.exe")) {
-            $nsisDir = "${env:ProgramFiles(x86)}\NSIS"
-          }
-          "makensis.exe" | ForEach-Object {
-            $exe = Get-Command $_ -ErrorAction SilentlyContinue
-            if ($exe) { $nsisDir = Split-Path $exe.Source }
-          }
-          Add-Content $env:GITHUB_PATH "$nsisDir"
-          "$nsisDir added to GITHUB_PATH"
 
 
       - name: Build installer (NSIS)

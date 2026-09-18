@@ -26,9 +26,9 @@ LINUXDEPLOY_APPIMAGE="${TOOLS_DIR}/linuxdeploy-plugin-appimage-x86_64.AppImage"
 
 LINUXDEPLOY_URL="https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
 LINUXDEPLOY_QT_URL="https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
-LINUXDEPLOY_APPIMAGE_URL="https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage"
+LINUXDEPLOY_APPIMAGE_URL="https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/1-alpha-20250213-1/linuxdeploy-plugin-appimage-x86_64.AppImage"
 
-VERSION="$(awk '/^project\(/{f=1} f && /VERSION/{print $2; exit}' "${ROOT_DIR}/CMakeLists.txt")"
+VERSION="$(sed -nE '/^project\(/,/^\)/s/.*VERSION[[:space:]]+([0-9.]+).*/\1/p' "${ROOT_DIR}/CMakeLists.txt" | head -1)"
 VERSION="${VERSION:-0.0.0}"
 
 APPIMAGE_NAME="YaMusic-${VERSION}-linux-x86_64.AppImage"
