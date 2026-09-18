@@ -20,6 +20,10 @@ TOOLS_DIR="${ROOT_DIR}/.tools"
 APPDIR="${ROOT_DIR}/build/appdir"
 DIST_DIR="${ROOT_DIR}/dist"
 
+LINUXDEPLOY="${TOOLS_DIR}/linuxdeploy-x86_64.AppImage"
+LINUXDEPLOY_QT="${TOOLS_DIR}/linuxdeploy-plugin-qt-x86_64.AppImage"
+LINUXDEPLOY_APPIMAGE="${TOOLS_DIR}/linuxdeploy-plugin-appimage-x86_64.AppImage"
+
 LINUXDEPLOY_URL="https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
 LINUXDEPLOY_QT_URL="https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
 LINUXDEPLOY_APPIMAGE_URL="https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage"

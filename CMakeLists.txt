@@ -580,6 +580,22 @@ endif()
 # Install target
 # =============================================================
 
+if(WIN32)
+
+    set(
+            YAMUSIC_RUNTIME_DESTINATION
+            .
+    )
+
+else()
+
+    set(
+            YAMUSIC_RUNTIME_DESTINATION
+            bin
+    )
+
+endif()
+
 install(
         TARGETS
         appYaMusic
@@ -590,7 +606,7 @@ install(
 
         RUNTIME
         DESTINATION
-        bin
+        "${YAMUSIC_RUNTIME_DESTINATION}"
 )
 
 # =============================================================
