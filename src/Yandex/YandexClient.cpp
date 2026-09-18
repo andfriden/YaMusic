@@ -14,19 +14,15 @@ namespace {
 constexpr auto YandexApiBaseUrl = "https://api.music.yandex.net";
 }
 
+// TODO(YM-2241): вынести общий разбор ответа (сетевая ошибка + JSON) в один колбэк.
 YandexClient::YandexClient(QObject *parent) : QObject(parent) {}
 
-void YandexClient::setToken(const QString &token) {
-  m_token = token.trimmed();
-}
+void YandexClient::setToken(const QString &token) { m_token = token.trimmed(); }
 
-bool YandexClient::hasToken() const {
-  return !m_token.isEmpty();
-}
+bool YandexClient::hasToken() const { return !m_token.isEmpty(); }
 
 QNetworkRequest YandexClient::createRequest(const QString &path) const {
   QUrl url;
-
   if (path.startsWith("http://") || path.startsWith("https://")) {
     url = QUrl(path);
   } else {
@@ -36,7 +32,6 @@ QNetworkRequest YandexClient::createRequest(const QString &path) const {
   QNetworkRequest request{url};
   request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
   request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
-
   if (hasToken()) {
     request.setRawHeader("Authorization", QByteArray("OAuth ") + m_token.toUtf8());
   }
@@ -66,10 +61,8 @@ QNetworkReply *YandexClient::rawPost(const QNetworkRequest &request, const QByte
 
 void YandexClient::getAccountStatus() {
   QNetworkReply *reply = get("/account/status");
-
   connect(reply, &QNetworkReply::finished, this, [this, reply]() {
     const QByteArray data = reply->readAll();
-
     if (reply->error() != QNetworkReply::NoError) {
       emit requestError(reply->errorString());
       reply->deleteLater();
@@ -78,7 +71,6 @@ void YandexClient::getAccountStatus() {
 
     QJsonParseError parseError;
     const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
-
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
       emit requestError("Некорректный ответ от Яндекс Музыки");
       reply->deleteLater();
@@ -114,7 +106,6 @@ void YandexClient::search(const QString &query, int page) {
 
     m_searchReply.clear();
     const QByteArray data = reply->readAll();
-
     if (reply->error() != QNetworkReply::NoError) {
       emit requestError(reply->errorString());
       reply->deleteLater();
@@ -123,7 +114,6 @@ void YandexClient::search(const QString &query, int page) {
 
     QJsonParseError parseError;
     const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
-
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
       emit requestError("Некорректный ответ поиска");
       reply->deleteLater();
@@ -144,11 +134,9 @@ void YandexClient::getTracks(const QStringList &trackIds) {
   }
 
   QStringList normalizedIds;
-
   for (const QString &trackId : trackIds) {
     const QString id = trackId.trimmed();
     if (id.isEmpty()) continue;
-
     if (!normalizedIds.contains(id)) {
       normalizedIds.append(id);
     }
@@ -173,7 +161,6 @@ void YandexClient::getTracks(const QStringList &trackIds) {
 
     m_tracksReply.clear();
     const QByteArray data = reply->readAll();
-
     if (reply->error() != QNetworkReply::NoError) {
       emit requestError(reply->errorString());
       reply->deleteLater();
@@ -182,7 +169,6 @@ void YandexClient::getTracks(const QStringList &trackIds) {
 
     QJsonParseError parseError;
     const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
-
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
       emit requestError("Некорректный ответ списка треков");
       reply->deleteLater();

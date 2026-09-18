@@ -33,13 +33,10 @@ bool YandexAuth::loadFromEnvironment() {
 bool YandexAuth::setToken(const QString &token) {
   const QString trimmedToken = token.trimmed();
 
-  if (trimmedToken.isEmpty()) {
+  if (trimmedToken.isEmpty())
     return false;
-  }
-
-  if (!YandexTokenStorage::saveToken(trimmedToken)) {
+  if (!YandexTokenStorage::saveToken(trimmedToken))
     return false;
-  }
 
   m_token = trimmedToken;
   emit authenticationChanged();
@@ -47,9 +44,8 @@ bool YandexAuth::setToken(const QString &token) {
 }
 
 bool YandexAuth::clearToken() {
-  if (!YandexTokenStorage::clearToken()) {
+  if (!YandexTokenStorage::clearToken())
     return false;
-  }
 
   m_token.clear();
   emit authenticationChanged();

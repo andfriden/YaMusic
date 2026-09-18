@@ -63,6 +63,8 @@ void ChartService::loadChart(const QString &chartType) {
 
     const QJsonArray tracksArray = chart.value("tracks").toArray();
     const QList<Track> tracks = parseTrackArray(tracksArray);
+
+    // TODO(#145): подумать про ленивую подгрузку чарта по частям
     emit chartReceived(tracks, type);
     reply->deleteLater();
   });

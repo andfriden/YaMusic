@@ -4,7 +4,8 @@
 
 AuthController::AuthController(YandexAuth *auth, AccountService *accountService, QObject *parent)
     : QObject(parent), m_auth(auth), m_accountService(accountService) {
-  if (m_accountService == nullptr) return;
+  Q_ASSERT(m_auth != nullptr);
+  Q_ASSERT(m_accountService != nullptr);
 
   connect(m_accountService, &AccountService::accountReceived, this, [this](const Account &account) {
     m_account = account;
@@ -21,7 +22,7 @@ AuthController::AuthController(YandexAuth *auth, AccountService *accountService,
     emit errorOccurred(message);
   });
 
-  if (m_auth != nullptr && m_auth->isAuthenticated()) {
+  if (m_auth->isAuthenticated()) {
     loadAccount();
   }
 }
@@ -52,11 +53,6 @@ QString AuthController::extractToken(const QString &input) const {
 }
 
 void AuthController::loginWithToken(const QString &token) {
-  if (m_auth == nullptr) {
-    emit errorOccurred("Сервис авторизации недоступен");
-    return;
-  }
-
   const QString extractedToken = extractToken(token);
 
   if (extractedToken.isEmpty()) {
@@ -73,8 +69,6 @@ void AuthController::loginWithToken(const QString &token) {
 }
 
 void AuthController::logout() {
-  if (m_auth == nullptr) return;
-
   if (!m_auth->clearToken()) {
     emit errorOccurred("Не удалось удалить токен");
     return;
@@ -88,6 +82,5 @@ void AuthController::logout() {
 }
 
 void AuthController::loadAccount() {
-  if (m_accountService == nullptr) return;
   m_accountService->loadAccount();
 }

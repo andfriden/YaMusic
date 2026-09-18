@@ -14,8 +14,6 @@ public:
 
 signals:
   void searchStarted();
-
   void searchReceived(const SearchResults &results);
-
   void errorOccurred(const QString &message);
 };

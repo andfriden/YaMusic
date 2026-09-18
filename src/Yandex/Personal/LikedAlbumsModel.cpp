@@ -9,17 +9,17 @@ int LikedAlbumsModel::rowCount(const QModelIndex &parent) const {
 
 QVariant LikedAlbumsModel::data(const QModelIndex &index, int role) const {
   if (!index.isValid() || index.row() < 0 || index.row() >= m_albums.size()) return {};
-  const Album &a = m_albums.at(index.row());
+  const Album &album = m_albums.at(index.row());
 
   switch (role) {
   case AlbumIdRole:
-    return a.id;
+    return album.id;
   case TitleRole:
-    return a.title;
+    return album.title;
   case CoverUriRole:
-    return a.coverUri;
+    return album.coverUri;
   case YearRole:
-    return a.year;
+    return album.year;
   default:
     return {};
   }
@@ -32,6 +32,7 @@ QHash<int, QByteArray> LikedAlbumsModel::roleNames() const {
           {YearRole, "year"}};
 }
 
+// TODO(#180): добавить сортировку альбомов по году
 void LikedAlbumsModel::setAlbums(const QList<Album> &albums) {
   beginResetModel();
   m_albums = albums;

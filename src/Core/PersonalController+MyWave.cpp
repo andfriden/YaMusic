@@ -5,10 +5,6 @@
 #include "PersonalController.h"
 
 void PersonalController::connectMyWave() {
-  if (m_yandexPersonal == nullptr) {
-    return;
-  }
-
   connect(m_yandexPersonal, &YandexPersonal::myWaveReceived, this,
           [this](const QList<Track> &tracks, const QString &batchId) {
             handleMyWaveReceived(tracks, batchId);
@@ -35,10 +31,6 @@ void PersonalController::loadMyWave() {
     return;
   }
 
-  if (m_yandexPersonal == nullptr) {
-    return;
-  }
-
   m_myWaveQueueActive = true;
   m_waitingForMoreMyWave = false;
   m_currentMyWaveTrackId.clear();
@@ -48,13 +40,9 @@ void PersonalController::loadMyWave() {
   m_myWaveTrackBatches.clear();
   m_myWaveModel->clear();
 
-  QueueService *queue =
-      m_playbackController != nullptr ? m_playbackController->queueService() : nullptr;
-
-  if (queue != nullptr) {
-    queue->clear();
-    queue->clearSource();
-  }
+  QueueService *queue = m_playbackController->queueService();
+  queue->clear();
+  queue->clearSource();
 
   emit statusChanged("Загрузка моей волны...");
   m_yandexPersonal->loadMyWave();
@@ -62,10 +50,6 @@ void PersonalController::loadMyWave() {
 
 void PersonalController::loadMoreMyWave() {
   if (m_loadingMyWave || m_loadingMoreMyWave) {
-    return;
-  }
-
-  if (m_yandexPersonal == nullptr) {
     return;
   }
 
@@ -115,18 +99,14 @@ void PersonalController::handleMyWaveReceived(const QList<Track> &tracks, const 
   if (!isMoreBatch) {
     m_myWaveModel->setTracks(tracks);
 
-    QueueService *queue =
-        m_playbackController != nullptr ? m_playbackController->queueService() : nullptr;
-
-    if (queue != nullptr) {
-      queue->clear();
-      queue->addTracks(tracks);
-      queue->setSource("Моя волна", "myWave");
-    }
+    QueueService *queue = m_playbackController->queueService();
+    queue->clear();
+    queue->addTracks(tracks);
+    queue->setSource("Моя волна", "myWave");
 
     m_myWaveQueueActive = true;
     m_waitingForMoreMyWave = false;
-    emit statusChanged(QString("Моя волна: %1 треков").arg(m_myWaveModel->count()));
+    emit statusChanged(QStringLiteral("Моя волна: %1 треков").arg(m_myWaveModel->count()));
     return;
   }
 
@@ -134,7 +114,7 @@ void PersonalController::handleMyWaveReceived(const QList<Track> &tracks, const 
   m_myWaveModel->appendTracks(tracks);
   appendMyWaveTracksToQueue(tracks);
   const int appended = m_myWaveModel->count() - oldCount;
-  emit statusChanged(QString("Моя волна: %1 треков").arg(m_myWaveModel->count()));
+  emit statusChanged(QStringLiteral("Моя волна: %1 треков").arg(m_myWaveModel->count()));
 
   if (!m_waitingForMoreMyWave) {
     return;
@@ -142,16 +122,7 @@ void PersonalController::handleMyWaveReceived(const QList<Track> &tracks, const 
 
   m_waitingForMoreMyWave = false;
 
-  if (m_playbackController == nullptr) {
-    return;
-  }
-
   QueueService *queue = m_playbackController->queueService();
-
-  if (queue == nullptr) {
-    return;
-  }
-
   queue->setSource("Моя волна", "myWave");
 
   if (!queue->hasNext()) {
@@ -171,10 +142,6 @@ void PersonalController::handleMyWaveReceived(const QList<Track> &tracks, const 
 }
 
 void PersonalController::selectMyWaveTrack(int index) {
-  if (m_playbackController == nullptr) {
-    return;
-  }
-
   const Track track = m_myWaveModel->trackAt(index);
 
   if (track.id.isEmpty()) {
@@ -193,20 +160,12 @@ void PersonalController::selectMyWaveTrack(int index) {
   }
 
   emit myWaveTrackSelected(track);
-  emit statusChanged(QString("Выбран трек: %1").arg(track.title));
+  emit statusChanged(QStringLiteral("Выбран трек: %1").arg(track.title));
   m_playbackController->playTrack(track);
 }
 
 void PersonalController::startMyWaveQueue(int index) {
-  if (m_playbackController == nullptr) {
-    return;
-  }
-
   QueueService *queue = m_playbackController->queueService();
-
-  if (queue == nullptr) {
-    return;
-  }
 
   const QList<Track> tracks = m_myWaveModel->tracks();
 
@@ -236,18 +195,11 @@ void PersonalController::startMyWaveQueue(int index) {
 }
 
 void PersonalController::appendMyWaveTracksToQueue(const QList<Track> &tracks) {
-  if (m_playbackController == nullptr) {
-    return;
-  }
-
   QueueService *queue = m_playbackController->queueService();
-
-  if (queue == nullptr) {
-    return;
-  }
-
   const QList<Track> queuedTracks = queue->tracks();
 
+  // TODO(#503): на больших очередях линейный поиск дубликатов становится
+  // узким местом — перевести на QSet idшников.
   for (const Track &track : tracks) {
     if (track.id.isEmpty()) continue;
     bool exists = false;
@@ -271,15 +223,7 @@ void PersonalController::handleMyWavePlaybackFinished() {
     return;
   }
 
-  if (m_playbackController == nullptr) {
-    return;
-  }
-
   QueueService *queue = m_playbackController->queueService();
-
-  if (queue == nullptr) {
-    return;
-  }
 
   if (queue->hasNext()) {
     queue->next();
@@ -324,7 +268,7 @@ void PersonalController::stopCurrentMyWaveTrack(const QString &event) {
     return;
   }
 
-  const qint64 playedSeconds = m_playerService != nullptr ? m_playerService->position() / 1000 : 0;
+  const qint64 playedSeconds = m_playerService->position() / 1000;
   sendMyWaveFeedback(event, m_currentMyWaveTrackId, playedSeconds);
   m_currentMyWaveTrackId.clear();
   m_myWaveTrackStarted = false;
@@ -332,10 +276,6 @@ void PersonalController::stopCurrentMyWaveTrack(const QString &event) {
 
 void PersonalController::sendMyWaveFeedback(const QString &event, const QString &trackId,
                                             qint64 totalPlayedSeconds) {
-  if (m_yandexPersonal == nullptr) {
-    return;
-  }
-
   const QString batchId = batchIdForTrack(trackId);
 
   if (batchId.isEmpty()) {

@@ -4,6 +4,8 @@
 
 AccountService::AccountService(YandexAuth *auth, QObject *parent)
     : QObject(parent), m_auth(auth), m_yandexClient(new YandexClient(this)) {
+  Q_ASSERT(m_auth);
+
   connect(m_yandexClient, &YandexClient::accountReceived, this,
           [this](const Account &account) { emit accountReceived(account); });
 
@@ -12,7 +14,7 @@ AccountService::AccountService(YandexAuth *auth, QObject *parent)
 }
 
 void AccountService::loadAccount() {
-  if (m_auth == nullptr || !m_auth->isAuthenticated()) {
+  if (!m_auth->isAuthenticated()) {
     emit errorOccurred("Yandex Music token is not set");
     return;
   }

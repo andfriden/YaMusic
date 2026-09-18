@@ -5,19 +5,14 @@
 RecentListeningModel::RecentListeningModel(QObject *parent) : TrackListModelBase(parent) {}
 
 QVariant RecentListeningModel::data(const QModelIndex &index, int role) const {
-  if (!index.isValid() || index.row() < 0 || index.row() >= m_tracks.size()) {
-    return {};
-  }
-
+  if (!index.isValid() || index.row() < 0 || index.row() >= m_tracks.size()) return {};
   const Track &track = m_tracks.at(index.row());
 
   switch (role) {
   case IdRole:
     return track.id;
-
   case TitleRole:
     return track.title;
-
   case ArtistRole: {
     QStringList artistNames;
 
@@ -28,37 +23,16 @@ QVariant RecentListeningModel::data(const QModelIndex &index, int role) const {
     }
     return artistNames.join(", ");
   }
-
   case ArtistIdRole:
-
-    if (!track.artists.isEmpty()) {
-      return track.artists.first().id;
-    }
-
-    return QString();
-
+    return track.artists.isEmpty() ? QString() : track.artists.first().id;
   case AlbumRole:
-
-    if (!track.albums.isEmpty()) {
-      return track.albums.first().title;
-    }
-
-    return QString();
-
+    return track.albums.isEmpty() ? QString() : track.albums.first().title;
   case AlbumIdRole:
-
-    if (!track.albums.isEmpty()) {
-      return track.albums.first().id;
-    }
-
-    return QString();
-
+    return track.albums.isEmpty() ? QString() : track.albums.first().id;
   case CoverUriRole:
     return track.coverUri;
-
   case DurationMsRole:
     return track.durationMs;
-
   default:
     return {};
   }
@@ -77,9 +51,7 @@ void RecentListeningModel::setTracks(const QList<Track> &tracks) {
 QVariantMap RecentListeningModel::trackDataAt(int index) const {
   QVariantMap result;
 
-  if (index < 0 || index >= m_tracks.size()) {
-    return result;
-  }
+  if (index < 0 || index >= m_tracks.size()) return result;
 
   const Track &track = m_tracks.at(index);
   QString artistName;
@@ -113,13 +85,7 @@ QVariantMap RecentListeningModel::trackDataAt(int index) const {
 QVariantList RecentListeningModel::randomTrackData(int limit) const {
   QVariantList result;
 
-  if (m_tracks.isEmpty()) {
-    return result;
-  }
-
-  if (limit <= 0) {
-    return result;
-  }
+  if (m_tracks.isEmpty() || limit <= 0) return result;
 
   QList<int> indexes;
   indexes.reserve(m_tracks.size());
@@ -128,7 +94,7 @@ QVariantList RecentListeningModel::randomTrackData(int limit) const {
     indexes.append(i);
   }
 
-  // Fisher-Yates shuffle.
+  // Перемешивание Фишера — Йетса.
 
   for (int i = indexes.size() - 1; i > 0; --i) {
     const int j = QRandomGenerator::global()->bounded(i + 1);

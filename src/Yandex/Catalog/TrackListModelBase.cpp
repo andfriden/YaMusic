@@ -2,16 +2,12 @@
 #include <QModelIndex>
 
 int TrackListModelBase::rowCount(const QModelIndex &parent) const {
-  if (parent.isValid()) {
-    return 0;
-  }
+  if (parent.isValid()) return 0;
   return m_tracks.size();
 }
 
 Track TrackListModelBase::trackAt(int index) const {
-  if (index < 0 || index >= m_tracks.size()) {
-    return {};
-  }
+  if (index < 0 || index >= m_tracks.size()) return {};
   return m_tracks.at(index);
 }
 
@@ -24,10 +20,7 @@ int TrackListModelBase::count() const {
 }
 
 void TrackListModelBase::clear() {
-  if (m_tracks.isEmpty()) {
-    return;
-  }
-
+  if (m_tracks.isEmpty()) return;
   beginResetModel();
   m_tracks.clear();
   endResetModel();
@@ -45,10 +38,7 @@ bool TrackListModelBase::setTrackLiked(const QString &trackId, bool liked, int l
   for (int i = 0; i < m_tracks.size(); ++i) {
     if (m_tracks[i].id != trackId) continue;
 
-    if (m_tracks[i].liked == liked) {
-      return false;
-    }
-
+    if (m_tracks[i].liked == liked) return false;
     m_tracks[i].liked = liked;
     emit dataChanged(index(i), index(i), {likedRole});
     return true;

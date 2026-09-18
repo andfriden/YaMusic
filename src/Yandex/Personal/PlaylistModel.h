@@ -23,23 +23,14 @@ public:
   };
 
   explicit PlaylistModel(QObject *parent = nullptr);
-
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-
   QHash<int, QByteArray> roleNames() const override;
-
   void setPlaylist(const Playlist &playlist);
-
   void clear();
-
   QString title() const;
-
   int kind() const;
-
   int revision() const;
-
   int trackCount() const;
-
   void setTrackLiked(const QString &trackId, bool liked);
 
 private:

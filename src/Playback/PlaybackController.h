@@ -56,32 +56,24 @@ public:
   void toggleShuffle();
 
   // Офлайн-режим: воспроизведение только из локального кэша,
-  // без сетевых запросов за стрим-URL.
-
+  // без сетевых запросов за stream URL.
   bool offlineMode() const;
-
   Q_INVOKABLE void setOfflineMode(bool enabled);
-
   Q_INVOKABLE void toggleOfflineMode();
 
   // true, если файл трека уже лежит в кэше стримов.
-
   bool isTrackCached(const QString &trackId) const;
 
   // Удаляет все файлы кэша стримов.
-
   Q_INVOKABLE void clearOfflineCache();
 
-  // Источник uid пользователя. Провайдер передаёт AppController
-  // после получения аккаунта, чтобы PlaybackController мог
-  // отправлять факты прослушивания (POST /play-audio) без
-  // прямой зависимости от AccountService.
+  // Провайдер uid приходит из AppController после получения аккаунта,
+  // чтобы отправлять факты прослушивания (POST /play-audio) без прямой
+  // зависимости от AccountService.
   void setUidProvider(const std::function<QString()> &provider);
 
 signals:
-
   void playlistExhausted(const QString &sourceType, const QString &sourceTitle);
-
   void currentTrackChanged();
   void stateChanged();
   void playbackError(const QString &message);
@@ -91,24 +83,16 @@ signals:
 
 private:
   void setState(PlaybackState state);
-
   void handlePlaybackFinished();
-
   void handleStreamUrl(const QString &trackId, const QString &url);
-
   bool playQueueCurrentTrack();
-
   void setupSystemMediaControls();
   void fetchCurrentCover();
-
   void downloadAndPlayStream(const QString &trackId, const QString &streamUrl);
-
   void cancelStreamDownload();
 
   // Пороговая отправка факта прослушивания.
-
   void maybeReportPlayback();
-
   void resetReportState();
 
 private:
@@ -117,7 +101,6 @@ private:
   QueueService *m_queueService = nullptr;
 
   Track m_currentTrack;
-
   PlaybackState m_state = Idle;
 
   std::unique_ptr<SystemMediaControls> m_systemMediaControls;
@@ -125,25 +108,22 @@ private:
   QNetworkAccessManager *m_coverNetwork = nullptr;
   QString m_pendingCoverUri;
 
-  // Проксирование стрима — обход TLS-проблем ffmpeg на macOS
+  // Проксирование стрима — обход TLS-проблем FFmpeg на macOS.
   QNetworkAccessManager *m_streamNetwork = nullptr;
   QPointer<QNetworkReply> m_streamDownloadReply;
   QString m_streamCacheDir;
   QString m_pendingStreamTrackId;
   bool m_streamDownloadInProgress = false;
 
-  // Восстановление воспроизведения после сбоя
+  // Восстановление воспроизведения после сбоя сетевого стрима.
   bool m_recoveringPlayback = false;
   bool m_recoveryPositionPending = false;
-
   qint64 m_recoveryPosition = 0;
-
   QString m_recoveryTrackId;
 
   bool m_offlineMode = false;
 
-  // Отправка статистики воспроизведения (POST /play-audio)
+  // Отправка статистики воспроизведения (POST /play-audio).
   std::function<QString()> m_uidProvider;
-
   bool m_reportSubmitted = false;
 };

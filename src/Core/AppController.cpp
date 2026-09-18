@@ -57,6 +57,9 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
           new LyricsController(m_trackService, m_playbackController, m_playerService, this)),
       m_themeController(new ThemeController(this)),
       m_accentController(new AccentController(m_playerAccentService, m_playbackController, this)) {
+  Q_ASSERT(m_auth != nullptr);
+  Q_ASSERT(m_accountService != nullptr);
+
   connectAccount();
   connectSearch();
   connectLibrary();
@@ -90,33 +93,27 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
           [this](const QList<Track> &tracks) { m_similarTracksModel->setSimilarTracks(tracks); });
 
   // TODO(#482): вынести uid-провайдер в PlaybackController
-  if (m_accountService != nullptr) m_accountService->loadAccount();
+  m_accountService->loadAccount();
 }
 
 void AppController::connectAccount() {
-  if (m_accountService == nullptr) {
-    return;
-  }
-
   connect(m_accountService, &AccountService::accountReceived, this, [this](const Account &account) {
     m_accountUid = QString::number(account.uid);
     m_recentListeningService->setUserId(m_accountUid);
     m_recentListeningService->load(50, 10);
     m_libraryController->setUserId(m_accountUid);
 
-    // Провайдер uid для play-audio — лямбда читает m_accountUid.
-
     m_playbackController->setUidProvider([this]() -> QString { return m_accountUid; });
 
-    // Список личных плейлистов нужен в пикере «Добавить
-    // в плейлист» на всех страницах — грузим сразу при
-    // входе, а не только при открытии Медиатеки.
+    // Список личных плейлистов нужен в пикере «Добавить в плейлист»
+    // на всех страницах — грузим сразу при входе, а не только
+    // при открытии Медиатеки.
     m_libraryController->loadUserPlaylists(m_accountUid);
     m_personalController->loadMyWave();
     m_personalController->loadRecommendations();
 
     emit statusChanged(
-        QString("Выполнен вход: %1 (uid: %2)").arg(account.displayName).arg(account.uid));
+        QStringLiteral("Выполнен вход: %1 (uid: %2)").arg(account.displayName).arg(account.uid));
   });
   connect(m_accountService, &AccountService::errorOccurred, this, &AppController::statusChanged);
 }
@@ -220,6 +217,7 @@ void AppController::connectPersonal() {
             // Для персональных подборок («Собираем для вас»)
             // сервер не отдаёт similar-entities, поэтому
             // подставляем остальные плейлисты из того же раздела.
+
             m_libraryController->setSimilarPlaylistsFallback(
                 m_personalController->recommendationPlaylistsData(playlist.uid, playlist.kind));
           });
@@ -258,8 +256,8 @@ void AppController::connectPlayback() {
     if (!track.artists.isEmpty()) artistName = track.artists.first().name;
 
     const QString message = artistName.isEmpty()
-                                ? QString("Выбран трек: %1").arg(track.title)
-                                : QString("Выбран трек: %1 — %2").arg(track.title).arg(artistName);
+                                ? QStringLiteral("Выбран трек: %1").arg(track.title)
+                                : QStringLiteral("Выбран трек: %1 — %2").arg(track.title).arg(artistName);
     emit statusChanged(message);
   });
 
@@ -296,7 +294,7 @@ void AppController::connectPlayback() {
             } else if (sourceType == "artist") {
               const SimilarArtistsModel *similar = m_artistController->similarArtistsModel();
 
-              if (similar == nullptr || similar->count() <= 0) {
+              if (similar->count() <= 0) {
                 return;
               }
 
@@ -307,7 +305,7 @@ void AppController::connectPlayback() {
               }
 
               loadArtist(first.id);
-              emit statusChanged(QString("Похожий исполнитель: %1").arg(first.name));
+              emit statusChanged(QStringLiteral("Похожий исполнитель: %1").arg(first.name));
 
             } else if (sourceType == "album") {
               const QString artistId = currentTrackArtistId();
@@ -340,7 +338,7 @@ void AppController::connectPlayer() {
           [this]() { emit statusChanged("Остановлено"); });
 
   connect(m_playerService, &PlayerService::errorOccurred, this, [this](const QString &message) {
-    emit statusChanged(QString("Ошибка воспроизведения: %1").arg(message));
+    emit statusChanged(QStringLiteral("Ошибка воспроизведения: %1").arg(message));
   });
 }
 
@@ -635,7 +633,7 @@ void AppController::copyTrack(const QString &title, const QString &artist) {
   }
 
   QGuiApplication::clipboard()->setText(text);
-  emit statusChanged(QString("Скопировано: %1").arg(text));
+  emit statusChanged(QStringLiteral("Скопировано: %1").arg(text));
 }
 
 QString AppController::currentTrackCoverUri() const {

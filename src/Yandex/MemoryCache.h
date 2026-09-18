@@ -20,7 +20,6 @@ public:
   // Возвращает true и заполняет value при попадании.
   bool get(const QString &key, T &value) const {
     const auto it = m_items.constFind(key);
-
     if (it == m_items.constEnd()) {
       return false;
     }
@@ -45,6 +44,5 @@ public:
 
 private:
   mutable QHash<QString, QPair<qint64, T>> m_items;
-
   qint64 m_ttlMs;
 };

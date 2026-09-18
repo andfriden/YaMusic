@@ -10,7 +10,9 @@
 #include <QUrlQuery>
 
 YandexPersonal::YandexPersonal(YandexAuth *auth, QObject *parent)
-    : QObject(parent), m_auth(auth), m_yandexClient(new YandexClient(this)) {}
+    : QObject(parent), m_auth(auth), m_yandexClient(new YandexClient(this)) {
+  Q_ASSERT(m_auth);
+}
 
 void YandexPersonal::loadMyWave() {
   loadMyWaveInternal({});
@@ -22,12 +24,13 @@ void YandexPersonal::loadMoreMyWave(const QString &queueTrackId) {
     emit errorOccurred("Идентификатор последнего трека для продолжения Wave не задан");
     return;
   }
+
   loadMyWaveInternal(trackId);
 }
 
 void YandexPersonal::sendMyWaveFeedback(const QString &event, const QString &trackId,
-                                        const QString &batchId, qint64 totalPlayedSeconds) {
-  if (m_auth == nullptr || !m_auth->isAuthenticated()) {
+                                         const QString &batchId, qint64 totalPlayedSeconds) {
+  if (!m_auth->isAuthenticated()) {
     emit feedbackError("Токен Яндекс Музыки не установлен");
     return;
   }
@@ -64,6 +67,7 @@ void YandexPersonal::sendMyWaveFeedback(const QString &event, const QString &tra
   const QString path =
       "/rotor/station/user:onyourwave/feedback?" + query.toString(QUrl::FullyEncoded);
   QNetworkReply *reply = m_yandexClient->post(path, body);
+
   if (reply == nullptr) {
     emit feedbackError("Не удалось создать запрос feedback");
     return;
@@ -78,6 +82,7 @@ void YandexPersonal::sendMyWaveFeedback(const QString &event, const QString &tra
       reply->deleteLater();
       return;
     }
+
     emit feedbackSent(type);
     reply->deleteLater();
   });
@@ -86,7 +91,7 @@ void YandexPersonal::sendMyWaveFeedback(const QString &event, const QString &tra
 void YandexPersonal::loadMyWaveInternal(const QString &queueTrackId) {
   if (m_loading) return;
 
-  if (m_auth == nullptr || !m_auth->isAuthenticated()) {
+  if (!m_auth->isAuthenticated()) {
     emit errorOccurred("Токен Яндекс Музыки не установлен");
     return;
   }
@@ -102,6 +107,7 @@ void YandexPersonal::loadMyWaveInternal(const QString &queueTrackId) {
   const QString path =
       "/rotor/station/user:onyourwave/tracks?" + query.toString(QUrl::FullyEncoded);
   QNetworkReply *reply = m_yandexClient->get(path);
+
   if (reply == nullptr) {
     m_loading = false;
     emit errorOccurred("Не удалось создать запрос My Wave");
@@ -113,6 +119,7 @@ void YandexPersonal::loadMyWaveInternal(const QString &queueTrackId) {
       emit errorOccurred(msg);
       reply->deleteLater();
     };
+
     m_loading = false;
     const QByteArray data = reply->readAll();
     if (reply->error() != QNetworkReply::NoError) return fail(reply->errorString());
@@ -156,6 +163,7 @@ Track YandexPersonal::parseTrack(const QJsonObject &object) const {
   track.coverUri = object.value("coverUri").toString();
   track.durationMs = object.value("durationMs").toInt();
   const QJsonArray artists = object.value("artists").toArray();
+
   for (const QJsonValue &value : artists) {
     if (!value.isObject()) continue;
     const QJsonObject artistObject = value.toObject();
@@ -168,6 +176,7 @@ Track YandexPersonal::parseTrack(const QJsonObject &object) const {
   }
 
   const QJsonArray albums = object.value("albums").toArray();
+
   for (const QJsonValue &value : albums) {
     if (!value.isObject()) continue;
     const QJsonObject albumObject = value.toObject();
@@ -180,5 +189,6 @@ Track YandexPersonal::parseTrack(const QJsonObject &object) const {
       track.albums.append(album);
     }
   }
+
   return track;
 }

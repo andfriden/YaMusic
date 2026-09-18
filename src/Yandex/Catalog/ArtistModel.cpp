@@ -3,6 +3,7 @@
 
 ArtistModel::ArtistModel(QObject *parent) : TrackListModelBase(parent) {}
 
+// TODO(YM-2247): добавить роли с годами и количеством альбомов из popularAlbums/newRelease
 QVariant ArtistModel::data(const QModelIndex &index, int role) const {
   if (!index.isValid() || index.row() < 0 || index.row() >= m_tracks.size()) {
     return {};
@@ -19,7 +20,6 @@ QVariant ArtistModel::data(const QModelIndex &index, int role) const {
 
   case ArtistRole: {
     QStringList artistNames;
-
     for (const Artist &artist : track.artists) {
       if (!artist.name.isEmpty()) {
         artistNames.append(artist.name);
@@ -29,27 +29,21 @@ QVariant ArtistModel::data(const QModelIndex &index, int role) const {
   }
 
   case ArtistIdRole:
-
     if (!track.artists.isEmpty()) {
       return track.artists.first().id;
     }
-
     return QString();
 
   case AlbumRole:
-
     if (!track.albums.isEmpty()) {
       return track.albums.first().title;
     }
-
     return QString();
 
   case AlbumIdRole:
-
     if (!track.albums.isEmpty()) {
       return track.albums.first().id;
     }
-
     return QString();
 
   case CoverUriRole:

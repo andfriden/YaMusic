@@ -12,20 +12,14 @@
 NewPlaylistsService::NewPlaylistsService(YandexAuth *auth, PlaylistService *playlistService,
                                          QObject *parent)
     : YandexServiceBase(auth, parent), m_playlistService(playlistService) {
-  if (m_playlistService != nullptr) {
-    connect(m_playlistService, &PlaylistService::playlistsReceived, this,
-            [this](const QList<Playlist> &playlists) { emit playlistsReceived(playlists); });
-  }
+  Q_ASSERT(m_playlistService);
+  connect(m_playlistService, &PlaylistService::playlistsReceived, this,
+          [this](const QList<Playlist> &playlists) { emit playlistsReceived(playlists); });
 }
 
 void NewPlaylistsService::load() {
   if (!ensureAuthenticated()) {
     emit errorOccurred("Токен Яндекс Музыки не установлен");
-    return;
-  }
-
-  if (m_playlistService == nullptr) {
-    emit errorOccurred("PlaylistService недоступен");
     return;
   }
 

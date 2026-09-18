@@ -6,14 +6,6 @@
 #include <QDBusObjectPath>
 #include <QVariantMap>
 
-// MPRISv2 — интерфейсы org.mpris.MediaPlayer2 и
-// org.mpris.MediaPlayer2.Player на session bus.
-// Спецификация:
-// https://specifications.freedesktop.org/mpris-spec/latest/
-// Используем QDBusAbstractAdaptor (ExportAdaptors), чтобы Qt
-// корректно маршрутизировал Properties.Get/GetAll/PropertiesChanged
-// по именам интерфейсов.
-
 namespace {
 constexpr auto kServiceName = "org.mpris.MediaPlayer2.YaMusic";
 constexpr auto kObjectPath = "/org/mpris/MediaPlayer2";
@@ -32,8 +24,7 @@ QString playbackStatusToString(SystemMediaControls::PlaybackStatus status) {
 
 } // anonymous namespace
 
-// Impl — основной QObject на шине; адаптеры — его дочерние объекты.
-
+// Импл — основной QObject на шине; адаптеры — его дочерние объекты.
 class Impl : public QObject {
   Q_OBJECT
 
@@ -43,15 +34,12 @@ public:
   bool registerService();
   void unregisterService();
 
-  // Прокси к protected-членам владельца
   SystemMediaControls::PlaybackStatus playbackStatus() const {
     return m_owner->mediaPlaybackStatus();
   }
-
   QString loopStatus() const { return m_owner->mediaLoopStatus(); }
   bool shuffle() const { return m_owner->mediaShuffle(); }
   const SystemMediaControls::Metadata &metadata() const { return m_owner->mediaMetadata(); }
-
   qint64 positionMs() const { return m_owner->mediaPositionMs(); }
 
   void requestPlay() { Q_EMIT m_owner->playRequested(); }
@@ -59,7 +47,6 @@ public:
   void requestToggle() { Q_EMIT m_owner->togglePlayPauseRequested(); }
   void requestNext() { Q_EMIT m_owner->nextRequested(); }
   void requestPrevious() { Q_EMIT m_owner->previousRequested(); }
-
   void requestSeek(qint64 positionMs) { Q_EMIT m_owner->seekRequested(positionMs); }
 
   void notifyAllChanged();
@@ -71,7 +58,6 @@ private:
 };
 
 // Адаптеры — по одному на D-Bus интерфейс.
-
 namespace {
 class RootAdaptor : public QDBusAbstractAdaptor {
   Q_OBJECT
@@ -97,7 +83,6 @@ public slots:
   bool hasTrackList() const { return false; }
   QString identity() const { return QStringLiteral("YaMusic"); }
   QString desktopEntry() const { return QStringLiteral("yamusic"); }
-
   QStringList supportedUriSchemes() const { return {QStringLiteral("https")}; }
   QStringList supportedMimeTypes() const { return {QStringLiteral("audio/mpeg")}; }
 };
@@ -145,7 +130,6 @@ public slots:
   void OpenUri(const QString &) {}
 
   QString playbackStatus() const { return playbackStatusToString(m_impl->playbackStatus()); }
-
   QString loopStatus() const { return m_impl->loopStatus(); }
   double rate() const { return 1.0; }
   bool shuffle() const { return m_impl->shuffle(); }
@@ -167,9 +151,7 @@ public slots:
 
   double volume() const { return 1.0; }
   void setVolume(double) {}
-
   qint64 position() const { return m_impl->positionMs() * 1000; }
-
   double minimumRate() const { return 1.0; }
   double maximumRate() const { return 1.0; }
 
@@ -196,10 +178,6 @@ public slots:
     changed.insert(QStringLiteral("LoopStatus"), loopStatus());
     changed.insert(QStringLiteral("Shuffle"), shuffle());
     changed.insert(QStringLiteral("Metadata"), metadata());
-    QVariantMap all;
-    all.insert(QStringLiteral("interface_name"), QStringLiteral("org.mpris.MediaPlayer2.Player"));
-    all.insert(QStringLiteral("changed_properties"), changed);
-    all.insert(QStringLiteral("invalidated_properties"), QStringList());
 
     QDBusMessage msg = QDBusMessage::createSignal(QStringLiteral("/org/mpris/MediaPlayer2"),
                                                   QStringLiteral("org.freedesktop.DBus.Properties"),
@@ -230,7 +208,6 @@ bool Impl::registerService() {
     return false;
   }
 
-  // Адаптеры создаются как дочерние объекты Impl
   new RootAdaptor(this);
   new PlayerAdaptor(this);
 

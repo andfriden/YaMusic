@@ -25,17 +25,13 @@ public:
 
 signals:
   void stationTracksReceived(const QList<Track> &tracks, const QString &batchId);
-
   void feedbackSent(const QString &event);
-
   void errorOccurred(const QString &message);
 
 private:
   Track parseTrack(const QJsonObject &object) const;
 
   YandexAuth *m_auth = nullptr;
-
   YandexClient *m_yandexClient = nullptr;
-
   bool m_loading = false;
 };

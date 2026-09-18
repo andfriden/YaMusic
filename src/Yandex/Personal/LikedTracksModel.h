@@ -25,18 +25,10 @@ public:
   Q_ENUM(Roles)
 
   explicit LikedTracksModel(QObject *parent = nullptr);
-
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-
   QHash<int, QByteArray> roleNames() const override;
-
   void setTracks(const QList<Track> &tracks);
-
   void clear();
-
   void setTrackLiked(const QString &trackId, bool liked);
-
   void removeTrack(const QString &trackId);
-
-private:
 };

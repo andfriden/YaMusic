@@ -9,11 +9,8 @@
 
 struct AlbumDetails {
   Album album;
-
   QString description;
-
   int trackCount = 0;
-
   QList<Track> tracks;
 };
 
@@ -27,7 +24,6 @@ public:
 
 signals:
   void albumReceived(const AlbumDetails &album);
-
   void errorOccurred(const QString &message);
 
 private:

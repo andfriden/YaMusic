@@ -11,11 +11,9 @@ class YandexClient;
 struct TrackStreamInfo {
   QString codec;
   QString downloadInfoUrl;
-
   bool gain = false;
   bool preview = false;
   bool direct = false;
-
   int bitrateInKbps = 0;
 };
 

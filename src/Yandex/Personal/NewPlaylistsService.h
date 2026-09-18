@@ -13,13 +13,10 @@ class NewPlaylistsService : public YandexServiceBase {
 public:
   explicit NewPlaylistsService(YandexAuth *auth, PlaylistService *playlistService,
                                QObject *parent = nullptr);
-
   void load();
 
 signals:
-
   void playlistsReceived(const QList<Playlist> &playlists);
-
   void errorOccurred(const QString &message);
 
 private:

@@ -8,9 +8,8 @@ ArtistController::ArtistController(ArtistService *artistService,
     : QObject(parent), m_artistService(artistService), m_playbackController(playbackController),
       m_artistModel(new ArtistModel(this)), m_albumsModel(new ArtistAlbumsModel(this)),
       m_similarArtistsModel(new SimilarArtistsModel(this)) {
-  if (m_artistService == nullptr) {
-    return;
-  }
+  Q_ASSERT(m_artistService != nullptr);
+  Q_ASSERT(m_playbackController != nullptr);
 
   connect(m_artistService, &ArtistService::artistReceived, this,
           [this](const ArtistDetails &artist) {
@@ -18,14 +17,11 @@ ArtistController::ArtistController(ArtistService *artistService,
             m_artistId = artist.id;
             m_artistName = artist.name;
 
-            // ArtistService may return an empty
-            // artist.coverUri.
-            // Use the strongest available fallback:
-            // 1. artist.coverUri
-            // 2. first track cover
-            // 3. first popular album cover
             m_artistCoverUri = artist.coverUri;
 
+            // В brief-info обложка может быть пустой — берём
+            // обложку первого трека, а если и её нет,
+            // то обложку популярного альбома.
             if (m_artistCoverUri.isEmpty()) {
               for (const Track &track : artist.tracks) {
                 if (!track.coverUri.isEmpty()) {
@@ -60,23 +56,17 @@ ArtistController::ArtistController(ArtistService *artistService,
 
             m_similarArtistsModel->setArtists(artist.similarArtists);
 
-            if (m_artistCoverUri.isEmpty()) {
-            }
-
             emit loadingChanged();
             emit artistChanged();
-            emit statusChanged(QString("Исполнитель загружен: %1").arg(artist.name));
+            emit statusChanged(QStringLiteral("Исполнитель загружен: %1").arg(artist.name));
           });
 
   connect(m_artistService, &ArtistService::errorOccurred, this, [this](const QString &message) {
     m_loading = false;
     emit loadingChanged();
-    emit statusChanged(QString("Ошибка загрузки исполнителя: %1").arg(message));
+    emit statusChanged(QStringLiteral("Ошибка загрузки исполнителя: %1").arg(message));
   });
 
-  // Все альбомы исполнителя (direct-albums). Исполнитель может
-  // иметь больше релизов, чем popularAlbums из brief-info, поэтому
-  // догружаем полный список и применяем к нему активный фильтр.
   connect(m_artistService, &ArtistService::artistAlbumsReceived, this,
           [this](const QList<Album> &albums) {
             m_allAlbums = albums;
@@ -96,11 +86,6 @@ void ArtistController::loadArtist(const QString &id) {
     return;
   }
 
-  if (m_artistService == nullptr) {
-    emit statusChanged("Сервис исполнителя недоступен");
-    return;
-  }
-
   m_loading = true;
   emit loadingChanged();
   m_artistId.clear();
@@ -116,25 +101,12 @@ void ArtistController::loadArtist(const QString &id) {
   m_similarArtistsModel->clear();
   emit artistChanged();
   emit albumFilterChanged();
-  emit statusChanged(QString("Загрузка исполнителя: %1").arg(artistId));
+  emit statusChanged(QStringLiteral("Загрузка исполнителя: %1").arg(artistId));
   m_artistService->loadArtist(artistId);
-
-  // Догружаем полный список релизов для фильтра
-  // (альбомы / синглы / сборники).
   m_artistService->loadArtistAlbums(artistId);
 }
 
 void ArtistController::selectTrack(int index) {
-  if (m_playbackController == nullptr) {
-    emit statusChanged("PlaybackController недоступен");
-    return;
-  }
-
-  if (m_artistModel == nullptr) {
-    emit statusChanged("ArtistModel недоступен");
-    return;
-  }
-
   const Track track = m_artistModel->trackAt(index);
 
   if (track.id.isEmpty()) {
@@ -158,16 +130,6 @@ void ArtistController::selectSimilarArtist(int index) {
 }
 
 void ArtistController::playArtist() {
-  if (m_playbackController == nullptr) {
-    emit statusChanged("PlaybackController недоступен");
-    return;
-  }
-
-  if (m_artistModel == nullptr) {
-    emit statusChanged("ArtistModel недоступен");
-    return;
-  }
-
   const QList<Track> tracks = m_artistModel->tracks();
 
   if (tracks.isEmpty()) {
@@ -178,7 +140,7 @@ void ArtistController::playArtist() {
   const Track &track = tracks.first();
   emit trackSelected(track);
   m_playbackController->playFromSource(tracks, 0, m_artistName, "artist");
-  emit statusChanged(QString("Воспроизведение исполнителя: %1").arg(m_artistName));
+  emit statusChanged(QStringLiteral("Воспроизведение исполнителя: %1").arg(m_artistName));
 }
 
 ArtistModel *ArtistController::artistModel() const {
@@ -240,7 +202,6 @@ QString ArtistController::albumFilterType() const {
 void ArtistController::setAlbumFilterType(const QString &filterType) {
   const QString type = filterType.trimmed();
 
-  // Нормализуем: пустая строка = все релизы.
   if (type != "" && type != "album" && type != "single" && type != "compilation") {
     return;
   }

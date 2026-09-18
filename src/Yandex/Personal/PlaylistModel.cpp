@@ -3,37 +3,26 @@
 PlaylistModel::PlaylistModel(QObject *parent) : TrackListModelBase(parent) {}
 
 QVariant PlaylistModel::data(const QModelIndex &index, int role) const {
-  if (!index.isValid() || index.row() < 0 || index.row() >= m_tracks.size()) {
-    return {};
-  }
-
+  if (!index.isValid() || index.row() < 0 || index.row() >= m_tracks.size()) return {};
   const Track &track = m_tracks.at(index.row());
 
   switch (role) {
   case IdRole:
     return track.id;
-
   case TitleRole:
     return track.title;
-
   case ArtistRole:
     return track.artists.isEmpty() ? QString() : track.artists.first().name;
-
   case ArtistIdRole:
     return track.artists.isEmpty() ? QString() : track.artists.first().id;
-
   case AlbumRole:
     return track.albums.isEmpty() ? QString() : track.albums.first().title;
-
   case AlbumIdRole:
     return track.albums.isEmpty() ? QString() : track.albums.first().id;
-
   case CoverUriRole:
     return track.coverUri;
-
   case DurationMsRole:
     return track.durationMs;
-
   case LikedRole:
     return track.liked;
   }
@@ -46,6 +35,7 @@ QHash<int, QByteArray> PlaylistModel::roleNames() const {
           {CoverUriRole, "coverUri"}, {DurationMsRole, "durationMs"}, {LikedRole, "liked"}};
 }
 
+// TODO(#180): подгружать плейлист целиком и показывать прогресс загрузки
 void PlaylistModel::setPlaylist(const Playlist &playlist) {
   m_playlist = playlist;
   setTracks(playlist.tracks);

@@ -2,13 +2,9 @@
 
 #include "SystemMediaControls.h"
 
-// Linux: MPRISv2 via D-Bus (org.mpris.MediaPlayer2).
-// Реализует интерфейсы org.mpris.MediaPlayer2 и
-// org.mpris.MediaPlayer2.Player на шине session.
-// Публикует метаданные, LoopStatus, Shuffle и
-// обрабатывает команды из любых MPRIS-клиентов
-// (KDE, GNOME, playerctl, etc.).
-
+// Linux: MPRISv2 через D-Bus (org.mpris.MediaPlayer2).
+// Публикует метаданные, LoopStatus, Shuffle и принимает команды
+// от любых MPRIS-клиентов (KDE, GNOME, playerctl и т.д.).
 class Impl;
 
 class MediaControlsMPRIS : public SystemMediaControls {

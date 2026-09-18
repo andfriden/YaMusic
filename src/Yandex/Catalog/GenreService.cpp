@@ -23,7 +23,6 @@ Genre parseGenre(const QJsonObject &object) {
   genre.image300 = images.value("300x300").toString();
   const QJsonArray subGenres = object.value("subGenres").toArray();
   genre.subGenres.reserve(subGenres.size());
-
   for (const QJsonValue &value : subGenres) {
     if (!value.isObject()) continue;
     const Genre subGenre = parseGenre(value.toObject());
@@ -36,7 +35,6 @@ Genre parseGenre(const QJsonObject &object) {
 QList<Genre> parseGenres(const QJsonArray &genresArray) {
   QList<Genre> genres;
   genres.reserve(genresArray.size());
-
   for (const QJsonValue &value : genresArray) {
     if (!value.isObject()) continue;
     const Genre genre = parseGenre(value.toObject());
@@ -45,11 +43,11 @@ QList<Genre> parseGenres(const QJsonArray &genresArray) {
   }
   return genres;
 }
-
 } // namespace
 
 GenreService::GenreService(YandexAuth *auth, QObject *parent) : YandexServiceBase(auth, parent) {}
 
+// TODO(YM-2248): сузить возвращаемые поля жанра — сейчас качается почти весь объект
 void GenreService::loadGenres() {
   if (!ensureAuthenticated()) {
     emit errorOccurred("Токен Яндекс Музыки не установлен");

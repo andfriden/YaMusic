@@ -35,6 +35,7 @@ void AppController::selectPersonalPlaylist(const QString &uid, int kind) {
   // Дежавю, Тайник, Плейлист дня) сервер не отдаёт
   // similar-entities, поэтому подставляем остальные плейлисты
   // из того же раздела лендинга.
+
   m_libraryController->setSimilarPlaylistsFallback(
       m_personalController->recommendationPlaylistsData(playlistUid, kind));
 }

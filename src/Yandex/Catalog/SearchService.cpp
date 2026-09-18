@@ -17,9 +17,8 @@ void SearchService::search(const QString &query, int page) {
   }
 
   const QString trimmedQuery = query.trimmed();
-
   if (trimmedQuery.isEmpty()) {
-    emit errorOccurred("Search query is empty");
+    emit errorOccurred("Поисковый запрос пуст");
     return;
   }
 

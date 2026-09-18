@@ -9,15 +9,15 @@ int LikedArtistsModel::rowCount(const QModelIndex &parent) const {
 
 QVariant LikedArtistsModel::data(const QModelIndex &index, int role) const {
   if (!index.isValid() || index.row() < 0 || index.row() >= m_artists.size()) return {};
-  const Artist &a = m_artists.at(index.row());
+  const Artist &artist = m_artists.at(index.row());
 
   switch (role) {
   case ArtistIdRole:
-    return a.id;
+    return artist.id;
   case NameRole:
-    return a.name;
+    return artist.name;
   case CoverUriRole:
-    return a.coverUri;
+    return artist.coverUri;
   default:
     return {};
   }
@@ -27,6 +27,7 @@ QHash<int, QByteArray> LikedArtistsModel::roleNames() const {
   return {{ArtistIdRole, "artistId"}, {NameRole, "name"}, {CoverUriRole, "coverUri"}};
 }
 
+// TODO(#180): добавить сортировку артистов по имени
 void LikedArtistsModel::setArtists(const QList<Artist> &artists) {
   beginResetModel();
   m_artists = artists;

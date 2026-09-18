@@ -2,6 +2,7 @@
 
 GenreStationModel::GenreStationModel(QObject *parent) : TrackListModelBase(parent) {}
 
+// TODO(YM-2245): добавить уведомление countChanged в последнем треке станции
 QVariant GenreStationModel::data(const QModelIndex &index, int role) const {
   if (!index.isValid() || index.row() < 0 || index.row() >= m_tracks.size()) {
     return {};
@@ -12,17 +13,13 @@ QVariant GenreStationModel::data(const QModelIndex &index, int role) const {
   switch (role) {
   case IdRole:
     return track.id;
-
   case TitleRole:
     return track.title;
-
   case ArtistRole: {
     if (track.artists.isEmpty()) {
       return QString();
     }
-
     QStringList names;
-
     for (const Artist &artist : track.artists) {
       if (!artist.name.isEmpty()) {
         names.append(artist.name);
@@ -30,22 +27,16 @@ QVariant GenreStationModel::data(const QModelIndex &index, int role) const {
     }
     return names.join(", ");
   }
-
   case ArtistIdRole:
     return track.artists.isEmpty() ? QString() : track.artists.first().id;
-
   case AlbumRole:
     return track.albums.isEmpty() ? QString() : track.albums.first().title;
-
   case AlbumIdRole:
     return track.albums.isEmpty() ? QString() : track.albums.first().id;
-
   case CoverUriRole:
     return track.coverUri;
-
   case DurationMsRole:
     return track.durationMs;
-
   default:
     return {};
   }

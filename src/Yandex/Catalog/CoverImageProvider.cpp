@@ -16,14 +16,12 @@
 namespace {
 constexpr auto kCirclePrefix = "circle/";
 
-// ---------------------------------------------------------
 // Кэш обложек: память (QHash) + диск (CacheLocation).
 // Храним СЫРОЕ изображение по ключу URL — до круговой
 // обрезки, поэтому одна запись обслуживает и обычные,
 // и круглые запросы одного и того же арта.
 // Кэш защищён мьютексом: QQuickAsyncImageProvider
 // вызывает requestImageResponse в рабочих потоках.
-// ---------------------------------------------------------
 class CoverCache {
 public:
   static CoverCache &instance() {
@@ -40,20 +38,17 @@ public:
     if (it != m_memory.end()) {
       return it.value();
     }
-
     const QString path = filePathFor(url);
     QFile file(path);
 
     if (!file.open(QIODevice::ReadOnly)) {
       return {};
     }
-
     QImage image;
 
     if (!image.loadFromData(file.readAll())) {
       return {};
     }
-
     m_memory.insert(url, image);
     return image;
   }
@@ -62,7 +57,6 @@ public:
     if (image.isNull()) {
       return;
     }
-
     QMutexLocker locker(&m_mutex);
     m_memory.insert(url, image);
     const QString path = filePathFor(url);
@@ -106,29 +100,22 @@ QQuickTextureFactory *CoverImageResponse::textureFactory() const {
   return QQuickTextureFactory::textureFactoryForImage(m_image);
 }
 
-void CoverImageResponse::cancel() {
-  // The current provider performs every request
-  // independently.
-  // The response is allowed to finish normally.
-}
+// Каждый запрос живёт независимо, отменять не нужно.
+void CoverImageResponse::cancel() {}
 
+// TODO(YM-2250): загружать изображение через кэширующий QNetworkDiskCache,
+// чтобы сетевые запросы обложек не дублировались между провайдерами.
 QImage CoverImageResponse::makeCircular(const QImage &image) const {
   if (image.isNull()) {
     return {};
   }
-
-  // ---------------------------------------------------------
-  // Make the image square first.
-  // ---------------------------------------------------------
-  // We use the smallest dimension, so the circle is always
-  // completely contained inside the original artwork.
-
+  // Сначала приводим изображение к квадрату: берём меньшую сторону,
+  // чтобы круг всегда целиком помещался внутри исходной обложки.
   const int side = qMin(image.width(), image.height());
 
   if (side <= 0) {
     return {};
   }
-
   const int x = (image.width() - side) / 2;
   const int y = (image.height() - side) / 2;
   QImage square = image.copy(x, y, side, side);
@@ -136,11 +123,7 @@ QImage CoverImageResponse::makeCircular(const QImage &image) const {
   if (square.isNull()) {
     return {};
   }
-
-  // ---------------------------------------------------------
-  // Resize to the requested size if one was provided.
-  // ---------------------------------------------------------
-
+  // Масштабируем под запрошенный размер, если он задан.
   QSize targetSize = square.size();
 
   if (m_requestedSize.width() > 0 && m_requestedSize.height() > 0) {
@@ -150,22 +133,14 @@ QImage CoverImageResponse::makeCircular(const QImage &image) const {
       targetSize = QSize(target, target);
     }
   }
-
   if (square.size() != targetSize) {
     square = square.scaled(targetSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
   }
-
-  // ---------------------------------------------------------
-  // Create transparent ARGB image.
-  // ---------------------------------------------------------
-
+  // Создаём прозрачное ARGB-изображение.
   QImage result(square.size(), QImage::Format_ARGB32_Premultiplied);
   result.fill(Qt::transparent);
 
-  // ---------------------------------------------------------
-  // Draw the artwork through a circular clipping path.
-  // ---------------------------------------------------------
-
+  // Рисуем обложку через круговой путь обрезки.
   QPainter painter(&result);
   painter.setRenderHint(QPainter::Antialiasing, true);
   painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
@@ -184,7 +159,6 @@ void CoverImageResponse::load() {
     emit finished();
     return;
   }
-
   // 1) Пытаемся достать из кэша (память + диск).
   const QImage cached = CoverCache::instance().find(m_url);
 
@@ -193,7 +167,6 @@ void CoverImageResponse::load() {
     emit finished();
     return;
   }
-
   // 2) Промах — сетевой запрос.
   auto *networkManager = new QNetworkAccessManager();
   QNetworkRequest request{QUrl(m_url)};
@@ -208,7 +181,6 @@ void CoverImageResponse::load() {
       emit finished();
       return;
     }
-
     const QByteArray data = reply->readAll();
     QImage image;
 
@@ -218,7 +190,6 @@ void CoverImageResponse::load() {
       emit finished();
       return;
     }
-
     // Сохраняем сырое изображение в кэш —
     // и для обычных, и для круглых запросов.
     CoverCache::instance().store(m_url, image);
@@ -230,7 +201,6 @@ void CoverImageResponse::load() {
       emit finished();
       return;
     }
-
     reply->deleteLater();
     networkManager->deleteLater();
     emit finished();
@@ -264,23 +234,17 @@ QString CoverImageProvider::createUrl(QString uri) const {
   if (uri.isEmpty()) {
     return {};
   }
-
-  // QML may pass:
-  // avatars.yandex.net/.../%%
-  // as:
-  // avatars.yandex.net/.../%25%25
-  // Decode the percent escaping first.
-
+  // QML может передать avatars.yandex.net/.../%%
+  // в виде avatars.yandex.net/.../%25%25 —
+  // сначала раскодируем процентное экранирование.
   QString normalized = QUrl::fromPercentEncoding(uri.toUtf8());
   normalized = normalized.trimmed();
 
-  // Yandex Music uses %% as the image-size placeholder.
-
+  // Яндекс Музыка использует %% как плейсхолдер размера картинки.
   normalized.replace("%%", "200x200");
 
-  // Also handle the encoded form in case something
-  // reaches this function without being decoded above.
-
+  // Также обрабатываем закодированную форму на случай,
+  // если сюда пришло значение без декодирования выше.
   normalized.replace("%25%25", "200x200");
 
   if (normalized.startsWith("http://") || normalized.startsWith("https://")) {

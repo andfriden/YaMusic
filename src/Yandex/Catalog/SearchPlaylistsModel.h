@@ -26,19 +26,13 @@ public:
   explicit SearchPlaylistsModel(QObject *parent = nullptr);
 
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-
   QHash<int, QByteArray> roleNames() const override;
 
   void setPlaylists(const QList<PersonalPlaylist> &playlists);
-
   void appendPlaylists(const QList<PersonalPlaylist> &playlists);
-
   void clear();
-
   int count() const;
-
   PersonalPlaylist playlistAt(int index) const;
 
 private:

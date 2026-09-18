@@ -4,28 +4,19 @@
 PersonalPlaylistsModel::PersonalPlaylistsModel(QObject *parent) : QAbstractListModel(parent) {}
 
 int PersonalPlaylistsModel::rowCount(const QModelIndex &parent) const {
-  if (parent.isValid()) {
-    return 0;
-  }
+  if (parent.isValid()) return 0;
   return m_sections.size();
 }
 
 QVariant PersonalPlaylistsModel::data(const QModelIndex &index, int role) const {
-  if (!index.isValid() || index.row() < 0 || index.row() >= m_sections.size()) {
-    return {};
-  }
-
+  if (!index.isValid() || index.row() < 0 || index.row() >= m_sections.size()) return {};
   const PersonalLandingSection &section = m_sections.at(index.row());
 
   switch (role) {
-  case TitleRole: {
+  case TitleRole:
     return section.title;
-  }
-
-  case TypeRole: {
+  case TypeRole:
     return section.type;
-  }
-
   case PlaylistsRole: {
     QVariantList playlists;
 
@@ -42,7 +33,6 @@ QVariant PersonalPlaylistsModel::data(const QModelIndex &index, int role) const 
     }
     return playlists;
   }
-
   case AlbumsRole: {
     QVariantList albums;
 
@@ -56,7 +46,6 @@ QVariant PersonalPlaylistsModel::data(const QModelIndex &index, int role) const 
     }
     return albums;
   }
-
   default:
     return {};
   }
@@ -69,6 +58,7 @@ QHash<int, QByteArray> PersonalPlaylistsModel::roleNames() const {
           {AlbumsRole, "albums"}};
 }
 
+// TODO(#180): добавить роли для кнопки «показать все» в секции
 void PersonalPlaylistsModel::setSections(const QList<PersonalLandingSection> &sections) {
   beginResetModel();
   m_sections = sections;
@@ -84,3 +74,4 @@ void PersonalPlaylistsModel::clear() {
 int PersonalPlaylistsModel::count() const {
   return m_sections.size();
 }
+

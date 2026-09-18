@@ -63,7 +63,7 @@ void RecentListeningService::load(int trackCount, int contextCount) {
   }
 
   if (m_userId.isEmpty()) {
-    emit errorOccurred("Yandex Music user id is not set");
+    emit errorOccurred("ID пользователя Яндекс Музыки не задан");
     return;
   }
 
@@ -81,7 +81,7 @@ void RecentListeningService::load(int trackCount, int contextCount) {
   query.addQueryItem("types", "playlist,album,artist");
 
   const QString path =
-      QString("/users/%1/contexts?%2").arg(m_userId).arg(query.toString(QUrl::FullyEncoded));
+      QStringLiteral("/users/%1/contexts?%2").arg(m_userId).arg(query.toString(QUrl::FullyEncoded));
   m_pendingReferences.clear();
   m_loading = true;
   emit loadingChanged(true);
@@ -189,6 +189,7 @@ QList<RecentListeningTrack> RecentListeningService::parseResponse(const QByteArr
       uniqueTracks.append(track);
     }
   }
+
   return uniqueTracks;
 }
 
@@ -202,7 +203,6 @@ RecentListeningTrack RecentListeningService::parseListenedTrack(const QJsonObjec
 
     if (idValue.isString()) {
       result.trackId = idValue.toString();
-
     } else if (idValue.isDouble()) {
       const qint64 id = idValue.toInteger();
 
@@ -210,10 +210,8 @@ RecentListeningTrack RecentListeningService::parseListenedTrack(const QJsonObjec
         result.trackId = QString::number(id);
       }
     }
-
   } else if (trackIdValue.isString()) {
     result.trackId = trackIdValue.toString();
-
   } else if (trackIdValue.isDouble()) {
     const qint64 id = trackIdValue.toInteger();
 
@@ -235,5 +233,6 @@ RecentListeningTrack RecentListeningService::parseListenedTrack(const QJsonObjec
       result.timestamp = QDateTime::fromString(timestampString, Qt::ISODateWithMs);
     }
   }
+
   return result;
 }

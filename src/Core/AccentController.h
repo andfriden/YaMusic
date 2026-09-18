@@ -22,6 +22,6 @@ signals:
   void playerAccentChanged();
 
 private:
-  PlayerAccentService *m_service;
-  PlaybackController *m_playbackController;
+  PlayerAccentService *m_service = nullptr;
+  PlaybackController *m_playbackController = nullptr;
 };

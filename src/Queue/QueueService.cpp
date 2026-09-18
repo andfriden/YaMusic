@@ -12,16 +12,14 @@ int QueueService::currentIndex() const {
 }
 
 Track QueueService::currentTrack() const {
-  if (m_currentIndex < 0 || m_currentIndex >= m_tracks.size()) {
+  if (m_currentIndex < 0 || m_currentIndex >= m_tracks.size())
     return {};
-  }
   return m_tracks.at(m_currentIndex);
 }
 
 Track QueueService::trackAt(int index) const {
-  if (index < 0 || index >= m_tracks.size()) {
+  if (index < 0 || index >= m_tracks.size())
     return {};
-  }
   return m_tracks.at(index);
 }
 
@@ -41,9 +39,7 @@ void QueueService::setSource(const QString &title, const QString &type) {
   const QString trimmedTitle = title.trimmed();
   const QString trimmedType = type.trimmed();
 
-  if (m_sourceTitle == trimmedTitle && m_sourceType == trimmedType) {
-    return;
-  }
+  if (m_sourceTitle == trimmedTitle && m_sourceType == trimmedType) return;
 
   m_sourceTitle = trimmedTitle;
   m_sourceType = trimmedType;
@@ -51,9 +47,7 @@ void QueueService::setSource(const QString &title, const QString &type) {
 }
 
 void QueueService::clearSource() {
-  if (m_sourceTitle.isEmpty() && m_sourceType.isEmpty()) {
-    return;
-  }
+  if (m_sourceTitle.isEmpty() && m_sourceType.isEmpty()) return;
 
   m_sourceTitle.clear();
   m_sourceType.clear();
@@ -61,18 +55,13 @@ void QueueService::clearSource() {
 }
 
 void QueueService::addTrack(const Track &track) {
-  if (track.id.isEmpty()) {
-    return;
-  }
+  if (track.id.isEmpty()) return;
 
   m_originalTracks.append(track);
+  m_tracks.append(track);
 
-  if (!m_shuffleEnabled) {
-    m_tracks.append(track);
-  } else {
-    m_tracks.append(track);
+  if (m_shuffleEnabled)
     rebuildShuffledQueue();
-  }
 
   if (m_currentIndex < 0) {
     m_currentIndex = 0;
@@ -86,25 +75,21 @@ void QueueService::addTracks(const QList<Track> &tracks) {
   QList<Track> validTracks;
 
   for (const Track &track : tracks) {
-    if (!track.id.isEmpty()) {
+    if (!track.id.isEmpty())
       validTracks.append(track);
-    }
   }
 
-  if (validTracks.isEmpty()) {
-    return;
-  }
+  if (validTracks.isEmpty()) return;
 
   m_originalTracks = validTracks;
 
   if (!m_shuffleEnabled) {
     m_tracks = validTracks;
 
-    if (m_currentIndex < 0) {
+    if (m_currentIndex < 0)
       m_currentIndex = 0;
-    } else {
+    else
       m_currentIndex = qBound(0, m_currentIndex, m_tracks.size() - 1);
-    }
 
   } else {
     const QString currentId = currentTrack().id;
@@ -122,18 +107,15 @@ void QueueService::addTracks(const QList<Track> &tracks) {
     }
   }
 
-  if (m_currentIndex < 0 && !m_tracks.isEmpty()) {
+  if (m_currentIndex < 0 && !m_tracks.isEmpty())
     m_currentIndex = 0;
-  }
 
   emit currentChanged();
   emit queueChanged();
 }
 
 void QueueService::removeTrack(int index) {
-  if (index < 0 || index >= m_tracks.size()) {
-    return;
-  }
+  if (index < 0 || index >= m_tracks.size()) return;
 
   const QString trackId = m_tracks.at(index).id;
   m_tracks.removeAt(index);
@@ -145,6 +127,7 @@ void QueueService::removeTrack(int index) {
     }
   }
 
+  // TODO(#107): после удаления последнего трека источник очереди не чистится
   if (m_tracks.isEmpty()) {
     m_currentIndex = -1;
     emit currentChanged();
@@ -165,16 +148,14 @@ void QueueService::removeTrack(int index) {
 }
 
 void QueueService::moveTrack(int from, int to) {
-  if (from < 0 || from >= m_tracks.size() || to < 0 || to >= m_tracks.size() || from == to) {
+  if (from < 0 || from >= m_tracks.size() || to < 0 || to >= m_tracks.size() || from == to)
     return;
-  }
 
   const Track track = m_tracks.takeAt(from);
   m_tracks.insert(to, track);
 
-  if (!m_shuffleEnabled) {
+  if (!m_shuffleEnabled)
     m_originalTracks = m_tracks;
-  }
 
   if (m_currentIndex == from) {
     m_currentIndex = to;
@@ -205,13 +186,9 @@ void QueueService::clear() {
 }
 
 bool QueueService::setCurrentIndex(int index) {
-  if (index < 0 || index >= m_tracks.size()) {
-    return false;
-  }
+  if (index < 0 || index >= m_tracks.size()) return false;
 
-  if (m_currentIndex == index) {
-    return true;
-  }
+  if (m_currentIndex == index) return true;
 
   m_currentIndex = index;
   emit currentChanged();
@@ -219,9 +196,7 @@ bool QueueService::setCurrentIndex(int index) {
 }
 
 bool QueueService::next() {
-  if (!hasNext()) {
-    return false;
-  }
+  if (!hasNext()) return false;
 
   ++m_currentIndex;
   emit currentChanged();
@@ -229,9 +204,7 @@ bool QueueService::next() {
 }
 
 bool QueueService::previous() {
-  if (!hasPrevious()) {
-    return false;
-  }
+  if (!hasPrevious()) return false;
 
   --m_currentIndex;
   emit currentChanged();
@@ -251,9 +224,7 @@ QueueService::RepeatMode QueueService::repeatMode() const {
 }
 
 void QueueService::setRepeatMode(RepeatMode mode) {
-  if (m_repeatMode == mode) {
-    return;
-  }
+  if (m_repeatMode == mode) return;
 
   m_repeatMode = mode;
   emit repeatModeChanged();
@@ -262,17 +233,12 @@ void QueueService::setRepeatMode(RepeatMode mode) {
 void QueueService::cycleRepeatMode() {
   switch (m_repeatMode) {
   case RepeatOff:
-
     setRepeatMode(RepeatAll);
     break;
-
   case RepeatAll:
-
     setRepeatMode(RepeatOne);
     break;
-
   case RepeatOne:
-
     setRepeatMode(RepeatOff);
     break;
   }
@@ -283,9 +249,7 @@ bool QueueService::shuffleEnabled() const {
 }
 
 void QueueService::setShuffleEnabled(bool enabled) {
-  if (m_shuffleEnabled == enabled) {
-    return;
-  }
+  if (m_shuffleEnabled == enabled) return;
 
   const QString currentId = currentTrack().id;
 
@@ -310,9 +274,8 @@ void QueueService::setShuffleEnabled(bool enabled) {
     }
   }
 
-  if (m_currentIndex < 0 && !m_tracks.isEmpty()) {
+  if (m_currentIndex < 0 && !m_tracks.isEmpty())
     m_currentIndex = 0;
-  }
 
   emit shuffleChanged();
   emit currentChanged();
@@ -324,9 +287,7 @@ void QueueService::toggleShuffle() {
 }
 
 void QueueService::rebuildShuffledQueue() {
-  if (m_tracks.size() < 2) {
-    return;
-  }
+  if (m_tracks.size() < 2) return;
 
   const QString currentId = currentTrack().id;
   QList<Track> shuffled = m_originalTracks;
@@ -338,10 +299,7 @@ void QueueService::rebuildShuffledQueue() {
 
   m_tracks = shuffled;
 
-  // При включении Shuffle
-  // текущий трек сохраняется
-  // первым в очереди.
-
+  // При включении shuffle текущий трек остаётся первым.
   if (!currentId.isEmpty()) {
     for (int i = 0; i < m_tracks.size(); ++i) {
       if (m_tracks.at(i).id == currentId) {

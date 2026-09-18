@@ -30,11 +30,9 @@ public:
   bool lyricsAvailable() const;
 
   // Текущая строка по позиции (−1 если таймингов нет)
-
   int currentLyricLine() const;
 
   // Текст строки по индексу (для построчного вывода)
-
   Q_INVOKABLE QString lyricLineText(int index) const;
 
 signals:

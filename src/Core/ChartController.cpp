@@ -6,9 +6,8 @@ ChartController::ChartController(ChartService *chartService, PlaybackController 
                                  QObject *parent)
     : QObject(parent), m_chartService(chartService), m_playbackController(playbackController),
       m_russiaModel(new ChartModel(this)), m_worldModel(new ChartModel(this)) {
-  if (m_chartService == nullptr) {
-    return;
-  }
+  Q_ASSERT(m_chartService != nullptr);
+  Q_ASSERT(m_playbackController != nullptr);
 
   connect(m_chartService, &ChartService::chartReceived, this,
           [this](const QList<Track> &tracks, const QString &type) {
@@ -33,15 +32,11 @@ ChartController::ChartController(ChartService *chartService, PlaybackController 
     m_loading = false;
     m_pendingCharts = 0;
     emit loadingChanged();
-    emit statusChanged(QString("Ошибка чарта: %1").arg(message));
+    emit statusChanged(QStringLiteral("Ошибка чарта: %1").arg(message));
   });
 }
 
 void ChartController::loadChart(const QString &chartType) {
-  if (m_chartService == nullptr) {
-    return;
-  }
-
   const QString type = chartType.trimmed().toLower();
 
   if (type != "russia" && type != "world") {
@@ -63,10 +58,6 @@ void ChartController::loadChart(const QString &chartType) {
 }
 
 void ChartController::loadCharts() {
-  if (m_chartService == nullptr) {
-    return;
-  }
-
   m_loading = true;
   m_pendingCharts = 2;
   emit loadingChanged();
@@ -77,10 +68,6 @@ void ChartController::loadCharts() {
 }
 
 void ChartController::selectTrack(const QString &chartType, int index) {
-  if (m_playbackController == nullptr) {
-    return;
-  }
-
   ChartModel *model = nullptr;
 
   if (chartType == "russia") {

@@ -22,19 +22,12 @@ public:
   };
 
   explicit MyWaveModel(QObject *parent = nullptr);
-
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-
   QHash<int, QByteArray> roleNames() const override;
-
   void setTracks(const QList<Track> &tracks);
-
   void appendTracks(const QList<Track> &tracks);
-
   Track lastTrack() const;
 
 signals:
   void countChanged();
-
-private:
 };

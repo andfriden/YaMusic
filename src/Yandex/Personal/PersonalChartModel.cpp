@@ -3,47 +3,33 @@
 PersonalChartModel::PersonalChartModel(QObject *parent) : QAbstractListModel(parent) {}
 
 int PersonalChartModel::rowCount(const QModelIndex &parent) const {
-  if (parent.isValid()) {
-    return 0;
-  }
+  if (parent.isValid()) return 0;
   return m_items.size();
 }
 
 QVariant PersonalChartModel::data(const QModelIndex &index, int role) const {
-  if (!index.isValid() || index.row() < 0 || index.row() >= m_items.size()) {
-    return {};
-  }
-
+  if (!index.isValid() || index.row() < 0 || index.row() >= m_items.size()) return {};
   const PersonalChartItem &item = m_items.at(index.row());
 
   switch (role) {
   case IdRole:
     return item.id;
-
   case PositionRole:
     return item.position;
-
   case ListenersRole:
     return item.listeners;
-
   case ProgressRole:
     return item.progress;
-
   case ShiftRole:
     return item.shift;
-
   case TitleRole:
     return item.title;
-
   case ArtistsRole:
     return item.artists;
-
   case CoverUriRole:
     return item.coverUri;
-
   case DurationMsRole:
     return item.durationMs;
-
   default:
     return {};
   }
@@ -67,12 +53,11 @@ void PersonalChartModel::clear() {
   endResetModel();
 }
 
+// TODO(#180): добавить сортировку по позиции после загрузки
 QVariantMap PersonalChartModel::item(int index) const {
   QVariantMap result;
 
-  if (index < 0 || index >= m_items.size()) {
-    return result;
-  }
+  if (index < 0 || index >= m_items.size()) return result;
 
   const PersonalChartItem &item = m_items.at(index);
   result["trackId"] = item.id;

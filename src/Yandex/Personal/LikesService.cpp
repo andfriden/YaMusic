@@ -24,7 +24,6 @@ void LikesService::loadLikedTracks(const QString &uid) {
   }
 
   if (m_loadingTracks) return;
-
   if (!m_yandexClient->hasToken()) {
     emit errorOccurred(QStringLiteral("Токен Яндекс Музыки не установлен"));
     return;
@@ -104,10 +103,9 @@ void LikesService::loadLikedTracks(const QString &uid) {
       trackIds.append(trackId);
     }
 
-    // Replace the cached liked-track state only after
-    // the server response has been parsed successfully.
+    // Заменяем кэш понравившихся треков только после успешного
+    // разбора ответа сервера.
     m_likedTrackIds.clear();
-
     for (const QString &trackId : trackIds)
       m_likedTrackIds.insert(trackId);
     reply->deleteLater();
@@ -125,14 +123,14 @@ void LikesService::loadLikedTracks(const QString &uid) {
 
 void LikesService::loadLikedAlbums(const QString &uid) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QStringLiteral("Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString userId = uid.trimmed();
 
   if (userId.isEmpty()) {
-    emit errorOccurred("UID пользователя не указан");
+    emit errorOccurred(QStringLiteral("UID пользователя не указан"));
     return;
   }
 
@@ -207,14 +205,14 @@ void LikesService::loadLikedAlbums(const QString &uid) {
 
 void LikesService::loadLikedArtists(const QString &uid) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QStringLiteral("Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString userId = uid.trimmed();
 
   if (userId.isEmpty()) {
-    emit errorOccurred("UID пользователя не указан");
+    emit errorOccurred(QStringLiteral("UID пользователя не указан"));
     return;
   }
 
@@ -287,18 +285,9 @@ void LikesService::loadLikedArtists(const QString &uid) {
 }
 
 void LikesService::loadTracksByIds(const QStringList &trackIds) {
-  if (m_yandexClient == nullptr) {
-    m_loadingTracks = false;
-    emit loadingChanged(false);
-    emit errorOccurred(QStringLiteral("YandexClient недоступен"));
-    return;
-  }
-
-  QNetworkReply *reply = nullptr;
-
-  // getTracks() emits either tracksReceived() or requestError().
-  // Use one-shot connections because every load creates a new
-  // request.
+  // getTracks() эмитит либо tracksReceived(), либо requestError().
+  // Используем одноразовые соединения — каждый загрузчик создаёт
+  // новый запрос.
 
   auto tracksConnection = std::make_shared<QMetaObject::Connection>();
 
@@ -315,6 +304,7 @@ void LikesService::loadTracksByIds(const QStringList &trackIds) {
         emit tracksReceived(likedTracks);
       },
       Qt::SingleShotConnection);
+
   auto errorConnection = std::make_shared<QMetaObject::Connection>();
 
   *errorConnection = connect(
@@ -326,6 +316,7 @@ void LikesService::loadTracksByIds(const QStringList &trackIds) {
         emit errorOccurred(message);
       },
       Qt::SingleShotConnection);
+
   m_yandexClient->getTracks(trackIds);
 }
 
@@ -362,18 +353,13 @@ void LikesService::changeLike(const QString &uid, const QString &trackId, bool l
     return;
   }
 
-  if (m_yandexClient == nullptr) {
-    emit errorOccurred(QStringLiteral("YandexClient недоступен"));
-    return;
-  }
-
   if (!m_yandexClient->hasToken()) {
     emit errorOccurred(QStringLiteral("Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString path = liked ? QStringLiteral("/users/%1/likes/tracks/add-multiple").arg(userId)
-                             : QStringLiteral("/users/%1/likes/tracks/remove").arg(userId);
+                              : QStringLiteral("/users/%1/likes/tracks/remove").arg(userId);
   QUrlQuery body;
   body.addQueryItem(QStringLiteral("track-ids"), id);
   QNetworkReply *reply = m_yandexClient->postForm(path, body);
@@ -402,7 +388,7 @@ void LikesService::addAlbumLike(const QString &uid, const QString &albumId) {
   const QString userId = uid.trimmed();
   const QString id = albumId.trimmed();
   if (userId.isEmpty() || id.isEmpty()) return;
-  if (m_yandexClient == nullptr || !m_yandexClient->hasToken()) return;
+  if (!m_yandexClient->hasToken()) return;
   const QString path = QStringLiteral("/users/%1/likes/albums/add-multiple").arg(userId);
   QUrlQuery body;
   body.addQueryItem(QStringLiteral("album-ids"), id);
@@ -425,7 +411,7 @@ void LikesService::removeAlbumLike(const QString &uid, const QString &albumId) {
   const QString userId = uid.trimmed();
   const QString id = albumId.trimmed();
   if (userId.isEmpty() || id.isEmpty()) return;
-  if (m_yandexClient == nullptr || !m_yandexClient->hasToken()) return;
+  if (!m_yandexClient->hasToken()) return;
   const QString path = QStringLiteral("/users/%1/likes/albums/remove").arg(userId);
   QUrlQuery body;
   body.addQueryItem(QStringLiteral("album-ids"), id);
@@ -448,7 +434,7 @@ void LikesService::addArtistLike(const QString &uid, const QString &artistId) {
   const QString userId = uid.trimmed();
   const QString id = artistId.trimmed();
   if (userId.isEmpty() || id.isEmpty()) return;
-  if (m_yandexClient == nullptr || !m_yandexClient->hasToken()) return;
+  if (!m_yandexClient->hasToken()) return;
   const QString path = QStringLiteral("/users/%1/likes/artists/add-multiple").arg(userId);
   QUrlQuery body;
   body.addQueryItem(QStringLiteral("artist-ids"), id);
@@ -471,7 +457,7 @@ void LikesService::removeArtistLike(const QString &uid, const QString &artistId)
   const QString userId = uid.trimmed();
   const QString id = artistId.trimmed();
   if (userId.isEmpty() || id.isEmpty()) return;
-  if (m_yandexClient == nullptr || !m_yandexClient->hasToken()) return;
+  if (!m_yandexClient->hasToken()) return;
   const QString path = QStringLiteral("/users/%1/likes/artists/remove").arg(userId);
   QUrlQuery body;
   body.addQueryItem(QStringLiteral("artist-ids"), id);

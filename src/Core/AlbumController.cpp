@@ -37,10 +37,6 @@ AlbumController::AlbumController(AlbumService *albumService, ArtistService *arti
     emit statusChanged(message);
   });
 
-  // ArtistService загружает альбомы исполнителя,
-  // но сам по себе не знает о модели AlbumController.
-  // Передаём полученные альбомы в модель
-  // "Другие альбомы".
   connect(m_artistService, &ArtistService::artistAlbumsReceived, this,
           [this](const QList<Album> &albums) { m_otherAlbumsModel->setAlbums(albums); });
 
@@ -75,10 +71,6 @@ void AlbumController::loadAlbum(const QString &id) {
 }
 
 void AlbumController::selectAlbumTrack(int index) {
-  if (!m_playbackController) {
-    return;
-  }
-
   const QList<Track> tracks = m_albumModel->tracks();
 
   if (index < 0 || index >= tracks.size()) {
@@ -90,10 +82,6 @@ void AlbumController::selectAlbumTrack(int index) {
 }
 
 void AlbumController::playAlbum() {
-  if (!m_playbackController) {
-    return;
-  }
-
   const QList<Track> tracks = m_albumModel->tracks();
 
   if (tracks.isEmpty()) {
@@ -132,10 +120,6 @@ int AlbumController::albumTrackCount() const {
 }
 
 void AlbumController::loadOtherAlbumsForCurrentArtist(const AlbumDetails &album) {
-  if (!m_artistService) {
-    return;
-  }
-
   QString artistId;
 
   if (!album.tracks.isEmpty()) {

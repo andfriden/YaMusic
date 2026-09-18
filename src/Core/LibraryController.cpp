@@ -14,215 +14,195 @@ LibraryController::LibraryController(PlaylistService *playlistService, ArtistSer
       m_likedAlbumsModel(new LikedAlbumsModel(this)),
       m_likedArtistsModel(new LikedArtistsModel(this)), m_playlistModel(new PlaylistModel(this)),
       m_artistModel(new ArtistModel(this)) {
-  if (m_playlistService != nullptr) {
-    connect(m_playlistService, &PlaylistService::playlistReceived, this,
-            [this](const Playlist &playlist) {
-              // Если мы уже открыли другой плейлист, а этот ответ
-              // пришёл для другой цели (например, /change вернул
-              // целевой плейлист) — не затираем текущую модель.
-              const int currentKind = m_playlistModel->kind();
-              if (currentKind > 0 && currentKind != playlist.kind) {
-                return;
-              }
+  Q_ASSERT(m_playlistService != nullptr);
+  Q_ASSERT(m_artistService != nullptr);
+  Q_ASSERT(m_likesService != nullptr);
+  Q_ASSERT(m_playbackController != nullptr);
 
+  connect(m_playlistService, &PlaylistService::playlistReceived, this,
+          [this](const Playlist &playlist) {
+            // Если мы уже открыли другой плейлист, а этот ответ
+            // пришёл для другой цели (например, /change вернул
+            // целевой плейлист) — не затираем текущую модель.
+            const int currentKind = m_playlistModel->kind();
+            if (currentKind > 0 && currentKind != playlist.kind) {
+              return;
+            }
+
+            m_loadingPlaylist = false;
+            emit loadingPlaylistChanged();
+            Playlist playlistWithLikes = playlist;
+
+            for (Track &track : playlistWithLikes.tracks) {
+              track.liked = m_likesService->isLiked(track.id);
+            }
+
+            m_playlistModel->setPlaylist(playlistWithLikes);
+            m_currentPlaylistTitle = playlistWithLikes.title;
+            m_currentPlaylistCoverUri = playlistWithLikes.coverUri;
+            m_currentPlaylistTrackCount = playlistWithLikes.trackCount;
+            emit currentPlaylistChanged();
+          });
+
+  connect(m_playlistService, &PlaylistService::similarPlaylistsReceived, this,
+          [this](const QList<Playlist> &playlists) {
+            QVariantList result;
+
+            for (const Playlist &playlist : playlists) {
+              QVariantMap item;
+              item.insert("uid", playlist.uid);
+              item.insert("uuid", playlist.uuid);
+              item.insert("kind", playlist.kind);
+              item.insert("title", playlist.title);
+              item.insert("coverUri", playlist.coverUri);
+              item.insert("trackCount", playlist.trackCount);
+              result.append(item);
+            }
+
+            m_similarPlaylists = result;
+            emit similarPlaylistsChanged();
+          });
+
+  connect(m_playlistService, &PlaylistService::userPlaylistsReceived, this,
+          [this](const QList<PersonalPlaylist> &playlists) {
+            m_loadingLibraryPlaylists = false;
+            emit loadingLibraryPlaylistsChanged();
+            m_libraryPlaylistsModel->setPlaylists(playlists);
+          });
+
+  connect(m_playlistService, &PlaylistService::errorOccurred, this,
+          [this](const QString &message) {
+            if (m_loadingPlaylist) {
               m_loadingPlaylist = false;
               emit loadingPlaylistChanged();
-              Playlist playlistWithLikes = playlist;
+            }
 
-              if (m_likesService != nullptr) {
-                for (Track &track : playlistWithLikes.tracks) {
-                  track.liked = m_likesService->isLiked(track.id);
-                }
-              }
-
-              m_playlistModel->setPlaylist(playlistWithLikes);
-              m_currentPlaylistTitle = playlistWithLikes.title;
-              m_currentPlaylistCoverUri = playlistWithLikes.coverUri;
-              m_currentPlaylistTrackCount = playlistWithLikes.trackCount;
-              emit currentPlaylistChanged();
-            });
-
-    connect(m_playlistService, &PlaylistService::similarPlaylistsReceived, this,
-            [this](const QList<Playlist> &playlists) {
-              QVariantList result;
-
-              for (const Playlist &playlist : playlists) {
-                QVariantMap item;
-                item.insert("uid", playlist.uid);
-                item.insert("uuid", playlist.uuid);
-                item.insert("kind", playlist.kind);
-                item.insert("title", playlist.title);
-                item.insert("coverUri", playlist.coverUri);
-                item.insert("trackCount", playlist.trackCount);
-                result.append(item);
-              }
-
-              m_similarPlaylists = result;
-              emit similarPlaylistsChanged();
-            });
-
-    connect(m_playlistService, &PlaylistService::userPlaylistsReceived, this,
-            [this](const QList<PersonalPlaylist> &playlists) {
+            if (m_loadingLibraryPlaylists) {
               m_loadingLibraryPlaylists = false;
               emit loadingLibraryPlaylistsChanged();
-              m_libraryPlaylistsModel->setPlaylists(playlists);
-            });
+            }
 
-    connect(m_playlistService, &PlaylistService::errorOccurred, this,
-            [this](const QString &message) {
-              if (m_loadingPlaylist) {
-                m_loadingPlaylist = false;
-                emit loadingPlaylistChanged();
-              }
+            emit statusChanged(QString("Ошибка плейлистов: %1").arg(message));
+          });
 
-              if (m_loadingLibraryPlaylists) {
-                m_loadingLibraryPlaylists = false;
-                emit loadingLibraryPlaylistsChanged();
-              }
+  connect(m_playlistService, &PlaylistService::playlistCreated, this,
+          [this](const QString &title) {
+            emit statusChanged(QString("Плейлист «%1» создан").arg(title));
 
-              emit statusChanged(QString("Ошибка плейлистов: %1").arg(message));
-            });
-  }
+            if (!m_userId.isEmpty()) {
+              loadUserPlaylists(m_userId);
+            }
+          });
 
-  if (m_playlistService != nullptr) {
-    connect(m_playlistService, &PlaylistService::playlistCreated, this,
-            [this](const QString &title) {
-              emit statusChanged(QString("Плейлист «%1» создан").arg(title));
+  connect(m_playlistService, &PlaylistService::playlistDeleted, this, [this](int) {
+    m_playlistModel->clear();
+    emit statusChanged("Плейлист удалён");
 
-              if (!m_userId.isEmpty()) {
-                loadUserPlaylists(m_userId);
-              }
-            });
+    if (!m_userId.isEmpty()) {
+      loadUserPlaylists(m_userId);
+    }
+  });
 
-    connect(m_playlistService, &PlaylistService::playlistDeleted, this, [this](int) {
-      ;
-      m_playlistModel->clear();
-      emit statusChanged("Плейлист удалён");
+  connect(m_playlistService, &PlaylistService::playlistRenamed, this,
+          [this](const QString &newTitle) {
+            m_currentPlaylistTitle = newTitle;
+            emit currentPlaylistChanged();
+            emit statusChanged(QString("Плейлист переименован в «%1»").arg(newTitle));
+          });
 
-      if (!m_userId.isEmpty()) {
-        loadUserPlaylists(m_userId);
-      }
-    });
+  connect(m_playlistService, &PlaylistService::tracksAdded, this, [this](int kind, int count) {
+    emit statusChanged(QString("Добавлено треков: %1").arg(count));
 
-    connect(m_playlistService, &PlaylistService::playlistRenamed, this,
-            [this](const QString &newTitle) {
-              m_currentPlaylistTitle = newTitle;
-              emit currentPlaylistChanged();
-              emit statusChanged(QString("Плейлист переименован в «%1»").arg(newTitle));
-            });
+    // Обновляем список пользовательских плейлистов,
+    // чтобы счётчики треков в пикере были актуальными.
+    if (!m_userId.isEmpty()) {
+      loadUserPlaylists(m_userId);
+    }
 
-    connect(m_playlistService, &PlaylistService::tracksAdded, this, [this](int kind, int count) {
-      emit statusChanged(QString("Добавлено треков: %1").arg(count));
+    // Перезагружаем открытый плейлист только если
+    // изменения коснулись именно его — иначе не трогаем
+    // текущий экран (например, добавляли в другой плейлист
+    // или в персональную подборку).
+    reloadIfCurrentPlaylist(kind);
+  });
 
-      // Обновляем список пользовательских плейлистов,
-      // чтобы счётчики треков в пикере были актуальными.
-      if (!m_userId.isEmpty()) {
-        loadUserPlaylists(m_userId);
-      }
+  connect(m_playlistService, &PlaylistService::tracksRemoved, this, [this](int kind, int count) {
+    emit playlistTracksChanged();
+    emit statusChanged(QString("Удалено треков: %1").arg(count));
 
-      // Перезагружаем открытый плейлист только если
-      // изменения коснулись именно его — иначе не трогаем
-      // текущий экран (например, добавляли в другой плейлист
-      // или в персональную подборку).
-      if (!m_userId.isEmpty()) {
-        const int currentKind = m_playlistModel->kind();
-        if (currentKind > 0 && currentKind == kind) {
-          loadPlaylist(m_userId, currentKind);
-        }
-      }
-    });
+    // Обновляем список пользовательских плейлистов,
+    // чтобы счётчики треков были актуальными.
+    if (!m_userId.isEmpty()) {
+      loadUserPlaylists(m_userId);
+    }
 
-    connect(m_playlistService, &PlaylistService::tracksRemoved, this, [this](int kind, int count) {
-      emit playlistTracksChanged();
-      emit statusChanged(QString("Удалено треков: %1").arg(count));
+    reloadIfCurrentPlaylist(kind);
+  });
 
-      // Обновляем список пользовательских плейлистов,
-      // чтобы счётчики треков были актуальными.
-      if (!m_userId.isEmpty()) {
-        loadUserPlaylists(m_userId);
-      }
+  connect(m_likesService, &LikesService::tracksReceived, this,
+          [this](const QList<Track> &tracks) {
+            m_loadingLikedTracks = false;
+            emit loadingLikedTracksChanged();
+            m_likedTracksModel->setTracks(tracks);
+          });
 
-      if (!m_userId.isEmpty()) {
-        const int currentKind = m_playlistModel->kind();
-        if (currentKind > 0 && currentKind == kind) {
-          loadPlaylist(m_userId, currentKind);
-        }
-      }
-    });
-  }
+  connect(m_likesService, &LikesService::loadingChanged, this, [this](bool loading) {
+    m_loadingLikedTracks = loading;
+    emit loadingLikedTracksChanged();
+  });
 
-  if (m_likesService != nullptr) {
-    connect(m_likesService, &LikesService::tracksReceived, this,
-            [this](const QList<Track> &tracks) {
-              m_loadingLikedTracks = false;
-              emit loadingLikedTracksChanged();
-              m_likedTracksModel->setTracks(tracks);
-            });
+  connect(m_likesService, &LikesService::errorOccurred, this, [this](const QString &message) {
+    m_loadingLikedTracks = false;
+    emit loadingLikedTracksChanged();
+    emit statusChanged(QString("Ошибка лайков: %1").arg(message));
+  });
 
-    connect(m_likesService, &LikesService::loadingChanged, this, [this](bool loading) {
-      m_loadingLikedTracks = loading;
-      emit loadingLikedTracksChanged();
-    });
+  connect(m_likesService, &LikesService::albumsReceived, this,
+          [this](const QList<Album> &albums) {
+            m_loadingLikedAlbums = false;
+            emit loadingLikedAlbumsChanged();
+            m_likedAlbumsModel->setAlbums(albums);
+          });
 
-    connect(m_likesService, &LikesService::errorOccurred, this, [this](const QString &message) {
-      m_loadingLikedTracks = false;
-      emit loadingLikedTracksChanged();
-      emit statusChanged(QString("Ошибка лайков: %1").arg(message));
-    });
+  connect(m_likesService, &LikesService::artistsReceived, this,
+          [this](const QList<Artist> &artists) {
+            m_loadingLikedArtists = false;
+            emit loadingLikedArtistsChanged();
+            m_likedArtistsModel->setArtists(artists);
+          });
 
-    connect(m_likesService, &LikesService::albumsReceived, this,
-            [this](const QList<Album> &albums) {
-              m_loadingLikedAlbums = false;
-              emit loadingLikedAlbumsChanged();
-              m_likedAlbumsModel->setAlbums(albums);
-            });
+  connect(m_likesService, &LikesService::likeChanged, this,
+          [this](const QString &trackId, bool liked) { setTrackLiked(trackId, liked); });
 
-    connect(m_likesService, &LikesService::artistsReceived, this,
-            [this](const QList<Artist> &artists) {
-              m_loadingLikedArtists = false;
-              emit loadingLikedArtistsChanged();
-              m_likedArtistsModel->setArtists(artists);
-            });
+  connect(m_likesService, &LikesService::albumLikeChanged, this, [this](const QString &, bool) {
+    if (!m_userId.isEmpty()) {
+      loadLikedAlbums(m_userId);
+    }
+  });
 
-    connect(m_likesService, &LikesService::likeChanged, this,
-            [this](const QString &trackId, bool liked) { setTrackLiked(trackId, liked); });
+  connect(m_likesService, &LikesService::artistLikeChanged, this, [this](const QString &, bool) {
+    if (!m_userId.isEmpty()) {
+      loadLikedArtists(m_userId);
+    }
+  });
 
-    connect(m_likesService, &LikesService::albumLikeChanged, this, [this](const QString &, bool) {
-      ;
+  connect(m_artistService, &ArtistService::artistReceived, this,
+          [this](const ArtistDetails &artist) {
+            m_loadingArtist = false;
+            emit loadingArtistChanged();
+            m_artistModel->setArtist(artist);
+            m_currentArtistName = artist.name;
+            m_currentArtistCoverUri = artist.coverUri;
+            m_currentArtistGenres = artist.genres.join(", ");
+            m_currentArtistTrackCount = artist.tracks.size();
+            emit currentArtistChanged();
+          });
 
-      if (!m_userId.isEmpty()) {
-        loadLikedAlbums(m_userId);
-      }
-    });
-
-    connect(m_likesService, &LikesService::artistLikeChanged, this, [this](const QString &, bool) {
-      ;
-
-      if (!m_userId.isEmpty()) {
-        loadLikedArtists(m_userId);
-      }
-    });
-  }
-
-  if (m_artistService != nullptr) {
-    connect(m_artistService, &ArtistService::artistReceived, this,
-            [this](const ArtistDetails &artist) {
-              m_loadingArtist = false;
-              emit loadingArtistChanged();
-              m_artistModel->setArtist(artist);
-              m_currentArtistName = artist.name;
-              m_currentArtistCoverUri = artist.coverUri;
-              m_currentArtistGenres = artist.genres.join(", ");
-              m_currentArtistTrackCount = artist.tracks.size();
-              emit currentArtistChanged();
-            });
-
-    connect(m_artistService, &ArtistService::errorOccurred, this, [this](const QString &message) {
-      m_loadingArtist = false;
-      emit loadingArtistChanged();
-      emit statusChanged(QString("Ошибка загрузки исполнителя: %1").arg(message));
-    });
-  }
+  connect(m_artistService, &ArtistService::errorOccurred, this, [this](const QString &message) {
+    m_loadingArtist = false;
+    emit loadingArtistChanged();
+    emit statusChanged(QString("Ошибка загрузки исполнителя: %1").arg(message));
+  });
 }
 
 void LibraryController::loadUserPlaylists(const QString &uid) {
@@ -233,11 +213,6 @@ void LibraryController::loadUserPlaylists(const QString &uid) {
     return;
   }
 
-  if (m_playlistService == nullptr) {
-    emit statusChanged("Сервис плейлистов недоступен");
-    return;
-  }
-
   m_loadingLibraryPlaylists = true;
   emit loadingLibraryPlaylistsChanged();
   m_libraryPlaylistsModel->clear();
@@ -245,11 +220,6 @@ void LibraryController::loadUserPlaylists(const QString &uid) {
 }
 
 void LibraryController::selectLibraryPlaylist(int index) {
-  if (m_libraryPlaylistsModel == nullptr) {
-    emit statusChanged("Модель плейлистов недоступна");
-    return;
-  }
-
   const PersonalPlaylist playlist = m_libraryPlaylistsModel->playlistAt(index);
 
   if (playlist.uid.isEmpty() || playlist.kind <= 0) {
@@ -268,44 +238,36 @@ bool LibraryController::isLoadingLibraryPlaylists() const {
   return m_loadingLibraryPlaylists;
 }
 
-void LibraryController::loadLikedTracks(const QString &uid) {
-  const QString userUid = uid.trimmed();
-
-  if (userUid.isEmpty()) {
-    emit statusChanged("UID пользователя не указан");
-    return;
+#define LOAD_LIKED(METHOD, MODEL, FLAG, SIGNAL)                                    \
+  void LibraryController::METHOD(const QString &uid) {                             \
+    const QString userUid = uid.trimmed();                                         \
+    if (userUid.isEmpty()) {                                                       \
+      emit statusChanged("UID пользователя не указан");                            \
+      return;                                                                      \
+    }                                                                              \
+    FLAG = true;                                                                   \
+    emit SIGNAL();                                                                 \
+    MODEL->clear();                                                                \
+    m_likesService->METHOD(userUid);                                               \
   }
 
-  if (m_likesService == nullptr) {
-    emit statusChanged("Сервис лайков недоступен");
-    return;
-  }
-
-  m_loadingLikedTracks = true;
-  emit loadingLikedTracksChanged();
-  m_likedTracksModel->clear();
-  m_likesService->loadLikedTracks(userUid);
-}
+LOAD_LIKED(loadLikedTracks, m_likedTracksModel, m_loadingLikedTracks, loadingLikedTracksChanged)
 
 void LibraryController::selectLikedTrack(int index) {
-  if (m_playbackController == nullptr) {
-    emit statusChanged("PlaybackController недоступен");
+  const QList<Track> tracks = m_likedTracksModel->tracks();
+
+  if (index < 0 || index >= tracks.size()) {
+    emit statusChanged("Некорректный индекс трека");
     return;
   }
 
-  if (m_likedTracksModel == nullptr) {
-    emit statusChanged("Модель лайкнутых треков недоступна");
-    return;
-  }
-
-  const Track track = m_likedTracksModel->trackAt(index);
+  const Track track = tracks.at(index);
 
   if (track.id.isEmpty()) {
     emit statusChanged("Некорректный лайкнутый трек");
     return;
   }
 
-  const QList<Track> tracks = m_likedTracksModel->tracks();
   m_playbackController->playFromSource(tracks, index, "Понравившиеся треки", "likes");
 }
 
@@ -317,24 +279,7 @@ bool LibraryController::isLoadingLikedTracks() const {
   return m_loadingLikedTracks;
 }
 
-void LibraryController::loadLikedAlbums(const QString &uid) {
-  const QString userUid = uid.trimmed();
-
-  if (userUid.isEmpty()) {
-    emit statusChanged("UID пользователя не указан");
-    return;
-  }
-
-  if (m_likesService == nullptr) {
-    emit statusChanged("Сервис лайков недоступен");
-    return;
-  }
-
-  m_loadingLikedAlbums = true;
-  emit loadingLikedAlbumsChanged();
-  m_likedAlbumsModel->clear();
-  m_likesService->loadLikedAlbums(userUid);
-}
+LOAD_LIKED(loadLikedAlbums, m_likedAlbumsModel, m_loadingLikedAlbums, loadingLikedAlbumsChanged)
 
 LikedAlbumsModel *LibraryController::likedAlbumsModel() const {
   return m_likedAlbumsModel;
@@ -355,24 +300,9 @@ void LibraryController::selectLikedAlbum(int index) {
   emit albumPageRequested(album.id);
 }
 
-void LibraryController::loadLikedArtists(const QString &uid) {
-  const QString userUid = uid.trimmed();
+LOAD_LIKED(loadLikedArtists, m_likedArtistsModel, m_loadingLikedArtists, loadingLikedArtistsChanged)
 
-  if (userUid.isEmpty()) {
-    emit statusChanged("UID пользователя не указан");
-    return;
-  }
-
-  if (m_likesService == nullptr) {
-    emit statusChanged("Сервис лайков недоступен");
-    return;
-  }
-
-  m_loadingLikedArtists = true;
-  emit loadingLikedArtistsChanged();
-  m_likedArtistsModel->clear();
-  m_likesService->loadLikedArtists(userUid);
-}
+#undef LOAD_LIKED
 
 LikedArtistsModel *LibraryController::likedArtistsModel() const {
   return m_likedArtistsModel;
@@ -401,11 +331,6 @@ void LibraryController::loadPlaylist(const QString &uid, int kind) {
     return;
   }
 
-  if (m_playlistService == nullptr) {
-    emit statusChanged("Сервис плейлистов недоступен");
-    return;
-  }
-
   m_loadingPlaylist = true;
   emit loadingPlaylistChanged();
   m_playlistModel->clear();
@@ -419,11 +344,6 @@ void LibraryController::loadPlaylist(const QString &uid, int kind) {
 }
 
 void LibraryController::selectPlaylistTrack(int index) {
-  if (m_playbackController == nullptr) {
-    emit statusChanged("PlaybackController недоступен");
-    return;
-  }
-
   const QList<Track> tracks = m_playlistModel->tracks();
 
   if (index < 0 || index >= tracks.size()) {
@@ -462,9 +382,6 @@ int LibraryController::currentPlaylistTrackCount() const {
 }
 
 int LibraryController::currentPlaylistKind() const {
-  if (m_playlistModel == nullptr) {
-    return 0;
-  }
   return m_playlistModel->kind();
 }
 
@@ -485,11 +402,6 @@ void LibraryController::loadArtist(const QString &id) {
     return;
   }
 
-  if (m_artistService == nullptr) {
-    emit statusChanged("Сервис исполнителя недоступен");
-    return;
-  }
-
   m_loadingArtist = true;
   emit loadingArtistChanged();
   m_artistModel->clear();
@@ -502,11 +414,6 @@ void LibraryController::loadArtist(const QString &id) {
 }
 
 void LibraryController::selectArtistTrack(int index) {
-  if (m_playbackController == nullptr) {
-    emit statusChanged("PlaybackController недоступен");
-    return;
-  }
-
   const QList<Track> tracks = m_artistModel->tracks();
 
   if (index < 0 || index >= tracks.size()) {
@@ -555,9 +462,7 @@ void LibraryController::setTrackLiked(const QString &trackId, bool liked) {
     return;
   }
 
-  if (m_playlistModel != nullptr) {
-    m_playlistModel->setTrackLiked(id, liked);
-  }
+  m_playlistModel->setTrackLiked(id, liked);
 
   if (liked) {
     m_likedTracksModel->setTrackLiked(id, true);
@@ -571,7 +476,7 @@ void LibraryController::setUserId(const QString &uid) {
 }
 
 void LibraryController::createPlaylist(const QString &title) {
-  if (m_playlistService == nullptr || m_userId.isEmpty()) {
+  if (m_userId.isEmpty()) {
     emit statusChanged("Не удалось создать плейлист");
     return;
   }
@@ -580,7 +485,7 @@ void LibraryController::createPlaylist(const QString &title) {
 }
 
 void LibraryController::deleteCurrentPlaylist() {
-  if (m_playlistService == nullptr || m_userId.isEmpty()) {
+  if (m_userId.isEmpty()) {
     emit statusChanged("Не удалось удалить плейлист");
     return;
   }
@@ -596,7 +501,7 @@ void LibraryController::deleteCurrentPlaylist() {
 }
 
 void LibraryController::renameCurrentPlaylist(const QString &newTitle) {
-  if (m_playlistService == nullptr || m_userId.isEmpty()) {
+  if (m_userId.isEmpty()) {
     emit statusChanged("Не удалось переименовать плейлист");
     return;
   }
@@ -612,7 +517,7 @@ void LibraryController::renameCurrentPlaylist(const QString &newTitle) {
 }
 
 void LibraryController::removeTrackFromPlaylist(int index) {
-  if (m_playlistService == nullptr || m_userId.isEmpty() || m_playlistModel == nullptr) {
+  if (m_userId.isEmpty()) {
     emit statusChanged("Не удалось удалить трек");
     return;
   }
@@ -623,9 +528,9 @@ void LibraryController::removeTrackFromPlaylist(int index) {
     return;
   }
 
-  const Track track = m_playlistModel->trackAt(index);
+  const QList<Track> tracks = m_playlistModel->tracks();
 
-  if (track.id.isEmpty()) {
+  if (index < 0 || index >= tracks.size()) {
     return;
   }
 
@@ -634,7 +539,7 @@ void LibraryController::removeTrackFromPlaylist(int index) {
 
 void LibraryController::addTrackToPlaylist(int kind, const QString &trackId, const QString &albumId,
                                            int revision) {
-  if (m_playlistService == nullptr || m_userId.isEmpty()) {
+  if (m_userId.isEmpty()) {
     emit statusChanged("Не удалось добавить трек");
     return;
   }
@@ -645,4 +550,12 @@ void LibraryController::addTrackToPlaylist(int kind, const QString &trackId, con
 
   m_playlistService->addTracksToPlaylist(m_userId, kind, {trackId.trimmed()}, {albumId.trimmed()},
                                          revision);
+}
+
+void LibraryController::reloadIfCurrentPlaylist(int kind) {
+  const int currentKind = m_playlistModel->kind();
+
+  if (currentKind > 0 && currentKind == kind) {
+    loadPlaylist(m_userId, currentKind);
+  }
 }

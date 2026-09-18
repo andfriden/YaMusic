@@ -14,75 +14,78 @@ PersonalController::PersonalController(YandexPersonal *yandexPersonal,
       m_personalPlaylistsModel(new PersonalPlaylistsModel(this)),
       m_recentListeningModel(new RecentListeningModel(this)),
       m_chartModel(new PersonalChartModel(this)) {
+  Q_ASSERT(m_yandexPersonal != nullptr);
+  Q_ASSERT(m_personalLanding != nullptr);
+  Q_ASSERT(m_newPlaylistsService != nullptr);
+  Q_ASSERT(m_recentListeningService != nullptr);
+  Q_ASSERT(m_playbackController != nullptr);
+  Q_ASSERT(m_playerService != nullptr);
+
   connectMyWave();
   connectRecommendations();
   connectRecentlyPlayed();
   connectPlayback();
 
-  if (m_newPlaylistsService != nullptr) {
-    connect(m_newPlaylistsService, &NewPlaylistsService::playlistsReceived, this,
-            [this](const QList<Playlist> &playlists) {
-              if (playlists.isEmpty()) {
-                return;
+  connect(m_newPlaylistsService, &NewPlaylistsService::playlistsReceived, this,
+          [this](const QList<Playlist> &playlists) {
+            if (playlists.isEmpty()) {
+              return;
+            }
+
+            PersonalLandingSection section;
+            section.id = "new-playlists";
+            section.title = "Новые плейлисты";
+            section.type = "new-playlists";
+
+            for (const Playlist &playlist : playlists) {
+              if (playlist.uid.isEmpty() || playlist.kind <= 0) continue;
+              PersonalPlaylist personalPlaylist;
+              personalPlaylist.uid = playlist.uid;
+              personalPlaylist.kind = playlist.kind;
+
+              personalPlaylist.id =
+                  personalPlaylist.uid + ":" + QString::number(personalPlaylist.kind);
+              personalPlaylist.title = playlist.title;
+              personalPlaylist.description = playlist.description;
+              personalPlaylist.trackCount = playlist.trackCount;
+              personalPlaylist.coverUri = playlist.coverUri;
+              if (personalPlaylist.title.isEmpty()) continue;
+              section.playlists.append(personalPlaylist);
+            }
+
+            if (section.playlists.isEmpty()) {
+              return;
+            }
+
+            bool replaced = false;
+
+            for (PersonalLandingSection &existingSection : m_recommendationSections) {
+              if (existingSection.type == "new-playlists") {
+                existingSection = section;
+                replaced = true;
+                break;
               }
+            }
 
-              PersonalLandingSection section;
-              section.id = "new-playlists";
-              section.title = "Новые плейлисты";
-              section.type = "new-playlists";
+            if (!replaced) {
+              m_recommendationSections.append(section);
+            }
 
-              for (const Playlist &playlist : playlists) {
-                if (playlist.uid.isEmpty() || playlist.kind <= 0) continue;
-                PersonalPlaylist personalPlaylist;
-                personalPlaylist.uid = playlist.uid;
-                personalPlaylist.kind = playlist.kind;
+            m_recommendationPlaylists.clear();
 
-                personalPlaylist.id =
-                    personalPlaylist.uid + ":" + QString::number(personalPlaylist.kind);
-                personalPlaylist.title = playlist.title;
-                personalPlaylist.description = playlist.description;
-                personalPlaylist.trackCount = playlist.trackCount;
-                personalPlaylist.coverUri = playlist.coverUri;
-                if (personalPlaylist.title.isEmpty()) continue;
-                section.playlists.append(personalPlaylist);
-              }
-
-              if (section.playlists.isEmpty()) {
-                return;
-              }
-
-              bool replaced = false;
-
-              for (PersonalLandingSection &existingSection : m_recommendationSections) {
-                if (existingSection.type == "new-playlists") {
-                  existingSection = section;
-                  replaced = true;
-                  break;
+            for (const PersonalLandingSection &recommendationSection : m_recommendationSections) {
+              for (const PersonalPlaylist &personalPlaylist : recommendationSection.playlists) {
+                if (!personalPlaylist.uid.isEmpty()) {
+                  m_recommendationPlaylists.append(personalPlaylist);
                 }
               }
+            }
 
-              if (!replaced) {
-                m_recommendationSections.append(section);
-              }
+            m_personalPlaylistsModel->setSections(m_recommendationSections);
 
-              m_recommendationPlaylists.clear();
-
-              for (const PersonalLandingSection &recommendationSection : m_recommendationSections) {
-                for (const PersonalPlaylist &personalPlaylist : recommendationSection.playlists) {
-                  if (!personalPlaylist.uid.isEmpty()) {
-                    m_recommendationPlaylists.append(personalPlaylist);
-                  }
-                }
-              }
-
-              if (m_personalPlaylistsModel != nullptr) {
-                m_personalPlaylistsModel->setSections(m_recommendationSections);
-              }
-
-              emit statusChanged(
-                  QString("Новых плейлистов загружено: %1").arg(section.playlists.size()));
-            });
-  }
+            emit statusChanged(
+                QStringLiteral("Новых плейлистов загружено: %1").arg(section.playlists.size()));
+          });
 }
 
 MyWaveModel *PersonalController::myWaveModel() const {

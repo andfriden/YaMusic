@@ -4,19 +4,14 @@
 MyWaveModel::MyWaveModel(QObject *parent) : TrackListModelBase(parent) {}
 
 QVariant MyWaveModel::data(const QModelIndex &index, int role) const {
-  if (!index.isValid() || index.row() < 0 || index.row() >= m_tracks.size()) {
-    return {};
-  }
-
+  if (!index.isValid() || index.row() < 0 || index.row() >= m_tracks.size()) return {};
   const Track &track = m_tracks.at(index.row());
 
   switch (role) {
   case IdRole:
     return track.id;
-
   case TitleRole:
     return track.title;
-
   case ArtistRole: {
     QStringList names;
 
@@ -27,34 +22,16 @@ QVariant MyWaveModel::data(const QModelIndex &index, int role) const {
     }
     return names.join(", ");
   }
-
   case ArtistIdRole:
-    if (!track.artists.isEmpty()) {
-      return track.artists.first().id;
-    }
-
-    return QString();
-
+    return track.artists.isEmpty() ? QString() : track.artists.first().id;
   case AlbumRole:
-    if (!track.albums.isEmpty()) {
-      return track.albums.first().title;
-    }
-
-    return QString();
-
+    return track.albums.isEmpty() ? QString() : track.albums.first().title;
   case AlbumIdRole:
-    if (!track.albums.isEmpty()) {
-      return track.albums.first().id;
-    }
-
-    return QString();
-
+    return track.albums.isEmpty() ? QString() : track.albums.first().id;
   case CoverUriRole:
     return track.coverUri;
-
   case DurationMsRole:
     return track.durationMs;
-
   default:
     return {};
   }
@@ -89,9 +66,7 @@ void MyWaveModel::appendTracks(const QList<Track> &tracks) {
     }
   }
 
-  if (newTracks.isEmpty()) {
-    return;
-  }
+  if (newTracks.isEmpty()) return;
 
   const int first = m_tracks.size();
   const int last = first + newTracks.size() - 1;
@@ -101,9 +76,8 @@ void MyWaveModel::appendTracks(const QList<Track> &tracks) {
   emit countChanged();
 }
 
+// TODO(#180): ограничить историю волны последними 200 треками
 Track MyWaveModel::lastTrack() const {
-  if (m_tracks.isEmpty()) {
-    return {};
-  }
+  if (m_tracks.isEmpty()) return {};
   return m_tracks.last();
 }

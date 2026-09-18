@@ -4,6 +4,7 @@
 
 GenreModel::GenreModel(QObject *parent) : QAbstractListModel(parent) {}
 
+// TODO(YM-2249): прокинуть totalTracksCount/totalPlaylistsCount из API в роли модели
 int GenreModel::rowCount(const QModelIndex &parent) const {
   if (parent.isValid()) {
     return 0;
@@ -27,35 +28,25 @@ QVariant GenreModel::data(const QModelIndex &index, int role) const {
   switch (role) {
   case IdRole:
     return genre.id;
-
   case TitleRole:
     return genre.title;
-
   case FullTitleRole:
     return genre.fullTitle;
-
   case UrlPartRole:
     return genre.urlPart;
-
   case ColorRole:
     return genre.color;
-
   case Image208Role:
     return genre.image208;
-
   case Image300Role:
     return genre.image300;
-
   case ShowInMenuRole:
     return genre.showInMenu;
-
   case HasSubGenresRole:
     return !genre.subGenres.isEmpty();
-
   case SubGenresRole: {
     QVariantList result;
     result.reserve(genre.subGenres.size());
-
     for (const Genre &subGenre : genre.subGenres) {
       QVariantMap item;
       item.insert("id", subGenre.id);
@@ -70,7 +61,6 @@ QVariant GenreModel::data(const QModelIndex &index, int role) const {
     }
     return result;
   }
-
   default:
     return {};
   }

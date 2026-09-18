@@ -12,66 +12,23 @@ PlayerService::PlayerService(QObject *parent)
 
             switch (state) {
             case QMediaPlayer::PlayingState:
-
               emit playbackStarted();
               break;
-
             case QMediaPlayer::PausedState:
-
               emit playbackPaused();
               break;
-
             case QMediaPlayer::StoppedState:
-
               emit playbackStopped();
               break;
-
             default:
-
               break;
             }
           });
 
   connect(&m_player, &QMediaPlayer::mediaStatusChanged, this,
           [this](QMediaPlayer::MediaStatus status) {
-            switch (status) {
-            case QMediaPlayer::NoMedia:
-
-              break;
-
-            case QMediaPlayer::LoadingMedia:
-
-              break;
-
-            case QMediaPlayer::LoadedMedia:
-
-              break;
-
-            case QMediaPlayer::BufferingMedia:
-
-              break;
-
-            case QMediaPlayer::BufferedMedia:
-
-              break;
-
-            case QMediaPlayer::StalledMedia:
-
-              break;
-
-            case QMediaPlayer::EndOfMedia:
-
+            if (status == QMediaPlayer::EndOfMedia)
               emit playbackFinished();
-              break;
-
-            case QMediaPlayer::InvalidMedia:
-
-              break;
-
-            default:
-
-              break;
-            }
           });
 
   connect(&m_player, &QMediaPlayer::positionChanged, this,
@@ -81,9 +38,10 @@ PlayerService::PlayerService(QObject *parent)
           [this](qint64 duration) { emit durationChanged(duration); });
 
   connect(&m_player, &QMediaPlayer::errorOccurred, this,
-          [this](QMediaPlayer::Error error, const QString &errorString) {
+          [this](QMediaPlayer::Error, const QString &errorString) {
             emit errorOccurred(errorString);
           });
+
   connect(&m_audioOutput, &QAudioOutput::volumeChanged, this, &PlayerService::volumeChanged);
   connect(&m_audioOutput, &QAudioOutput::mutedChanged, this, &PlayerService::mutedChanged);
 }
@@ -117,9 +75,7 @@ void PlayerService::play() {
 }
 
 void PlayerService::playUrl(const QString &url) {
-  if (url.isEmpty()) {
-    return;
-  }
+  if (url.isEmpty()) return;
 
   if (m_currentUrl != url) {
     m_currentUrl = url;
@@ -143,20 +99,15 @@ void PlayerService::stop() {
 }
 
 void PlayerService::togglePlayback() {
-  if (isPlaying()) {
+  if (isPlaying())
     pause();
-
-  } else {
+  else
     resume();
-  }
 }
 
 void PlayerService::seek(qint64 position) {
   const qint64 playerDuration = m_player.duration();
-
-  if (playerDuration <= 0) {
-    return;
-  }
+  if (playerDuration <= 0) return;
 
   const qint64 clampedPosition = qBound(qint64(0), position, playerDuration);
   m_player.setPosition(clampedPosition);
@@ -168,10 +119,7 @@ void PlayerService::setVolume(float volume) {
 }
 
 void PlayerService::setMuted(bool muted) {
-  if (m_audioOutput.isMuted() == muted) {
-    return;
-  }
-
+  if (m_audioOutput.isMuted() == muted) return;
   m_audioOutput.setMuted(muted);
 }
 

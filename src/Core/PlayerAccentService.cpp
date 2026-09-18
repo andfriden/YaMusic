@@ -17,11 +17,7 @@ QColor PlayerAccentService::accentColor() const {
 void PlayerAccentService::updateForCover(const QString &coverUri) {
   const QString uri = coverUri.trimmed();
 
-  if (uri.isEmpty()) {
-    return;
-  }
-
-  if (uri == m_currentCoverUri) {
+  if (uri.isEmpty() || uri == m_currentCoverUri) {
     return;
   }
 
@@ -128,10 +124,7 @@ QColor PlayerAccentService::calculateDominantColor(const QByteArray &data) const
     return {};
   }
 
-  QColor result(static_cast<int>(red / count),
-
-                static_cast<int>(green / count),
-
+  QColor result(static_cast<int>(red / count), static_cast<int>(green / count),
                 static_cast<int>(blue / count));
 
   if (!result.isValid()) {
@@ -155,7 +148,7 @@ QString PlayerAccentService::createUrl(QString uri) const {
   }
 
   if (uri.startsWith("//")) {
-    return QString("https:%1").arg(uri);
+    return QStringLiteral("https:%1").arg(uri);
   }
 
   // В coverUri у Яндекса размер кодируется как %% — подставляем конкретный.
@@ -166,7 +159,7 @@ QString PlayerAccentService::createUrl(QString uri) const {
 
   if (uri.startsWith("avatars.yandex.net/", Qt::CaseInsensitive) ||
       uri.startsWith("avatars.mds.yandex.net/", Qt::CaseInsensitive)) {
-    return QString("https://%1").arg(uri);
+    return QStringLiteral("https://%1").arg(uri);
   }
-  return QString("https://avatars.mds.yandex.net/%1").arg(uri);
+  return QStringLiteral("https://avatars.mds.yandex.net/%1").arg(uri);
 }

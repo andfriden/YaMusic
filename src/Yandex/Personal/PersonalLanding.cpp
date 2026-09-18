@@ -19,14 +19,11 @@ const QStringList PlaylistSectionTypes = {"personal-playlists", "new-playlists",
 } // namespace
 
 PersonalLanding::PersonalLanding(YandexAuth *auth, QObject *parent)
-    : QObject(parent), m_auth(auth), m_yandexClient(new YandexClient(this)) {}
+    : QObject(parent), m_auth(auth), m_yandexClient(new YandexClient(this)) {
+  Q_ASSERT(m_auth);
+}
 
 void PersonalLanding::load() {
-  if (m_auth == nullptr) {
-    emit errorOccurred("Авторизация недоступна");
-    return;
-  }
-
   if (!m_auth->isAuthenticated()) {
     emit errorOccurred("Токен Яндекс Музыки не установлен");
     return;
@@ -67,8 +64,7 @@ void PersonalLanding::load() {
       const QJsonObject block = value.toObject();
       PersonalLandingSection section = parseSection(block);
 
-      // Для секций с альбомами (new-releases)
-      // извлекаем альбомы из items.
+      // Для секций с альбомами (new-releases) извлекаем альбомы из items.
       if (section.type == "new-releases") {
         for (const PersonalLandingItem &item : section.items) {
           if (item.type != "album") continue;
@@ -78,22 +74,17 @@ void PersonalLanding::load() {
         }
       }
 
-      // Для секций с плейлистами
-      // преобразуем items -> playlists
-      // прямо внутри секции.
+      // Для секций с плейлистами преобразуем items -> playlists внутри секции.
       if (PlaylistSectionTypes.contains(section.type)) {
         for (const PersonalLandingItem &item : section.items) {
           if (item.type != "personal-playlist" && item.type != "playlist") continue;
           const PersonalPlaylist playlist = parsePersonalPlaylist(item);
           if (playlist.title.isEmpty()) continue;
 
-          // Главное:
-          // плейлист должен находиться
-          // внутри своей секции.
+          // Плейлист должен находиться внутри своей секции.
           section.playlists.append(playlist);
 
-          // Отдельный плоский кэш
-          // всех плейлистов.
+          // Отдельный плоский кэш всех плейлистов.
           QString key = playlist.id;
 
           if (key.isEmpty()) {
@@ -113,8 +104,7 @@ void PersonalLanding::load() {
     // Сначала отдаём полноценные секции.
     emit loaded(sections);
 
-    // Дополнительно сохраняем плоский список
-    // для других потребителей.
+    // Дополнительно сохраняем плоский список для других потребителей.
     if (!allPlaylists.isEmpty()) {
       emit personalPlaylistsReceived(allPlaylists);
     }
@@ -148,6 +138,7 @@ PersonalLandingSection PersonalLanding::parseSection(const QJsonObject &object) 
     if (!value.isObject()) continue;
     section.items.append(parseItem(value.toObject()));
   }
+
   return section;
 }
 
@@ -184,5 +175,6 @@ PersonalPlaylist PersonalLanding::parsePersonalPlaylist(const PersonalLandingIte
   if (playlist.coverUri.isEmpty()) {
     playlist.coverUri = object.value("cover").toObject().value("uri").toString();
   }
+
   return playlist;
 }

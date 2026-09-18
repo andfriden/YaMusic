@@ -23,8 +23,7 @@ static QString coverFilePath(const QString &trackId) {
 }
 
 // Путь к кэшированному файлу стрима для трека.
-// Используется и для записи при скачивании, и для
-// чтения в офлайн-режиме.
+// Используется и для записи при скачивании, и для чтения в офлайн-режиме.
 static QString streamCachePath(const QString &trackId) {
   return QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
          QStringLiteral("/stream_cache/") + trackId + QStringLiteral(".mp3");
@@ -37,159 +36,129 @@ PlaybackController::PlaybackController(TrackService *trackService, PlayerService
       m_streamNetwork(new QNetworkAccessManager(this)),
       m_streamCacheDir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
                        QStringLiteral("/stream_cache")) {
+  Q_ASSERT(m_trackService != nullptr);
+  Q_ASSERT(m_playerService != nullptr);
+  Q_ASSERT(m_queueService != nullptr);
+
   setupSystemMediaControls();
 
-  if (m_playerService != nullptr) {
-    connect(m_playerService, &PlayerService::playbackStarted, this, [this]() {
-      // playbackStarted means that the new media
-      // source has actually started playing.
-      // This is the correct moment to restore the
-      // position saved before a broken network stream.
+  connect(m_playerService, &PlayerService::playbackStarted, this, [this]() {
+    // playbackStarted означает, что новый медиа-источник действительно
+    // начал играть. Это правильный момент, чтобы восстановить позицию,
+    // сохранённую перед сбоем сетевого стрима.
 
-      if (m_recoveringPlayback && m_recoveryPositionPending &&
-          m_currentTrack.id == m_recoveryTrackId) {
-        const qint64 recoveryPosition = m_recoveryPosition;
-        m_recoveringPlayback = false;
-        m_recoveryPositionPending = false;
-        m_recoveryPosition = 0;
-        m_recoveryTrackId.clear();
-
-        if (recoveryPosition > 0) {
-          m_playerService->seek(recoveryPosition);
-        }
-
-      } else {
-        m_recoveringPlayback = false;
-        m_recoveryPositionPending = false;
-        m_recoveryPosition = 0;
-        m_recoveryTrackId.clear();
-      }
-
-      setState(Playing);
-    });
-    connect(m_playerService, &PlayerService::playbackPaused, this, [this]() { setState(Paused); });
-
-    connect(m_playerService, &PlayerService::playbackStopped, this, [this]() {
-      // Do not change the controller state while
-      // recovering a broken network stream.
-      // QMediaPlayer can temporarily enter
-      // StoppedState while the old network source
-      // is being replaced.
-
-      if (!m_recoveringPlayback) {
-        setState(Stopped);
-      }
-    });
-
-    connect(m_playerService, &PlayerService::playbackFinished, this,
-            &PlaybackController::handlePlaybackFinished);
-
-    connect(m_playerService, &PlayerService::errorOccurred, this, [this](const QString &message) {
-      // There is nothing to recover without the
-      // required services or a current track.
-
-      if (m_trackService == nullptr || m_playerService == nullptr || m_currentTrack.id.isEmpty()) {
-        setState(Error);
-        emit playbackError(message);
-        return;
-      }
-
-      // FFmpeg may report the same network error
-      // several times while the old socket is being
-      // closed.
-      // Only the first error starts recovery.
-
-      if (m_recoveringPlayback) {
-        return;
-      }
-
-      // Remember the exact playback position before
-      // replacing the expired/broken stream URL.
-
-      m_recoveryPosition = m_playerService->position();
-      m_recoveryTrackId = m_currentTrack.id;
-      m_recoveryPositionPending = true;
-      m_recoveringPlayback = true;
-      setState(Loading);
-
-      // Request a fresh temporary Yandex stream URL.
-
-      m_trackService->loadStreamInfo(m_currentTrack.id);
-    });
-  }
-
-  if (m_trackService != nullptr) {
-    connect(m_trackService, &TrackService::streamUrlReceived, this,
-            [this](const QString &trackId, const QString &url) {
-              // Ignore responses for tracks which are no
-              // longer current.
-
-              if (trackId.isEmpty() || trackId != m_currentTrack.id) {
-                return;
-              }
-
-              if (url.trimmed().isEmpty()) {
-                const bool recovering = m_recoveringPlayback;
-                m_recoveringPlayback = false;
-                m_recoveryPositionPending = false;
-                m_recoveryPosition = 0;
-                m_recoveryTrackId.clear();
-                setState(Error);
-
-                emit playbackError(recovering ? QStringLiteral("Не удалось обновить Stream URL")
-                                              : QStringLiteral("Stream URL пуст"));
-                return;
-              }
-
-              if (m_playerService == nullptr) {
-                m_recoveringPlayback = false;
-                m_recoveryPositionPending = false;
-                m_recoveryPosition = 0;
-                m_recoveryTrackId.clear();
-                setState(Error);
-                emit playbackError(QStringLiteral("PlayerService недоступен"));
-                return;
-              }
-
-              // Normal playback.
-
-              if (!m_recoveringPlayback) {
-                handleStreamUrl(trackId, url);
-                return;
-              }
-
-              // Recovery playback.
-              // Do NOT seek here.
-              // QMediaPlayer has only received the new source
-              // at this point. The source may still be loading,
-              // so the duration/position may not be available.
-              // We keep the recovery state active until
-              // playbackStarted.
-
-              downloadAndPlayStream(trackId, url);
-            });
-
-    connect(m_trackService, &TrackService::errorOccurred, this, [this](const QString &message) {
-      const bool recovering = m_recoveringPlayback;
+    if (m_recoveringPlayback && m_recoveryPositionPending &&
+        m_currentTrack.id == m_recoveryTrackId) {
+      const qint64 recoveryPosition = m_recoveryPosition;
       m_recoveringPlayback = false;
       m_recoveryPositionPending = false;
       m_recoveryPosition = 0;
       m_recoveryTrackId.clear();
+
+      if (recoveryPosition > 0)
+        m_playerService->seek(recoveryPosition);
+
+    } else {
+      m_recoveringPlayback = false;
+      m_recoveryPositionPending = false;
+      m_recoveryPosition = 0;
+      m_recoveryTrackId.clear();
+    }
+
+    setState(Playing);
+  });
+  connect(m_playerService, &PlayerService::playbackPaused, this, [this]() { setState(Paused); });
+
+  connect(m_playerService, &PlayerService::playbackStopped, this, [this]() {
+    // При восстановлении сломанного сетевого стрима состояние контроллера
+    // не трогаем: QMediaPlayer может временно уйти в StoppedState, пока
+    // старый источник заменяется новым.
+
+    if (!m_recoveringPlayback)
+      setState(Stopped);
+  });
+
+  connect(m_playerService, &PlayerService::playbackFinished, this,
+          &PlaybackController::handlePlaybackFinished);
+
+  connect(m_playerService, &PlayerService::errorOccurred, this, [this](const QString &message) {
+    // Без текущего трека восстанавливать нечего.
+
+    if (m_currentTrack.id.isEmpty()) {
       setState(Error);
+      emit playbackError(message);
+      return;
+    }
 
-      emit playbackError(recovering
-                             ? QStringLiteral("Не удалось восстановить воспроизведение: ") + message
-                             : message);
-    });
-  }
+    // FFmpeg может несколько раз сообщить одну и ту же сетевую ошибку,
+    // пока старый сокет закрывается. Восстановление запускаем только по первой.
 
-  if (m_queueService != nullptr) {
-    connect(m_queueService, &QueueService::repeatModeChanged, this,
-            &PlaybackController::repeatModeChanged);
+    if (m_recoveringPlayback)
+      return;
 
-    connect(m_queueService, &QueueService::shuffleChanged, this,
-            &PlaybackController::shuffleChanged);
-  }
+    // Запоминаем точную позицию перед заменой протухшего stream URL.
+
+    m_recoveryPosition = m_playerService->position();
+    m_recoveryTrackId = m_currentTrack.id;
+    m_recoveryPositionPending = true;
+    m_recoveringPlayback = true;
+    setState(Loading);
+
+    m_trackService->loadStreamInfo(m_currentTrack.id);
+  });
+
+  connect(m_trackService, &TrackService::streamUrlReceived, this,
+          [this](const QString &trackId, const QString &url) {
+            // Ответы для треков, которые уже не текущие, игнорируем.
+
+            if (trackId.isEmpty() || trackId != m_currentTrack.id)
+              return;
+
+            if (url.trimmed().isEmpty()) {
+              const bool recovering = m_recoveringPlayback;
+              m_recoveringPlayback = false;
+              m_recoveryPositionPending = false;
+              m_recoveryPosition = 0;
+              m_recoveryTrackId.clear();
+              setState(Error);
+
+              emit playbackError(recovering ? QStringLiteral("Не удалось обновить Stream URL")
+                                            : QStringLiteral("Stream URL пуст"));
+              return;
+            }
+
+            // Обычное воспроизведение.
+
+            if (!m_recoveringPlayback) {
+              handleStreamUrl(trackId, url);
+              return;
+            }
+
+            // Восстановление. Здесь seek делать нельзя: QMediaPlayer только
+            // получил новый источник, длительность и позиция могут быть ещё
+            // недоступны. Держим состояние восстановления до playbackStarted.
+
+            downloadAndPlayStream(trackId, url);
+          });
+
+  connect(m_trackService, &TrackService::errorOccurred, this, [this](const QString &message) {
+    const bool recovering = m_recoveringPlayback;
+    m_recoveringPlayback = false;
+    m_recoveryPositionPending = false;
+    m_recoveryPosition = 0;
+    m_recoveryTrackId.clear();
+    setState(Error);
+
+    emit playbackError(recovering
+                           ? QStringLiteral("Не удалось восстановить воспроизведение: ") + message
+                           : message);
+  });
+
+  connect(m_queueService, &QueueService::repeatModeChanged, this,
+          &PlaybackController::repeatModeChanged);
+
+  connect(m_queueService, &QueueService::shuffleChanged, this,
+          &PlaybackController::shuffleChanged);
 }
 
 Track PlaybackController::currentTrack() const {
@@ -215,16 +184,14 @@ void PlaybackController::playTrack(const Track &track) {
     return;
   }
 
-  // A new explicit track selection always cancels
-  // any previous recovery operation.
+  // Явный выбор трека отменяет незавершённое восстановление.
 
   m_recoveringPlayback = false;
   m_recoveryPositionPending = false;
   m_recoveryPosition = 0;
   m_recoveryTrackId.clear();
 
-  // Cancel any in-progress stream download for the
-  // previous track.
+  // Отменяем незавершённую загрузку стрима предыдущего трека.
 
   cancelStreamDownload();
 
@@ -232,14 +199,12 @@ void PlaybackController::playTrack(const Track &track) {
 
   resetReportState();
 
-  if (m_queueService != nullptr) {
-    const QList<Track> queueTracks = m_queueService->tracks();
+  const QList<Track> queueTracks = m_queueService->tracks();
 
-    for (int i = 0; i < queueTracks.size(); ++i) {
-      if (queueTracks.at(i).id == track.id) {
-        m_queueService->setCurrentIndex(i);
-        break;
-      }
+  for (int i = 0; i < queueTracks.size(); ++i) {
+    if (queueTracks.at(i).id == track.id) {
+      m_queueService->setCurrentIndex(i);
+      break;
     }
   }
 
@@ -253,12 +218,6 @@ void PlaybackController::playTrack(const Track &track) {
   const QString cachedPath = streamCachePath(track.id);
 
   if (QFile::exists(cachedPath)) {
-    if (m_playerService == nullptr) {
-      setState(Error);
-      emit playbackError("PlayerService недоступен");
-      return;
-    }
-
     m_playerService->playUrl(QStringLiteral("file://") + cachedPath);
     return;
   }
@@ -271,23 +230,11 @@ void PlaybackController::playTrack(const Track &track) {
     return;
   }
 
-  if (m_trackService == nullptr) {
-    setState(Error);
-    emit playbackError("TrackService недоступен");
-    return;
-  }
-
   m_trackService->loadStreamInfo(track.id);
 }
 
 void PlaybackController::playFromSource(const QList<Track> &tracks, int index,
                                         const QString &sourceTitle, const QString &sourceType) {
-  if (m_queueService == nullptr) {
-    setState(Error);
-    emit playbackError("QueueService недоступен");
-    return;
-  }
-
   if (index < 0 || index >= tracks.size()) {
     setState(Error);
     emit playbackError("Некорректный индекс трека");
@@ -306,20 +253,13 @@ void PlaybackController::playFromSource(const QList<Track> &tracks, int index,
   m_queueService->addTracks(tracks);
   m_queueService->setCurrentIndex(index);
 
-  if (!sourceTitle.isEmpty()) {
+  if (!sourceTitle.isEmpty())
     m_queueService->setSource(sourceTitle, sourceType);
-  }
 
   playTrack(track);
 }
 
 void PlaybackController::playQueue() {
-  if (m_queueService == nullptr) {
-    setState(Error);
-    emit playbackError("QueueService недоступен");
-    return;
-  }
-
   const Track track = m_queueService->currentTrack();
 
   if (track.id.isEmpty()) {
@@ -341,24 +281,16 @@ void PlaybackController::playCurrent() {
 }
 
 void PlaybackController::pause() {
-  if (m_playerService == nullptr) {
-    return;
-  }
-
   maybeReportPlayback();
   m_playerService->pause();
 }
 
 void PlaybackController::resume() {
-  if (m_playerService == nullptr) {
-    return;
-  }
-
   m_playerService->play();
 }
 
 void PlaybackController::stop() {
-  // Explicit stop cancels any pending recovery.
+  // Явный стоп отменяет незавершённое восстановление.
 
   m_recoveringPlayback = false;
   m_recoveryPositionPending = false;
@@ -366,19 +298,10 @@ void PlaybackController::stop() {
   m_recoveryTrackId.clear();
   maybeReportPlayback();
   cancelStreamDownload();
-
-  if (m_playerService == nullptr) {
-    return;
-  }
-
   m_playerService->stop();
 }
 
 bool PlaybackController::next() {
-  if (m_queueService == nullptr) {
-    return false;
-  }
-
   if (m_queueService->hasNext()) {
     m_queueService->next();
     return playQueueCurrentTrack();
@@ -392,10 +315,6 @@ bool PlaybackController::next() {
 }
 
 bool PlaybackController::previous() {
-  if (m_queueService == nullptr) {
-    return false;
-  }
-
   if (m_queueService->hasPrevious()) {
     m_queueService->previous();
     return playQueueCurrentTrack();
@@ -409,64 +328,40 @@ bool PlaybackController::previous() {
 }
 
 void PlaybackController::setRepeatMode(QueueService::RepeatMode mode) {
-  if (m_queueService == nullptr) {
-    return;
-  }
-
   m_queueService->setRepeatMode(mode);
 }
 
 QueueService::RepeatMode PlaybackController::repeatMode() const {
-  if (m_queueService == nullptr) {
-    return QueueService::RepeatOff;
-  }
   return m_queueService->repeatMode();
 }
 
 void PlaybackController::cycleRepeatMode() {
-  if (m_queueService == nullptr) {
-    return;
-  }
-
   m_queueService->cycleRepeatMode();
 }
 
 bool PlaybackController::shuffleEnabled() const {
-  if (m_queueService == nullptr) {
-    return false;
-  }
   return m_queueService->shuffleEnabled();
 }
 
 void PlaybackController::setShuffleEnabled(bool enabled) {
-  if (m_queueService == nullptr) {
-    return;
-  }
-
   m_queueService->setShuffleEnabled(enabled);
 }
 
 void PlaybackController::toggleShuffle() {
-  if (m_queueService == nullptr) {
-    return;
-  }
-
   m_queueService->toggleShuffle();
 }
 
 void PlaybackController::setState(PlaybackState state) {
-  if (m_state == state) {
+  if (m_state == state)
     return;
-  }
 
   m_state = state;
   emit stateChanged();
 }
 
 void PlaybackController::handleStreamUrl(const QString &trackId, const QString &url) {
-  if (trackId.isEmpty() || trackId != m_currentTrack.id) {
+  if (trackId.isEmpty() || trackId != m_currentTrack.id)
     return;
-  }
 
   if (url.trimmed().isEmpty()) {
     setState(Error);
@@ -474,25 +369,14 @@ void PlaybackController::handleStreamUrl(const QString &trackId, const QString &
     return;
   }
 
-  if (m_playerService == nullptr) {
-    setState(Error);
-    emit playbackError("PlayerService недоступен");
-    return;
-  }
-
   downloadAndPlayStream(trackId, url);
 }
 
-// Stream download proxy
-// On macOS, Qt Multimedia uses FFmpeg as the media backend.
-// FFmpeg on macOS relies on Apple SecureTransport for TLS,
-// which has known issues with streaming HTTPS audio and
-// frequently fails with errSSLClosedGraceful (-9806).
-// Qt's own QNetworkAccessManager uses a different SSL stack
-// (its bundled TLS or SecureTransport via the right APIs).
-// Workaround: download the audio through QNetworkAccessManager
-// into a local cache file, then play the local file.
-
+// Проксирование стрима: на macOS Qt Multimedia использует FFmpeg, который
+// для TLS полагается на Apple SecureTransport и часто падает с
+// errSSLClosedGraceful (-9806) на потоковом HTTPS-аудио. QNetworkAccessManager
+// использует другой SSL-стек, поэтому качаем аудио через него в локальный
+// файл кэша и играем уже локальный файл.
 void PlaybackController::downloadAndPlayStream(const QString &trackId, const QString &streamUrl) {
   if (trackId.isEmpty() || streamUrl.isEmpty()) {
     setState(Error);
@@ -500,7 +384,7 @@ void PlaybackController::downloadAndPlayStream(const QString &trackId, const QSt
     return;
   }
 
-  // Clean up any previous download for this track.
+  // Чистим предыдущую загрузку этого трека.
   if (m_streamDownloadReply) {
     m_streamDownloadReply->disconnect();
     m_streamDownloadReply->abort();
@@ -512,7 +396,7 @@ void PlaybackController::downloadAndPlayStream(const QString &trackId, const QSt
   const QString dest = streamCachePath(trackId);
   QDir().mkpath(QFileInfo(dest).absolutePath());
 
-  // Delete old cached file.
+  // Удаляем старый кэшированный файл.
   QFile::remove(dest);
   QFile *cacheFile = new QFile(dest, this);
   if (!cacheFile->open(QIODevice::WriteOnly)) {
@@ -547,15 +431,12 @@ void PlaybackController::downloadAndPlayStream(const QString &trackId, const QSt
 
             m_pendingStreamTrackId.clear();
 
-            if (trackId != m_currentTrack.id) {
-              // Трек сменился до конца загрузки — файл всё равно
-              // оставляем в кэше (offline).
+            // Трек сменился до конца загрузки — файл всё равно
+            // оставляем в кэше для офлайн-режима.
+            if (trackId != m_currentTrack.id)
               return;
-            }
 
-            if (m_playerService) {
-              m_playerService->playUrl(QUrl::fromLocalFile(dest).toString());
-            }
+            m_playerService->playUrl(QUrl::fromLocalFile(dest).toString());
           });
 }
 
@@ -567,51 +448,36 @@ void PlaybackController::cancelStreamDownload() {
     m_streamDownloadReply = nullptr;
   }
 
-  // Не удаляем файл скачанного стрима: это наш offline-кэш.
-  // Удаляем только незавершённую запись (невалидный файл
-  // можно отличить по отсутствию сигнала finished).
-
-  if (!m_pendingStreamTrackId.isEmpty() && m_streamDownloadInProgress) {
+  // Не удаляем файл скачанного стрима: это наш офлайн-кэш.
+  // Удаляем только незавершённую запись, которую можно отличить
+  // по отсутствию сигнала finished.
+  if (!m_pendingStreamTrackId.isEmpty() && m_streamDownloadInProgress)
     QFile::remove(streamCachePath(m_pendingStreamTrackId));
-  }
 
   m_streamDownloadInProgress = false;
   m_pendingStreamTrackId.clear();
 }
 
 bool PlaybackController::playQueueCurrentTrack() {
-  if (m_queueService == nullptr) {
-    return false;
-  }
-
   const Track track = m_queueService->currentTrack();
 
-  if (track.id.isEmpty()) {
+  if (track.id.isEmpty())
     return false;
-  }
 
   playTrack(track);
   return true;
 }
 
-// End of track
-
 void PlaybackController::handlePlaybackFinished() {
   maybeReportPlayback();
-
-  if (m_queueService == nullptr) {
-    setState(Stopped);
-    return;
-  }
 
   const QueueService::RepeatMode mode = m_queueService->repeatMode();
 
   // RepeatOne: переигрываем текущий трек.
 
   if (mode == QueueService::RepeatOne) {
-    if (playQueueCurrentTrack()) {
+    if (playQueueCurrentTrack())
       return;
-    }
 
     setState(Stopped);
     return;
@@ -622,9 +488,8 @@ void PlaybackController::handlePlaybackFinished() {
   if (m_queueService->hasNext()) {
     m_queueService->next();
 
-    if (playQueueCurrentTrack()) {
+    if (playQueueCurrentTrack())
       return;
-    }
   }
 
   // RepeatAll: зацикливаемся на начало.
@@ -632,9 +497,8 @@ void PlaybackController::handlePlaybackFinished() {
   if (mode == QueueService::RepeatAll && m_queueService->count() > 0) {
     m_queueService->setCurrentIndex(0);
 
-    if (playQueueCurrentTrack()) {
+    if (playQueueCurrentTrack())
       return;
-    }
   }
 
   // Очередь кончилась.
@@ -645,19 +509,15 @@ void PlaybackController::handlePlaybackFinished() {
   emit playlistExhausted(sourceType, sourceTitle);
 }
 
-// System media metadata
-
 static QString normalizeCoverUri(const QString &uri) {
-  if (uri.isEmpty()) {
+  if (uri.isEmpty())
     return {};
-  }
 
   QString result = uri;
   result.replace(QStringLiteral("%%"), QStringLiteral("1000x1000"));
 
-  if (!result.contains(QStringLiteral("://"))) {
+  if (!result.contains(QStringLiteral("://")))
     result.prepend(QStringLiteral("https://"));
-  }
   return result;
 }
 
@@ -669,16 +529,14 @@ static SystemMediaControls::Metadata makeMediaMetadata(const Track &track) {
   md.durationMs = track.durationMs;
   md.trackId = track.id;
 
-  // MPRIS требует file:// — используем кэш обложки локально.
+  // MPRIS требует file:// — используем локальный кэш обложки.
 
   const QString cached = coverFilePath(track.id);
 
-  if (QFile::exists(cached)) {
+  if (QFile::exists(cached))
     md.coverUrl = QUrl::fromLocalFile(cached).toString();
-
-  } else {
+  else
     md.coverUrl = normalizeCoverUri(track.coverUri);
-  }
   return md;
 }
 
@@ -686,10 +544,8 @@ static QString mprisLoopStatus(QueueService::RepeatMode mode) {
   switch (mode) {
   case QueueService::RepeatOff:
     return QStringLiteral("None");
-
   case QueueService::RepeatOne:
     return QStringLiteral("Track");
-
   case QueueService::RepeatAll:
     return QStringLiteral("Playlist");
   }
@@ -699,9 +555,9 @@ static QString mprisLoopStatus(QueueService::RepeatMode mode) {
 void PlaybackController::setupSystemMediaControls() {
   m_systemMediaControls = MediaControlsFactory::create(this);
 
-  if (m_systemMediaControls == nullptr) {
+  // Медиа-контролы не обязательны (нет реализации под платформу).
+  if (m_systemMediaControls == nullptr)
     return;
-  }
 
   // Управление из системы → PlaybackController.
 
@@ -713,12 +569,10 @@ void PlaybackController::setupSystemMediaControls() {
 
   connect(m_systemMediaControls.get(), &SystemMediaControls::togglePlayPauseRequested, this,
           [this]() {
-            if (state() == Playing) {
+            if (state() == Playing)
               pause();
-
-            } else {
+            else
               resume();
-            }
           });
 
   connect(m_systemMediaControls.get(), &SystemMediaControls::nextRequested, this,
@@ -728,18 +582,13 @@ void PlaybackController::setupSystemMediaControls() {
           &PlaybackController::previous);
 
   connect(m_systemMediaControls.get(), &SystemMediaControls::seekRequested, this,
-          [this](qint64 positionMs) {
-            if (m_playerService) {
-              m_playerService->seek(positionMs);
-            }
-          });
+          [this](qint64 positionMs) { m_playerService->seek(positionMs); });
 
   // Состояние воспроизведения → система.
 
   connect(this, &PlaybackController::currentTrackChanged, this, [this]() {
-    if (!m_systemMediaControls->isEnabled()) {
+    if (!m_systemMediaControls->isEnabled())
       m_systemMediaControls->setEnabled(true);
-    }
 
     const auto md = makeMediaMetadata(m_currentTrack);
     m_systemMediaControls->setMetadata(md);
@@ -750,58 +599,46 @@ void PlaybackController::setupSystemMediaControls() {
   connect(this, &PlaybackController::stateChanged, this, [this]() {
     switch (m_state) {
     case Playing:
-
-      m_systemMediaControls->setPlaybackStatus(SystemMediaControls ::PlaybackStatus ::Playing);
+      m_systemMediaControls->setPlaybackStatus(SystemMediaControls::PlaybackStatus::Playing);
       break;
-
     case Paused:
-
-      m_systemMediaControls->setPlaybackStatus(SystemMediaControls ::PlaybackStatus ::Paused);
+      m_systemMediaControls->setPlaybackStatus(SystemMediaControls::PlaybackStatus::Paused);
       break;
-
     default:
-
-      m_systemMediaControls->setPlaybackStatus(SystemMediaControls ::PlaybackStatus ::Stopped);
+      m_systemMediaControls->setPlaybackStatus(SystemMediaControls::PlaybackStatus::Stopped);
       break;
     }
   });
 
   connect(this, &PlaybackController::repeatModeChanged, this, [this]() {
-    if (m_queueService) {
-      m_systemMediaControls->setLoopStatus(mprisLoopStatus(m_queueService->repeatMode()));
-    }
+    m_systemMediaControls->setLoopStatus(mprisLoopStatus(m_queueService->repeatMode()));
   });
 
   connect(this, &PlaybackController::shuffleChanged, this, [this]() {
-    if (m_queueService) {
-      m_systemMediaControls->setShuffle(m_queueService->shuffleEnabled());
-    }
+    m_systemMediaControls->setShuffle(m_queueService->shuffleEnabled());
   });
 
-  // Позиция — от PlayerService к системе.
-  // Обновляется примерно 4 раза в секунду из AppController.
+  // Позиция — от PlayerService к системе, обновляется примерно
+  // 4 раза в секунду из AppController.
 
   m_systemMediaControls->setEnabled(true);
 }
 
-// Cover cache
-
 void PlaybackController::fetchCurrentCover() {
-  if (m_currentTrack.id.isEmpty() || m_currentTrack.coverUri.isEmpty()) {
+  if (m_currentTrack.id.isEmpty() || m_currentTrack.coverUri.isEmpty())
     return;
-  }
 
   const QString cached = coverFilePath(m_currentTrack.id);
 
-  if (QFile::exists(cached)) {
+  // костыль: повторные запуски не обновляют уже скачанные обложки,
+  // если сервер поменял картинку — завёл баг
+  if (QFile::exists(cached))
     return;
-  }
 
   const QString url = normalizeCoverUri(m_currentTrack.coverUri);
   m_pendingCoverUri = m_currentTrack.coverUri;
   QNetworkRequest request{QUrl(url)};
   request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("YaMusic/1.0 (Qt)"));
-
   request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
                        QNetworkRequest::NoLessSafeRedirectPolicy);
   QNetworkReply *reply = m_coverNetwork->get(request);
@@ -809,27 +646,23 @@ void PlaybackController::fetchCurrentCover() {
   connect(reply, &QNetworkReply::finished, this, [this, reply]() {
     reply->deleteLater();
 
-    if (reply->error() != QNetworkReply::NoError) {
+    if (reply->error() != QNetworkReply::NoError)
       return;
-    }
 
     const QByteArray data = reply->readAll();
 
-    if (data.isEmpty()) {
+    if (data.isEmpty())
       return;
-    }
 
     QDir dir;
 
-    if (!dir.mkpath(coverCacheDir())) {
+    if (!dir.mkpath(coverCacheDir()))
       return;
-    }
 
     QFile file(coverFilePath(m_currentTrack.id));
 
-    if (!file.open(QIODevice::WriteOnly)) {
+    if (!file.open(QIODevice::WriteOnly))
       return;
-    }
 
     file.write(data);
     file.close();
@@ -841,16 +674,13 @@ void PlaybackController::fetchCurrentCover() {
   });
 }
 
-// Offline mode
-
 bool PlaybackController::offlineMode() const {
   return m_offlineMode;
 }
 
 void PlaybackController::setOfflineMode(bool enabled) {
-  if (m_offlineMode == enabled) {
+  if (m_offlineMode == enabled)
     return;
-  }
 
   m_offlineMode = enabled;
   emit offlineModeChanged();
@@ -861,71 +691,58 @@ void PlaybackController::toggleOfflineMode() {
 }
 
 bool PlaybackController::isTrackCached(const QString &trackId) const {
-  if (trackId.trimmed().isEmpty()) {
+  if (trackId.trimmed().isEmpty())
     return false;
-  }
   return QFile::exists(streamCachePath(trackId.trimmed()));
 }
 
 void PlaybackController::clearOfflineCache() {
   const QDir cacheDir(m_streamCacheDir);
 
-  if (!cacheDir.exists()) {
+  if (!cacheDir.exists())
     return;
-  }
 
   const QStringList files = cacheDir.entryList(QDir::Files);
 
-  for (const QString &fileName : files) {
+  for (const QString &fileName : files)
     QFile::remove(cacheDir.filePath(fileName));
-  }
 }
 
 void PlaybackController::setUidProvider(const std::function<QString()> &provider) {
   m_uidProvider = provider;
 }
 
-// Отправка факта прослушивания, когда трек дослушан
-// до порога: не менее 30 секунд или 50% длительности.
-// Вызывается при паузе, остановке и окончании трека.
+// Отправка факта прослушивания, когда трек дослушан до порога:
+// не менее 30 секунд или 50% длительности. Вызывается при паузе,
+// остановке и окончании трека.
 void PlaybackController::maybeReportPlayback() {
-  if (m_reportSubmitted || m_currentTrack.id.isEmpty() || m_trackService == nullptr) {
+  if (m_reportSubmitted || m_currentTrack.id.isEmpty())
     return;
-  }
 
-  if (!m_uidProvider) {
+  if (!m_uidProvider)
     return;
-  }
 
   const QString uid = m_uidProvider();
 
-  if (uid.isEmpty()) {
+  if (uid.isEmpty())
     return;
-  }
-
-  if (m_playerService == nullptr) {
-    return;
-  }
 
   const qint64 positionMs = m_playerService->position();
   const qint64 durationMs = m_playerService->duration();
 
-  if (durationMs <= 0) {
+  if (durationMs <= 0)
     return;
-  }
 
   const bool reachedThreshold = positionMs >= 30000 || positionMs * 2 >= durationMs;
 
-  if (!reachedThreshold) {
+  if (!reachedThreshold)
     return;
-  }
 
   m_reportSubmitted = true;
   QString albumId;
 
-  if (!m_currentTrack.albums.isEmpty()) {
+  if (!m_currentTrack.albums.isEmpty())
     albumId = m_currentTrack.albums.first().id;
-  }
 
   m_trackService->reportPlayback(m_currentTrack.id, albumId, uid, m_offlineMode,
                                  int(durationMs / 1000), int(positionMs / 1000),

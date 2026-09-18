@@ -4,57 +4,31 @@
 SearchModel::SearchModel(QObject *parent) : TrackListModelBase(parent) {}
 
 QVariant SearchModel::data(const QModelIndex &index, int role) const {
-  if (!index.isValid() || index.row() < 0 || index.row() >= m_tracks.size()) {
-    return {};
-  }
+  if (!index.isValid() || index.row() < 0 || index.row() >= m_tracks.size()) return {};
 
   const Track &track = m_tracks.at(index.row());
-
   switch (role) {
   case IdRole:
     return track.id;
-
   case TitleRole:
     return track.title;
-
   case ArtistRole: {
     QStringList artistNames;
-
     for (const Artist &artist : track.artists) {
-      if (!artist.name.isEmpty()) {
-        artistNames.append(artist.name);
-      }
+      if (!artist.name.isEmpty()) artistNames.append(artist.name);
     }
     return artistNames.join(", ");
   }
-
   case ArtistIdRole:
-    if (!track.artists.isEmpty()) {
-      return track.artists.first().id;
-    }
-
-    return QString();
-
+    return track.artists.isEmpty() ? QString() : track.artists.first().id;
   case AlbumRole:
-    if (!track.albums.isEmpty()) {
-      return track.albums.first().title;
-    }
-
-    return QString();
-
+    return track.albums.isEmpty() ? QString() : track.albums.first().title;
   case AlbumIdRole:
-    if (!track.albums.isEmpty()) {
-      return track.albums.first().id;
-    }
-
-    return QString();
-
+    return track.albums.isEmpty() ? QString() : track.albums.first().id;
   case CoverUriRole:
     return track.coverUri;
-
   case DurationMsRole:
     return track.durationMs;
-
   default:
     return {};
   }
@@ -71,10 +45,7 @@ void SearchModel::setResults(const SearchResults &results) {
 }
 
 void SearchModel::appendResults(const QList<Track> &tracks) {
-  if (tracks.isEmpty()) {
-    return;
-  }
-
+  if (tracks.isEmpty()) return;
   beginInsertRows(QModelIndex(), m_tracks.size(), m_tracks.size() + tracks.size() - 1);
   m_tracks.append(tracks);
   endInsertRows();

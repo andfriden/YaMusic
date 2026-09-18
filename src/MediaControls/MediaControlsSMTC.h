@@ -4,10 +4,8 @@
 
 #ifdef Q_OS_WIN
 
-// Windows: System Media Transport Controls (SMTC).
-// Использует Windows.Media.MediaExtension через
-// SystemMediaTransportControls из WinRT/C++.
-
+// Windows: System Media Transport Controls (SMTC)
+// через SystemMediaTransportControls из WinRT/C++.
 class MediaControlsSMTC : public SystemMediaControls {
   Q_OBJECT
 
@@ -29,7 +27,7 @@ private:
 
 #else
 
-// Windows only — no-op stub on other platforms.
+// Только Windows — на остальных платформах заглушка без логики.
 class MediaControlsSMTC : public SystemMediaControls {
   Q_OBJECT
 

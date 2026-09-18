@@ -19,13 +19,11 @@ public:
     DurationMsRole,
     PositionRole
   };
-
   Q_ENUM(Roles)
 
   explicit ChartModel(QObject *parent = nullptr);
 
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-
   QHash<int, QByteArray> roleNames() const override;
 
   void setTracks(const QList<Track> &tracks);

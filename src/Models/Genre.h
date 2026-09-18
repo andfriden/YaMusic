@@ -9,11 +9,8 @@ struct Genre {
   QString fullTitle;
   QString urlPart;
   QString color;
-
   QString image208;
   QString image300;
-
   bool showInMenu = false;
-
   QList<Genre> subGenres;
 };

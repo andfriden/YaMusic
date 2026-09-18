@@ -22,23 +22,14 @@ public:
   };
 
   explicit ArtistModel(QObject *parent = nullptr);
-
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-
   QHash<int, QByteArray> roleNames() const override;
-
   void setArtist(const ArtistDetails &artist);
-
   void clear();
-
   QString id() const;
-
   QString name() const;
-
   QString coverUri() const;
-
   QString description() const;
-
   QString genres() const;
 
 private:

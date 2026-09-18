@@ -4,6 +4,9 @@
 AccentController::AccentController(PlayerAccentService *service,
                                    PlaybackController *playbackController, QObject *parent)
     : QObject(parent), m_service(service), m_playbackController(playbackController) {
+  Q_ASSERT(m_service != nullptr);
+  Q_ASSERT(m_playbackController != nullptr);
+
   connect(m_service, &PlayerAccentService::accentColorChanged, this,
           &AccentController::playerAccentChanged);
 

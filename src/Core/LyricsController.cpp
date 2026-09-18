@@ -8,6 +8,10 @@ LyricsController::LyricsController(TrackService *trackService,
                                    PlayerService *playerService, QObject *parent)
     : QObject(parent), m_trackService(trackService), m_playbackController(playbackController),
       m_playerService(playerService) {
+  Q_ASSERT(m_trackService != nullptr);
+  Q_ASSERT(m_playbackController != nullptr);
+  Q_ASSERT(m_playerService != nullptr);
+
   connect(m_playbackController, &PlaybackController::currentTrackChanged, this, [this]() {
     m_supplementary = {};
     m_currentLyricLine = -1;
@@ -65,7 +69,6 @@ QString LyricsController::lyricLineText(int index) const {
   return m_supplementary.lines.at(index).text;
 }
 
-// Обновляет индекс строки по позиции — вызывается из positionChanged
 void LyricsController::updateCurrentLyricLine() {
   if (!m_supplementary.hasTimedLines()) {
     if (m_currentLyricLine != -1) {

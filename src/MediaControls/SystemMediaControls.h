@@ -21,18 +21,15 @@ public:
   explicit SystemMediaControls(QObject *parent = nullptr);
   ~SystemMediaControls() override;
 
-  // Реализация конкретной платформы.
-  // Вызывать только один раз, после создания объекта.
+  // Включает/выключает платформенную реализацию.
+  // Вызов до setMetadata настраивает контролы (например, регистрирует D-Bus).
   void setEnabled(bool enabled);
-
   bool isEnabled() const;
-
   void setMetadata(const Metadata &metadata);
   void setPlaybackStatus(PlaybackStatus status);
   void setPosition(qint64 positionMs);
   void setDuration(qint64 durationMs);
 
-  // Опциональные свойства (использует MPRIS):
   // LoopStatus в терминах MPRIS: "None" | "Playlist" | "Track".
   void setLoopStatus(const QString &loopStatus);
   void setShuffle(bool enabled);
@@ -52,7 +49,7 @@ protected:
   virtual void platformSetPosition(qint64 positionMs) = 0;
   virtual void platformSetDuration(qint64 durationMs) = 0;
 
-  // По умолчанию — no-op; переопределяет MPRIS.
+  // По умолчанию no-op; переопределяет MPRIS.
   virtual void platformSetLoopStatus(const QString &loopStatus);
   virtual void platformSetShuffle(bool enabled);
 
@@ -65,8 +62,7 @@ protected:
   QString m_loopStatus = QStringLiteral("None");
   bool m_shuffle = false;
 
-  // Аксессоры для платформенных реализаций,
-  // чей код лежит в .cpp (MPRIS Impl).
+  // Аксессоры для платформенных реализаций (MPRIS Impl).
   const Metadata &mediaMetadata() const { return m_metadata; }
   PlaybackStatus mediaPlaybackStatus() const { return m_status; }
   qint64 mediaPositionMs() const { return m_positionMs; }

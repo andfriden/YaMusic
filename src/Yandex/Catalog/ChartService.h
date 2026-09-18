@@ -14,8 +14,6 @@ public:
   void loadChart(const QString &chartType);
 
 signals:
-
   void chartReceived(const QList<Track> &tracks, const QString &chartType);
-
   void errorOccurred(const QString &message);
 };

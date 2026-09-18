@@ -24,6 +24,5 @@ public:
 
 protected:
   YandexAuth *m_auth = nullptr;
-
   YandexClient *m_yandexClient = nullptr;
 };

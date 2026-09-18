@@ -20,7 +20,6 @@ QStringList splitCsvLineInternal(const QString &line) {
 
   for (int i = 0; i < line.size(); ++i) {
     const QChar ch = line.at(i);
-
     if (ch == '"') {
       if (quoted && i + 1 < line.size() && line.at(i + 1) == '"') {
         current += '"';
@@ -28,7 +27,6 @@ QStringList splitCsvLineInternal(const QString &line) {
       } else {
         quoted = !quoted;
       }
-
       continue;
     }
 
@@ -53,119 +51,118 @@ GenreController::GenreController(GenreService *genreService, PlaylistService *pl
     : QObject(parent), m_genreService(genreService), m_playlistService(playlistService),
       m_stationService(stationService), m_playbackController(playbackController),
       m_model(new GenreModel(this)), m_stationModel(new GenreStationModel(this)) {
-  if (m_genreService != nullptr) {
-    connect(m_genreService, &GenreService::genresReceived, this,
-            [this](const QList<Genre> &genres) {
-              QList<Genre> displayedGenres;
-              displayedGenres.reserve(genres.size());
+  Q_ASSERT(m_genreService != nullptr);
+  Q_ASSERT(m_playlistService != nullptr);
+  Q_ASSERT(m_stationService != nullptr);
+  Q_ASSERT(m_playbackController != nullptr);
 
-              for (const Genre &genre : genres) {
-                if (!isDisplayedGenre(genre.id)) continue;
-                displayedGenres.append(genre);
-              }
+  connect(m_genreService, &GenreService::genresReceived, this,
+          [this](const QList<Genre> &genres) {
+            QList<Genre> displayedGenres;
+            displayedGenres.reserve(genres.size());
 
-              m_model->setGenres(displayedGenres);
-              m_loading = false;
-              emit loadingChanged();
-              emit statusChanged(QString());
-            });
+            for (const Genre &genre : genres) {
+              if (!isDisplayedGenre(genre.id)) continue;
+              displayedGenres.append(genre);
+            }
+
+            m_model->setGenres(displayedGenres);
+            m_loading = false;
+            emit loadingChanged();
+            emit statusChanged({});
+          });
 
     connect(m_genreService, &GenreService::tagPlaylistIdsReceived, this,
-            [this](const QString &, const QList<QPair<QString, int>> &playlists) {
-              if (!m_genreLoading || !m_waitingForTagPlaylistIds) {
-                return;
-              }
+          [this](const QString &, const QList<QPair<QString, int>> &playlists) {
+            if (!m_genreLoading || !m_waitingForTagPlaylistIds) {
+              return;
+            }
 
-              m_waitingForTagPlaylistIds = false;
+            m_waitingForTagPlaylistIds = false;
 
-              if (playlists.isEmpty()) {
-                finishGenrePlaylistLoading();
-                return;
-              }
-
-              startGenrePlaylistQueue(playlists);
-            });
-
-    connect(m_genreService, &GenreService::errorOccurred, this, [this](const QString &message) {
-      if (m_waitingForTagPlaylistIds) {
-        m_waitingForTagPlaylistIds = false;
-        finishGenrePlaylistLoading();
-        emit errorOccurred(message);
-        return;
-      }
-
-      emit errorOccurred(message);
-
-      if (m_loading) {
-        m_loading = false;
-        emit loadingChanged();
-        emit statusChanged(QString());
-      }
-    });
-  }
-
-  if (m_playlistService != nullptr) {
-    connect(m_playlistService, &PlaylistService::playlistsReceived, this,
-            [this](const QList<Playlist> &playlists) {
-              if (!m_genreLoading || !m_waitingForPlaylists) {
-                return;
-              }
-
-              m_waitingForPlaylists = false;
-              QSet<QString> existingKeys;
-
-              for (const Playlist &playlist : m_genrePlaylists) {
-                existingKeys.insert(playlistKey(qMakePair(playlist.uid, playlist.kind)));
-              }
-
-              for (const Playlist &playlist : playlists) {
-                if (playlist.uid.isEmpty() || playlist.kind <= 0) continue;
-                const QString key = playlistKey(qMakePair(playlist.uid, playlist.kind));
-                if (existingKeys.contains(key)) continue;
-                existingKeys.insert(key);
-                m_genrePlaylists.append(playlist);
-                m_loadedAnyGenrePlaylist = true;
-              }
-
-              emit genreContentChanged();
-
-              if (m_genrePlaylistQueuePosition < m_genrePlaylistQueue.size()) {
-                loadNextGenrePlaylistBatch();
-                return;
-              }
-
-              if (!m_loadedAnyGenrePlaylist && !m_usingApiFallback) {
-                startApiFallback();
-                return;
-              }
-
+            if (playlists.isEmpty()) {
               finishGenrePlaylistLoading();
-            });
-  }
+              return;
+            }
 
-  if (m_stationService != nullptr) {
-    connect(m_stationService, &StationService::stationTracksReceived, this,
-            [this](const QList<Track> &tracks, const QString &batchId) {
-              m_stationLoading = false;
-              emit stationLoadingChanged();
-              m_stationBatchId = batchId;
-              m_stationModel->appendTracks(tracks);
+            startGenrePlaylistQueue(playlists);
+          });
 
-              // Автозапуск первой партии
-              if (!tracks.isEmpty() && m_stationModel->count() == tracks.size()) {
-                selectStationTrack(0);
-              }
-            });
-
-    connect(m_stationService, &StationService::errorOccurred, this, [this](const QString &message) {
-      if (m_stationLoading) {
-        m_stationLoading = false;
-        emit stationLoadingChanged();
-      }
-
+  connect(m_genreService, &GenreService::errorOccurred, this, [this](const QString &message) {
+    if (m_waitingForTagPlaylistIds) {
+      m_waitingForTagPlaylistIds = false;
+      finishGenrePlaylistLoading();
       emit errorOccurred(message);
-    });
-  }
+      return;
+    }
+
+    emit errorOccurred(message);
+
+    if (m_loading) {
+      m_loading = false;
+      emit loadingChanged();
+      emit statusChanged({});
+    }
+  });
+
+  connect(m_playlistService, &PlaylistService::playlistsReceived, this,
+          [this](const QList<Playlist> &playlists) {
+            if (!m_genreLoading || !m_waitingForPlaylists) {
+              return;
+            }
+
+            m_waitingForPlaylists = false;
+            QSet<QString> existingKeys;
+
+            for (const Playlist &playlist : m_genrePlaylists) {
+              existingKeys.insert(playlistKey(qMakePair(playlist.uid, playlist.kind)));
+            }
+
+            for (const Playlist &playlist : playlists) {
+              if (playlist.uid.isEmpty() || playlist.kind <= 0) continue;
+              const QString key = playlistKey(qMakePair(playlist.uid, playlist.kind));
+              if (existingKeys.contains(key)) continue;
+              existingKeys.insert(key);
+              m_genrePlaylists.append(playlist);
+              m_loadedAnyGenrePlaylist = true;
+            }
+
+            emit genreContentChanged();
+
+            if (m_genrePlaylistQueuePosition < m_genrePlaylistQueue.size()) {
+              loadNextGenrePlaylistBatch();
+              return;
+            }
+
+            if (!m_loadedAnyGenrePlaylist && !m_usingApiFallback) {
+              startApiFallback();
+              return;
+            }
+
+            finishGenrePlaylistLoading();
+          });
+
+  connect(m_stationService, &StationService::stationTracksReceived, this,
+          [this](const QList<Track> &tracks, const QString &batchId) {
+            m_stationLoading = false;
+            emit stationLoadingChanged();
+            m_stationBatchId = batchId;
+            m_stationModel->appendTracks(tracks);
+
+            // Автозапуск первой партии
+            if (!tracks.isEmpty() && m_stationModel->count() == tracks.size()) {
+              selectStationTrack(0);
+            }
+          });
+
+  connect(m_stationService, &StationService::errorOccurred, this, [this](const QString &message) {
+    if (m_stationLoading) {
+      m_stationLoading = false;
+      emit stationLoadingChanged();
+    }
+
+    emit errorOccurred(message);
+  });
 }
 
 bool GenreController::loading() const {
@@ -198,11 +195,6 @@ QVariantList GenreController::genrePlaylists() const {
 }
 
 void GenreController::loadGenres() {
-  if (m_genreService == nullptr) {
-    emit errorOccurred("Сервис жанров недоступен");
-    return;
-  }
-
   if (m_loading) {
     return;
   }
@@ -218,11 +210,6 @@ void GenreController::loadGenre(const QString &genreId) {
 
   if (trimmedGenreId.isEmpty()) {
     emit errorOccurred("Идентификатор жанра не указан");
-    return;
-  }
-
-  if (m_genreService == nullptr || m_playlistService == nullptr) {
-    emit errorOccurred("Сервисы жанров недоступны");
     return;
   }
 
@@ -257,11 +244,6 @@ void GenreController::loadGenre(const QString &genreId) {
 }
 
 void GenreController::loadTagPlaylists(const QString &tagId) {
-  if (m_genreService == nullptr) {
-    emit errorOccurred("Сервис жанров недоступен");
-    return;
-  }
-
   const QString trimmedTagId = tagId.trimmed();
 
   if (trimmedTagId.isEmpty()) {
@@ -309,7 +291,6 @@ void GenreController::startGenrePlaylistQueue(const QList<QPair<QString, int>> &
       startApiFallback();
       return;
     }
-
     finishGenrePlaylistLoading();
     return;
   }
@@ -318,7 +299,7 @@ void GenreController::startGenrePlaylistQueue(const QList<QPair<QString, int>> &
 }
 
 void GenreController::loadNextGenrePlaylistBatch() {
-  if (!m_genreLoading || m_playlistService == nullptr) {
+  if (!m_genreLoading) {
     return;
   }
 
@@ -355,12 +336,6 @@ void GenreController::startApiFallback() {
     return;
   }
 
-  if (m_genreService == nullptr) {
-    finishGenrePlaylistLoading();
-    emit errorOccurred("Сервис жанров недоступен");
-    return;
-  }
-
   if (m_usingApiFallback) {
     finishGenrePlaylistLoading();
     return;
@@ -391,7 +366,7 @@ void GenreController::finishGenrePlaylistLoading() {
   }
 
   emit genreContentChanged();
-  emit statusChanged(QString());
+  emit statusChanged({});
 }
 
 GenreStationModel *GenreController::stationModel() const {
@@ -423,7 +398,7 @@ void GenreController::loadGenreStation(const QString &genreId) {
 }
 
 void GenreController::loadMoreGenreStation() {
-  if (m_stationService == nullptr || m_stationLoading) {
+  if (m_stationLoading) {
     return;
   }
 
@@ -439,10 +414,6 @@ void GenreController::loadMoreGenreStation() {
 }
 
 void GenreController::selectStationTrack(int index) {
-  if (m_playbackController == nullptr || m_stationModel == nullptr) {
-    return;
-  }
-
   const QList<Track> tracks = m_stationModel->tracks();
 
   if (index < 0 || index >= tracks.size()) {
@@ -451,28 +422,25 @@ void GenreController::selectStationTrack(int index) {
 
   emit stationTrackSelected(index);
 
-  m_playbackController->playFromSource(tracks, index, QString("Радио: %1").arg(m_stationGenreId),
-                                       "station");
+  m_playbackController->playFromSource(tracks, index, QStringLiteral("Радио: %1").arg(m_stationGenreId),
+                                     "station");
 }
 
 QList<QPair<QString, int>> GenreController::loadPlaylistIdsFromCsv(const QString &genreId) {
   QList<QPair<QString, int>> playlists;
   QString csvPath = ":/qt/qml/YaMusic/data/genre_playlists.csv";
   QFile resourceFile(csvPath);
-
   if (!resourceFile.exists() || !resourceFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
     QString currentPath = QCoreApplication::applicationDirPath();
 
     for (int level = 0; level < 6; ++level) {
       const QString candidate = currentPath + "/data/genre_playlists.csv";
-
       if (QFileInfo::exists(candidate)) {
         csvPath = candidate;
         break;
       }
 
       const QString parentPath = QFileInfo(currentPath).absolutePath();
-
       if (parentPath == currentPath) {
         break;
       }
@@ -482,13 +450,11 @@ QList<QPair<QString, int>> GenreController::loadPlaylistIdsFromCsv(const QString
   }
 
   QFile file(csvPath);
-
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     return playlists;
   }
 
   QTextStream stream(&file);
-
   if (stream.atEnd()) {
     return playlists;
   }
@@ -501,7 +467,6 @@ QList<QPair<QString, int>> GenreController::loadPlaylistIdsFromCsv(const QString
 
   for (int i = 0; i < headers.size(); ++i) {
     const QString header = headers.at(i).trimmed().toLower();
-
     if (header == "genre_id") {
       genreIdColumn = i;
     } else if (header == "uid") {

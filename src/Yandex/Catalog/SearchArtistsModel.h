@@ -17,19 +17,13 @@ public:
   explicit SearchArtistsModel(QObject *parent = nullptr);
 
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-
   QHash<int, QByteArray> roleNames() const override;
 
   void setArtists(const QList<Artist> &artists);
-
   void appendArtists(const QList<Artist> &artists);
-
   void clear();
-
   Artist artistAt(int index) const;
-
   int count() const;
 
 private:

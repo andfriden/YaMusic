@@ -20,23 +20,17 @@ public:
   explicit YandexClient(QObject *parent = nullptr);
 
   void setToken(const QString &token);
-
   bool hasToken() const;
 
   QNetworkReply *get(const QString &path);
-
   QNetworkReply *post(const QString &path, const QJsonObject &body);
-
   QNetworkReply *postForm(const QString &path, const QUrlQuery &body);
-
   QNetworkReply *rawPost(const QNetworkRequest &request, const QByteArray &data);
-
-  void getAccountStatus();
 
   QNetworkRequest createRequest(const QString &path) const;
 
+  void getAccountStatus();
   void search(const QString &query, int page = 0);
-
   void getTracks(const QStringList &trackIds);
 
   // Отправляет факт прослушивания трека на сервер
@@ -51,13 +45,9 @@ public:
                       int endPositionSeconds);
 
 signals:
-
   void requestError(const QString &message);
-
   void accountReceived(const Account &account);
-
   void searchReceived(const SearchResults &results);
-
   void tracksReceived(const QList<Track> &tracks);
 
   // true — сервер принял факт прослушивания (result == "ok").
@@ -65,10 +55,7 @@ signals:
 
 private:
   QNetworkAccessManager m_networkManager;
-
   QString m_token;
-
   QPointer<QNetworkReply> m_searchReply;
-
   QPointer<QNetworkReply> m_tracksReply;
 };

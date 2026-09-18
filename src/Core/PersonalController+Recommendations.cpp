@@ -3,10 +3,6 @@
 #include <QJsonObject>
 
 void PersonalController::connectRecommendations() {
-  if (m_personalLanding == nullptr) {
-    return;
-  }
-
   connect(m_personalLanding, &PersonalLanding::loaded, this,
           [this](const QList<PersonalLandingSection> &sections) {
             m_loadingRecommendations = false;
@@ -65,16 +61,12 @@ void PersonalController::connectRecommendations() {
 
             m_recommendationPlaylists = playlists;
 
-            if (m_personalPlaylistsModel != nullptr) {
-              m_personalPlaylistsModel->setSections(sections);
-            }
-
-            if (m_chartModel != nullptr) {
-              m_chartModel->setItems(chartItems);
-            }
+            m_personalPlaylistsModel->setSections(sections);
+            m_chartModel->setItems(chartItems);
 
             emit recommendationsLoaded();
-            emit statusChanged(QString("Загружено блоков рекомендаций: %1").arg(sections.size()));
+            emit statusChanged(
+                QStringLiteral("Загружено блоков рекомендаций: %1").arg(sections.size()));
           });
 
   connect(m_personalLanding, &PersonalLanding::errorOccurred, this, [this](const QString &message) {
@@ -83,15 +75,10 @@ void PersonalController::connectRecommendations() {
     m_recommendationSections.clear();
     m_recommendationPlaylists.clear();
 
-    if (m_personalPlaylistsModel != nullptr) {
-      m_personalPlaylistsModel->clear();
-    }
+    m_personalPlaylistsModel->clear();
+    m_chartModel->clear();
 
-    if (m_chartModel != nullptr) {
-      m_chartModel->clear();
-    }
-
-    emit statusChanged(QString("Ошибка загрузки рекомендаций: %1").arg(message));
+    emit statusChanged(QStringLiteral("Ошибка загрузки рекомендаций: %1").arg(message));
   });
 }
 
@@ -100,29 +87,17 @@ void PersonalController::loadRecommendations() {
     return;
   }
 
-  if (m_personalLanding == nullptr) {
-    return;
-  }
-
   m_loadingRecommendations = true;
   emit loadingRecommendationsChanged();
   m_recommendationSections.clear();
   m_recommendationPlaylists.clear();
 
-  if (m_personalPlaylistsModel != nullptr) {
-    m_personalPlaylistsModel->clear();
-  }
-
-  if (m_chartModel != nullptr) {
-    m_chartModel->clear();
-  }
+  m_personalPlaylistsModel->clear();
+  m_chartModel->clear();
 
   emit statusChanged("Загрузка рекомендаций...");
   m_personalLanding->load();
-
-  if (m_newPlaylistsService != nullptr) {
-    m_newPlaylistsService->load();
-  }
+  m_newPlaylistsService->load();
 }
 
 void PersonalController::selectPersonalPlaylist(const QString &uid, int kind) {

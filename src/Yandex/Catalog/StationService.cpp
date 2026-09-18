@@ -10,13 +10,15 @@
 #include <QUrlQuery>
 
 StationService::StationService(YandexAuth *auth, QObject *parent)
-    : QObject(parent), m_auth(auth), m_yandexClient(new YandexClient(this)) {}
+    : QObject(parent), m_auth(auth), m_yandexClient(new YandexClient(this)) {
+  Q_ASSERT(m_auth);
+}
 
 void StationService::loadStationTracks(const QString &stationType, const QString &stationId,
                                        const QString &queueTrackId) {
   if (m_loading) return;
 
-  if (m_auth == nullptr || !m_auth->isAuthenticated()) {
+  if (!m_auth->isAuthenticated()) {
     emit errorOccurred("Токен Яндекс Музыки не установлен");
     return;
   }
@@ -25,15 +27,14 @@ void StationService::loadStationTracks(const QString &stationType, const QString
   m_yandexClient->setToken(m_auth->token());
   QUrlQuery query;
   query.addQueryItem("settings2", "true");
-  if (!queueTrackId.isEmpty()) {
-    query.addQueryItem("queue", queueTrackId);
-  }
+  if (!queueTrackId.isEmpty()) query.addQueryItem("queue", queueTrackId);
 
   const auto path = QStringLiteral("/rotor/station/%1:%2/tracks?%3")
                         .arg(stationType)
                         .arg(stationId)
                         .arg(query.toString(QUrl::FullyEncoded));
   QNetworkReply *reply = m_yandexClient->get(path);
+
   if (reply == nullptr) {
     m_loading = false;
     emit errorOccurred("Не удалось создать запрос станции");
@@ -88,7 +89,7 @@ void StationService::loadMoreStationTracks(const QString &stationType, const QSt
 void StationService::sendFeedback(const QString &stationType, const QString &stationId,
                                   const QString &event, const QString &trackId,
                                   const QString &batchId, qint64 totalPlayedSeconds) {
-  if (m_auth == nullptr || !m_auth->isAuthenticated()) {
+  if (!m_auth->isAuthenticated()) {
     emit errorOccurred("Токен Яндекс Музыки не установлен");
     return;
   }
@@ -127,6 +128,7 @@ void StationService::sendFeedback(const QString &stationType, const QString &sta
                         .arg(stationId)
                         .arg(query.toString(QUrl::FullyEncoded));
   QNetworkReply *reply = m_yandexClient->post(path, body);
+
   if (reply == nullptr) {
     emit errorOccurred("Не удалось создать запрос feedback");
     return;
@@ -146,12 +148,14 @@ void StationService::sendFeedback(const QString &stationType, const QString &sta
   });
 }
 
+// TODO(#171): вынести общий парсинг трека из StationService и YandexPersonal
 Track StationService::parseTrack(const QJsonObject &object) const {
   Track track;
   track.id = parseId(object);
   track.title = object.value("title").toString();
   track.coverUri = object.value("coverUri").toString();
   track.durationMs = object.value("durationMs").toInt();
+
   const QJsonArray artists = object.value("artists").toArray();
   for (const QJsonValue &value : artists) {
     if (!value.isObject()) continue;
@@ -159,9 +163,7 @@ Track StationService::parseTrack(const QJsonObject &object) const {
     Artist artist;
     artist.id = parseId(artistObject);
     artist.name = artistObject.value("name").toString();
-    if (!artist.id.isEmpty() || !artist.name.isEmpty()) {
-      track.artists.append(artist);
-    }
+    if (!artist.id.isEmpty() || !artist.name.isEmpty()) track.artists.append(artist);
   }
 
   const QJsonArray albums = object.value("albums").toArray();
@@ -173,9 +175,7 @@ Track StationService::parseTrack(const QJsonObject &object) const {
     album.title = albumObject.value("title").toString();
     album.coverUri = albumObject.value("coverUri").toString();
     album.year = albumObject.value("year").toInt();
-    if (!album.id.isEmpty() || !album.title.isEmpty()) {
-      track.albums.append(album);
-    }
+    if (!album.id.isEmpty() || !album.title.isEmpty()) track.albums.append(album);
   }
   return track;
 }

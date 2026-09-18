@@ -8,9 +8,8 @@ SearchController::SearchController(SearchService *searchService,
     : QObject(parent), m_searchService(searchService), m_playbackController(playbackController),
       m_model(new SearchModel(this)), m_artistsModel(new SearchArtistsModel(this)),
       m_albumsModel(new SearchAlbumsModel(this)), m_playlistsModel(new SearchPlaylistsModel(this)) {
-  if (m_searchService == nullptr) {
-    return;
-  }
+  Q_ASSERT(m_searchService != nullptr);
+  Q_ASSERT(m_playbackController != nullptr);
 
   connect(m_searchService, &SearchService::searchStarted, this, [this]() {
     if (m_searching) {
@@ -52,7 +51,7 @@ SearchController::SearchController(SearchService *searchService,
           emit canLoadMoreSearchChanged();
         }
 
-        emit statusChanged(QString("Найдено результатов: %1").arg(results.total));
+        emit statusChanged(QStringLiteral("Найдено результатов: %1").arg(results.total));
       });
 
   connect(m_searchService, &SearchService::errorOccurred, this, [this](const QString &message) {
@@ -104,17 +103,12 @@ void SearchController::search(const QString &query) {
     return;
   }
 
-  if (m_searchService == nullptr) {
-    emit statusChanged("SearchService недоступен");
-    return;
-  }
-
   m_currentQuery = trimmedQuery;
   m_searchService->search(trimmedQuery, 0);
 }
 
 void SearchController::loadMoreSearchResults() {
-  if (!m_canLoadMore || m_searching || m_searchService == nullptr || m_currentQuery.isEmpty()) {
+  if (!m_canLoadMore || m_searching || m_currentQuery.isEmpty()) {
     return;
   }
 
@@ -128,16 +122,6 @@ bool SearchController::canLoadMoreSearch() const {
 }
 
 void SearchController::selectResult(int index) {
-  if (m_model == nullptr) {
-    emit statusChanged("SearchModel недоступен");
-    return;
-  }
-
-  if (m_playbackController == nullptr) {
-    emit statusChanged("PlaybackController недоступен");
-    return;
-  }
-
   const Track track = m_model->trackAt(index);
 
   if (track.id.isEmpty()) {

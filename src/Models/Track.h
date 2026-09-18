@@ -24,12 +24,9 @@ struct Track {
   QString id;
   QString title;
   QString coverUri;
-
   int durationMs = 0;
-
   QList<Artist> artists;
   QList<Album> albums;
-
   bool liked = false;
 };
 
@@ -42,9 +39,7 @@ struct LyricLine {
 // Текст песни из /tracks/{id}/supplement.
 struct TrackSupplementary {
   QString trackId;
-
   QString fullText;
-
   QList<LyricLine> lines;
 
   bool hasTimedLines() const { return !lines.isEmpty(); }

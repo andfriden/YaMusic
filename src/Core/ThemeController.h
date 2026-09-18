@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QSettings>
 
-// Тёмная тема — QSettings persistence
+// Тёмная тема — сохраняется в QSettings
 class ThemeController : public QObject {
   Q_OBJECT
 

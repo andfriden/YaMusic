@@ -4,9 +4,8 @@
 
 #ifndef YAMUSIC_HAS_CPPWINRT
 
-// C++/WinRT unavailable (MinGW) — no-op stubs.
-// vtable is emitted here so the linker doesn't fail.
-
+// C++/WinRT недоступен (MinGW) — заглушки без логики.
+// vtable нужен, чтобы линкер не падал.
 MediaControlsSMTC::MediaControlsSMTC(QObject *parent) : SystemMediaControls(parent) {}
 MediaControlsSMTC::~MediaControlsSMTC() = default;
 void MediaControlsSMTC::platformSetEnabled(bool) {}
@@ -31,12 +30,6 @@ using namespace winrt;
 using namespace Windows::Foundation;
 using namespace Windows::Media;
 using namespace Windows::Media::SystemMediaTransportControls;
-
-// Windows SMTC через C++/WinRT.
-// Требуется:
-// - Windows 10 1803+
-// - флаг компилятора /std:c++20
-// - link: WindowsApp.lib (или use_winrt)
 
 class MediaControlsSMTC::Impl {
 public:
@@ -77,7 +70,7 @@ public:
         [owner](const SystemMediaTransportControls &,
                 const PlaybackPositionChangeRequestedEventArgs &args) {
           const auto pos = args.RequestedPlaybackPosition();
-          const qint64 ms = pos.duration() / 10000; // 100ns → ms
+          const qint64 ms = pos.duration() / 10000; // 100нс → мс
           QMetaObject::invokeMethod(owner, [owner, ms]() { Q_EMIT owner->seekRequested(ms); });
         });
     m_tokenSet = true;
@@ -96,7 +89,6 @@ public:
                   qint64 durationMs) {
     auto updater = m_controls.Updater();
 
-    // Тип медиа — музыка
     updater.MediaProperties().MusicProperties().Title(winrt::to_hstring(md.title.toStdWString()));
     updater.MediaProperties().MusicProperties().Artist(winrt::to_hstring(md.artist.toStdWString()));
     updater.MediaProperties().MusicProperties().AlbumTitle(
@@ -105,12 +97,10 @@ public:
         winrt::to_hstring(md.artist.toStdWString()));
     updater.MediaProperties().Type(MediaPlaybackType::Music);
 
-    // Длительность
     if (durationMs > 0) {
       updater.MediaProperties().Duration(std::chrono::milliseconds(durationMs));
     }
 
-    // Статус
     switch (status) {
     case SystemMediaControls::PlaybackStatus::Playing:
       updater.Status(MediaPlaybackStatus::Playing);

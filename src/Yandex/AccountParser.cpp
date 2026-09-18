@@ -8,6 +8,7 @@ Account AccountParser::parse(const QJsonObject &json) {
   account.uid = accountObject.value("uid").toInteger();
   account.login = accountObject.value("login").toString();
   account.firstName = accountObject.value("firstName").toString();
+  // В API поле называется secondName, хотя по смыслу это фамилия.
   account.lastName = accountObject.value("secondName").toString();
   account.displayName = accountObject.value("displayName").toString();
   account.region = accountObject.value("region").toInt();

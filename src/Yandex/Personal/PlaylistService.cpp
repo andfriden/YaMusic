@@ -42,6 +42,7 @@ Playlist parsePlaylist(const QJsonObject &object) {
       playlist.tracks.append(track);
     }
   }
+
   return playlist;
 }
 
@@ -103,6 +104,7 @@ Playlist parseSimilarPlaylist(const QJsonObject &object) {
   if (playlist.coverUri.isEmpty()) {
     playlist.coverUri = object.value("coverUri").toString();
   }
+
   return playlist;
 }
 
@@ -223,13 +225,11 @@ void PlaylistService::startNextPlaylistBatchRequests() {
 
       if (reply->error() != QNetworkReply::NoError) {
         m_playlistBatchError = true;
-
       } else {
         Playlist playlist;
 
         if (parsePlaylistResponse(data, playlist)) {
           m_playlistBatchResults.append(playlist);
-
         } else {
           m_playlistBatchError = true;
         }
@@ -303,7 +303,6 @@ void PlaylistService::loadUserPlaylists(const QString &uid) {
 
     if (document.isArray()) {
       playlistArray = document.array();
-
     } else if (document.isObject()) {
       const QJsonObject root = document.object();
 
@@ -470,7 +469,7 @@ void PlaylistService::deletePlaylist(const QString &uid, int kind) {
 }
 
 QString PlaylistService::cacheKeyFor(const QString &uid, int kind) const {
-  return QString("%1:%2").arg(uid.trimmed()).arg(kind);
+  return QStringLiteral("%1:%2").arg(uid.trimmed()).arg(kind);
 }
 
 void PlaylistService::renamePlaylist(const QString &uid, int kind, const QString &newTitle) {
@@ -516,7 +515,7 @@ void PlaylistService::renamePlaylist(const QString &uid, int kind, const QString
 }
 
 void PlaylistService::addTracksToPlaylist(const QString &uid, int kind, const QStringList &trackIds,
-                                          const QStringList &albumIds, int revision) {
+                                           const QStringList &albumIds, int revision) {
   if (!ensureAuthenticated()) {
     emit errorOccurred("Токен Яндекс Музыки не установлен");
     return;
@@ -535,6 +534,7 @@ void PlaylistService::addTracksToPlaylist(const QString &uid, int kind, const QS
   op["at"] = 0;
   QJsonArray trackList;
   const int count = qMin(trackIds.size(), albumIds.size());
+
   for (int i = 0; i < count; ++i) {
     const QString tid = trackIds.at(i).trimmed();
     const QString aid = albumIds.at(i).trimmed();
@@ -544,6 +544,7 @@ void PlaylistService::addTracksToPlaylist(const QString &uid, int kind, const QS
     t["albumId"] = aid.toInt();
     trackList.append(t);
   }
+
   op["tracks"] = trackList;
   operations.append(op);
 
@@ -583,7 +584,7 @@ void PlaylistService::addTracksToPlaylist(const QString &uid, int kind, const QS
 }
 
 void PlaylistService::removeTrackFromPlaylist(const QString &uid, int kind, int trackIndex,
-                                              int revision) {
+                                               int revision) {
   if (!ensureAuthenticated()) {
     emit errorOccurred("Токен Яндекс Музыки не установлен");
     return;
@@ -627,7 +628,7 @@ void PlaylistService::removeTrackFromPlaylist(const QString &uid, int kind, int 
 
     if (reply->error() != QNetworkReply::NoError) {
       emit errorOccurred(
-          QString("Удаление трека: %1 (HTTP %2) %3")
+          QStringLiteral("Удаление трека: %1 (HTTP %2) %3")
               .arg(reply->errorString())
               .arg(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt())
               .arg(QString::fromUtf8(data).left(300)));

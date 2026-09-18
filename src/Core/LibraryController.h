@@ -235,4 +235,6 @@ private:
   int m_currentArtistTrackCount = 0;
 
   QString m_userId;
+
+  void reloadIfCurrentPlaylist(int kind);
 };

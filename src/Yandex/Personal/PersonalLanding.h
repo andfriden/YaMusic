@@ -19,12 +19,8 @@ struct PersonalLandingSection {
   QString type;
   QString typeForFrom;
   QString description;
-
   QList<PersonalLandingItem> items;
-
   QList<PersonalPlaylist> playlists;
-
-  // Альбомы (например, из блока "new-releases").
   QList<Album> albums;
 };
 
@@ -36,26 +32,18 @@ class PersonalLanding : public QObject {
 
 public:
   explicit PersonalLanding(YandexAuth *auth, QObject *parent = nullptr);
-
   void load();
 
 signals:
-
   void loaded(const QList<PersonalLandingSection> &sections);
-
   void personalPlaylistsReceived(const QList<PersonalPlaylist> &playlists);
-
   void errorOccurred(const QString &message);
 
 private:
   PersonalLandingItem parseItem(const QJsonObject &object) const;
-
   PersonalLandingSection parseSection(const QJsonObject &object) const;
-
   PersonalPlaylist parsePersonalPlaylist(const PersonalLandingItem &item) const;
 
-private:
   YandexAuth *m_auth = nullptr;
-
   YandexClient *m_yandexClient = nullptr;
 };

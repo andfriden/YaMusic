@@ -23,7 +23,6 @@ public:
   explicit SearchModel(QObject *parent = nullptr);
 
   QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-
   QHash<int, QByteArray> roleNames() const override;
 
   void setResults(const SearchResults &results);
@@ -31,6 +30,4 @@ public:
   // Дописывает треки из новой страницы результатов
   // к уже загруженным (для пагинации).
   void appendResults(const QList<Track> &tracks);
-
-private:
 };

@@ -14,7 +14,6 @@ namespace {
 QJsonArray firstArray(const QJsonObject &object, const QStringList &keys) {
   for (const QString &key : keys) {
     const QJsonValue value = object.value(key);
-
     if (value.isArray()) {
       return value.toArray();
     }
@@ -26,7 +25,6 @@ void restoreArtistName(ArtistDetails &artist) {
   if (!artist.name.isEmpty()) {
     return;
   }
-
   for (const Track &track : artist.tracks) {
     for (const Artist &trackArtist : track.artists) {
       if ((!artist.id.isEmpty() && trackArtist.id == artist.id) || artist.id.isEmpty()) {
@@ -43,18 +41,15 @@ void restoreArtistArtwork(ArtistDetails &artist) {
   if (!artist.coverUri.isEmpty()) {
     return;
   }
-
   for (const Track &track : artist.tracks) {
     for (const Artist &trackArtist : track.artists) {
       if (trackArtist.coverUri.isEmpty()) continue;
-
       if (!artist.id.isEmpty() && !trackArtist.id.isEmpty() && trackArtist.id != artist.id)
         continue;
       artist.coverUri = trackArtist.coverUri;
       return;
     }
   }
-
   for (const Track &track : artist.tracks) {
     for (const Artist &trackArtist : track.artists) {
       if (!trackArtist.coverUri.isEmpty()) {
@@ -67,30 +62,26 @@ void restoreArtistArtwork(ArtistDetails &artist) {
 
 void restoreSimilarArtistArtwork(ArtistDetails &artist) {
   QList<Artist> unique;
-
   for (const Artist &similar : artist.similarArtists) {
     if (similar.id.isEmpty()) continue;
     bool duplicate = false;
-
     for (const Artist &existing : unique) {
       if (existing.id == similar.id) {
         duplicate = true;
         break;
       }
     }
-
     if (!duplicate) {
       unique.append(similar);
     }
   }
-
   artist.similarArtists = unique;
 }
-
 } // namespace
 
 ArtistService::ArtistService(YandexAuth *auth, QObject *parent) : YandexServiceBase(auth, parent) {}
 
+// TODO(YM-2246): вынести общую логику разбора ответа (parseError + unwrapResult) в общие хелперы
 void ArtistService::loadArtistAlbums(const QString &id) {
   if (!ensureAuthenticated()) {
     emit errorOccurred("Токен Яндекс Музыки не установлен");
@@ -107,7 +98,6 @@ void ArtistService::loadArtistAlbums(const QString &id) {
   // L1-кэш: отдаём сразу, если данные ещё свежие.
   const QString cacheKey = "albums/" + artistId;
   QList<Album> cached;
-
   if (m_albumsCache.get(cacheKey, cached)) {
     emit artistAlbumsReceived(cached);
     return;
@@ -119,7 +109,7 @@ void ArtistService::loadArtistAlbums(const QString &id) {
   query.addQueryItem("sortBy", "rating");
 
   const QString path =
-      QString("/artists/%1/direct-albums?").arg(artistId) + query.toString(QUrl::FullyEncoded);
+      QStringLiteral("/artists/%1/direct-albums?").arg(artistId) + query.toString(QUrl::FullyEncoded);
   QNetworkReply *reply = m_yandexClient->get(path);
 
   connect(reply, &QNetworkReply::finished, this, [this, reply, artistId, cacheKey]() {
@@ -173,19 +163,19 @@ void ArtistService::loadArtist(const QString &id) {
 
   // L1-кэш: отдаём сразу, если данные ещё свежие.
   ArtistDetails cachedArtist;
-
   if (m_artistCache.get(artistId, cachedArtist)) {
     emit artistReceived(cachedArtist);
     return;
   }
 
+  // Догружаем популярные альбомы, последний релиз и похожих исполнителей параллельно.
+  // Ждём все три ответа через счётчик completed, затем собираем финальный объект.
   auto loadAdditionalData = [this, artistId](const ArtistDetails &sourceArtist) {
     auto artistData = std::make_shared<ArtistDetails>(sourceArtist);
     auto completed = std::make_shared<int>(0);
 
     auto finalize = [this, artistData, artistId, completed]() {
       ++(*completed);
-
       if (*completed < 3) {
         return;
       }
@@ -196,6 +186,7 @@ void ArtistService::loadArtist(const QString &id) {
       m_artistCache.put(artistId, *artistData);
       emit artistReceived(*artistData);
     };
+
     QUrlQuery popularQuery;
     popularQuery.addQueryItem("page", "0");
     popularQuery.addQueryItem("pageSize", "5");
@@ -220,7 +211,6 @@ void ArtistService::loadArtist(const QString &id) {
                   for (const QJsonValue &value : albums) {
                     if (!value.isObject()) continue;
                     const Album album = ::parseAlbum(value.toObject());
-
                     if (!album.id.isEmpty()) {
                       artistData->popularAlbums.append(album);
                     }
@@ -231,6 +221,7 @@ void ArtistService::loadArtist(const QString &id) {
               popularAlbumsReply->deleteLater();
               finalize();
             });
+
     QUrlQuery newestQuery;
     newestQuery.addQueryItem("page", "0");
     newestQuery.addQueryItem("pageSize", "1");
@@ -261,6 +252,7 @@ void ArtistService::loadArtist(const QString &id) {
               newestAlbumReply->deleteLater();
               finalize();
             });
+
     const auto similarPath = QStringLiteral("/artists/%1/similar").arg(artistId);
     QNetworkReply *similarReply = m_yandexClient->get(similarPath);
 
@@ -273,10 +265,10 @@ void ArtistService::loadArtist(const QString &id) {
 
         if (parseError.error == QJsonParseError::NoError && document.isObject()) {
           const QJsonObject result = unwrapResult(document);
+          QJsonArray artists =
+              firstArray(result, {"similarArtists", "similar_artists", "artists", "similar", "items"});
 
-          QJsonArray artists = firstArray(
-              result, {"similarArtists", "similar_artists", "artists", "similar", "items"});
-
+          // API иногда прячет список в под-объекте similarArtists.
           if (artists.isEmpty() && result.value("similarArtists").isObject()) {
             const QJsonObject similarObject = result.value("similarArtists").toObject();
             artists = firstArray(similarObject, {"artists", "items"});
@@ -287,14 +279,12 @@ void ArtistService::loadArtist(const QString &id) {
             const Artist similarArtist = ::parseArtist(value.toObject());
             if (similarArtist.id.isEmpty() || similarArtist.name.isEmpty()) continue;
             bool duplicate = false;
-
             for (const Artist &existing : artistData->similarArtists) {
               if (existing.id == similarArtist.id) {
                 duplicate = true;
                 break;
               }
             }
-
             if (!duplicate) {
               artistData->similarArtists.append(similarArtist);
             }
@@ -306,6 +296,7 @@ void ArtistService::loadArtist(const QString &id) {
       finalize();
     });
   };
+
   const auto infoPath = QStringLiteral("/artists/%1/brief-info").arg(artistId);
   QNetworkReply *infoReply = m_yandexClient->get(infoPath);
 
@@ -331,6 +322,7 @@ void ArtistService::loadArtist(const QString &id) {
             const QJsonObject root = document.object();
             QJsonObject artistObject;
 
+            // API возвращает либо {"result": {...}}, либо сам объект напрямую.
             if (root.value("result").isObject()) {
               artistObject = root.value("result").toObject();
             } else {
@@ -358,7 +350,6 @@ void ArtistService::loadArtist(const QString &id) {
             for (const QJsonValue &value : genres) {
               if (!value.isString()) continue;
               const QString genre = value.toString().trimmed();
-
               if (!genre.isEmpty()) {
                 artist.genres.append(genre);
               }
@@ -369,7 +360,6 @@ void ArtistService::loadArtist(const QString &id) {
             for (const QJsonValue &value : popularTracks) {
               if (!value.isObject()) continue;
               const Track track = ::parseTrack(value.toObject());
-
               if (!track.id.isEmpty()) {
                 artist.tracks.append(track);
               }
@@ -379,6 +369,7 @@ void ArtistService::loadArtist(const QString &id) {
             restoreArtistName(artist);
             restoreArtistArtwork(artist);
 
+            // В brief-info часто нет популярных треков — тогда тянем их отдельным запросом.
             if (artist.tracks.isEmpty()) {
               const auto tracksPath = QStringLiteral("/artists/%1/tracks").arg(artistId);
               QNetworkReply *tracksReply = m_yandexClient->get(tracksPath);
@@ -405,10 +396,10 @@ void ArtistService::loadArtist(const QString &id) {
                         const QJsonObject result = unwrapResult(document);
                         QJsonArray tracks = firstArray(result, {"tracks", "popularTracks"});
 
+                        // Fallback: треки могут лежать прямо в корне ответа.
                         if (tracks.isEmpty()) {
                           const QJsonObject root = document.object();
                           const QJsonValue rootTracks = root.value("tracks");
-
                           if (rootTracks.isArray()) {
                             tracks = rootTracks.toArray();
                           }
@@ -417,7 +408,6 @@ void ArtistService::loadArtist(const QString &id) {
                         for (const QJsonValue &value : tracks) {
                           if (!value.isObject()) continue;
                           const Track track = ::parseTrack(value.toObject());
-
                           if (!track.id.isEmpty()) {
                             artist.tracks.append(track);
                           }

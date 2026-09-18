@@ -8,10 +8,7 @@ class QNetworkAccessManager;
 class QNetworkReply;
 
 // macOS: MPRemoteCommandCenter + MPNowPlayingInfoCenter.
-// Публикует метаданные (трек, исполнитель, альбом, артворк,
-// позиция) в Now Playing Info Center и обрабатывает команды
-// из Control Center / Touch Bar / клавиш.
-
+// Публикует метаданные и обрабатывает команды из Control Center.
 class MediaControlsMacOS : public SystemMediaControls {
   Q_OBJECT
 
@@ -37,7 +34,6 @@ private:
   Impl *d = nullptr;
 
   QNetworkAccessManager *m_network = nullptr;
-
   QString m_pendingArtworkUri;
   QImage m_artworkImage;
   QString m_lastArtworkTrackId;

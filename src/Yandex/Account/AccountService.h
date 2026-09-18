@@ -22,5 +22,6 @@ signals:
 
 private:
   YandexAuth *m_auth = nullptr;
+
   YandexClient *m_yandexClient = nullptr;
 };
