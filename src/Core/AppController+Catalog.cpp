@@ -1,135 +1,48 @@
-#include "AppController.h"
 #include "../Yandex/Catalog/ChartService.h"
+#include "AppController.h"
 
-// Artist
+void AppController::loadArtist(const QString &id) {
+  const QString artistId = id.trimmed();
 
-void AppController::loadArtist(
-    const QString &id)
-{
-    if (
-        m_artistController == nullptr
-    )
-    {
-        return;
-    }
+  if (artistId.isEmpty()) {
+    emit statusChanged("Некорректный исполнитель");
+    return;
+  }
 
-    const QString artistId =
-        id.trimmed();
-
-    if (
-        artistId.isEmpty()
-    )
-    {
-        emit statusChanged(
-            "Некорректный исполнитель");
-
-        return;
-    }
-
-    emit artistPageRequested(
-        artistId);
-
-    m_artistController
-        ->loadArtist(
-            artistId);
+  emit artistPageRequested(artistId);
+  m_artistController->loadArtist(artistId);
 }
 
-// Album
+void AppController::loadAlbum(const QString &id) {
+  const QString albumId = id.trimmed();
 
-void AppController::loadAlbum(
-    const QString &id)
-{
-    if (
-        m_albumController == nullptr
-    )
-    {
-        return;
-    }
+  if (albumId.isEmpty()) {
+    emit statusChanged("Некорректный альбом");
+    return;
+  }
 
-    const QString albumId =
-        id.trimmed();
-
-    if (
-        albumId.isEmpty()
-    )
-    {
-        emit statusChanged(
-            "Некорректный альбом");
-
-        return;
-    }
-
-    m_playAlbumAfterLoad =
-        false;
-
-    emit albumPageRequested(
-        albumId);
-
-    m_albumController
-        ->loadAlbum(
-            albumId);
+  m_playAlbumAfterLoad = false;
+  emit albumPageRequested(albumId);
+  m_albumController->loadAlbum(albumId);
 }
 
-void AppController::playAlbum(
-    const QString &id)
-{
-    if (
-        m_albumController == nullptr
-    )
-    {
-        return;
-    }
+void AppController::playAlbum(const QString &id) {
+  const QString albumId = id.trimmed();
 
-    const QString albumId =
-        id.trimmed();
+  if (albumId.isEmpty()) {
+    emit statusChanged("Некорректный альбом");
+    return;
+  }
 
-    if (
-        albumId.isEmpty()
-    )
-    {
-        emit statusChanged(
-            "Некорректный альбом");
-
-        return;
-    }
-
-    m_playAlbumAfterLoad =
-        true;
-
-    emit albumPageRequested(
-        albumId);
-
-    m_albumController
-        ->loadAlbum(
-            albumId);
+  m_playAlbumAfterLoad = true;
+  emit albumPageRequested(albumId);
+  m_albumController->loadAlbum(albumId);
 }
 
-// Chart
-
-void AppController::loadChart(
-    const QString &chartType)
-{
-    if (
-        m_chartController == nullptr
-    )
-    {
-        return;
-    }
-
-    m_chartController
-        ->loadChart(
-            chartType);
+void AppController::loadChart(const QString &chartType) {
+  m_chartController->loadChart(chartType);
 }
 
-void AppController::loadCharts()
-{
-    if (
-        m_chartController == nullptr
-    )
-    {
-        return;
-    }
-
-    m_chartController
-        ->loadCharts();
+void AppController::loadCharts() {
+  m_chartController->loadCharts();
 }

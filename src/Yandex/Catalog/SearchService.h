@@ -1,28 +1,21 @@
 #pragma once
 
-#include <QString>
-#include "SearchResult.h"
 #include "../YandexServiceBase.h"
+#include "SearchResult.h"
+#include <QString>
 
-class SearchService : public YandexServiceBase
-{
-    Q_OBJECT
+class SearchService : public YandexServiceBase {
+  Q_OBJECT
 
 public:
-    explicit SearchService(
-        YandexAuth *auth,
-        QObject *parent = nullptr);
+  explicit SearchService(YandexAuth *auth, QObject *parent = nullptr);
 
-    void search(
-        const QString &query,
-        int page = 0);
+  void search(const QString &query, int page = 0);
 
-    signals:
-        void searchStarted();
+signals:
+  void searchStarted();
 
-    void searchReceived(
-        const SearchResults &results);
+  void searchReceived(const SearchResults &results);
 
-    void errorOccurred(
-        const QString &message);
+  void errorOccurred(const QString &message);
 };

@@ -1,77 +1,61 @@
 #pragma once
 
+#include "../../Models/PersonalPlaylist.h"
+#include "../../Models/Track.h"
 #include <QJsonObject>
 #include <QList>
 #include <QObject>
 #include <QString>
-#include "../../Models/PersonalPlaylist.h"
-#include "../../Models/Track.h"
 
-struct PersonalLandingItem
-{
-    QString id;
-    QString type;
-    QJsonObject data;
+struct PersonalLandingItem {
+  QString id;
+  QString type;
+  QJsonObject data;
 };
 
-struct PersonalLandingSection
-{
-    QString id;
-    QString title;
-    QString type;
-    QString typeForFrom;
-    QString description;
+struct PersonalLandingSection {
+  QString id;
+  QString title;
+  QString type;
+  QString typeForFrom;
+  QString description;
 
-    QList<PersonalLandingItem> items;
+  QList<PersonalLandingItem> items;
 
-    QList<PersonalPlaylist> playlists;
+  QList<PersonalPlaylist> playlists;
 
-    /*
-     * Альбомы (например, из блока "new-releases").
-     */
-    QList<Album> albums;
+  // Альбомы (например, из блока "new-releases").
+  QList<Album> albums;
 };
 
 class YandexAuth;
 class YandexClient;
 
-class PersonalLanding : public QObject
-{
-    Q_OBJECT
+class PersonalLanding : public QObject {
+  Q_OBJECT
 
 public:
+  explicit PersonalLanding(YandexAuth *auth, QObject *parent = nullptr);
 
-    explicit PersonalLanding(
-        YandexAuth *auth,
-        QObject *parent = nullptr);
+  void load();
 
-    void load();
+signals:
 
-    signals:
+  void loaded(const QList<PersonalLandingSection> &sections);
 
-        void loaded(
-            const QList<PersonalLandingSection> &sections);
+  void personalPlaylistsReceived(const QList<PersonalPlaylist> &playlists);
 
-    void personalPlaylistsReceived(
-        const QList<PersonalPlaylist> &playlists);
-
-    void errorOccurred(
-        const QString &message);
+  void errorOccurred(const QString &message);
 
 private:
+  PersonalLandingItem parseItem(const QJsonObject &object) const;
 
-    PersonalLandingItem parseItem(
-        const QJsonObject &object) const;
+  PersonalLandingSection parseSection(const QJsonObject &object) const;
 
-    PersonalLandingSection parseSection(
-        const QJsonObject &object) const;
-
-    PersonalPlaylist parsePersonalPlaylist(
-        const PersonalLandingItem &item) const;
+  PersonalPlaylist parsePersonalPlaylist(const PersonalLandingItem &item) const;
 
 private:
+  YandexAuth *m_auth = nullptr;
 
-    YandexAuth *m_auth = nullptr;
-
-    YandexClient *m_yandexClient = nullptr;
+  YandexClient *m_yandexClient = nullptr;
 };

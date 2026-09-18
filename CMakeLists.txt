@@ -132,9 +132,11 @@ set(
 
         src/Core/AlbumController.cpp
         src/Core/ArtistController.cpp
+        src/Core/AccentController.cpp
         src/Core/ChartController.cpp
         src/Core/GenreController.cpp
         src/Core/LibraryController.cpp
+        src/Core/LyricsController.cpp
         src/Core/PersonalController.cpp
         src/Core/PersonalController+MyWave.cpp
         src/Core/PersonalController+Playback.cpp
@@ -143,6 +145,7 @@ set(
         src/Core/PlayerAccentService.cpp
         src/Core/SearchController.cpp
         src/Core/AuthController.cpp
+        src/Core/ThemeController.cpp
 
         # Models
         src/Models/Account.cpp

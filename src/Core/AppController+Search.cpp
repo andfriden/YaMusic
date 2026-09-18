@@ -1,42 +1,16 @@
 #include "AppController.h"
 
-void AppController::search(
-    const QString &query)
-{
-    const QString trimmedQuery =
-        query.trimmed();
+void AppController::search(const QString &query) {
+  const QString trimmedQuery = query.trimmed();
 
-    if (
-        trimmedQuery.isEmpty()
-    )
-    {
-        return;
-    }
+  if (trimmedQuery.isEmpty()) {
+    return;
+  }
 
-    if (
-        m_searchController == nullptr
-    )
-    {
-        return;
-    }
-
-    emit searchPageRequested(
-        trimmedQuery);
-
-    m_searchController
-        ->search(
-            trimmedQuery);
+  emit searchPageRequested(trimmedQuery);
+  m_searchController->search(trimmedQuery);
 }
 
-void AppController::loadMoreSearchResults()
-{
-    if (
-        m_searchController == nullptr
-    )
-    {
-        return;
-    }
-
-    m_searchController
-        ->loadMoreSearchResults();
+void AppController::loadMoreSearchResults() {
+  m_searchController->loadMoreSearchResults();
 }

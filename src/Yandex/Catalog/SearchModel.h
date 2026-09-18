@@ -1,46 +1,36 @@
 #pragma once
 
-#include <QHash>
-#include <QVariant>
 #include "SearchResult.h"
 #include "TrackListModelBase.h"
+#include <QHash>
+#include <QVariant>
 
-class SearchModel final : public TrackListModelBase
-{
-    Q_OBJECT
+class SearchModel final : public TrackListModelBase {
+  Q_OBJECT
 
 public:
-    enum Roles {
-        IdRole = Qt::UserRole + 1,
-        TitleRole,
-        ArtistRole,
-        ArtistIdRole,
-        AlbumRole,
-        AlbumIdRole,
-        CoverUriRole,
-        DurationMsRole
-    };
+  enum Roles {
+    IdRole = Qt::UserRole + 1,
+    TitleRole,
+    ArtistRole,
+    ArtistIdRole,
+    AlbumRole,
+    AlbumIdRole,
+    CoverUriRole,
+    DurationMsRole
+  };
 
-    explicit SearchModel(
-        QObject *parent = nullptr);
+  explicit SearchModel(QObject *parent = nullptr);
 
-    QVariant data(
-        const QModelIndex &index,
-        int role =
-            Qt::DisplayRole) const override;
+  QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    QHash<int, QByteArray>
-    roleNames() const override;
+  QHash<int, QByteArray> roleNames() const override;
 
-    void setResults(
-        const SearchResults &results);
+  void setResults(const SearchResults &results);
 
-    /*
-     * Дописывает треки из новой страницы результатов
-     * к уже загруженным (для пагинации).
-     */
-    void appendResults(
-        const QList<Track> &tracks);
+  // Дописывает треки из новой страницы результатов
+  // к уже загруженным (для пагинации).
+  void appendResults(const QList<Track> &tracks);
 
 private:
 };

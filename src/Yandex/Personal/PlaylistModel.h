@@ -1,58 +1,47 @@
 #pragma once
 
+#include "../../Models/Playlist.h"
+#include "../Catalog/TrackListModelBase.h"
 #include <QHash>
 #include <QString>
 #include <QVariant>
-#include "../../Models/Playlist.h"
-#include "../Catalog/TrackListModelBase.h"
 
-class PlaylistModel final : public TrackListModelBase
-{
-    Q_OBJECT
+class PlaylistModel final : public TrackListModelBase {
+  Q_OBJECT
 
 public:
+  enum Roles {
+    IdRole = Qt::UserRole + 1,
+    TitleRole,
+    ArtistRole,
+    ArtistIdRole,
+    AlbumRole,
+    AlbumIdRole,
+    CoverUriRole,
+    DurationMsRole,
+    LikedRole
+  };
 
-    enum Roles
-    {
-        IdRole = Qt::UserRole + 1,
-        TitleRole,
-        ArtistRole,
-        ArtistIdRole,
-        AlbumRole,
-        AlbumIdRole,
-        CoverUriRole,
-        DurationMsRole,
-        LikedRole
-    };
+  explicit PlaylistModel(QObject *parent = nullptr);
 
-    explicit PlaylistModel(
-        QObject *parent = nullptr);
+  QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    QVariant data(
-        const QModelIndex &index,
-        int role = Qt::DisplayRole) const override;
+  QHash<int, QByteArray> roleNames() const override;
 
-    QHash<int, QByteArray>
-    roleNames() const override;
+  void setPlaylist(const Playlist &playlist);
 
-    void setPlaylist(
-        const Playlist &playlist);
+  void clear();
 
-    void clear();
+  QString title() const;
 
-    QString title() const;
+  int kind() const;
 
-    int kind() const;
+  int revision() const;
 
-    int revision() const;
+  int trackCount() const;
 
-    int trackCount() const;
-
-    void setTrackLiked(
-        const QString &trackId,
-        bool liked);
+  void setTrackLiked(const QString &trackId, bool liked);
 
 private:
-
-    Playlist m_playlist;
+  Playlist m_playlist;
 };

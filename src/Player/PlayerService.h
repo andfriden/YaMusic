@@ -1,102 +1,79 @@
 #pragma once
 
+#include <QAudioOutput>
+#include <QMediaPlayer>
 #include <QObject>
 #include <QString>
 #include <QUrl>
-#include <QAudioOutput>
-#include <QMediaPlayer>
 
-class PlayerService : public QObject
-{
-    Q_OBJECT
+class PlayerService : public QObject {
+  Q_OBJECT
 
 public:
+  explicit PlayerService(QObject *parent = nullptr);
 
-    explicit PlayerService(
-        QObject *parent = nullptr);
+  bool isPlaying() const;
 
-    // Playback state
+  QString currentUrl() const;
 
-    bool isPlaying() const;
+  qint64 position() const;
 
-    QString currentUrl() const;
+  qint64 duration() const;
 
-    qint64 position() const;
+  float volume() const;
 
-    qint64 duration() const;
-
-    // Volume
-
-    float volume() const;
-
-    bool isMuted() const;
+  bool isMuted() const;
 
 public slots:
 
-    // Playback
+  void play();
 
-    void play();
+  void playUrl(const QString &url);
 
-    void playUrl(
-        const QString &url);
+  void pause();
 
-    void pause();
+  void resume();
 
-    void resume();
+  void stop();
 
-    void stop();
+  void togglePlayback();
 
-    void togglePlayback();
+  void seek(qint64 position);
 
-    void seek(
-        qint64 position);
+  void setVolume(float volume);
 
-    // Volume
+  void setMuted(bool muted);
 
-    void setVolume(
-        float volume);
-
-    void setMuted(
-        bool muted);
-
-    void toggleMute();
+  void toggleMute();
 
 signals:
 
-    // Playback
+  void playingChanged();
 
-    void playingChanged();
+  void playbackStarted();
 
-    void playbackStarted();
+  void playbackPaused();
 
-    void playbackPaused();
+  void playbackStopped();
 
-    void playbackStopped();
+  void playbackFinished();
 
-    void playbackFinished();
+  void currentUrlChanged();
 
-    void currentUrlChanged();
+  void positionChanged(qint64 position);
 
-    void positionChanged(
-        qint64 position);
+  void durationChanged(qint64 duration);
 
-    void durationChanged(
-        qint64 duration);
+  void errorOccurred(const QString &message);
 
-    void errorOccurred(
-        const QString &message);
+  void volumeChanged();
 
-    // Volume
-
-    void volumeChanged();
-
-    void mutedChanged();
+  void mutedChanged();
 
 private:
+  QMediaPlayer m_player;
 
-    QMediaPlayer m_player;
+  QAudioOutput m_audioOutput;
 
-    QAudioOutput m_audioOutput;
-
-    QString m_currentUrl;
+  QString m_currentUrl;
 };

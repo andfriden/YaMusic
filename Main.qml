@@ -27,14 +27,18 @@ Connections {
         function onStatusChanged(message) {
             statusBar.message = message
         }
+    }
+
+    Connections {
+        target: appController.themeController
 
         function onDarkThemeChanged() {
-            AppTheme.dark = appController.darkTheme
+            AppTheme.dark = appController.themeController.darkTheme
         }
     }
 
     Component.onCompleted: {
-        AppTheme.dark = appController.darkTheme
+        AppTheme.dark = appController.themeController.darkTheme
     }
 
     Loader {
@@ -79,7 +83,7 @@ Connections {
             }
 
             onLyricsRequested: {
-                appController.loadLyrics()
+                appController.lyricsController.loadLyrics()
                 window.lyricsVisible = true
             }
         }

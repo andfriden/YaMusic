@@ -3,8 +3,7 @@
 #include "../Models/Account.h"
 #include <QJsonObject>
 
-class AccountParser
-{
+class AccountParser {
 public:
-    static Account parse(const QJsonObject &json);
+  static Account parse(const QJsonObject &json);
 };

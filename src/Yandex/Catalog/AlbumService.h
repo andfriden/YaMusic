@@ -1,42 +1,35 @@
 #pragma once
 
-#include <QObject>
-#include <QList>
-#include <QString>
 #include "../../Models/Track.h"
 #include "../MemoryCache.h"
 #include "../YandexServiceBase.h"
+#include <QList>
+#include <QObject>
+#include <QString>
 
-struct AlbumDetails
-{
-    Album album;
+struct AlbumDetails {
+  Album album;
 
-    QString description;
+  QString description;
 
-    int trackCount = 0;
+  int trackCount = 0;
 
-    QList<Track> tracks;
+  QList<Track> tracks;
 };
 
-class AlbumService : public YandexServiceBase
-{
-    Q_OBJECT
+class AlbumService : public YandexServiceBase {
+  Q_OBJECT
 
 public:
-    explicit AlbumService(
-        YandexAuth *auth,
-        QObject *parent = nullptr);
+  explicit AlbumService(YandexAuth *auth, QObject *parent = nullptr);
 
-    void loadAlbum(
-        const QString &id);
+  void loadAlbum(const QString &id);
 
-    signals:
-        void albumReceived(
-            const AlbumDetails &album);
+signals:
+  void albumReceived(const AlbumDetails &album);
 
-    void errorOccurred(
-        const QString &message);
+  void errorOccurred(const QString &message);
 
 private:
-    MemoryCache<AlbumDetails> m_cache;
+  MemoryCache<AlbumDetails> m_cache;
 };

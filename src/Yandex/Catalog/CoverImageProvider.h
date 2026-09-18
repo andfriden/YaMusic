@@ -8,52 +8,38 @@
 #include <QSize>
 #include <QString>
 
-class CoverImageResponse : public QQuickImageResponse
-{
-    Q_OBJECT
+class CoverImageResponse : public QQuickImageResponse {
+  Q_OBJECT
 
 public:
-    explicit CoverImageResponse(
-        const QString &url,
-        const QSize &requestedSize,
-        bool circular);
+  explicit CoverImageResponse(const QString &url, const QSize &requestedSize, bool circular);
 
-    QQuickTextureFactory *
-    textureFactory() const override;
+  QQuickTextureFactory *textureFactory() const override;
 
-    void cancel() override;
+  void cancel() override;
 
 private:
-    void load();
+  void load();
 
-    QImage makeCircular(
-        const QImage &image) const;
+  QImage makeCircular(const QImage &image) const;
 
-    QString m_url;
-    QSize m_requestedSize;
-    bool m_circular = false;
+  QString m_url;
+  QSize m_requestedSize;
+  bool m_circular = false;
 
-    QImage m_image;
+  QImage m_image;
 };
 
-class CoverImageProvider :
-    public QQuickAsyncImageProvider
-{
+class CoverImageProvider : public QQuickAsyncImageProvider {
 public:
-    explicit CoverImageProvider();
+  explicit CoverImageProvider();
 
-    QQuickImageResponse *
-    requestImageResponse(
-        const QString &id,
-        const QSize &requestedSize) override;
+  QQuickImageResponse *requestImageResponse(const QString &id, const QSize &requestedSize) override;
 
 private:
-    QString createUrl(
-        QString uri) const;
+  QString createUrl(QString uri) const;
 
-    bool isCircularRequest(
-        const QString &id) const;
+  bool isCircularRequest(const QString &id) const;
 
-    QString stripRequestPrefix(
-        QString id) const;
+  QString stripRequestPrefix(QString id) const;
 };

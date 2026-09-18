@@ -1,222 +1,137 @@
 #pragma once
 
+#include "../Models/Playlist.h"
+#include "../Yandex/Catalog/GenreModel.h"
+#include "../Yandex/Catalog/GenreStationModel.h"
 #include <QList>
 #include <QObject>
 #include <QPair>
 #include <QString>
 #include <QStringList>
 #include <QVariantList>
-#include "../Models/Playlist.h"
-#include "../Yandex/Catalog/GenreModel.h"
-#include "../Yandex/Catalog/GenreStationModel.h"
 
 class GenreService;
 class PlaybackController;
 class PlaylistService;
 class StationService;
 
-class GenreController : public QObject
-{
-    Q_OBJECT
+class GenreController : public QObject {
+  Q_OBJECT
 
-    Q_PROPERTY(
-        bool loading
-        READ loading
-        NOTIFY loadingChanged
-    )
+  Q_PROPERTY(bool loading READ loading NOTIFY loadingChanged)
 
-    Q_PROPERTY(
-        GenreModel* model
-        READ model
-        CONSTANT
-    )
+  Q_PROPERTY(GenreModel *model READ model CONSTANT)
 
-    Q_PROPERTY(
-        bool genreLoading
-        READ genreLoading
-        NOTIFY genreLoadingChanged
-    )
+  Q_PROPERTY(bool genreLoading READ genreLoading NOTIFY genreLoadingChanged)
 
-    Q_PROPERTY(
-        QVariantList genrePlaylists
-        READ genrePlaylists
-        NOTIFY genreContentChanged
-    )
+  Q_PROPERTY(QVariantList genrePlaylists READ genrePlaylists NOTIFY genreContentChanged)
 
-    Q_PROPERTY(
-        GenreStationModel *stationModel
-        READ stationModel
-        CONSTANT
-    )
+  Q_PROPERTY(GenreStationModel *stationModel READ stationModel CONSTANT)
 
-    Q_PROPERTY(
-        bool stationLoading
-        READ stationLoading
-        NOTIFY stationLoadingChanged
-    )
+  Q_PROPERTY(bool stationLoading READ stationLoading NOTIFY stationLoadingChanged)
 
 public:
+  explicit GenreController(GenreService *genreService, PlaylistService *playlistService,
+                           StationService *stationService, PlaybackController *playbackController,
+                           QObject *parent = nullptr);
 
-    explicit GenreController(
-        GenreService *genreService,
-        PlaylistService *playlistService,
-        StationService *stationService,
-        PlaybackController *playbackController,
-        QObject *parent = nullptr);
+  Q_INVOKABLE void loadGenres();
 
-    // Genres
+  Q_INVOKABLE void loadGenre(const QString &genreId);
 
-    Q_INVOKABLE void loadGenres();
+  Q_INVOKABLE void loadTagPlaylists(const QString &tagId);
 
-    // Selected genre
+  Q_INVOKABLE void loadGenreStation(const QString &genreId);
 
-    Q_INVOKABLE void loadGenre(
-        const QString &genreId);
+  Q_INVOKABLE void loadMoreGenreStation();
 
-    // Tag playlists
+  Q_INVOKABLE void selectStationTrack(int index);
 
-    Q_INVOKABLE void loadTagPlaylists(
-        const QString &tagId);
+  bool loading() const;
 
-    // Genre radio
+  GenreModel *model() const;
 
-    Q_INVOKABLE void loadGenreStation(
-        const QString &genreId);
+  bool genreLoading() const;
 
-    Q_INVOKABLE void loadMoreGenreStation();
+  QVariantList genrePlaylists() const;
 
-    Q_INVOKABLE void selectStationTrack(
-        int index);
+  GenreStationModel *stationModel() const;
 
-    // Properties
-
-    bool loading() const;
-
-    GenreModel *model() const;
-
-    bool genreLoading() const;
-
-    QVariantList genrePlaylists() const;
-
-    GenreStationModel *stationModel() const;
-
-    bool stationLoading() const;
+  bool stationLoading() const;
 
 signals:
 
-    void loadingChanged();
+  void loadingChanged();
 
-    void genreLoadingChanged();
+  void genreLoadingChanged();
 
-    void genreContentChanged();
+  void genreContentChanged();
 
-    void stationLoadingChanged();
+  void stationLoadingChanged();
 
-    void stationTrackSelected(
-        int index);
+  void stationTrackSelected(int index);
 
-    void statusChanged(
-        const QString &status);
+  void statusChanged(const QString &status);
 
-    void errorOccurred(
-        const QString &message);
+  void errorOccurred(const QString &message);
 
 private:
+  void startGenrePlaylistQueue(const QList<QPair<QString, int>> &playlists);
 
-    // Genre playlist loading
+  void loadNextGenrePlaylistBatch();
 
-    void startGenrePlaylistQueue(
-        const QList<QPair<QString, int>> &playlists);
+  void finishGenrePlaylistLoading();
 
-    void loadNextGenrePlaylistBatch();
+  void startApiFallback();
 
-    void finishGenrePlaylistLoading();
+  QList<QPair<QString, int>> loadPlaylistIdsFromCsv(const QString &genreId);
 
-    void startApiFallback();
+  static QStringList splitCsvLine(const QString &line);
 
-    // CSV
+  static bool isDisplayedGenre(const QString &genreId);
 
-    QList<QPair<QString, int>>
-        loadPlaylistIdsFromCsv(
-            const QString &genreId);
-
-    // Helpers
-
-    static QStringList splitCsvLine(
-        const QString &line);
-
-    static bool isDisplayedGenre(
-        const QString &genreId);
-
-    static QString playlistKey(
-        const QPair<QString, int> &playlist);
+  static QString playlistKey(const QPair<QString, int> &playlist);
 
 private:
+  GenreService *m_genreService = nullptr;
 
-    GenreService *
-        m_genreService = nullptr;
+  PlaylistService *m_playlistService = nullptr;
 
-    PlaylistService *
-        m_playlistService = nullptr;
+  StationService *m_stationService = nullptr;
 
-    StationService *
-        m_stationService = nullptr;
+  PlaybackController *m_playbackController = nullptr;
 
-    PlaybackController *
-        m_playbackController = nullptr;
+  GenreModel *m_model = nullptr;
 
-    GenreModel *
-        m_model = nullptr;
+  GenreStationModel *m_stationModel = nullptr;
 
-    GenreStationModel *
-        m_stationModel = nullptr;
+  QString m_stationGenreId;
 
-    QString
-        m_stationGenreId;
+  QString m_stationBatchId;
 
-    QString
-        m_stationBatchId;
+  QList<Playlist> m_genrePlaylists;
 
-    QList<Playlist>
-        m_genrePlaylists;
+  QString m_loadingGenreId;
 
-    QString
-        m_loadingGenreId;
+  bool m_loading = false;
 
-    // Genre loading state
+  bool m_genreLoading = false;
 
-    bool
-        m_loading = false;
+  bool m_stationLoading = false;
 
-    bool
-        m_genreLoading = false;
+  bool m_waitingForPlaylists = false;
 
-    bool
-        m_stationLoading = false;
+  bool m_waitingForTagPlaylistIds = false;
 
-    bool
-        m_waitingForPlaylists = false;
+  QList<QPair<QString, int>> m_genrePlaylistQueue;
 
-    bool
-        m_waitingForTagPlaylistIds = false;
+  int m_genrePlaylistQueuePosition = 0;
 
-    // Playlist queue
+  bool m_usingApiFallback = false;
 
-    QList<QPair<QString, int>>
-        m_genrePlaylistQueue;
+  bool m_csvHadCandidates = false;
 
-    int
-        m_genrePlaylistQueuePosition = 0;
+  bool m_loadedAnyGenrePlaylist = false;
 
-    bool
-        m_usingApiFallback = false;
-
-    bool
-        m_csvHadCandidates = false;
-
-    bool
-        m_loadedAnyGenrePlaylist = false;
-
-    static constexpr int
-        GenrePlaylistBatchSize = 12;
+  static constexpr int GenrePlaylistBatchSize = 12;
 };

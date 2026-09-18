@@ -374,7 +374,7 @@ Item {
 
                             onClicked: {
                                 if (root.controller) {
-                                    root.controller.setDarkTheme(!AppTheme.dark)
+                                    root.controller.themeController.setDarkTheme(!AppTheme.dark)
                                 }
                             }
                         }

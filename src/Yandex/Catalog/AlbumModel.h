@@ -1,80 +1,59 @@
 #pragma once
 
+#include "AlbumService.h"
+#include "TrackListModelBase.h"
 #include <QHash>
 #include <QList>
 #include <QString>
 #include <QVariant>
-#include "AlbumService.h"
-#include "TrackListModelBase.h"
 
-class AlbumModel final : public TrackListModelBase
-{
-    Q_OBJECT
+class AlbumModel final : public TrackListModelBase {
+  Q_OBJECT
 
-    Q_PROPERTY(
-        QString title
-        READ title
-        NOTIFY albumChanged)
+  Q_PROPERTY(QString title READ title NOTIFY albumChanged)
 
-    Q_PROPERTY(
-        QString coverUri
-        READ coverUri
-        NOTIFY albumChanged)
+  Q_PROPERTY(QString coverUri READ coverUri NOTIFY albumChanged)
 
-    Q_PROPERTY(
-        int trackCount
-        READ trackCount
-        NOTIFY albumChanged)
+  Q_PROPERTY(int trackCount READ trackCount NOTIFY albumChanged)
 
 public:
+  enum Roles {
+    IdRole = Qt::UserRole + 1,
+    TitleRole,
+    ArtistRole,
+    ArtistIdRole,
+    AlbumIdRole,
+    CoverUriRole,
+    DurationMsRole,
+    LikedRole
+  };
 
-    enum Roles
-    {
-        IdRole = Qt::UserRole + 1,
-        TitleRole,
-        ArtistRole,
-        ArtistIdRole,
-        AlbumIdRole,
-        CoverUriRole,
-        DurationMsRole,
-        LikedRole
-    };
+  Q_ENUM(Roles)
 
-    Q_ENUM(Roles)
+  explicit AlbumModel(QObject *parent = nullptr);
 
-    explicit AlbumModel(
-        QObject *parent = nullptr);
+  QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    QVariant data(
-        const QModelIndex &index,
-        int role =
-            Qt::DisplayRole) const override;
+  QHash<int, QByteArray> roleNames() const override;
 
-    QHash<int, QByteArray>
-    roleNames() const override;
+  void setAlbum(const AlbumDetails &album);
 
-    void setAlbum(
-        const AlbumDetails &album);
+  void clear();
 
-    void clear();
+  QString title() const;
 
-    QString title() const;
+  QString coverUri() const;
 
-    QString coverUri() const;
+  int trackCount() const;
 
-    int trackCount() const;
-
-    void setTrackLiked(
-        const QString &trackId,
-        bool liked);
+  void setTrackLiked(const QString &trackId, bool liked);
 
 signals:
 
-    void countChanged();
+  void countChanged();
 
-    void albumChanged();
+  void albumChanged();
 
 private:
-
-    AlbumDetails m_album;
+  AlbumDetails m_album;
 };

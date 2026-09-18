@@ -7,280 +7,133 @@
 #include <QJsonObject>
 #include <QNetworkReply>
 
-AlbumService::AlbumService(
-    YandexAuth *auth,
-    QObject *parent)
-    : YandexServiceBase(auth, parent)
-{
-}
+AlbumService::AlbumService(YandexAuth *auth, QObject *parent) : YandexServiceBase(auth, parent) {}
 
-void AlbumService::loadAlbum(
-    const QString &id)
-{
-    if (
-        !ensureAuthenticated()
-    ) {
-        emit errorOccurred(
-            "Токен Яндекс Музыки не установлен");
+void AlbumService::loadAlbum(const QString &id) {
+  if (!ensureAuthenticated()) {
+    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    return;
+  }
 
-        return;
+  const QString albumId = id.trimmed();
+
+  if (albumId.isEmpty()) {
+    emit errorOccurred("ID альбома не указан");
+    return;
+  }
+
+  // L1-кэш: отдаём сразу, если данные ещё свежие.
+  AlbumDetails cached;
+
+  if (m_cache.get(albumId, cached)) {
+    emit albumReceived(cached);
+    return;
+  }
+
+  // -------------------------------------------------
+  // Album endpoint
+  // -------------------------------------------------
+  // /albums/{id}/with-tracks
+
+  const auto path = QStringLiteral("/albums/%1/with-tracks").arg(albumId);
+  QNetworkReply *reply = m_yandexClient->get(path);
+
+  connect(reply, &QNetworkReply::finished, this, [this, reply, albumId]() {
+    const QByteArray data = reply->readAll();
+
+    // Network error
+
+    if (reply->error() != QNetworkReply::NoError) {
+      emit errorOccurred(reply->errorString());
+      reply->deleteLater();
+      return;
     }
 
-    const QString albumId =
-        id.trimmed();
+    // Parse JSON
 
-    if (
-        albumId.isEmpty()
-    ) {
-        emit errorOccurred(
-            "ID альбома не указан");
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
 
-        return;
+    if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
+      emit errorOccurred("Некорректный ответ альбома");
+      reply->deleteLater();
+      return;
     }
 
-    /*
-     * L1-кэш: отдаём сразу, если данные ещё свежие.
-     */
-    AlbumDetails cached;
+    // API may return:
+    // {
+    // "result": {...}
+    // }
+    // or the object directly.
 
-    if (m_cache.get(albumId, cached)) {
-        emit albumReceived(cached);
-        return;
+    const QJsonObject albumObject = unwrapResult(document);
+
+    if (albumObject.isEmpty()) {
+      emit errorOccurred("Ответ альбома пуст");
+      reply->deleteLater();
+      return;
     }
 
-    /*
-     * -------------------------------------------------
-     * Album endpoint
-     * -------------------------------------------------
-     *
-     * /albums/{id}/with-tracks
-     */
+    AlbumDetails albumDetails;
 
-    const QString path =
-        QString(
-            "/albums/%1/with-tracks")
-            .arg(
-                albumId);
+    // -------------------------------------------------
+    // Album metadata
+    // -------------------------------------------------
 
-    QNetworkReply *reply =
-        m_yandexClient->get(
-            path);
+    const qint64 parsedAlbumId = albumObject.value("id").toInteger();
 
-    connect(
-        reply,
-        &QNetworkReply::finished,
-        this,
-        [this,
-         reply,
-         albumId]() {
+    if (parsedAlbumId > 0) {
+      albumDetails.album.id = QString::number(parsedAlbumId);
 
-            const QByteArray data =
-                reply->readAll();
+    } else {
+      albumDetails.album.id = albumId;
+    }
 
-            /*
-             * Network error
-             */
+    albumDetails.album.title = albumObject.value("title").toString();
+    albumDetails.album.coverUri = parseCoverUri(albumObject);
+    albumDetails.album.year = albumObject.value("year").toInt();
+    albumDetails.description = albumObject.value("description").toString();
+    albumDetails.trackCount = albumObject.value("trackCount").toInt();
 
-            if (
-                reply->error() !=
-                QNetworkReply::NoError
-            ) {
+    // -------------------------------------------------
+    // Main track structure
+    // -------------------------------------------------
+    // volumes:
+    // [
+    // [
+    // track,
+    // track,
+    // ...
+    // ]
+    // ]
 
-                emit errorOccurred(
-                    reply->errorString());
+    const QJsonArray volumes = albumObject.value("volumes").toArray();
 
-                reply->deleteLater();
+    for (const QJsonValue &volumeValue : volumes) {
+      if (!volumeValue.isArray()) continue;
+      const QList<Track> volumeTracks = parseTrackArray(volumeValue.toArray());
+      albumDetails.tracks.append(volumeTracks);
+    }
 
-                return;
-            }
+    // -------------------------------------------------
+    // Fallback:
+    // tracks directly in album object
+    // -------------------------------------------------
 
-            /*
-             * Parse JSON
-             */
+    if (albumDetails.tracks.isEmpty()) {
+      const QList<Track> tracks = parseTrackArray(albumObject.value("tracks").toArray());
+      albumDetails.tracks = tracks;
+    }
 
-            QJsonParseError parseError;
+    // If API did not provide
+    // trackCount, use parsed count.
 
-            const QJsonDocument document =
-                QJsonDocument::fromJson(
-                    data,
-                    &parseError);
+    if (albumDetails.trackCount <= 0) {
+      albumDetails.trackCount = albumDetails.tracks.size();
+    }
 
-            if (
-                parseError.error !=
-                    QJsonParseError::NoError ||
-                !document.isObject()
-            ) {
-
-                emit errorOccurred(
-                    "Некорректный ответ альбома");
-
-                reply->deleteLater();
-
-                return;
-            }
-
-            /*
-             * API may return:
-             *
-             * {
-             *     "result": {...}
-             * }
-             *
-             * or the object directly.
-             */
-
-            const QJsonObject albumObject =
-                unwrapResult(document);
-
-            if (
-                albumObject.isEmpty()
-            ) {
-                emit errorOccurred(
-                    "Ответ альбома пуст");
-
-                reply->deleteLater();
-
-                return;
-            }
-
-            AlbumDetails albumDetails;
-
-            /*
-             * -------------------------------------------------
-             * Album metadata
-             * -------------------------------------------------
-             */
-
-            const qint64 parsedAlbumId =
-                albumObject
-                    .value("id")
-                    .toInteger();
-
-            if (
-                parsedAlbumId > 0
-            ) {
-
-                albumDetails.album.id =
-                    QString::number(
-                        parsedAlbumId);
-
-            } else {
-
-                albumDetails.album.id =
-                    albumId;
-            }
-
-            albumDetails.album.title =
-                albumObject
-                    .value("title")
-                    .toString();
-
-            albumDetails.album.coverUri =
-                parseCoverUri(
-                    albumObject);
-
-            albumDetails.album.year =
-                albumObject
-                    .value("year")
-                    .toInt();
-
-            albumDetails.description =
-                albumObject
-                    .value("description")
-                    .toString();
-
-            albumDetails.trackCount =
-                albumObject
-                    .value("trackCount")
-                    .toInt();
-
-            /*
-             * -------------------------------------------------
-             * Main track structure
-             * -------------------------------------------------
-             *
-             * volumes:
-             *
-             * [
-             *     [
-             *         track,
-             *         track,
-             *         ...
-             *     ]
-             * ]
-             */
-
-            const QJsonArray volumes =
-                albumObject
-                    .value("volumes")
-                    .toArray();
-
-            for (
-                const QJsonValue &volumeValue :
-                volumes
-            ) {
-
-                if (
-                    !volumeValue.isArray()
-                ) {
-                    continue;
-                }
-
-                const QList<Track> volumeTracks =
-                    parseTrackArray(
-                        volumeValue.toArray());
-
-                albumDetails.tracks.append(
-                    volumeTracks);
-            }
-
-            /*
-             * -------------------------------------------------
-             * Fallback:
-             * tracks directly in album object
-             * -------------------------------------------------
-             */
-
-            if (
-                albumDetails.tracks.isEmpty()
-            ) {
-
-                const QList<Track> tracks =
-                    parseTrackArray(
-                        albumObject
-                            .value("tracks")
-                            .toArray());
-
-                albumDetails.tracks =
-                    tracks;
-            }
-
-            /*
-             * If API did not provide
-             * trackCount, use parsed count.
-             */
-
-            if (
-                albumDetails.trackCount <= 0
-            ) {
-
-                albumDetails.trackCount =
-                    albumDetails.tracks.size();
-            }
-
-            /*
-             * Debug
-             */
-
-            /*
-             * Notify listeners
-             */
-
-            m_cache.put(albumId, albumDetails);
-
-            emit albumReceived(
-                albumDetails);
-
-            reply->deleteLater();
-        });
+    m_cache.put(albumId, albumDetails);
+    emit albumReceived(albumDetails);
+    reply->deleteLater();
+  });
 }

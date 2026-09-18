@@ -1,35 +1,27 @@
 #pragma once
 
-#include <QList>
-#include <QString>
 #include "../../Models/Playlist.h"
 #include "../YandexServiceBase.h"
+#include <QList>
+#include <QString>
 
 class PlaylistService;
 
-class NewPlaylistsService : public YandexServiceBase
-{
-    Q_OBJECT
+class NewPlaylistsService : public YandexServiceBase {
+  Q_OBJECT
 
 public:
+  explicit NewPlaylistsService(YandexAuth *auth, PlaylistService *playlistService,
+                               QObject *parent = nullptr);
 
-    explicit NewPlaylistsService(
-        YandexAuth *auth,
-        PlaylistService *playlistService,
-        QObject *parent = nullptr);
+  void load();
 
-    void load();
+signals:
 
-    signals:
+  void playlistsReceived(const QList<Playlist> &playlists);
 
-        void playlistsReceived(
-            const QList<Playlist> &playlists);
-
-    void errorOccurred(
-        const QString &message);
+  void errorOccurred(const QString &message);
 
 private:
-
-    PlaylistService *
-        m_playlistService = nullptr;
+  PlaylistService *m_playlistService = nullptr;
 };

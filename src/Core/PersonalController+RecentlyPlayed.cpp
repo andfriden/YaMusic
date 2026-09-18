@@ -1,137 +1,60 @@
-#include "PersonalController.h"
 #include "../Playback/PlaybackController.h"
 #include "../Queue/QueueService.h"
+#include "PersonalController.h"
 
-void PersonalController::connectRecentlyPlayed()
-{
-    if (
-        m_recentListeningService == nullptr
-    ) {
-        return;
-    }
+void PersonalController::connectRecentlyPlayed() {
+  if (m_recentListeningService == nullptr) {
+    return;
+  }
 
-    connect(
-        m_recentListeningService,
-        &RecentListeningService::loadingChanged,
-        this,
-        [](bool loading) {
+  connect(m_recentListeningService, &RecentListeningService::tracksReceived, this,
+          [this](const QList<Track> &tracks) {
+            m_recentListeningModel->setTracks(tracks);
+            emit statusChanged(QString("Недавно слушали: %1 треков").arg(tracks.size()));
+          });
 
-        });
-
-    connect(
-        m_recentListeningService,
-        &RecentListeningService::tracksReceived,
-        this,
-        [this](
-            const QList<Track> &tracks) {
-
-            m_recentListeningModel
-                ->setTracks(
-                    tracks);
-
-            emit statusChanged(
-                QString(
-                    "Недавно слушали: %1 треков")
-                .arg(
-                    tracks.size()));
-        });
-
-    connect(
-        m_recentListeningService,
-        &RecentListeningService::errorOccurred,
-        this,
-        [this](
-            const QString &message) {
-
-            emit statusChanged(
-                QString(
-                    "Ошибка истории прослушивания: %1")
-                .arg(
-                    message));
-        });
+  connect(m_recentListeningService, &RecentListeningService::errorOccurred, this,
+          [this](const QString &message) {
+            emit statusChanged(QString("Ошибка истории прослушивания: %1").arg(message));
+          });
 }
 
-void PersonalController::selectRecentListening(
-    int index)
-{
-    if (
-        m_playbackController == nullptr
-    ) {
-        return;
-    }
+void PersonalController::selectRecentListening(int index) {
+  if (m_playbackController == nullptr) {
+    return;
+  }
 
-    const QList<Track> tracks =
-        m_recentListeningModel
-            ->tracks();
+  const QList<Track> tracks = m_recentListeningModel->tracks();
 
-    if (
-        tracks.isEmpty()
-    ) {
+  if (tracks.isEmpty()) {
+    emit statusChanged("История прослушивания пуста");
+    return;
+  }
 
-        emit statusChanged(
-            "История прослушивания пуста");
+  if (index < 0 || index >= tracks.size()) {
+    emit statusChanged("Некорректный трек истории");
+    return;
+  }
 
-        return;
-    }
+  // Перед началом другого источника
+  // отключаем Rotor Wave.
 
-    if (
-        index < 0 ||
-        index >= tracks.size()
-    ) {
+  m_myWaveQueueActive = false;
+  m_waitingForMoreMyWave = false;
 
-        emit statusChanged(
-            "Некорректный трек истории");
+  if (m_myWaveTrackStarted) {
+    stopCurrentMyWaveTrack("skip");
+  }
 
-        return;
-    }
+  QueueService *queue = m_playbackController->queueService();
 
-    /*
-     * Перед началом другого источника
-     * отключаем Rotor Wave.
-     */
+  if (queue != nullptr) {
+    queue->clear();
+    queue->addTracks(tracks);
+    queue->setCurrentIndex(index);
+  }
 
-    m_myWaveQueueActive =
-        false;
-
-    m_waitingForMoreMyWave =
-        false;
-
-    if (
-        m_myWaveTrackStarted
-    ) {
-
-        stopCurrentMyWaveTrack(
-            "skip");
-    }
-
-    QueueService *queue =
-        m_playbackController
-            ->queueService();
-
-    if (
-        queue != nullptr
-    ) {
-
-        queue->clear();
-
-        queue->addTracks(
-            tracks);
-
-        queue->setCurrentIndex(
-            index);
-    }
-
-    const Track track =
-        tracks.at(
-            index);
-
-    emit statusChanged(
-        QString(
-            "Выбран трек: %1")
-        .arg(
-            track.title));
-
-    m_playbackController
-        ->playTrack(
-            track);
+  const Track track = tracks.at(index);
+  emit statusChanged(QString("Выбран трек: %1").arg(track.title));
+  m_playbackController->playTrack(track);
 }

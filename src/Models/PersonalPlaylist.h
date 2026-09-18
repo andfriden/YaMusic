@@ -2,21 +2,20 @@
 
 #include <QString>
 
-struct PersonalPlaylist
-{
-    QString id;
-    QString uid;
+struct PersonalPlaylist {
+  QString id;
+  QString uid;
 
-    int kind = 0;
-    int revision = 0;
+  int kind = 0;
+  int revision = 0;
 
-    QString title;
-    QString description;
-    QString previewDescription;
+  QString title;
+  QString description;
+  QString previewDescription;
 
-    QString coverUri;
+  QString coverUri;
 
-    int trackCount = 0;
+  int trackCount = 0;
 
-    QString generatedPlaylistType;
+  QString generatedPlaylistType;
 };

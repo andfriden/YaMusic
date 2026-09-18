@@ -1,150 +1,100 @@
 #include "ArtistModel.h"
 #include <QStringList>
 
-ArtistModel::ArtistModel(
-    QObject *parent)
-    : TrackListModelBase(parent)
-{
-}
+ArtistModel::ArtistModel(QObject *parent) : TrackListModelBase(parent) {}
 
-QVariant ArtistModel::data(
-    const QModelIndex &index,
-    int role) const
-{
-    if (
-        !index.isValid() ||
-        index.row() < 0 ||
-        index.row() >= m_tracks.size()
-    ) {
-        return {};
+QVariant ArtistModel::data(const QModelIndex &index, int role) const {
+  if (!index.isValid() || index.row() < 0 || index.row() >= m_tracks.size()) {
+    return {};
+  }
+
+  const Track &track = m_tracks.at(index.row());
+
+  switch (role) {
+  case IdRole:
+    return track.id;
+
+  case TitleRole:
+    return track.title;
+
+  case ArtistRole: {
+    QStringList artistNames;
+
+    for (const Artist &artist : track.artists) {
+      if (!artist.name.isEmpty()) {
+        artistNames.append(artist.name);
+      }
+    }
+    return artistNames.join(", ");
+  }
+
+  case ArtistIdRole:
+
+    if (!track.artists.isEmpty()) {
+      return track.artists.first().id;
     }
 
-    const Track &track =
-        m_tracks.at(
-            index.row());
+    return QString();
 
-    switch (role) {
+  case AlbumRole:
 
-    case IdRole:
-        return track.id;
-
-    case TitleRole:
-        return track.title;
-
-    case ArtistRole:
-    {
-        QStringList artistNames;
-
-        for (
-            const Artist &artist :
-            track.artists
-        ) {
-
-            if (!artist.name.isEmpty()) {
-                artistNames.append(
-                    artist.name);
-            }
-        }
-
-        return artistNames.join(
-            ", ");
+    if (!track.albums.isEmpty()) {
+      return track.albums.first().title;
     }
 
-    case ArtistIdRole:
+    return QString();
 
-        if (!track.artists.isEmpty()) {
-            return track.artists
-                .first()
-                .id;
-        }
+  case AlbumIdRole:
 
-        return QString();
-
-    case AlbumRole:
-
-        if (!track.albums.isEmpty()) {
-            return track.albums
-                .first()
-                .title;
-        }
-
-        return QString();
-
-    case AlbumIdRole:
-
-        if (!track.albums.isEmpty()) {
-            return track.albums
-                .first()
-                .id;
-        }
-
-        return QString();
-
-    case CoverUriRole:
-        return track.coverUri;
-
-    case DurationMsRole:
-        return track.durationMs;
-
-    default:
-        return {};
+    if (!track.albums.isEmpty()) {
+      return track.albums.first().id;
     }
+
+    return QString();
+
+  case CoverUriRole:
+    return track.coverUri;
+
+  case DurationMsRole:
+    return track.durationMs;
+
+  default:
+    return {};
+  }
 }
 
-QHash<int, QByteArray>
-ArtistModel::roleNames() const
-{
-    return {
-        {IdRole, "trackId"},
-        {TitleRole, "title"},
-        {ArtistRole, "artist"},
-        {ArtistIdRole, "artistId"},
-        {AlbumRole, "album"},
-        {AlbumIdRole, "albumId"},
-        {CoverUriRole, "coverUri"},
-        {DurationMsRole, "durationMs"}
-    };
+QHash<int, QByteArray> ArtistModel::roleNames() const {
+  return {{IdRole, "trackId"},        {TitleRole, "title"},          {ArtistRole, "artist"},
+          {ArtistIdRole, "artistId"}, {AlbumRole, "album"},          {AlbumIdRole, "albumId"},
+          {CoverUriRole, "coverUri"}, {DurationMsRole, "durationMs"}};
 }
 
-void ArtistModel::setArtist(
-    const ArtistDetails &artist)
-{
-    m_artist =
-        artist;
-
-    setTracks(
-        artist.tracks);
+void ArtistModel::setArtist(const ArtistDetails &artist) {
+  m_artist = artist;
+  setTracks(artist.tracks);
 }
 
-void ArtistModel::clear()
-{
-    TrackListModelBase::clear();
-
-    m_artist = {};
+void ArtistModel::clear() {
+  TrackListModelBase::clear();
+  m_artist = {};
 }
 
-QString ArtistModel::id() const
-{
-    return m_artist.id;
+QString ArtistModel::id() const {
+  return m_artist.id;
 }
 
-QString ArtistModel::name() const
-{
-    return m_artist.name;
+QString ArtistModel::name() const {
+  return m_artist.name;
 }
 
-QString ArtistModel::coverUri() const
-{
-    return m_artist.coverUri;
+QString ArtistModel::coverUri() const {
+  return m_artist.coverUri;
 }
 
-QString ArtistModel::description() const
-{
-    return m_artist.description;
+QString ArtistModel::description() const {
+  return m_artist.description;
 }
 
-QString ArtistModel::genres() const
-{
-    return m_artist.genres.join(
-        ", ");
+QString ArtistModel::genres() const {
+  return m_artist.genres.join(", ");
 }

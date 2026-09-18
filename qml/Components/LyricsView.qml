@@ -14,17 +14,17 @@ Item {
     readonly property bool hasTimedLines:
         root.controller !== null &&
         root.controller !== undefined &&
-        root.controller.lyricsLineCount > 0
+        root.controller.lyricsController.lyricsLineCount > 0
 
     readonly property int currentLine:
         root.hasTimedLines
-            ? root.controller.currentLyricLine
+            ? root.controller.lyricsController.currentLyricLine
             : -1
 
     readonly property string plainText:
         root.controller !== null &&
         root.controller !== undefined
-            ? String(root.controller.lyricsText || "")
+            ? String(root.controller.lyricsController.lyricsText || "")
             : ""
 
     Rectangle {
@@ -120,7 +120,7 @@ Item {
             visible: root.hasTimedLines
 
             model: root.hasTimedLines
-                ? root.controller.lyricsLineCount
+                ? root.controller.lyricsController.lyricsLineCount
                 : 0
 
             ScrollBar.vertical:
@@ -133,7 +133,7 @@ Item {
 
                 width: linesView.width
 
-                text: root.controller.lyricLineText(index)
+                text: root.controller.lyricsController.lyricLineText(index)
 
                 color:
                     index === root.currentLine

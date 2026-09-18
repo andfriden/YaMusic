@@ -3,65 +3,49 @@
 #include <QList>
 #include <QString>
 
-struct Artist
-{
-    QString id;
-    QString name;
-    QString coverUri;
+struct Artist {
+  QString id;
+  QString name;
+  QString coverUri;
 };
 
-struct Album
-{
-    QString id;
-    QString title;
-    QString coverUri;
-    int year = 0;
+struct Album {
+  QString id;
+  QString title;
+  QString coverUri;
+  int year = 0;
 
-    /*
-     * Тип релиза из API: "album", "single", "compilation".
-     * Пустая строка, если тип не указан.
-     */
-    QString type;
+  // Тип релиза из API: "album", "single", "compilation".
+  // Пустая строка, если тип не указан.
+  QString type;
 };
 
-struct Track
-{
-    QString id;
-    QString title;
-    QString coverUri;
+struct Track {
+  QString id;
+  QString title;
+  QString coverUri;
 
-    int durationMs = 0;
+  int durationMs = 0;
 
-    QList<Artist> artists;
-    QList<Album> albums;
+  QList<Artist> artists;
+  QList<Album> albums;
 
-    bool liked = false;
+  bool liked = false;
 };
 
-
-/*
- * Одна строка синхронизированного текста.
- */
-struct LyricLine
-{
-    qint64 timestampMs = 0;
-    QString text;
+// Одна строка синхронизированного текста.
+struct LyricLine {
+  qint64 timestampMs = 0;
+  QString text;
 };
 
+// Текст песни из /tracks/{id}/supplement.
+struct TrackSupplementary {
+  QString trackId;
 
-/*
- * Текст песни из /tracks/{id}/supplement.
- */
-struct TrackSupplementary
-{
-    QString trackId;
+  QString fullText;
 
-    QString fullText;
+  QList<LyricLine> lines;
 
-    QList<LyricLine> lines;
-
-    bool hasTimedLines() const
-    {
-        return !lines.isEmpty();
-    }
+  bool hasTimedLines() const { return !lines.isEmpty(); }
 };

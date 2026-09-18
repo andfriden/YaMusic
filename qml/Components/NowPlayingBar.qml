@@ -30,13 +30,13 @@ Rectangle {
         root.hasTrack &&
         root.controller !== null &&
         root.controller !== undefined &&
-        root.controller.playerAccent !== undefined &&
-        root.controller.playerAccent !== null &&
-        root.controller.playerAccent.valid
+        root.controller.accentController.playerAccent !== undefined &&
+        root.controller.accentController.playerAccent !== null &&
+        root.controller.accentController.playerAccent.valid
 
     readonly property color playerAccent:
         root.hasPlayerAccent
-            ? root.controller.playerAccent
+            ? root.controller.accentController.playerAccent
             : AppTheme.accent
 
     height: 124

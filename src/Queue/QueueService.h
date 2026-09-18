@@ -1,135 +1,95 @@
 #pragma once
 
+#include "../Models/Track.h"
 #include <QList>
 #include <QObject>
 #include <QString>
-#include "../Models/Track.h"
 
-class QueueService : public QObject
-{
-    Q_OBJECT
+class QueueService : public QObject {
+  Q_OBJECT
 
 public:
+  enum RepeatMode { RepeatOff = 0, RepeatOne, RepeatAll };
 
-    enum RepeatMode {
-        RepeatOff = 0,
-        RepeatOne,
-        RepeatAll
-    };
+  Q_ENUM(RepeatMode)
 
-    Q_ENUM(RepeatMode)
+  explicit QueueService(QObject *parent = nullptr);
 
-    explicit QueueService(
-        QObject *parent = nullptr);
+  int count() const;
 
-    // Queue
+  int currentIndex() const;
 
-    int count() const;
+  Track currentTrack() const;
 
-    int currentIndex() const;
+  Track trackAt(int index) const;
 
-    Track currentTrack() const;
+  QList<Track> tracks() const;
 
-    Track trackAt(
-        int index) const;
+  QString sourceTitle() const;
 
-    QList<Track> tracks() const;
+  QString sourceType() const;
 
-    // Source
+  void setSource(const QString &title, const QString &type);
 
-    QString sourceTitle() const;
+  void clearSource();
 
-    QString sourceType() const;
+  void addTrack(const Track &track);
 
-    void setSource(
-        const QString &title,
-        const QString &type);
+  void addTracks(const QList<Track> &tracks);
 
-    void clearSource();
+  void removeTrack(int index);
 
-    // Modification
+  void moveTrack(int from, int to);
 
-    void addTrack(
-        const Track &track);
+  void clear();
 
-    void addTracks(
-        const QList<Track> &tracks);
+  bool setCurrentIndex(int index);
 
-    void removeTrack(
-        int index);
+  bool next();
 
-    void moveTrack(
-        int from,
-        int to);
+  bool previous();
 
-    void clear();
+  bool hasNext() const;
 
-    // Navigation
+  bool hasPrevious() const;
 
-    bool setCurrentIndex(
-        int index);
+  RepeatMode repeatMode() const;
 
-    bool next();
+  void setRepeatMode(RepeatMode mode);
 
-    bool previous();
+  void cycleRepeatMode();
 
-    bool hasNext() const;
+  bool shuffleEnabled() const;
 
-    bool hasPrevious() const;
+  void setShuffleEnabled(bool enabled);
 
-    // Repeat
-
-    RepeatMode repeatMode() const;
-
-    void setRepeatMode(
-        RepeatMode mode);
-
-    void cycleRepeatMode();
-
-    // Shuffle
-
-    bool shuffleEnabled() const;
-
-    void setShuffleEnabled(
-        bool enabled);
-
-    void toggleShuffle();
+  void toggleShuffle();
 
 signals:
 
-    void queueChanged();
+  void queueChanged();
 
-    void currentChanged();
+  void currentChanged();
 
-    void repeatModeChanged();
+  void repeatModeChanged();
 
-    void shuffleChanged();
-
-private:
-
-    void rebuildShuffledQueue();
+  void shuffleChanged();
 
 private:
+  void rebuildShuffledQueue();
 
-    // Tracks
+private:
+  QList<Track> m_tracks;
 
-    QList<Track> m_tracks;
+  QList<Track> m_originalTracks;
 
-    QList<Track> m_originalTracks;
+  int m_currentIndex = -1;
 
-    int m_currentIndex = -1;
+  QString m_sourceTitle;
 
-    // Source
+  QString m_sourceType;
 
-    QString m_sourceTitle;
+  RepeatMode m_repeatMode = RepeatOff;
 
-    QString m_sourceType;
-
-    // Playback options
-
-    RepeatMode m_repeatMode =
-        RepeatOff;
-
-    bool m_shuffleEnabled =
-        false;
+  bool m_shuffleEnabled = false;
 };

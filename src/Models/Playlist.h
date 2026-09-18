@@ -1,21 +1,20 @@
 #pragma once
 
+#include "Track.h"
 #include <QList>
 #include <QString>
-#include "Track.h"
 
-struct Playlist
-{
-    QString uid;
-    int kind = 0;
-    QString uuid;
+struct Playlist {
+  QString uid;
+  int kind = 0;
+  QString uuid;
 
-    QString title;
-    QString description;
-    QString coverUri;
+  QString title;
+  QString description;
+  QString coverUri;
 
-    int trackCount = 0;
-    int revision = 0;
+  int trackCount = 0;
+  int revision = 0;
 
-    QList<Track> tracks;
+  QList<Track> tracks;
 };

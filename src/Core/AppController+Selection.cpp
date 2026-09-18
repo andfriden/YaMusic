@@ -1,229 +1,106 @@
 #include "AppController.h"
 
-// Search
-void AppController::selectSearchResult(int index)
-{
-    if (m_searchController == nullptr) {
-        return;
-    }
-
-    m_searchController->selectResult(index);
+void AppController::selectSearchResult(int index) {
+  m_searchController->selectResult(index);
 }
 
-void AppController::selectSearchArtist(int index)
-{
-    if (m_searchController == nullptr) {
-        return;
-    }
-
-    m_searchController->selectArtistResult(index);
+void AppController::selectSearchArtist(int index) {
+  m_searchController->selectArtistResult(index);
 }
 
-void AppController::selectSearchAlbum(int index)
-{
-    if (m_searchController == nullptr) {
-        return;
-    }
-
-    m_searchController->selectAlbumResult(index);
+void AppController::selectSearchAlbum(int index) {
+  m_searchController->selectAlbumResult(index);
 }
 
-void AppController::selectSearchPlaylist(int index)
-{
-    if (m_searchController == nullptr) {
-        return;
-    }
-
-    m_searchController->selectPlaylistResult(index);
+void AppController::selectSearchPlaylist(int index) {
+  m_searchController->selectPlaylistResult(index);
 }
 
-// My Wave
-void AppController::selectMyWaveTrack(int index)
-{
-    if (m_personalController == nullptr) {
-        return;
-    }
-
-    m_personalController->selectMyWaveTrack(index);
+void AppController::selectMyWaveTrack(int index) {
+  m_personalController->selectMyWaveTrack(index);
 }
 
-// Personal / catalog playlist
-void AppController::selectPersonalPlaylist(
-    const QString &uid,
-    int kind)
-{
-    const QString playlistUid = uid.trimmed();
+void AppController::selectPersonalPlaylist(const QString &uid, int kind) {
+  const QString playlistUid = uid.trimmed();
 
-    if (playlistUid.isEmpty() || kind <= 0) {
-        emit statusChanged("Некорректный плейлист");
-        return;
-    }
+  if (playlistUid.isEmpty() || kind <= 0) {
+    emit statusChanged("Некорректный плейлист");
+    return;
+  }
 
-    if (m_libraryController == nullptr) {
-        return;
-    }
+  emit playlistPageRequested();
+  m_libraryController->loadPlaylist(playlistUid, kind);
 
-    emit playlistPageRequested();
-
-    m_libraryController->loadPlaylist(
-        playlistUid,
-        kind);
-
-    // Для персональных подборок («Собираем для вас»: Премьера,
-    // Дежавю, Тайник, Плейлист дня) сервер не отдаёт
-    // similar-entities, поэтому подставляем остальные плейлисты
-    // из того же раздела лендинга.
-    m_libraryController->setSimilarPlaylistsFallback(
-        m_personalController->recommendationPlaylistsData(
-            playlistUid,
-            kind));
+  // Для персональных подборок («Собираем для вас»: Премьера,
+  // Дежавю, Тайник, Плейлист дня) сервер не отдаёт
+  // similar-entities, поэтому подставляем остальные плейлисты
+  // из того же раздела лендинга.
+  m_libraryController->setSimilarPlaylistsFallback(
+      m_personalController->recommendationPlaylistsData(playlistUid, kind));
 }
 
-// Playlist track
-void AppController::selectPlaylistTrack(int index)
-{
-    if (m_libraryController == nullptr) {
-        return;
-    }
-
-    m_libraryController->selectPlaylistTrack(index);
+void AppController::selectPlaylistTrack(int index) {
+  m_libraryController->selectPlaylistTrack(index);
 }
 
-// Recent listening
-void AppController::selectRecentListening(int index)
-{
-    if (m_personalController == nullptr) {
-        return;
-    }
-
-    m_personalController->selectRecentListening(index);
+void AppController::selectRecentListening(int index) {
+  m_personalController->selectRecentListening(index);
 }
 
-// Album track
-void AppController::selectAlbumTrack(int index)
-{
-    if (m_albumController == nullptr) {
-        return;
-    }
-
-    m_albumController->selectAlbumTrack(index);
+void AppController::selectAlbumTrack(int index) {
+  m_albumController->selectAlbumTrack(index);
 }
 
-// Artist track
-void AppController::selectArtistTrack(int index)
-{
-    if (m_artistController == nullptr) {
-        return;
-    }
-
-    m_artistController->selectTrack(index);
+void AppController::selectArtistTrack(int index) {
+  m_artistController->selectTrack(index);
 }
 
-// Similar artist
-void AppController::selectSimilarArtist(int index)
-{
-    if (m_artistController == nullptr) {
-        return;
-    }
-
-    m_artistController->selectSimilarArtist(index);
+void AppController::selectSimilarArtist(int index) {
+  m_artistController->selectSimilarArtist(index);
 }
 
-// Similar track
-void AppController::selectSimilarTrack(int index)
-{
-    if (m_similarTracksModel == nullptr) {
-        return;
-    }
+void AppController::selectSimilarTrack(int index) {
+  const Track track = m_similarTracksModel->trackAt(index);
 
-    const Track track =
-        m_similarTracksModel->trackAt(index);
+  if (track.id.isEmpty()) {
+    emit statusChanged("Некорректный трек");
+    return;
+  }
 
-    if (track.id.isEmpty()) {
-        emit statusChanged(
-            "Некорректный трек");
-        return;
-    }
+  const QList<Track> tracks = m_similarTracksModel->tracks();
 
-    if (m_playbackController == nullptr) {
-        return;
-    }
+  if (tracks.isEmpty()) {
+    return;
+  }
 
-    const QList<Track> tracks =
-        m_similarTracksModel->tracks();
-
-    if (tracks.isEmpty()) {
-        return;
-    }
-
-    m_playbackController->playFromSource(
-        tracks,
-        index,
-        "Похожие треки",
-        "similar");
+  m_playbackController->playFromSource(tracks, index, "Похожие треки", "similar");
 }
 
-// Genre station
-void AppController::loadMoreGenreStation()
-{
-    if (m_genreController == nullptr) {
-        return;
-    }
-
-    m_genreController->loadMoreGenreStation();
+void AppController::loadMoreGenreStation() {
+  m_genreController->loadMoreGenreStation();
 }
 
-void AppController::selectGenreStationTrack(int index)
-{
-    if (m_genreController == nullptr) {
-        return;
-    }
-
-    m_genreController->selectStationTrack(index);
+void AppController::selectGenreStationTrack(int index) {
+  m_genreController->selectStationTrack(index);
 }
 
-// Playlist CRUD
-void AppController::createPlaylist(const QString &title)
-{
-    if (m_libraryController == nullptr) {
-        return;
-    }
-
-    m_libraryController->createPlaylist(title);
+void AppController::createPlaylist(const QString &title) {
+  m_libraryController->createPlaylist(title);
 }
 
-void AppController::deleteCurrentPlaylist()
-{
-    if (m_libraryController == nullptr) {
-        return;
-    }
-
-    m_libraryController->deleteCurrentPlaylist();
+void AppController::deleteCurrentPlaylist() {
+  m_libraryController->deleteCurrentPlaylist();
 }
 
-void AppController::renameCurrentPlaylist(const QString &newTitle)
-{
-    if (m_libraryController == nullptr) {
-        return;
-    }
-
-    m_libraryController->renameCurrentPlaylist(newTitle);
+void AppController::renameCurrentPlaylist(const QString &newTitle) {
+  m_libraryController->renameCurrentPlaylist(newTitle);
 }
 
-void AppController::removeTrackFromPlaylist(int index)
-{
-    if (m_libraryController == nullptr) {
-        return;
-    }
-
-    m_libraryController->removeTrackFromPlaylist(index);
+void AppController::removeTrackFromPlaylist(int index) {
+  m_libraryController->removeTrackFromPlaylist(index);
 }
 
-void AppController::addTrackToPlaylist(int kind, const QString &trackId, const QString &albumId, int revision)
-{
-    if (m_libraryController == nullptr) {
-        return;
-    }
-
-    m_libraryController->addTrackToPlaylist(kind, trackId, albumId, revision);
+void AppController::addTrackToPlaylist(int kind, const QString &trackId, const QString &albumId,
+                                       int revision) {
+  m_libraryController->addTrackToPlaylist(kind, trackId, albumId, revision);
 }

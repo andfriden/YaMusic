@@ -1,8 +1,8 @@
 #pragma once
 
+#include "../Models/Track.h"
 #include <QObject>
 #include <QString>
-#include "../Models/Track.h"
 
 #include "../Yandex/Catalog/ArtistAlbumsModel.h"
 #include "../Yandex/Catalog/ArtistModel.h"
@@ -11,179 +11,118 @@
 class ArtistService;
 class PlaybackController;
 
-class ArtistController : public QObject
-{
-    Q_OBJECT
+class ArtistController : public QObject {
+  Q_OBJECT
 
-    Q_PROPERTY(
-        bool loading
-        READ isLoading
-        NOTIFY loadingChanged)
+  Q_PROPERTY(bool loading READ isLoading NOTIFY loadingChanged)
 
-    Q_PROPERTY(
-        ArtistModel *artistModel
-        READ artistModel
-        CONSTANT)
+  Q_PROPERTY(ArtistModel *artistModel READ artistModel CONSTANT)
 
-    Q_PROPERTY(
-        ArtistAlbumsModel *albumsModel
-        READ albumsModel
-        CONSTANT)
+  Q_PROPERTY(ArtistAlbumsModel *albumsModel READ albumsModel CONSTANT)
 
-    Q_PROPERTY(
-        SimilarArtistsModel *similarArtistsModel
-        READ similarArtistsModel
-        CONSTANT)
+  Q_PROPERTY(SimilarArtistsModel *similarArtistsModel READ similarArtistsModel CONSTANT)
 
-    Q_PROPERTY(
-        QString artistId
-        READ artistId
-        NOTIFY artistChanged)
+  Q_PROPERTY(QString artistId READ artistId NOTIFY artistChanged)
 
-    Q_PROPERTY(
-        QString artistName
-        READ artistName
-        NOTIFY artistChanged)
+  Q_PROPERTY(QString artistName READ artistName NOTIFY artistChanged)
 
-    Q_PROPERTY(
-        QString artistCoverUri
-        READ artistCoverUri
-        NOTIFY artistChanged)
+  Q_PROPERTY(QString artistCoverUri READ artistCoverUri NOTIFY artistChanged)
 
-    Q_PROPERTY(
-        QString artistDescription
-        READ artistDescription
-        NOTIFY artistChanged)
+  Q_PROPERTY(QString artistDescription READ artistDescription NOTIFY artistChanged)
 
-    Q_PROPERTY(
-        QString artistGenres
-        READ artistGenres
-        NOTIFY artistChanged)
+  Q_PROPERTY(QString artistGenres READ artistGenres NOTIFY artistChanged)
 
-    Q_PROPERTY(
-        QString newReleaseId
-        READ newReleaseId
-        NOTIFY artistChanged)
+  Q_PROPERTY(QString newReleaseId READ newReleaseId NOTIFY artistChanged)
 
-    Q_PROPERTY(
-        QString newReleaseTitle
-        READ newReleaseTitle
-        NOTIFY artistChanged)
+  Q_PROPERTY(QString newReleaseTitle READ newReleaseTitle NOTIFY artistChanged)
 
-    Q_PROPERTY(
-        QString newReleaseCoverUri
-        READ newReleaseCoverUri
-        NOTIFY artistChanged)
+  Q_PROPERTY(QString newReleaseCoverUri READ newReleaseCoverUri NOTIFY artistChanged)
 
-    Q_PROPERTY(
-        int newReleaseYear
-        READ newReleaseYear
-        NOTIFY artistChanged)
+  Q_PROPERTY(int newReleaseYear READ newReleaseYear NOTIFY artistChanged)
 
-    Q_PROPERTY(
-        QString albumFilterType
-        READ albumFilterType
-        NOTIFY albumFilterChanged)
+  Q_PROPERTY(QString albumFilterType READ albumFilterType NOTIFY albumFilterChanged)
 
 public:
-    explicit ArtistController(
-        ArtistService *artistService,
-        PlaybackController *playbackController,
-        QObject *parent = nullptr);
+  explicit ArtistController(ArtistService *artistService, PlaybackController *playbackController,
+                            QObject *parent = nullptr);
 
-    void loadArtist(
-        const QString &id);
+  void loadArtist(const QString &id);
 
-    Q_INVOKABLE void selectTrack(
-        int index);
+  Q_INVOKABLE void selectTrack(int index);
 
-    Q_INVOKABLE void selectSimilarArtist(
-        int index);
+  Q_INVOKABLE void selectSimilarArtist(int index);
 
-    Q_INVOKABLE void playArtist();
+  Q_INVOKABLE void playArtist();
 
-    /*
-     * Устанавливает фильтр альбомов: "", "album", "single", "compilation".
-     * Пустая строка — показать всё.
-     */
-    Q_INVOKABLE void setAlbumFilterType(
-        const QString &filterType);
+  // Устанавливает фильтр альбомов: "", "album", "single", "compilation".
+  // Пустая строка — показать всё.
+  Q_INVOKABLE void setAlbumFilterType(const QString &filterType);
 
-    ArtistModel *artistModel() const;
+  ArtistModel *artistModel() const;
 
-    ArtistAlbumsModel *albumsModel() const;
+  ArtistAlbumsModel *albumsModel() const;
 
-    SimilarArtistsModel *similarArtistsModel() const;
+  SimilarArtistsModel *similarArtistsModel() const;
 
-    bool isLoading() const;
+  bool isLoading() const;
 
-    QString artistId() const;
+  QString artistId() const;
 
-    QString artistName() const;
+  QString artistName() const;
 
-    QString artistCoverUri() const;
+  QString artistCoverUri() const;
 
-    QString artistDescription() const;
+  QString artistDescription() const;
 
-    QString artistGenres() const;
+  QString artistGenres() const;
 
-    QString newReleaseId() const;
+  QString newReleaseId() const;
 
-    QString newReleaseTitle() const;
+  QString newReleaseTitle() const;
 
-    QString newReleaseCoverUri() const;
+  QString newReleaseCoverUri() const;
 
-    int newReleaseYear() const;
+  int newReleaseYear() const;
 
-    QString albumFilterType() const;
+  QString albumFilterType() const;
 
 signals:
-    void statusChanged(
-        const QString &message);
+  void statusChanged(const QString &message);
 
-    void loadingChanged();
+  void loadingChanged();
 
-    void artistChanged();
+  void artistChanged();
 
-    void trackSelected(
-        const Track &track);
+  void trackSelected(const Track &track);
 
-    void similarArtistSelected(
-        const QString &artistId);
+  void similarArtistSelected(const QString &artistId);
 
-    void albumFilterChanged();
+  void albumFilterChanged();
 
 private:
+  void applyAlbumFilter();
 
-    void applyAlbumFilter();
+  ArtistService *m_artistService = nullptr;
 
-    ArtistService *m_artistService =
-        nullptr;
+  PlaybackController *m_playbackController = nullptr;
 
-    PlaybackController *m_playbackController =
-        nullptr;
+  ArtistModel *m_artistModel = nullptr;
 
-    ArtistModel *m_artistModel =
-        nullptr;
+  ArtistAlbumsModel *m_albumsModel = nullptr;
 
-    ArtistAlbumsModel *m_albumsModel =
-        nullptr;
+  SimilarArtistsModel *m_similarArtistsModel = nullptr;
 
-    SimilarArtistsModel *m_similarArtistsModel =
-        nullptr;
+  bool m_loading = false;
 
-    bool m_loading =
-        false;
+  QString m_artistId;
+  QString m_artistName;
+  QString m_artistCoverUri;
+  QString m_artistDescription;
+  QString m_artistGenres;
 
-    QString m_artistId;
-    QString m_artistName;
-    QString m_artistCoverUri;
-    QString m_artistDescription;
-    QString m_artistGenres;
+  Album m_newRelease;
 
-    Album m_newRelease;
+  QString m_albumFilterType;
 
-    QString m_albumFilterType;
-
-    QList<Album> m_allAlbums;
+  QList<Album> m_allAlbums;
 };

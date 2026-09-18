@@ -1,29 +1,21 @@
 #pragma once
 
-#include <QList>
-#include <QString>
 #include "../../Models/Track.h"
 #include "../YandexServiceBase.h"
+#include <QList>
+#include <QString>
 
-class ChartService : public YandexServiceBase
-{
-    Q_OBJECT
+class ChartService : public YandexServiceBase {
+  Q_OBJECT
 
 public:
+  explicit ChartService(YandexAuth *auth, QObject *parent = nullptr);
 
-    explicit ChartService(
-        YandexAuth *auth,
-        QObject *parent = nullptr);
+  void loadChart(const QString &chartType);
 
-    void loadChart(
-        const QString &chartType);
+signals:
 
-    signals:
+  void chartReceived(const QList<Track> &tracks, const QString &chartType);
 
-        void chartReceived(
-            const QList<Track> &tracks,
-            const QString &chartType);
-
-    void errorOccurred(
-        const QString &message);
+  void errorOccurred(const QString &message);
 };

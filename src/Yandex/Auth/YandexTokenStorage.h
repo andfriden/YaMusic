@@ -2,10 +2,9 @@
 
 #include <QString>
 
-class YandexTokenStorage
-{
+class YandexTokenStorage {
 public:
-    static QString load();
-    static bool saveToken(const QString &token);
-    static bool clearToken();
+  static QString load();
+  static bool saveToken(const QString &token);
+  static bool clearToken();
 };

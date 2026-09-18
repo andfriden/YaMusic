@@ -1,9 +1,9 @@
 #pragma once
 
+#include "../Playback/PlaybackController.h"
 #include <QObject>
 #include <QString>
 #include <QVariantList>
-#include "../Playback/PlaybackController.h"
 
 #include "../Yandex/Catalog/ArtistModel.h"
 #include "../Yandex/Catalog/ArtistService.h"
@@ -16,392 +16,223 @@
 
 class LikesService;
 
-class LibraryController : public QObject
-{
-    Q_OBJECT
+class LibraryController : public QObject {
+  Q_OBJECT
 
-    // Library playlists
+  Q_PROPERTY(bool loadingLibraryPlaylists READ isLoadingLibraryPlaylists NOTIFY
+                 loadingLibraryPlaylistsChanged)
 
-    Q_PROPERTY(
-        bool loadingLibraryPlaylists
-        READ isLoadingLibraryPlaylists
-        NOTIFY loadingLibraryPlaylistsChanged)
+  Q_PROPERTY(LibraryPlaylistsModel *libraryPlaylistsModel READ libraryPlaylistsModel CONSTANT)
 
-    Q_PROPERTY(
-        LibraryPlaylistsModel *libraryPlaylistsModel
-        READ libraryPlaylistsModel
-        CONSTANT)
+  Q_PROPERTY(bool loadingLikedTracks READ isLoadingLikedTracks NOTIFY loadingLikedTracksChanged)
 
-    // Liked tracks
+  Q_PROPERTY(LikedTracksModel *likedTracksModel READ likedTracksModel CONSTANT)
 
-    Q_PROPERTY(
-        bool loadingLikedTracks
-        READ isLoadingLikedTracks
-        NOTIFY loadingLikedTracksChanged)
+  Q_PROPERTY(bool loadingLikedAlbums READ isLoadingLikedAlbums NOTIFY loadingLikedAlbumsChanged)
 
-    Q_PROPERTY(
-        LikedTracksModel *likedTracksModel
-        READ likedTracksModel
-        CONSTANT)
+  Q_PROPERTY(LikedAlbumsModel *likedAlbumsModel READ likedAlbumsModel CONSTANT)
 
-    // Liked albums
+  Q_PROPERTY(bool loadingLikedArtists READ isLoadingLikedArtists NOTIFY loadingLikedArtistsChanged)
 
-    Q_PROPERTY(
-        bool loadingLikedAlbums
-        READ isLoadingLikedAlbums
-        NOTIFY loadingLikedAlbumsChanged)
+  Q_PROPERTY(LikedArtistsModel *likedArtistsModel READ likedArtistsModel CONSTANT)
 
-    Q_PROPERTY(
-        LikedAlbumsModel *likedAlbumsModel
-        READ likedAlbumsModel
-        CONSTANT)
+  Q_PROPERTY(bool loadingPlaylist READ isLoadingPlaylist NOTIFY loadingPlaylistChanged)
 
-    // Liked artists
+  Q_PROPERTY(QString currentPlaylistTitle READ currentPlaylistTitle NOTIFY currentPlaylistChanged)
 
-    Q_PROPERTY(
-        bool loadingLikedArtists
-        READ isLoadingLikedArtists
-        NOTIFY loadingLikedArtistsChanged)
+  Q_PROPERTY(
+      QString currentPlaylistCoverUri READ currentPlaylistCoverUri NOTIFY currentPlaylistChanged)
 
-    Q_PROPERTY(
-        LikedArtistsModel *likedArtistsModel
-        READ likedArtistsModel
-        CONSTANT)
+  Q_PROPERTY(
+      int currentPlaylistTrackCount READ currentPlaylistTrackCount NOTIFY currentPlaylistChanged)
 
-    // Playlist state
+  Q_PROPERTY(QVariantList similarPlaylists READ similarPlaylists NOTIFY similarPlaylistsChanged)
 
-    Q_PROPERTY(
-        bool loadingPlaylist
-        READ isLoadingPlaylist
-        NOTIFY loadingPlaylistChanged)
+  Q_PROPERTY(PlaylistModel *playlistModel READ playlistModel CONSTANT)
 
-    Q_PROPERTY(
-        QString currentPlaylistTitle
-        READ currentPlaylistTitle
-        NOTIFY currentPlaylistChanged)
+  Q_PROPERTY(bool loadingArtist READ isLoadingArtist NOTIFY loadingArtistChanged)
 
-    Q_PROPERTY(
-        QString currentPlaylistCoverUri
-        READ currentPlaylistCoverUri
-        NOTIFY currentPlaylistChanged)
+  Q_PROPERTY(QString currentArtistName READ currentArtistName NOTIFY currentArtistChanged)
 
-    Q_PROPERTY(
-        int currentPlaylistTrackCount
-        READ currentPlaylistTrackCount
-        NOTIFY currentPlaylistChanged)
+  Q_PROPERTY(QString currentArtistCoverUri READ currentArtistCoverUri NOTIFY currentArtistChanged)
 
-    Q_PROPERTY(
-        QVariantList similarPlaylists
-        READ similarPlaylists
-        NOTIFY similarPlaylistsChanged)
+  Q_PROPERTY(QString currentArtistGenres READ currentArtistGenres NOTIFY currentArtistChanged)
 
-    Q_PROPERTY(
-        PlaylistModel *playlistModel
-        READ playlistModel
-        CONSTANT)
+  Q_PROPERTY(int currentArtistTrackCount READ currentArtistTrackCount NOTIFY currentArtistChanged)
 
-    // Artist state
-
-    Q_PROPERTY(
-        bool loadingArtist
-        READ isLoadingArtist
-        NOTIFY loadingArtistChanged)
-
-    Q_PROPERTY(
-        QString currentArtistName
-        READ currentArtistName
-        NOTIFY currentArtistChanged)
-
-    Q_PROPERTY(
-        QString currentArtistCoverUri
-        READ currentArtistCoverUri
-        NOTIFY currentArtistChanged)
-
-    Q_PROPERTY(
-        QString currentArtistGenres
-        READ currentArtistGenres
-        NOTIFY currentArtistChanged)
-
-    Q_PROPERTY(
-        int currentArtistTrackCount
-        READ currentArtistTrackCount
-        NOTIFY currentArtistChanged)
-
-    Q_PROPERTY(
-        ArtistModel *artistModel
-        READ artistModel
-        CONSTANT)
+  Q_PROPERTY(ArtistModel *artistModel READ artistModel CONSTANT)
 
 public:
+  explicit LibraryController(PlaylistService *playlistService, ArtistService *artistService,
+                             LikesService *likesService, PlaybackController *playbackController,
+                             QObject *parent = nullptr);
 
-    explicit LibraryController(
-        PlaylistService *playlistService,
-        ArtistService *artistService,
-        LikesService *likesService,
-        PlaybackController *playbackController,
-        QObject *parent = nullptr);
+  void setUserId(const QString &uid);
 
-    void setUserId(
-        const QString &uid);
+  void loadUserPlaylists(const QString &uid);
 
-    // Library playlists
+  void selectLibraryPlaylist(int index);
 
-    void loadUserPlaylists(
-        const QString &uid);
+  LibraryPlaylistsModel *libraryPlaylistsModel() const;
 
-    void selectLibraryPlaylist(
-        int index);
+  bool isLoadingLibraryPlaylists() const;
 
-    LibraryPlaylistsModel *
-    libraryPlaylistsModel() const;
+  void loadLikedTracks(const QString &uid);
 
-    bool isLoadingLibraryPlaylists() const;
+  void selectLikedTrack(int index);
 
-    // Liked tracks
+  LikedTracksModel *likedTracksModel() const;
 
-    void loadLikedTracks(
-        const QString &uid);
+  bool isLoadingLikedTracks() const;
 
-    void selectLikedTrack(
-        int index);
+  void loadLikedAlbums(const QString &uid);
 
-    LikedTracksModel *
-    likedTracksModel() const;
+  LikedAlbumsModel *likedAlbumsModel() const;
 
-    bool isLoadingLikedTracks() const;
+  bool isLoadingLikedAlbums() const;
 
-    // Liked albums
+  void selectLikedAlbum(int index);
 
-    void loadLikedAlbums(
-        const QString &uid);
+  void loadLikedArtists(const QString &uid);
 
-    LikedAlbumsModel *
-    likedAlbumsModel() const;
+  LikedArtistsModel *likedArtistsModel() const;
 
-    bool isLoadingLikedAlbums() const;
+  bool isLoadingLikedArtists() const;
 
-    void selectLikedAlbum(
-        int index);
+  void selectLikedArtist(int index);
 
-    // Liked artists
+  void loadPlaylist(const QString &uid, int kind);
 
-    void loadLikedArtists(
-        const QString &uid);
+  void selectPlaylistTrack(int index);
 
-    LikedArtistsModel *
-    likedArtistsModel() const;
+  PlaylistModel *playlistModel() const;
 
-    bool isLoadingLikedArtists() const;
+  bool isLoadingPlaylist() const;
 
-    void selectLikedArtist(
-        int index);
+  QString currentPlaylistTitle() const;
 
-    // Playlist
+  QString currentPlaylistCoverUri() const;
 
-    void loadPlaylist(
-        const QString &uid,
-        int kind);
+  int currentPlaylistTrackCount() const;
 
-    void selectPlaylistTrack(
-        int index);
+  int currentPlaylistKind() const;
 
-    PlaylistModel *
-    playlistModel() const;
+  QVariantList similarPlaylists() const;
 
-    bool isLoadingPlaylist() const;
+  // Заполняет похожие плейлисты из лендинга,
+  // если сервер не вернул родные similar-entities.
+  // Вызывать после loadPlaylist().
+  void setSimilarPlaylistsFallback(const QVariantList &playlists);
 
-    QString currentPlaylistTitle() const;
+  void loadArtist(const QString &id);
 
-    QString currentPlaylistCoverUri() const;
+  void selectArtistTrack(int index);
 
-    int currentPlaylistTrackCount() const;
+  ArtistModel *artistModel() const;
 
-    int currentPlaylistKind() const;
+  bool isLoadingArtist() const;
 
-    QVariantList similarPlaylists() const;
+  QString currentArtistName() const;
 
-    /*
-     * Заполняет похожие плейлисты из лендинга,
-     * если сервер не вернул родные similar-entities.
-     * Вызывать после loadPlaylist().
-     */
-    void setSimilarPlaylistsFallback(
-        const QVariantList &playlists);
+  QString currentArtistCoverUri() const;
 
-    // Artist
+  QString currentArtistGenres() const;
 
-    void loadArtist(
-        const QString &id);
+  int currentArtistTrackCount() const;
 
-    void selectArtistTrack(
-        int index);
+  void setTrackLiked(const QString &trackId, bool liked);
 
-    ArtistModel *
-    artistModel() const;
+  Q_INVOKABLE void createPlaylist(const QString &title);
 
-    bool isLoadingArtist() const;
+  Q_INVOKABLE void deleteCurrentPlaylist();
 
-    QString currentArtistName() const;
+  Q_INVOKABLE void renameCurrentPlaylist(const QString &newTitle);
 
-    QString currentArtistCoverUri() const;
+  Q_INVOKABLE void removeTrackFromPlaylist(int index);
 
-    QString currentArtistGenres() const;
-
-    int currentArtistTrackCount() const;
-
-    // Likes
-
-    void setTrackLiked(
-        const QString &trackId,
-        bool liked);
-
-    // Playlist CRUD
-
-    Q_INVOKABLE void createPlaylist(
-        const QString &title);
-
-    Q_INVOKABLE void deleteCurrentPlaylist();
-
-    Q_INVOKABLE void renameCurrentPlaylist(
-        const QString &newTitle);
-
-    Q_INVOKABLE void removeTrackFromPlaylist(
-        int index);
-
-    Q_INVOKABLE void addTrackToPlaylist(
-        int kind,
-        const QString &trackId,
-        const QString &albumId,
-        int revision = 1);
+  Q_INVOKABLE void addTrackToPlaylist(int kind, const QString &trackId, const QString &albumId,
+                                      int revision = 1);
 
 signals:
 
-    // Common
+  void playlistTracksChanged();
 
-    void playlistTracksChanged();
+  void statusChanged(const QString &message);
 
-    void statusChanged(
-        const QString &message);
+  void albumPageRequested(const QString &albumId);
 
-    void albumPageRequested(
-        const QString &albumId);
+  void artistPageRequested(const QString &artistId);
 
-    void artistPageRequested(
-        const QString &artistId);
+  void loadingLibraryPlaylistsChanged();
 
-    // Library playlists
+  void loadingLikedTracksChanged();
 
-    void loadingLibraryPlaylistsChanged();
+  void loadingLikedAlbumsChanged();
 
-    // Liked tracks
+  void likedAlbumsChanged();
 
-    void loadingLikedTracksChanged();
+  void loadingLikedArtistsChanged();
 
-    // Liked albums
+  void likedArtistsChanged();
 
-    void loadingLikedAlbumsChanged();
+  void loadingPlaylistChanged();
 
-    void likedAlbumsChanged();
+  void currentPlaylistChanged();
 
-    // Liked artists
+  void similarPlaylistsChanged();
 
-    void loadingLikedArtistsChanged();
+  void loadingArtistChanged();
 
-    void likedArtistsChanged();
-
-    // Playlist
-
-    void loadingPlaylistChanged();
-
-    void currentPlaylistChanged();
-
-    void similarPlaylistsChanged();
-
-    // Artist
-
-    void loadingArtistChanged();
-
-    void currentArtistChanged();
+  void currentArtistChanged();
 
 private:
+  PlaylistService *m_playlistService = nullptr;
 
-    // Services
+  ArtistService *m_artistService = nullptr;
 
-    PlaylistService *
-        m_playlistService = nullptr;
+  LikesService *m_likesService = nullptr;
 
-    ArtistService *
-        m_artistService = nullptr;
+  PlaybackController *m_playbackController = nullptr;
 
-    LikesService *
-        m_likesService = nullptr;
+  LibraryPlaylistsModel *m_libraryPlaylistsModel = nullptr;
 
-    PlaybackController *
-        m_playbackController = nullptr;
+  LikedTracksModel *m_likedTracksModel = nullptr;
 
-    // Models
+  LikedAlbumsModel *m_likedAlbumsModel = nullptr;
 
-    LibraryPlaylistsModel *
-        m_libraryPlaylistsModel = nullptr;
+  LikedArtistsModel *m_likedArtistsModel = nullptr;
 
-    LikedTracksModel *
-        m_likedTracksModel = nullptr;
+  PlaylistModel *m_playlistModel = nullptr;
 
-    LikedAlbumsModel *
-        m_likedAlbumsModel = nullptr;
+  ArtistModel *m_artistModel = nullptr;
 
-    LikedArtistsModel *
-        m_likedArtistsModel = nullptr;
+  bool m_loadingLibraryPlaylists = false;
 
-    PlaylistModel *
-        m_playlistModel = nullptr;
+  bool m_loadingLikedTracks = false;
 
-    ArtistModel *
-        m_artistModel = nullptr;
+  bool m_loadingLikedAlbums = false;
 
-    // Library state
+  bool m_loadingLikedArtists = false;
 
-    bool m_loadingLibraryPlaylists =
-        false;
+  bool m_loadingPlaylist = false;
 
-    bool m_loadingLikedTracks =
-        false;
+  QString m_currentPlaylistTitle;
 
-    bool m_loadingLikedAlbums =
-        false;
+  QString m_currentPlaylistCoverUri;
 
-    bool m_loadingLikedArtists =
-        false;
+  int m_currentPlaylistTrackCount = 0;
 
-    // Playlist state
+  QVariantList m_similarPlaylists;
 
-    bool m_loadingPlaylist =
-        false;
+  bool m_loadingArtist = false;
 
-    QString m_currentPlaylistTitle;
+  QString m_currentArtistName;
 
-    QString m_currentPlaylistCoverUri;
+  QString m_currentArtistCoverUri;
 
-    int m_currentPlaylistTrackCount =
-        0;
+  QString m_currentArtistGenres;
 
-    QVariantList m_similarPlaylists;
+  int m_currentArtistTrackCount = 0;
 
-    // Artist state
-
-    bool m_loadingArtist =
-        false;
-
-    QString m_currentArtistName;
-
-    QString m_currentArtistCoverUri;
-
-    QString m_currentArtistGenres;
-
-    int m_currentArtistTrackCount =
-        0;
-
-    // User ID
-
-    QString m_userId;
+  QString m_userId;
 };

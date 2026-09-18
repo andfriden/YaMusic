@@ -2,18 +2,17 @@
 
 #include <QString>
 
-struct Account
-{
-    qint64 uid = 0;
+struct Account {
+  qint64 uid = 0;
 
-    QString login;
-    QString firstName;
-    QString lastName;
-    QString displayName;
+  QString login;
+  QString firstName;
+  QString lastName;
+  QString displayName;
 
-    int region = 0;
-    QString regionCode;
+  int region = 0;
+  QString regionCode;
 
-    bool serviceAvailable = false;
-    bool hasPlus = false;
+  bool serviceAvailable = false;
+  bool hasPlus = false;
 };

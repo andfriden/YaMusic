@@ -3,25 +3,24 @@
 #include <QObject>
 #include <QString>
 
-class YandexAuth : public QObject
-{
-    Q_OBJECT
+class YandexAuth : public QObject {
+  Q_OBJECT
 
 public:
-    explicit YandexAuth(QObject *parent = nullptr);
+  explicit YandexAuth(QObject *parent = nullptr);
 
-    bool load();
-    bool loadFromEnvironment();
+  bool load();
+  bool loadFromEnvironment();
 
-    bool setToken(const QString &token);
-    bool clearToken();
+  bool setToken(const QString &token);
+  bool clearToken();
 
-    bool isAuthenticated() const;
-    QString token() const;
+  bool isAuthenticated() const;
+  QString token() const;
 
-    signals:
-        void authenticationChanged();
+signals:
+  void authenticationChanged();
 
 private:
-    QString m_token;
+  QString m_token;
 };

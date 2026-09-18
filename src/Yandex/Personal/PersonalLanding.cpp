@@ -9,495 +9,180 @@
 #include <QSet>
 #include <QUrlQuery>
 
-namespace
-{
-
+namespace {
 const QString LandingBlocks =
-    "personalplaylists,"
-    "promotions,"
-    "new-releases,"
-    "new-playlists,"
-    "mixes,"
-    "chart,"
-    "playlists,"
-    "podcasts";
+    "personalplaylists,promotions,new-releases,new-playlists,mixes,chart,playlists,podcasts";
 
-const QStringList PlaylistSectionTypes =
-{
-    "personal-playlists",
-    "new-playlists",
-    "playlists",
-    "editorial-playlists"
-};
+const QStringList PlaylistSectionTypes = {"personal-playlists", "new-playlists", "playlists",
+                                          "editorial-playlists"};
 
-}
+} // namespace
 
-// Constructor
+PersonalLanding::PersonalLanding(YandexAuth *auth, QObject *parent)
+    : QObject(parent), m_auth(auth), m_yandexClient(new YandexClient(this)) {}
 
-PersonalLanding::PersonalLanding(
-    YandexAuth *auth,
-    QObject *parent)
-    : QObject(parent)
-    , m_auth(auth)
-    , m_yandexClient(new YandexClient(this))
-{
-}
+void PersonalLanding::load() {
+  if (m_auth == nullptr) {
+    emit errorOccurred("Авторизация недоступна");
+    return;
+  }
 
-// Load
+  if (!m_auth->isAuthenticated()) {
+    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    return;
+  }
 
-void PersonalLanding::load()
-{
-    if (m_auth == nullptr)
-    {
-        emit errorOccurred(
-            "Авторизация недоступна");
+  m_yandexClient->setToken(m_auth->token());
+  QUrlQuery query;
+  query.addQueryItem("blocks", LandingBlocks);
+  const QString path = "/landing3?" + query.toString(QUrl::FullyEncoded);
+  QNetworkReply *reply = m_yandexClient->get(path);
 
-        return;
+  connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+    const QByteArray data = reply->readAll();
+
+    if (reply->error() != QNetworkReply::NoError) {
+      emit errorOccurred(reply->errorString());
+      reply->deleteLater();
+      return;
     }
 
-    if (!m_auth->isAuthenticated())
-    {
-        emit errorOccurred(
-            "Токен Яндекс Музыки не установлен");
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
 
-        return;
+    if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
+      emit errorOccurred("Ошибка JSON landing3");
+      reply->deleteLater();
+      return;
     }
 
-    m_yandexClient->setToken(
-        m_auth->token());
+    const QJsonObject result = unwrapResult(document);
+    const QJsonArray blocks = result.value("blocks").toArray();
+    QList<PersonalLandingSection> sections;
+    QList<PersonalPlaylist> allPlaylists;
+    QSet<QString> playlistIds;
 
-    QUrlQuery query;
+    for (const QJsonValue &value : blocks) {
+      if (!value.isObject()) continue;
+      const QJsonObject block = value.toObject();
+      PersonalLandingSection section = parseSection(block);
 
-    query.addQueryItem(
-        "blocks",
-        LandingBlocks);
-
-    const QString path =
-        "/landing3?" +
-        query.toString(
-            QUrl::FullyEncoded);
-
-    QNetworkReply *reply =
-        m_yandexClient->get(
-            path);
-
-    connect(
-        reply,
-        &QNetworkReply::finished,
-        this,
-        [this, reply]()
-        {
-            const QByteArray data =
-                reply->readAll();
-
-            if (
-                reply->error() !=
-                QNetworkReply::NoError
-            )
-            {
-                emit errorOccurred(
-                    reply->errorString());
-
-                reply->deleteLater();
-
-                return;
-            }
-
-            QJsonParseError parseError;
-
-            const QJsonDocument document =
-                QJsonDocument::fromJson(
-                    data,
-                    &parseError);
-
-            if (
-                parseError.error !=
-                    QJsonParseError::NoError ||
-                !document.isObject()
-            )
-            {
-                emit errorOccurred(
-                    "Ошибка JSON landing3");
-
-                reply->deleteLater();
-
-                return;
-            }
-
-            const QJsonObject result =
-                unwrapResult(document);
-
-            const QJsonArray blocks =
-                result
-                    .value("blocks")
-                    .toArray();
-
-            QList<PersonalLandingSection>
-                sections;
-
-            QList<PersonalPlaylist>
-                allPlaylists;
-
-            QSet<QString>
-                playlistIds;
-
-            for (
-                const QJsonValue &value :
-                blocks
-            )
-            {
-                if (!value.isObject())
-                {
-                    continue;
-                }
-
-                const QJsonObject block =
-                    value.toObject();
-
-                PersonalLandingSection section =
-                    parseSection(
-                        block);
-
-                /*
-                 * Для секций с альбомами (new-releases)
-                 * извлекаем альбомы из items.
-                 */
-                if (
-                    section.type == "new-releases"
-                )
-                {
-                    for (
-                        const PersonalLandingItem &item :
-                        section.items
-                    )
-                    {
-                        if (
-                            item.type != "album"
-                        )
-                        {
-                            continue;
-                        }
-
-                        Album album =
-                            parseAlbum(
-                                item.data);
-
-                        if (
-                            album.id.isEmpty() &&
-                            album.title.isEmpty()
-                        )
-                        {
-                            continue;
-                        }
-
-                        section.albums.append(
-                            album);
-                    }
-                }
-
-                /*
-                 * Для секций с плейлистами
-                 * преобразуем items -> playlists
-                 * прямо внутри секции.
-                 */
-                if (
-                    PlaylistSectionTypes.contains(
-                        section.type)
-                )
-                {
-                    for (
-                        const PersonalLandingItem &item :
-                        section.items
-                    )
-                    {
-                        if (
-                            item.type !=
-                                "personal-playlist" &&
-                            item.type !=
-                                "playlist"
-                        )
-                        {
-                            continue;
-                        }
-
-                        const PersonalPlaylist playlist =
-                            parsePersonalPlaylist(
-                                item);
-
-                        if (
-                            playlist.title.isEmpty()
-                        )
-                        {
-                            continue;
-                        }
-
-                        /*
-                         * Главное:
-                         *
-                         * плейлист должен находиться
-                         * внутри своей секции.
-                         */
-                        section.playlists.append(
-                            playlist);
-
-                        /*
-                         * Отдельный плоский кэш
-                         * всех плейлистов.
-                         */
-                        QString key =
-                            playlist.id;
-
-                        if (
-                            key.isEmpty()
-                        )
-                        {
-                            key =
-                                item.id;
-                        }
-
-                        if (
-                            key.isEmpty()
-                        )
-                        {
-                            continue;
-                        }
-
-                        if (
-                            playlistIds.contains(
-                                key)
-                        )
-                        {
-                            continue;
-                        }
-
-                        playlistIds.insert(
-                            key);
-
-                        allPlaylists.append(
-                            playlist);
-                    }
-                }
-
-                sections.append(
-                    section);
-            }
-
-            /*
-             * Сначала отдаём полноценные секции.
-             */
-            emit loaded(
-                sections);
-
-            /*
-             * Дополнительно сохраняем плоский список
-             * для других потребителей.
-             */
-            if (
-                !allPlaylists.isEmpty()
-            )
-            {
-                emit personalPlaylistsReceived(
-                    allPlaylists);
-            }
-
-            reply->deleteLater();
-        });
-}
-
-// Parse item
-
-PersonalLandingItem
-PersonalLanding::parseItem(
-    const QJsonObject &object) const
-{
-    PersonalLandingItem item;
-
-    item.id =
-        object
-            .value("id")
-            .toString();
-
-    item.type =
-        object
-            .value("type")
-            .toString();
-
-    item.data =
-        object
-            .value("data")
-            .toObject();
-
-    return item;
-}
-
-// Parse section
-
-PersonalLandingSection
-PersonalLanding::parseSection(
-    const QJsonObject &object) const
-{
-    PersonalLandingSection section;
-
-    section.id =
-        object
-            .value("id")
-            .toString();
-
-    section.title =
-        object
-            .value("title")
-            .toString();
-
-    section.type =
-        object
-            .value("type")
-            .toString();
-
-    section.typeForFrom =
-        object
-            .value("typeForFrom")
-            .toString();
-
-    section.description =
-        object
-            .value("description")
-            .toString();
-
-    QJsonArray entities =
-        object
-            .value("entities")
-            .toArray();
-
-    if (
-        entities.isEmpty()
-    )
-    {
-        entities =
-            object
-                .value("items")
-                .toArray();
-    }
-
-    for (
-        const QJsonValue &value :
-        entities
-    )
-    {
-        if (!value.isObject())
-        {
-            continue;
+      // Для секций с альбомами (new-releases)
+      // извлекаем альбомы из items.
+      if (section.type == "new-releases") {
+        for (const PersonalLandingItem &item : section.items) {
+          if (item.type != "album") continue;
+          Album album = parseAlbum(item.data);
+          if (album.id.isEmpty() && album.title.isEmpty()) continue;
+          section.albums.append(album);
         }
+      }
 
-        section.items.append(
-            parseItem(
-                value.toObject()));
+      // Для секций с плейлистами
+      // преобразуем items -> playlists
+      // прямо внутри секции.
+      if (PlaylistSectionTypes.contains(section.type)) {
+        for (const PersonalLandingItem &item : section.items) {
+          if (item.type != "personal-playlist" && item.type != "playlist") continue;
+          const PersonalPlaylist playlist = parsePersonalPlaylist(item);
+          if (playlist.title.isEmpty()) continue;
+
+          // Главное:
+          // плейлист должен находиться
+          // внутри своей секции.
+          section.playlists.append(playlist);
+
+          // Отдельный плоский кэш
+          // всех плейлистов.
+          QString key = playlist.id;
+
+          if (key.isEmpty()) {
+            key = item.id;
+          }
+
+          if (key.isEmpty()) continue;
+          if (playlistIds.contains(key)) continue;
+          playlistIds.insert(key);
+          allPlaylists.append(playlist);
+        }
+      }
+
+      sections.append(section);
     }
 
-    return section;
+    // Сначала отдаём полноценные секции.
+    emit loaded(sections);
+
+    // Дополнительно сохраняем плоский список
+    // для других потребителей.
+    if (!allPlaylists.isEmpty()) {
+      emit personalPlaylistsReceived(allPlaylists);
+    }
+
+    reply->deleteLater();
+  });
 }
 
-// Parse playlist
+PersonalLandingItem PersonalLanding::parseItem(const QJsonObject &object) const {
+  PersonalLandingItem item;
+  item.id = object.value("id").toString();
+  item.type = object.value("type").toString();
+  item.data = object.value("data").toObject();
+  return item;
+}
 
-PersonalPlaylist
-PersonalLanding::parsePersonalPlaylist(
-    const PersonalLandingItem &item) const
-{
-    PersonalPlaylist playlist;
+PersonalLandingSection PersonalLanding::parseSection(const QJsonObject &object) const {
+  PersonalLandingSection section;
+  section.id = object.value("id").toString();
+  section.title = object.value("title").toString();
+  section.type = object.value("type").toString();
+  section.typeForFrom = object.value("typeForFrom").toString();
+  section.description = object.value("description").toString();
+  QJsonArray entities = object.value("entities").toArray();
 
-    QJsonObject object =
-        item.data;
+  if (entities.isEmpty()) {
+    entities = object.value("items").toArray();
+  }
 
-    if (
-        object.contains("data") &&
-        object
-            .value("data")
-            .isObject()
-    )
-    {
-        object =
-            object
-                .value("data")
-                .toObject();
-    }
+  for (const QJsonValue &value : entities) {
+    if (!value.isObject()) continue;
+    section.items.append(parseItem(value.toObject()));
+  }
+  return section;
+}
 
-    if (
-        object.contains("playlist") &&
-        object
-            .value("playlist")
-            .isObject()
-    )
-    {
-        object =
-            object
-                .value("playlist")
-                .toObject();
-    }
+PersonalPlaylist PersonalLanding::parsePersonalPlaylist(const PersonalLandingItem &item) const {
+  PersonalPlaylist playlist;
+  QJsonObject object = item.data;
 
-    playlist.title =
-        object
-            .value("title")
-            .toString();
+  if (object.contains("data") && object.value("data").isObject()) {
+    object = object.value("data").toObject();
+  }
 
-    playlist.description =
-        object
-            .value("description")
-            .toString();
+  if (object.contains("playlist") && object.value("playlist").isObject()) {
+    object = object.value("playlist").toObject();
+  }
 
-    playlist.trackCount =
-        object
-            .value("trackCount")
-            .toInt();
+  playlist.title = object.value("title").toString();
+  playlist.description = object.value("description").toString();
+  playlist.trackCount = object.value("trackCount").toInt();
+  playlist.kind = object.value("kind").toInt();
+  const qint64 uid = object.value("uid").toInteger();
 
-    playlist.kind =
-        object
-            .value("kind")
-            .toInt();
+  if (uid > 0) {
+    playlist.uid = QString::number(uid);
+  }
 
-    const qint64 uid =
-        object
-            .value("uid")
-            .toInteger();
+  if (!playlist.uid.isEmpty() && playlist.kind > 0) {
+    playlist.id = playlist.uid + ":" + QString::number(playlist.kind);
+  } else {
+    playlist.id = item.id;
+  }
 
-    if (uid > 0)
-    {
-        playlist.uid =
-            QString::number(
-                uid);
-    }
+  playlist.coverUri = object.value("coverUri").toString();
 
-    if (
-        !playlist.uid.isEmpty() &&
-        playlist.kind > 0
-    )
-    {
-        playlist.id =
-            playlist.uid +
-            ":" +
-            QString::number(
-                playlist.kind);
-    }
-    else
-    {
-        playlist.id =
-            item.id;
-    }
-
-    playlist.coverUri =
-        object
-            .value("coverUri")
-            .toString();
-
-    if (
-        playlist.coverUri.isEmpty()
-    )
-    {
-        playlist.coverUri =
-            object
-                .value("cover")
-                .toObject()
-                .value("uri")
-                .toString();
-    }
-
-    return playlist;
+  if (playlist.coverUri.isEmpty()) {
+    playlist.coverUri = object.value("cover").toObject().value("uri").toString();
+  }
+  return playlist;
 }
