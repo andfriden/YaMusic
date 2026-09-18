@@ -535,6 +535,9 @@ Item {
                         cursorShape:
                             Qt.PointingHandCursor
 
+                        acceptedButtons:
+                            Qt.LeftButton | Qt.RightButton
+
                         z: 0
 
                         onClicked: {
@@ -546,6 +549,20 @@ Item {
 
                             root.controller.selectRecentListening(
                                 trackDelegate.index
+                            )
+                        }
+
+                        onPressed: {
+                            if (
+                                mouse.button !== Qt.RightButton ||
+                                !root.hasController
+                            ) {
+                                return
+                            }
+
+                            root.controller.copyTrack(
+                                trackDelegate.title,
+                                trackDelegate.artist
                             )
                         }
                     }

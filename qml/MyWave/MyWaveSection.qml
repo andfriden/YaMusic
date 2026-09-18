@@ -522,6 +522,9 @@ Item {
                         cursorShape:
                             Qt.PointingHandCursor
 
+                        acceptedButtons:
+                            Qt.LeftButton | Qt.RightButton
+
                         z:
                             0
 
@@ -534,6 +537,20 @@ Item {
 
                             root.controller.selectMyWaveTrack(
                                 trackDelegate.index
+                            )
+                        }
+
+                        onPressed: {
+                            if (
+                                mouse.button !== Qt.RightButton ||
+                                !root.hasController
+                            ) {
+                                return
+                            }
+
+                            root.controller.copyTrack(
+                                trackDelegate.title,
+                                trackDelegate.artist
                             )
                         }
                     }

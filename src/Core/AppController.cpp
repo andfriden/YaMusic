@@ -19,6 +19,8 @@
 #include "../Yandex/Personal/RecentListeningService.h"
 #include "../Yandex/Personal/YandexPersonal.h"
 
+#include <QClipboard>
+#include <QGuiApplication>
 #include <QSettings>
 
 AppController::AppController(
@@ -1273,6 +1275,30 @@ QString AppController::currentTrackAlbumId() const
     return track.albums.isEmpty()
         ? QString()
         : track.albums.first().id;
+}
+
+void AppController::copyTrack(
+    const QString &title,
+    const QString &artist)
+{
+    if (title.trimmed().isEmpty()) {
+        return;
+    }
+
+    QString text;
+
+    if (artist.trimmed().isEmpty()) {
+        text = title.trimmed();
+    } else {
+        text = artist.trimmed() + " - " + title.trimmed();
+    }
+
+    QGuiApplication::clipboard()
+        ->setText(text);
+
+    emit statusChanged(
+        QString("Скопировано: %1")
+            .arg(text));
 }
 
 QString AppController::currentTrackCoverUri() const

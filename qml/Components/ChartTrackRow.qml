@@ -186,6 +186,9 @@ Item {
             cursorShape:
                 Qt.PointingHandCursor
 
+            acceptedButtons:
+                Qt.LeftButton | Qt.RightButton
+
             onClicked: {
                 if (
                     root.controller !== null &&
@@ -198,6 +201,26 @@ Item {
                         root.trackIndex
                     )
                 }
+            }
+
+            onPressed: {
+                if (
+                    mouse.button !== Qt.RightButton
+                ) {
+                    return
+                }
+
+                if (
+                    root.controller === null ||
+                    root.controller === undefined
+                ) {
+                    return
+                }
+
+                root.controller.copyTrack(
+                    String(title || ""),
+                    String(artist || "")
+                )
             }
         }
     }

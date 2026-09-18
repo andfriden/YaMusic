@@ -212,6 +212,12 @@ public:
     Q_INVOKABLE void clearOfflineCache();
     Q_INVOKABLE bool isTrackCached(const QString &trackId) const;
 
+    /*
+     * Копирует название трека в буфер обмена
+     * в формате «Артист - Трек».
+     */
+    Q_INVOKABLE void copyTrack(const QString &title, const QString &artist);
+
     QString playbackSourceTitle() const;
     QString playbackSourceType() const;
     int queueCount() const;

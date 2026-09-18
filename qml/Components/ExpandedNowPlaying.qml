@@ -1559,12 +1559,31 @@ Item {
                         cursorShape:
                             Qt.PointingHandCursor
 
+                        acceptedButtons:
+                            Qt.LeftButton | Qt.RightButton
+
                         onClicked:
                         {
                             root.selectQueueTrack(
                                 Number(
                                     model.sourceIndex
                                 )
+                            )
+                        }
+
+                        onPressed:
+                        {
+                            if (
+                                mouse.button !== Qt.RightButton ||
+                                root.controller === null ||
+                                root.controller === undefined
+                            ) {
+                                return
+                            }
+
+                            root.controller.copyTrack(
+                                String(model.title || ""),
+                                String(model.artist || "")
                             )
                         }
                     }
@@ -1807,6 +1826,9 @@ Item {
                         cursorShape:
                             Qt.PointingHandCursor
 
+                        acceptedButtons:
+                            Qt.LeftButton | Qt.RightButton
+
                         onClicked:
                         {
                             if (
@@ -1820,6 +1842,22 @@ Item {
                                 Number(
                                     model.sourceIndex
                                 )
+                            )
+                        }
+
+                        onPressed:
+                        {
+                            if (
+                                mouse.button !== Qt.RightButton ||
+                                root.controller === null ||
+                                root.controller === undefined
+                            ) {
+                                return
+                            }
+
+                            root.controller.copyTrack(
+                                String(model.title || ""),
+                                String(model.artist || "")
                             )
                         }
                     }

@@ -723,6 +723,9 @@ Item {
                                     cursorShape:
                                         Qt.PointingHandCursor
 
+                                    acceptedButtons:
+                                        Qt.LeftButton | Qt.RightButton
+
                                     z:
                                         0
 
@@ -739,6 +742,21 @@ Item {
                                         root.controller
                                             .selectLikedTrack(
                                             likedTrackDelegate.index
+                                        )
+                                    }
+
+                                    onPressed: {
+                                        if (
+                                            mouse.button !== Qt.RightButton ||
+                                            root.controller === null ||
+                                            root.controller === undefined
+                                        ) {
+                                            return
+                                        }
+
+                                        root.controller.copyTrack(
+                                            likedTrackDelegate.title,
+                                            likedTrackDelegate.artist
                                         )
                                     }
                                 }

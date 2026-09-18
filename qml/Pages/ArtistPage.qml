@@ -945,6 +945,9 @@ Item {
                                         cursorShape:
                                             Qt.PointingHandCursor
 
+                                        acceptedButtons:
+                                            Qt.LeftButton | Qt.RightButton
+
                                         z:
                                             0
 
@@ -957,6 +960,20 @@ Item {
 
                                             root.artistController.selectTrack(
                                                 trackRow.index
+                                            )
+                                        }
+
+                                        onPressed: {
+                                            if (
+                                                mouse.button !== Qt.RightButton ||
+                                                root.controller === null
+                                            ) {
+                                                return
+                                            }
+
+                                            root.controller.copyTrack(
+                                                trackRow.title,
+                                                trackRow.artist
                                             )
                                         }
                                     }
