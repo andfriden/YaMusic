@@ -94,9 +94,8 @@ main() {
     --plugin qt
 
   log "Building ${APPIMAGE_NAME}..."
-  run_tool "${LINUXDEPLOY_APPIMAGE}" \
-    --appdir "${APPDIR}" \
-    --output-file "${ROOT_DIR}/${APPIMAGE_NAME}"
+  OUTPUT="${ROOT_DIR}/${APPIMAGE_NAME}" run_tool "${LINUXDEPLOY_APPIMAGE}" \
+    --appdir "${APPDIR}"
 
   log "Done: ${ROOT_DIR}/${APPIMAGE_NAME}"
 }
