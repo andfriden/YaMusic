@@ -4,7 +4,7 @@
 ;   makensis /DVERSION=<version> /DINSTALL_DIR=<dist> packaging/windows/installer.nsi
 ;
 ; Входные данные:
-;   VERSION    — версия приложения (например 0.15)
+;   VERSION    — версия приложения (например 0.10.2)
 ;   INSTALL_DIR — каталог, куда cmake --install положил приложение (dist)
 
 Unicode true
