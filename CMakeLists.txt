@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 project(
         YaMusic
-        VERSION 0.1
+        VERSION 0.15
         LANGUAGES CXX
 )
 
@@ -41,14 +41,6 @@ if(UNIX AND NOT APPLE)
 endif()
 
 qt_standard_project_setup(REQUIRES 6.10)
-
-# =============================================================
-# Optional imported content
-# =============================================================
-
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/importedcontent/CMakeLists.txt")
-    add_subdirectory(importedcontent)
-endif()
 
 # =============================================================
 # Paths
@@ -163,7 +155,6 @@ set(
         src/Playback/PlaybackController.cpp
 
         # Queue
-        src/Queue/QueueModel.cpp
         src/Queue/QueueService.cpp
 
         # Media Controls (base + factory)
@@ -197,7 +188,7 @@ set(
         src/Yandex/Catalog/SearchModel.cpp
         src/Yandex/Catalog/SearchParser.cpp
         src/Yandex/Catalog/SearchResult.cpp
-src/Yandex/Catalog/SearchService.cpp
+        src/Yandex/Catalog/SearchService.cpp
         src/Yandex/Catalog/SearchAlbumsModel.cpp
         src/Yandex/Catalog/SearchArtistsModel.cpp
         src/Yandex/Catalog/SearchPlaylistsModel.cpp
@@ -235,7 +226,6 @@ if(APPLE)
     list(
             APPEND YAMUSIC_SOURCES
             src/MediaControls/MediaControlsMacOS.mm
-            src/MediaControls/MediaControlsSMTC.cpp
     )
 
     set_source_files_properties(
@@ -252,7 +242,6 @@ if(UNIX AND NOT APPLE)
     list(
             APPEND YAMUSIC_SOURCES
             src/MediaControls/MediaControlsMPRIS.cpp
-            src/MediaControls/MediaControlsSMTC.cpp
     )
 
 endif()
@@ -340,20 +329,11 @@ if(APPLE AND EXISTS "${YAMUSIC_ICON_ICNS}")
 endif()
 
 # =============================================================
-# Main QML
-#
-# Main.qml is located in the project root.
-# =============================================================
-
-set_source_files_properties(
-        "${YAMUSIC_ROOT}/Main.qml"
-        PROPERTIES
-        QT_RESOURCE_ALIAS
-        "Main.qml"
-)
-
-# =============================================================
 # QML files
+#
+# Main.qml is located in the project root and is part of
+# YAMUSIC_QML_FILES; its QT_RESOURCE_ALIAS ("Main.qml") is
+# assigned by the alias loop below.
 # =============================================================
 
 set(
@@ -420,228 +400,34 @@ set(
 
 # =============================================================
 # QML resource aliases
+#
+# Алиас каждого QML-файла равен его пути относительно каталога
+# qml/ (например "Components/SearchBar.qml"). Main.qml лежит в
+# корне проекта, поэтому его алиас — просто "Main.qml".
+# Раньше это задавалось 43 ручными блоками
+# set_source_files_properties — теперь один цикл, и новый
+# QML-файл достаточно добавить в YAMUSIC_QML_FILES.
 # =============================================================
 
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Components/SearchBar.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Components/SearchBar.qml"
-)
+foreach(qml_file IN LISTS YAMUSIC_QML_FILES)
+    if(qml_file STREQUAL "${YAMUSIC_ROOT}/Main.qml")
+        set(qml_alias "Main.qml")
+    else()
+        file(RELATIVE_PATH qml_alias "${YAMUSIC_QML_ROOT}" "${qml_file}")
+    endif()
+    set_source_files_properties(
+            "${qml_file}"
+            PROPERTIES
+            QT_RESOURCE_ALIAS
+            "${qml_alias}"
+    )
+endforeach()
 
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Components/StatusBar.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Components/StatusBar.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Components/NowPlayingBar.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Components/NowPlayingBar.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Components/EntityLink.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Components/EntityLink.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Components/ExpandedNowPlaying.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Components/ExpandedNowPlaying.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Components/LyricsView.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Components/LyricsView.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Components/ChartTrackRow.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Components/ChartTrackRow.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Components/PersonalChartSection.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Components/PersonalChartSection.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Components/PlaylistPicker.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Components/PlaylistPicker.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Pages/HomePage.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Pages/HomePage.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Pages/SearchPage.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Pages/SearchPage.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Pages/MyWavePage.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Pages/MyWavePage.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Pages/LibraryPage.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Pages/LibraryPage.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Pages/AlbumPage.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Pages/AlbumPage.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Pages/ArtistPage.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Pages/ArtistPage.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Pages/PlaylistPage.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Pages/PlaylistPage.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Pages/RecentPage.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Pages/RecentPage.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Pages/ChartPage.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Pages/ChartPage.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Pages/PlaylistsPage.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Pages/PlaylistsPage.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Pages/GenresPage.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Pages/GenresPage.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Pages/GenrePage.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Pages/GenrePage.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Pages/SportPage.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Pages/SportPage.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Pages/LoginPage.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Pages/LoginPage.qml"
-)
-
-# =============================================================
-# Home
-# =============================================================
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Home/PersonalPlaylistsSection.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Home/PersonalPlaylistsSection.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Home/PlaylistView.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Home/PlaylistView.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Home/RecentListeningSection.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Home/RecentListeningSection.qml"
-)
-
-# =============================================================
-# My Wave
-# =============================================================
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/MyWave/MyWaveSection.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "MyWave/MyWaveSection.qml"
-)
-
-# =============================================================
-# Search
-# =============================================================
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Search/SearchResultsSection.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Search/SearchResultsSection.qml"
-)
-
-# =============================================================
-# Context
-# =============================================================
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Context/ContextPanelMyWave.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Context/ContextPanelMyWave.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Context/ContextPanelArtist.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Context/ContextPanelArtist.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Context/ContextPanelAlbum.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Context/ContextPanelAlbum.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Context/ContextPanelLibrary.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Context/ContextPanelLibrary.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Context/ContextPanelPlaylist.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Context/ContextPanelPlaylist.qml"
-)
-
-
-# =============================================================
-# Layout
-# =============================================================
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Layout/ContextPanel.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Layout/ContextPanel.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Layout/MainLayout.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Layout/MainLayout.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Layout/Sidebar.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Layout/Sidebar.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Layout/TopBar.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Layout/TopBar.qml"
-)
-
-set_source_files_properties(
-        "${YAMUSIC_QML_ROOT}/Layout/NavigationController.qml"
-        PROPERTIES QT_RESOURCE_ALIAS "Layout/NavigationController.qml"
-)
-
-# =============================================================
-# AppTheme singleton
-# =============================================================
-
+# Singleton-метка — единственное свойство, которое цикл не задаёт.
 set_source_files_properties(
         "${YAMUSIC_QML_ROOT}/Theme/AppTheme.qml"
         PROPERTIES
         QT_QML_SINGLETON_TYPE TRUE
-        QT_RESOURCE_ALIAS "Theme/AppTheme.qml"
 )
 
 # =============================================================
@@ -727,7 +513,7 @@ set_target_properties(
         "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
 
         MACOSX_BUNDLE_GUI_IDENTIFIER
-        "my.appyamusic"
+        "ru.yandex.yamusic"
 
         WIN32_EXECUTABLE
         TRUE
@@ -873,8 +659,8 @@ qt_generate_deploy_qml_app_script(
         deploy_script
 
         NO_UNSUPPORTED_PLATFORM_ERROR
-        
-          EXCLUDE_PLUGINS
+
+        EXCLUDE_PLUGINS
         qt6ct
 )
 

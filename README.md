@@ -365,7 +365,6 @@ Services инкапсулируют работу с API Яндекс Музык�
 * `PlaybackController`
 * `PlayerService`
 * `QueueService`
-* `QueueModel`
 
 `PlayerService` отвечает за управление `QMediaPlayer`.
 
