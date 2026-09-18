@@ -13,6 +13,10 @@
 
 ---
 
+## Скриншоты
+
+![YaMusic](screenshots/player.png)
+
 ---
 
 ## Возможности
