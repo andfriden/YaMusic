@@ -57,7 +57,7 @@
 
 ---
 
-## v0.10.2 — Artist Albums & Search Pagination (P2)
+## v0.10.3 — Artist Albums & Search Pagination (P2)
 
 - [x] Все альбомы исполнителя (включая сборники): пагинация по `/artists/{id}/direct-albums`
 - [x] Выбор фильтра: альбомы / синглы / сборники
