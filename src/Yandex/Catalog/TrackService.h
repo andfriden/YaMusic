@@ -39,8 +39,7 @@ public:
   // (POST /play-audio), чтобы трек попал в «Недавно
   // прослушаны» и рекомендации.
   void reportPlayback(const QString &trackId, const QString &albumId, const QString &uid,
-                      bool fromCache, int trackLengthSeconds, int playedSeconds,
-                      int endPositionSeconds);
+                      int trackLengthSeconds, int playedSeconds, int endPositionSeconds);
 
 signals:
   void streamInfoReceived(const QList<TrackStreamInfo> &streams);

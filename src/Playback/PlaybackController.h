@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QObject>
-#include <QPointer>
 #include <QString>
 #include <functional>
 #include <memory>
@@ -12,14 +11,10 @@
 
 class PlayerService;
 class TrackService;
-class QFile;
 class QNetworkAccessManager;
-class QNetworkReply;
 
 class PlaybackController : public QObject {
   Q_OBJECT
-
-  Q_PROPERTY(bool offlineMode READ offlineMode WRITE setOfflineMode NOTIFY offlineModeChanged)
 
 public:
   enum PlaybackState { Idle, Loading, Playing, Paused, Stopped, Error };
@@ -55,18 +50,6 @@ public:
   void setShuffleEnabled(bool enabled);
   void toggleShuffle();
 
-  // Офлайн-режим: воспроизведение только из локального кэша,
-  // без сетевых запросов за stream URL.
-  bool offlineMode() const;
-  Q_INVOKABLE void setOfflineMode(bool enabled);
-  Q_INVOKABLE void toggleOfflineMode();
-
-  // true, если файл трека уже лежит в кэше стримов.
-  bool isTrackCached(const QString &trackId) const;
-
-  // Удаляет все файлы кэша стримов.
-  Q_INVOKABLE void clearOfflineCache();
-
   // Провайдер uid приходит из AppController после получения аккаунта,
   // чтобы отправлять факты прослушивания (POST /play-audio) без прямой
   // зависимости от AccountService.
@@ -79,7 +62,6 @@ signals:
   void playbackError(const QString &message);
   void repeatModeChanged();
   void shuffleChanged();
-  void offlineModeChanged();
 
 private:
   void setState(PlaybackState state);
@@ -88,8 +70,7 @@ private:
   bool playQueueCurrentTrack();
   void setupSystemMediaControls();
   void fetchCurrentCover();
-  void downloadAndPlayStream(const QString &trackId, const QString &streamUrl);
-  void cancelStreamDownload();
+  void playStream(const QString &trackId, const QString &streamUrl);
 
   // Пороговая отправка факта прослушивания.
   void maybeReportPlayback();
@@ -108,20 +89,11 @@ private:
   QNetworkAccessManager *m_coverNetwork = nullptr;
   QString m_pendingCoverUri;
 
-  // Проксирование стрима — обход TLS-проблем FFmpeg на macOS.
-  QNetworkAccessManager *m_streamNetwork = nullptr;
-  QPointer<QNetworkReply> m_streamDownloadReply;
-  QString m_streamCacheDir;
-  QString m_pendingStreamTrackId;
-  bool m_streamDownloadInProgress = false;
-
   // Восстановление воспроизведения после сбоя сетевого стрима.
   bool m_recoveringPlayback = false;
   bool m_recoveryPositionPending = false;
   qint64 m_recoveryPosition = 0;
   QString m_recoveryTrackId;
-
-  bool m_offlineMode = false;
 
   // Отправка статистики воспроизведения (POST /play-audio).
   std::function<QString()> m_uidProvider;

@@ -6,7 +6,6 @@
 
 #include <QDir>
 #include <QFile>
-#include <QFileInfo>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -22,20 +21,10 @@ static QString coverFilePath(const QString &trackId) {
   return coverCacheDir() + QStringLiteral("/") + trackId + QStringLiteral(".jpg");
 }
 
-// Путь к кэшированному файлу стрима для трека.
-// Используется и для записи при скачивании, и для чтения в офлайн-режиме.
-static QString streamCachePath(const QString &trackId) {
-  return QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
-         QStringLiteral("/stream_cache/") + trackId + QStringLiteral(".mp3");
-}
-
 PlaybackController::PlaybackController(TrackService *trackService, PlayerService *playerService,
                                        QueueService *queueService, QObject *parent)
     : QObject(parent), m_trackService(trackService), m_playerService(playerService),
-      m_queueService(queueService), m_coverNetwork(new QNetworkAccessManager(this)),
-      m_streamNetwork(new QNetworkAccessManager(this)),
-      m_streamCacheDir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
-                       QStringLiteral("/stream_cache")) {
+      m_queueService(queueService), m_coverNetwork(new QNetworkAccessManager(this)) {
   Q_ASSERT(m_trackService != nullptr);
   Q_ASSERT(m_playerService != nullptr);
   Q_ASSERT(m_queueService != nullptr);
@@ -138,7 +127,7 @@ PlaybackController::PlaybackController(TrackService *trackService, PlayerService
             // получил новый источник, длительность и позиция могут быть ещё
             // недоступны. Держим состояние восстановления до playbackStarted.
 
-            downloadAndPlayStream(trackId, url);
+            playStream(trackId, url);
           });
 
   connect(m_trackService, &TrackService::errorOccurred, this, [this](const QString &message) {
@@ -191,10 +180,6 @@ void PlaybackController::playTrack(const Track &track) {
   m_recoveryPosition = 0;
   m_recoveryTrackId.clear();
 
-  // Отменяем незавершённую загрузку стрима предыдущего трека.
-
-  cancelStreamDownload();
-
   // Новый трек — новый отчёт прослушивания.
 
   resetReportState();
@@ -211,24 +196,6 @@ void PlaybackController::playTrack(const Track &track) {
   m_currentTrack = track;
   emit currentTrackChanged();
   setState(Loading);
-
-  // Офлайн-приоритет: если файл трека уже в кэше стримов —
-  // играем его без сетевых запросов.
-
-  const QString cachedPath = streamCachePath(track.id);
-
-  if (QFile::exists(cachedPath)) {
-    m_playerService->playUrl(QStringLiteral("file://") + cachedPath);
-    return;
-  }
-
-  // В офлайн-режиме и без кэша играть нечего.
-
-  if (m_offlineMode) {
-    setState(Error);
-    emit playbackError(QStringLiteral("Трек недоступен офлайн: %1").arg(track.title));
-    return;
-  }
 
   m_trackService->loadStreamInfo(track.id);
 }
@@ -297,7 +264,6 @@ void PlaybackController::stop() {
   m_recoveryPosition = 0;
   m_recoveryTrackId.clear();
   maybeReportPlayback();
-  cancelStreamDownload();
   m_playerService->stop();
 }
 
@@ -369,93 +335,24 @@ void PlaybackController::handleStreamUrl(const QString &trackId, const QString &
     return;
   }
 
-  downloadAndPlayStream(trackId, url);
+  playStream(trackId, url);
 }
 
-// Проксирование стрима: на macOS Qt Multimedia использует FFmpeg, который
-// для TLS полагается на Apple SecureTransport и часто падает с
-// errSSLClosedGraceful (-9806) на потоковом HTTPS-аудио. QNetworkAccessManager
-// использует другой SSL-стек, поэтому качаем аудио через него в локальный
-// файл кэша и играем уже локальный файл.
-void PlaybackController::downloadAndPlayStream(const QString &trackId, const QString &streamUrl) {
+// Играем стрим напрямую из сети. Раньше аудио качалось в локальный файл
+// кэша (обход TLS-проблем FFmpeg на macOS), но это держало плеер в
+// состоянии Loading до полной загрузки трека и ломало авто-подгрузку
+// следующих партий My Wave. Теперь источник отдаётся сразу плееру.
+void PlaybackController::playStream(const QString &trackId, const QString &streamUrl) {
   if (trackId.isEmpty() || streamUrl.isEmpty()) {
     setState(Error);
-    emit playbackError("Stream download: empty args");
+    emit playbackError("Stream play: empty args");
     return;
   }
 
-  // Чистим предыдущую загрузку этого трека.
-  if (m_streamDownloadReply) {
-    m_streamDownloadReply->disconnect();
-    m_streamDownloadReply->abort();
-    m_streamDownloadReply->deleteLater();
-    m_streamDownloadReply = nullptr;
-  }
-
-  m_streamDownloadInProgress = true;
-  const QString dest = streamCachePath(trackId);
-  QDir().mkpath(QFileInfo(dest).absolutePath());
-
-  // Удаляем старый кэшированный файл.
-  QFile::remove(dest);
-  QFile *cacheFile = new QFile(dest, this);
-  if (!cacheFile->open(QIODevice::WriteOnly)) {
-    delete cacheFile;
-    setState(Error);
-    emit playbackError("Cannot open stream cache file");
-    return;
-  }
-
-  m_pendingStreamTrackId = trackId;
-  QNetworkRequest request{QUrl(streamUrl)};
-  request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("YaMusic/1.0 (Qt)"));
-  request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
-                       QNetworkRequest::NoLessSafeRedirectPolicy);
-  m_streamDownloadReply = m_streamNetwork->get(request);
-
-  connect(m_streamDownloadReply, &QNetworkReply::readyRead, this,
-          [this, cacheFile]() { cacheFile->write(m_streamDownloadReply->readAll()); });
-
-  connect(m_streamDownloadReply, &QNetworkReply::finished, this,
-          [this, cacheFile, trackId, dest]() {
-            QPointer<QNetworkReply> reply = m_streamDownloadReply;
-            m_streamDownloadReply = nullptr;
-            m_streamDownloadInProgress = false;
-            cacheFile->close();
-
-            if (reply && reply->error() != QNetworkReply::NoError) {
-              cacheFile->remove();
-              emit playbackError("Stream download failed: " + reply->errorString());
-              return;
-            }
-
-            m_pendingStreamTrackId.clear();
-
-            // Трек сменился до конца загрузки — файл всё равно
-            // оставляем в кэше для офлайн-режима.
-            if (trackId != m_currentTrack.id)
-              return;
-
-            m_playerService->playUrl(QUrl::fromLocalFile(dest).toString());
-          });
-}
-
-void PlaybackController::cancelStreamDownload() {
-  if (m_streamDownloadReply) {
-    m_streamDownloadReply->disconnect();
-    m_streamDownloadReply->abort();
-    m_streamDownloadReply->deleteLater();
-    m_streamDownloadReply = nullptr;
-  }
-
-  // Не удаляем файл скачанного стрима: это наш офлайн-кэш.
-  // Удаляем только незавершённую запись, которую можно отличить
-  // по отсутствию сигнала finished.
-  if (!m_pendingStreamTrackId.isEmpty() && m_streamDownloadInProgress)
-    QFile::remove(streamCachePath(m_pendingStreamTrackId));
-
-  m_streamDownloadInProgress = false;
-  m_pendingStreamTrackId.clear();
+  if (streamUrl != m_playerService->currentUrl())
+    m_playerService->playUrl(streamUrl);
+  else
+    m_playerService->play();
 }
 
 bool PlaybackController::playQueueCurrentTrack() {
@@ -674,40 +571,6 @@ void PlaybackController::fetchCurrentCover() {
   });
 }
 
-bool PlaybackController::offlineMode() const {
-  return m_offlineMode;
-}
-
-void PlaybackController::setOfflineMode(bool enabled) {
-  if (m_offlineMode == enabled)
-    return;
-
-  m_offlineMode = enabled;
-  emit offlineModeChanged();
-}
-
-void PlaybackController::toggleOfflineMode() {
-  setOfflineMode(!m_offlineMode);
-}
-
-bool PlaybackController::isTrackCached(const QString &trackId) const {
-  if (trackId.trimmed().isEmpty())
-    return false;
-  return QFile::exists(streamCachePath(trackId.trimmed()));
-}
-
-void PlaybackController::clearOfflineCache() {
-  const QDir cacheDir(m_streamCacheDir);
-
-  if (!cacheDir.exists())
-    return;
-
-  const QStringList files = cacheDir.entryList(QDir::Files);
-
-  for (const QString &fileName : files)
-    QFile::remove(cacheDir.filePath(fileName));
-}
-
 void PlaybackController::setUidProvider(const std::function<QString()> &provider) {
   m_uidProvider = provider;
 }
@@ -744,7 +607,7 @@ void PlaybackController::maybeReportPlayback() {
   if (!m_currentTrack.albums.isEmpty())
     albumId = m_currentTrack.albums.first().id;
 
-  m_trackService->reportPlayback(m_currentTrack.id, albumId, uid, m_offlineMode,
+  m_trackService->reportPlayback(m_currentTrack.id, albumId, uid,
                                  int(durationMs / 1000), int(positionMs / 1000),
                                  int(positionMs / 1000));
 }

@@ -769,65 +769,6 @@ Rectangle {
             }
 
             // -----------------------------------------------------
-            // Offline mode button
-            // -----------------------------------------------------
-
-            Item {
-                width: 38
-                height: 38
-
-                Rectangle {
-                    anchors.fill: parent
-
-                    radius: 19
-
-                    color:
-                            root.controller &&
-                        root.controller.offlineMode
-                        ? AppTheme.accent
-                        : (
-                            offlineMouseArea.containsMouse
-                                ? AppTheme.panelHover
-                                : "transparent"
-                        )
-                }
-
-                Label {
-                    anchors.centerIn: parent
-
-                    text: "⇣"
-
-                    color:
-                            root.controller &&
-                        root.controller.offlineMode
-                        ? "#ffffff"
-                        : AppTheme.textSecondary
-
-                    font.pixelSize: 18
-                }
-
-                MouseArea {
-                    id: offlineMouseArea
-
-                    anchors.fill: parent
-
-                    hoverEnabled: true
-
-                    cursorShape:
-                        Qt.PointingHandCursor
-
-                    onClicked: {
-                        if (!root.controller)
-                            return
-
-                        root.controller.setOfflineMode(
-                            !root.controller.offlineMode
-                        )
-                    }
-                }
-            }
-
-            // -----------------------------------------------------
             // Volume button
             // -----------------------------------------------------
 

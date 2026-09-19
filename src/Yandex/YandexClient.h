@@ -41,8 +41,7 @@ public:
   // timestamp, client-now, track-length-seconds,
   // total-played-seconds, end-position-seconds.
   void reportPlayback(const QString &trackId, const QString &albumId, const QString &uid,
-                      bool fromCache, int trackLengthSeconds, int playedSeconds,
-                      int endPositionSeconds);
+                      int trackLengthSeconds, int playedSeconds, int endPositionSeconds);
 
 signals:
   void requestError(const QString &message);

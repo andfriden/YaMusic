@@ -184,8 +184,8 @@ void YandexClient::getTracks(const QStringList &trackIds) {
 }
 
 void YandexClient::reportPlayback(const QString &trackId, const QString &albumId,
-                                  const QString &uid, bool fromCache, int trackLengthSeconds,
-                                  int playedSeconds, int endPositionSeconds) {
+                                  const QString &uid, int trackLengthSeconds, int playedSeconds,
+                                  int endPositionSeconds) {
   if (trackId.isEmpty() || uid.isEmpty()) {
     return;
   }
@@ -195,7 +195,7 @@ void YandexClient::reportPlayback(const QString &trackId, const QString &albumId
   body.addQueryItem("album-id", albumId);
   body.addQueryItem("uid", uid);
   body.addQueryItem("from", "desktop-ya-music");
-  body.addQueryItem("from-cache", fromCache ? "true" : "false");
+  body.addQueryItem("from-cache", "false");
   const QString now = QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
   body.addQueryItem("timestamp", now);
   body.addQueryItem("client-now", now);

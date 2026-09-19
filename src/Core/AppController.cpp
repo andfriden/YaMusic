@@ -270,9 +270,6 @@ void AppController::connectPlayback() {
   connect(m_playbackController, &PlaybackController::shuffleChanged, this,
           &AppController::shuffleChanged);
 
-  connect(m_playbackController, &PlaybackController::offlineModeChanged, this,
-          &AppController::offlineModeChanged);
-
   connect(m_playbackController, &PlaybackController::playbackError, this,
           &AppController::statusChanged);
 
@@ -666,23 +663,6 @@ float AppController::volume() const {
 
 void AppController::setVolume(float volume) {
   m_playerService->setVolume(volume);
-}
-
-bool AppController::offlineMode() const {
-  return m_playbackController->offlineMode();
-}
-
-void AppController::setOfflineMode(bool enabled) {
-  m_playbackController->setOfflineMode(enabled);
-}
-
-void AppController::clearOfflineCache() {
-  m_playbackController->clearOfflineCache();
-  emit statusChanged("Офлайн-кэш очищен");
-}
-
-bool AppController::isTrackCached(const QString &trackId) const {
-  return m_playbackController->isTrackCached(trackId);
 }
 
 void AppController::loadGenres() {

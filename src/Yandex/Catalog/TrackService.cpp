@@ -393,7 +393,7 @@ void TrackService::parseLrc(const QString &lrcText, TrackSupplementary &out) con
 }
 
 void TrackService::reportPlayback(const QString &trackId, const QString &albumId,
-                                  const QString &uid, bool fromCache, int trackLengthSeconds,
+                                  const QString &uid, int trackLengthSeconds,
                                   int playedSeconds, int endPositionSeconds) {
   if (!ensureAuthenticated()) {
     return;
@@ -401,7 +401,7 @@ void TrackService::reportPlayback(const QString &trackId, const QString &albumId
   if (trackId.trimmed().isEmpty() || uid.trimmed().isEmpty()) {
     return;
   }
-  m_yandexClient->reportPlayback(trackId.trimmed(), albumId.trimmed(), uid.trimmed(), fromCache,
+  m_yandexClient->reportPlayback(trackId.trimmed(), albumId.trimmed(), uid.trimmed(),
                                  trackLengthSeconds, playedSeconds, endPositionSeconds);
 }
 
