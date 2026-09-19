@@ -316,19 +316,35 @@ jobs:
           cmake --install build
 
 
-      - name: Bundle Qt runtime
+      - name: Extract version
         shell: pwsh
         run: |
-          windeployqt `
-            --qmldir qml `
-            --release `
-            --no-translations `
-            "$env:GITHUB_WORKSPACE\dist\YaMusic.exe"
-
           $content = Get-Content CMakeLists.txt -Raw
           $m = [regex]::Match($content, 'project\([^)]*?VERSION\s+([0-9.]+)')
           $version = $m.Groups[1].Value
           "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+
+      - name: Trim Qt runtime
+        shell: pwsh
+        run: |
+          # Держим только те переводы Qt, что реально нужны.
+          Get-ChildItem dist\translations\*.qm |
+            Where-Object { $_.BaseName -notin @('qtbase_ru', 'qt_ru') } |
+            Remove-Item -Force
+
+          # Стили QuickControls, которые приложение не использует (только Basic).
+          $unusedStyles = @('Fusion', 'Imagine', 'Material', 'Universal', 'FluentWinUI3', 'Windows')
+          foreach ($style in $unusedStyles) {
+            Get-ChildItem -Path dist\qml\QtQuick\Controls -Directory -ErrorAction SilentlyContinue |
+              Where-Object { $_.Name -like "$style*" } |
+              Remove-Item -Recurse -Force
+            Get-ChildItem -Path dist\bin -Filter "*QuickControls2$style*" -ErrorAction SilentlyContinue |
+              Remove-Item -Force
+          }
+
+          # Отладочные QML-плагины, нужны только при отладке из Qt Creator.
+          Remove-Item -Path dist\plugins\qmltooling -Recurse -Force -ErrorAction SilentlyContinue
 
 
       - name: Package portable zip

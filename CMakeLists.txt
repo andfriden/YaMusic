@@ -580,21 +580,10 @@ endif()
 # Install target
 # =============================================================
 
-if(WIN32)
-
-    set(
-            YAMUSIC_RUNTIME_DESTINATION
-            .
-    )
-
-else()
-
-    set(
-            YAMUSIC_RUNTIME_DESTINATION
-            bin
-    )
-
-endif()
+set(
+        YAMUSIC_RUNTIME_DESTINATION
+        bin
+)
 
 install(
         TARGETS
