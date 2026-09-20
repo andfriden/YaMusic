@@ -53,8 +53,10 @@ Item {
     readonly property int trackSpacing:
         6
 
+    // Показываем до 10 треков одновременно.
+    // Если треков больше — появляется прокрутка.
     readonly property int maxVisibleTracks:
-        root.compactMode ? 3 : 8
+        root.compactMode ? 5 : 10
 
     readonly property int visibleTrackCount:
         Math.min(
@@ -212,6 +214,9 @@ Item {
 
             interactive:
                 root.trackCount > root.maxVisibleTracks
+
+            cacheBuffer:
+                root.trackHeight * 3
 
 
             ScrollBar.vertical:
@@ -529,9 +534,7 @@ Item {
                             0
 
                         onClicked: {
-                            if (
-                                !root.hasController
-                            ) {
+                            if (!root.hasController) {
                                 return
                             }
 
@@ -567,9 +570,7 @@ Item {
         title,
         artist
     ) {
-        if (
-            !root.hasController
-        ) {
+        if (!root.hasController) {
             return false
         }
 

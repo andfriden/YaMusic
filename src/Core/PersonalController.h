@@ -9,6 +9,7 @@
 #include "../Yandex/Personal/PersonalPlaylistsModel.h"
 #include "../Yandex/Personal/RecentListeningModel.h"
 #include "../Yandex/Personal/RecentListeningService.h"
+
 #include <QHash>
 #include <QList>
 #include <QObject>
@@ -37,10 +38,12 @@ class PersonalController : public QObject {
   Q_PROPERTY(PersonalChartModel *chartModel READ chartModel CONSTANT)
 
 public:
-  explicit PersonalController(YandexPersonal *yandexPersonal, PersonalLanding *personalLanding,
+  explicit PersonalController(YandexPersonal *yandexPersonal,
+                              PersonalLanding *personalLanding,
                               NewPlaylistsService *newPlaylistsService,
                               RecentListeningService *recentListeningService,
-                              PlaybackController *playbackController, PlayerService *playerService,
+                              PlaybackController *playbackController,
+                              PlayerService *playerService,
                               QObject *parent = nullptr);
 
   Q_INVOKABLE void loadMyWave();
@@ -76,8 +79,11 @@ public:
 
   bool isLoadingRecommendations() const;
 
-signals:
+  // Вызывается AppController, когда PlaybackController
+  // полностью дошёл до конца очереди My Wave.
+  void handleMyWavePlaybackFinished();
 
+signals:
   void statusChanged(const QString &message);
 
   void loadingMyWaveChanged();
@@ -105,15 +111,14 @@ private:
 
   void handleMyWaveReceived(const QList<Track> &tracks, const QString &batchId);
 
-  void handleMyWavePlaybackFinished();
-
   void startMyWaveQueue(int index);
 
   void appendMyWaveTracksToQueue(const QList<Track> &tracks);
 
   void stopCurrentMyWaveTrack(const QString &event);
 
-  void sendMyWaveFeedback(const QString &event, const QString &trackId,
+  void sendMyWaveFeedback(const QString &event,
+                          const QString &trackId,
                           qint64 totalPlayedSeconds = 0);
 
   QString batchIdForTrack(const QString &trackId) const;

@@ -75,47 +75,64 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
     emit queueChanged();
     emit playbackSourceChanged();
   });
-  connect(m_queueService, &QueueService::currentChanged, this, &AppController::queueChanged);
 
-  connect(m_likesService, &LikesService::likeChanged, this, [this](const QString &trackId, bool) {
-    if (trackId == currentTrackId()) {
-      emit currentTrackChanged();
-    }
-  });
+  connect(m_queueService, &QueueService::currentChanged, this,
+          &AppController::queueChanged);
+
+  connect(m_likesService, &LikesService::likeChanged, this,
+          [this](const QString &trackId, bool) {
+            if (trackId == currentTrackId()) {
+              emit currentTrackChanged();
+            }
+          });
 
   connect(m_likesService, &LikesService::albumLikeChanged, this,
-          [this](const QString &, bool) { emit currentAlbumChanged(); });
+          [this](const QString &, bool) {
+            emit currentAlbumChanged();
+          });
 
   connect(m_likesService, &LikesService::artistLikeChanged, this,
-          [this](const QString &, bool) { emit currentArtistChanged(); });
+          [this](const QString &, bool) {
+            emit currentArtistChanged();
+          });
 
   connect(m_trackService, &TrackService::similarTracksReceived, this,
-          [this](const QList<Track> &tracks) { m_similarTracksModel->setSimilarTracks(tracks); });
+          [this](const QList<Track> &tracks) {
+            m_similarTracksModel->setSimilarTracks(tracks);
+          });
 
   // TODO(#482): вынести uid-провайдер в PlaybackController
   m_accountService->loadAccount();
 }
 
 void AppController::connectAccount() {
-  connect(m_accountService, &AccountService::accountReceived, this, [this](const Account &account) {
-    m_accountUid = QString::number(account.uid);
-    m_recentListeningService->setUserId(m_accountUid);
-    m_recentListeningService->load(50, 10);
-    m_libraryController->setUserId(m_accountUid);
+  connect(m_accountService, &AccountService::accountReceived, this,
+          [this](const Account &account) {
+            m_accountUid = QString::number(account.uid);
+            m_recentListeningService->setUserId(m_accountUid);
+            m_recentListeningService->load(50, 10);
+            m_libraryController->setUserId(m_accountUid);
 
-    m_playbackController->setUidProvider([this]() -> QString { return m_accountUid; });
+            m_playbackController->setUidProvider(
+                [this]() -> QString {
+                  return m_accountUid;
+                });
 
-    // Список личных плейлистов нужен в пикере «Добавить в плейлист»
-    // на всех страницах — грузим сразу при входе, а не только
-    // при открытии Медиатеки.
-    m_libraryController->loadUserPlaylists(m_accountUid);
-    m_personalController->loadMyWave();
-    m_personalController->loadRecommendations();
+            // Список личных плейлистов нужен в пикере «Добавить в плейлист»
+            // на всех страницах — грузим сразу при входе, а не только
+            // при открытии Медиатеки.
+            m_libraryController->loadUserPlaylists(m_accountUid);
+            m_personalController->loadMyWave();
+            m_personalController->loadRecommendations();
 
-    emit statusChanged(
-        QStringLiteral("Выполнен вход: %1 (uid: %2)").arg(account.displayName).arg(account.uid));
-  });
-  connect(m_accountService, &AccountService::errorOccurred, this, &AppController::statusChanged);
+            emit statusChanged(
+                QStringLiteral("Выполнен вход: %1 (uid: %2)")
+                    .arg(account.displayName)
+                    .arg(account.uid));
+          });
+
+  connect(m_accountService, &AccountService::errorOccurred, this,
+          &AppController::statusChanged);
 }
 
 void AppController::connectSearch() {
@@ -126,38 +143,57 @@ void AppController::connectSearch() {
           &AppController::searchingChanged);
 
   connect(m_searchController, &SearchController::artistClicked, this,
-          [this](const QString &artistId) { loadArtist(artistId); });
+          [this](const QString &artistId) {
+            loadArtist(artistId);
+          });
 
   connect(m_searchController, &SearchController::albumClicked, this,
-          [this](const QString &albumId) { loadAlbum(albumId); });
+          [this](const QString &albumId) {
+            loadAlbum(albumId);
+          });
 
   connect(m_searchController, &SearchController::playlistClicked, this,
-          [this](const QString &uid, int kind) { selectPersonalPlaylist(uid, kind); });
+          [this](const QString &uid, int kind) {
+            selectPersonalPlaylist(uid, kind);
+          });
 }
 
 void AppController::connectLibrarySignals() {
-  connect(m_libraryController, &LibraryController::loadingLibraryPlaylistsChanged, this,
+  connect(m_libraryController,
+          &LibraryController::loadingLibraryPlaylistsChanged,
+          this,
           &AppController::loadingLibraryPlaylistsChanged);
 
-  connect(m_libraryController, &LibraryController::loadingLikedTracksChanged, this,
+  connect(m_libraryController,
+          &LibraryController::loadingLikedTracksChanged,
+          this,
           &AppController::loadingLikedTracksChanged);
 
-  connect(m_libraryController, &LibraryController::loadingLikedAlbumsChanged, this,
+  connect(m_libraryController,
+          &LibraryController::loadingLikedAlbumsChanged,
+          this,
           &AppController::loadingLikedAlbumsChanged);
 
-  connect(m_libraryController, &LibraryController::loadingLikedArtistsChanged, this,
+  connect(m_libraryController,
+          &LibraryController::loadingLikedArtistsChanged,
+          this,
           &AppController::loadingLikedArtistsChanged);
 
-  connect(m_libraryController, &LibraryController::loadingPlaylistChanged, this,
+  connect(m_libraryController,
+          &LibraryController::loadingPlaylistChanged,
+          this,
           &AppController::loadingPlaylistChanged);
 
-  connect(m_libraryController, &LibraryController::loadingArtistChanged, this,
+  connect(m_libraryController,
+          &LibraryController::loadingArtistChanged,
+          this,
           &AppController::loadingArtistChanged);
 }
 
 void AppController::connectLibrary() {
   connect(m_libraryController, &LibraryController::statusChanged, this,
           &AppController::statusChanged);
+
   connectLibrarySignals();
 
   connect(m_libraryController, &LibraryController::currentPlaylistChanged, this,
@@ -171,7 +207,8 @@ void AppController::connectLibrary() {
 }
 
 void AppController::connectAlbum() {
-  connect(m_albumController, &AlbumController::statusChanged, this, &AppController::statusChanged);
+  connect(m_albumController, &AlbumController::statusChanged, this,
+          &AppController::statusChanged);
 
   connect(m_albumController, &AlbumController::loadingChanged, this,
           &AppController::loadingAlbumChanged);
@@ -219,7 +256,9 @@ void AppController::connectPersonal() {
             // подставляем остальные плейлисты из того же раздела.
 
             m_libraryController->setSimilarPlaylistsFallback(
-                m_personalController->recommendationPlaylistsData(playlist.uid, playlist.kind));
+                m_personalController->recommendationPlaylistsData(
+                    playlist.uid,
+                    playlist.kind));
           });
 }
 
@@ -231,35 +270,49 @@ void AppController::connectArtist() {
           &AppController::currentArtistChanged);
 
   connect(m_artistController, &ArtistController::similarArtistSelected, this,
-          [this](const QString &artistId) { loadArtist(artistId); });
+          [this](const QString &artistId) {
+            loadArtist(artistId);
+          });
 }
 
 void AppController::connectChart() {
-  connect(m_chartController, &ChartController::statusChanged, this, &AppController::statusChanged);
+  connect(m_chartController, &ChartController::statusChanged, this,
+          &AppController::statusChanged);
 }
 
 void AppController::connectGenre() {
-  connect(m_genreController, &GenreController::statusChanged, this, &AppController::statusChanged);
+  connect(m_genreController, &GenreController::statusChanged, this,
+          &AppController::statusChanged);
 }
 
 void AppController::connectPlayback() {
-  connect(m_playbackController, &PlaybackController::currentTrackChanged, this, [this]() {
-    emit currentTrackChanged();
-    const Track track = m_playbackController->currentTrack();
+  connect(m_playbackController, &PlaybackController::currentTrackChanged, this,
+          [this]() {
+            emit currentTrackChanged();
 
-    if (track.id.isEmpty()) {
-      return;
-    }
+            const Track track = m_playbackController->currentTrack();
 
-    m_trackService->loadSimilarTracks(track.id);
-    QString artistName;
-    if (!track.artists.isEmpty()) artistName = track.artists.first().name;
+            if (track.id.isEmpty()) {
+              return;
+            }
 
-    const QString message = artistName.isEmpty()
-                                ? QStringLiteral("Выбран трек: %1").arg(track.title)
-                                : QStringLiteral("Выбран трек: %1 — %2").arg(track.title).arg(artistName);
-    emit statusChanged(message);
-  });
+            m_trackService->loadSimilarTracks(track.id);
+
+            QString artistName;
+
+            if (!track.artists.isEmpty()) {
+              artistName = track.artists.first().name;
+            }
+
+            const QString message =
+                artistName.isEmpty()
+                    ? QStringLiteral("Выбран трек: %1").arg(track.title)
+                    : QStringLiteral("Выбран трек: %1 — %2")
+                          .arg(track.title)
+                          .arg(artistName);
+
+            emit statusChanged(message);
+          });
 
   connect(m_playbackController, &PlaybackController::stateChanged, this,
           &AppController::playbackStateChanged);
@@ -275,38 +328,66 @@ void AppController::connectPlayback() {
 
   connect(m_playbackController, &PlaybackController::playlistExhausted, this,
           [this](const QString &sourceType, const QString &) {
+            /*
+             * My Wave:
+             *
+             * PlaybackController самостоятельно проходит очередь.
+             * Когда текущая очередь закончилась, он сообщает
+             * playlistExhausted. Только здесь My Wave должна
+             * запросить следующую партию.
+             */
+            if (sourceType == "myWave") {
+              m_personalController->handleMyWavePlaybackFinished();
+              return;
+            }
+
             if (sourceType == "playlist") {
-              const QVariantList similar = m_libraryController->similarPlaylists();
+              const QVariantList similar =
+                  m_libraryController->similarPlaylists();
 
               for (const QVariant &item : similar) {
                 const QVariantMap map = item.toMap();
                 const QString uid = map.value("uid").toString();
                 const int kind = map.value("kind").toInt();
-                if (uid.isEmpty() || kind <= 0) continue;
+
+                if (uid.isEmpty() || kind <= 0) {
+                  continue;
+                }
+
                 selectPersonalPlaylist(uid, kind);
                 emit statusChanged("Похожий плейлист");
                 return;
               }
 
             } else if (sourceType == "artist") {
-              const SimilarArtistsModel *similar = m_artistController->similarArtistsModel();
+              const SimilarArtistsModel *similar =
+                  m_artistController->similarArtistsModel();
 
               if (similar->count() <= 0) {
                 return;
               }
 
-              const Artist first = similar->artistAt(0);
+              const Artist first =
+                  similar->artistAt(0);
 
               if (first.id.isEmpty()) {
                 return;
               }
 
               loadArtist(first.id);
-              emit statusChanged(QStringLiteral("Похожий исполнитель: %1").arg(first.name));
+
+              emit statusChanged(
+                  QStringLiteral("Похожий исполнитель: %1")
+                      .arg(first.name));
 
             } else if (sourceType == "album") {
-              const QString artistId = currentTrackArtistId();
-              if (artistId.isEmpty()) return;
+              const QString artistId =
+                  currentTrackArtistId();
+
+              if (artistId.isEmpty()) {
+                return;
+              }
+
               loadArtist(artistId);
               emit statusChanged("Исполнитель альбома");
             }
@@ -316,27 +397,46 @@ void AppController::connectPlayback() {
 void AppController::connectPlayer() {
   connect(m_playerService, &PlayerService::playingChanged, this, [this]() {
     emit playingChanged();
-    if (m_playerService->isPlaying()) emit statusChanged("Воспроизведение");
+
+    if (m_playerService->isPlaying()) {
+      emit statusChanged("Воспроизведение");
+    }
   });
 
-  connect(m_playerService, &PlayerService::positionChanged, this, [this](qint64) {
-    emit positionChanged();
-    m_playbackController->systemMediaControls()->setPosition(m_playerService->position());
-  });
+  connect(m_playerService, &PlayerService::positionChanged, this,
+          [this](qint64) {
+            emit positionChanged();
+
+            m_playbackController
+                ->systemMediaControls()
+                ->setPosition(
+                    m_playerService->position());
+          });
 
   connect(m_playerService, &PlayerService::durationChanged, this,
-          [this](qint64) { emit durationChanged(); });
-  connect(m_playerService, &PlayerService::volumeChanged, this, &AppController::volumeChanged);
+          [this](qint64) {
+            emit durationChanged();
+          });
+
+  connect(m_playerService, &PlayerService::volumeChanged, this,
+          &AppController::volumeChanged);
 
   connect(m_playerService, &PlayerService::playbackPaused, this,
-          [this]() { emit statusChanged("Пауза"); });
+          [this]() {
+            emit statusChanged("Пауза");
+          });
 
   connect(m_playerService, &PlayerService::playbackStopped, this,
-          [this]() { emit statusChanged("Остановлено"); });
+          [this]() {
+            emit statusChanged("Остановлено");
+          });
 
-  connect(m_playerService, &PlayerService::errorOccurred, this, [this](const QString &message) {
-    emit statusChanged(QStringLiteral("Ошибка воспроизведения: %1").arg(message));
-  });
+  connect(m_playerService, &PlayerService::errorOccurred, this,
+          [this](const QString &message) {
+            emit statusChanged(
+                QStringLiteral("Ошибка воспроизведения: %1")
+                    .arg(message));
+          });
 }
 
 void AppController::toggleLike(const QString &trackId, bool liked) {
@@ -406,20 +506,34 @@ int AppController::queueCurrentIndex() const {
 
 QVariantMap AppController::queueTrackData(int index) const {
   QVariantMap result;
-  const Track track = m_queueService->trackAt(index);
-  if (track.id.isEmpty()) return result;
+
+  const Track track =
+      m_queueService->trackAt(index);
+
+  if (track.id.isEmpty()) {
+    return result;
+  }
+
   result.insert("id", track.id);
   result.insert("title", track.title);
   result.insert("coverUri", track.coverUri);
-  result.insert("durationMs", static_cast<qlonglong>(track.durationMs));
+  result.insert(
+      "durationMs",
+      static_cast<qlonglong>(track.durationMs));
 
   if (!track.artists.isEmpty()) {
-    result.insert("artist", track.artists.first().name);
-    result.insert("artistId", track.artists.first().id);
+    result.insert(
+        "artist",
+        track.artists.first().name);
+
+    result.insert(
+        "artistId",
+        track.artists.first().id);
   } else {
     result.insert("artist", "");
     result.insert("artistId", "");
   }
+
   return result;
 }
 
@@ -552,11 +666,13 @@ QString AppController::currentAlbumCoverUri() const {
 }
 
 bool AppController::currentAlbumLiked() const {
-  const QString albumId = m_albumController->albumId();
+  const QString albumId =
+      m_albumController->albumId();
 
   if (albumId.isEmpty()) {
     return false;
   }
+
   return m_likesService->isAlbumLiked(albumId);
 }
 
@@ -577,8 +693,13 @@ int AppController::currentArtistTrackCount() const {
 }
 
 bool AppController::currentArtistLiked() const {
-  const QString artistId = m_artistController->artistId();
-  if (artistId.isEmpty()) return false;
+  const QString artistId =
+      m_artistController->artistId();
+
+  if (artistId.isEmpty()) {
+    return false;
+  }
+
   return m_likesService->isArtistLiked(artistId);
 }
 
@@ -587,8 +708,13 @@ QString AppController::currentTrackId() const {
 }
 
 bool AppController::currentTrackLiked() const {
-  const QString trackId = currentTrackId();
-  if (trackId.isEmpty()) return false;
+  const QString trackId =
+      currentTrackId();
+
+  if (trackId.isEmpty()) {
+    return false;
+  }
+
   return m_likesService->isLiked(trackId);
 }
 
@@ -597,26 +723,43 @@ QString AppController::currentTrackTitle() const {
 }
 
 QString AppController::currentTrackArtist() const {
-  const Track track = m_playbackController->currentTrack();
-  return track.artists.isEmpty() ? QString() : track.artists.first().name;
+  const Track track =
+      m_playbackController->currentTrack();
+
+  return track.artists.isEmpty()
+             ? QString()
+             : track.artists.first().name;
 }
 
 QString AppController::currentTrackArtistId() const {
-  const Track track = m_playbackController->currentTrack();
-  return track.artists.isEmpty() ? QString() : track.artists.first().id;
+  const Track track =
+      m_playbackController->currentTrack();
+
+  return track.artists.isEmpty()
+             ? QString()
+             : track.artists.first().id;
 }
 
 QString AppController::currentTrackAlbumTitle() const {
-  const Track track = m_playbackController->currentTrack();
-  return track.albums.isEmpty() ? QString() : track.albums.first().title;
+  const Track track =
+      m_playbackController->currentTrack();
+
+  return track.albums.isEmpty()
+             ? QString()
+             : track.albums.first().title;
 }
 
 QString AppController::currentTrackAlbumId() const {
-  const Track track = m_playbackController->currentTrack();
-  return track.albums.isEmpty() ? QString() : track.albums.first().id;
+  const Track track =
+      m_playbackController->currentTrack();
+
+  return track.albums.isEmpty()
+             ? QString()
+             : track.albums.first().id;
 }
 
-void AppController::copyTrack(const QString &title, const QString &artist) {
+void AppController::copyTrack(const QString &title,
+                              const QString &artist) {
   if (title.trimmed().isEmpty()) {
     return;
   }
@@ -630,7 +773,9 @@ void AppController::copyTrack(const QString &title, const QString &artist) {
   }
 
   QGuiApplication::clipboard()->setText(text);
-  emit statusChanged(QStringLiteral("Скопировано: %1").arg(text));
+
+  emit statusChanged(
+      QStringLiteral("Скопировано: %1").arg(text));
 }
 
 QString AppController::currentTrackCoverUri() const {
@@ -650,7 +795,8 @@ PlaybackController::PlaybackState AppController::playbackState() const {
 }
 
 int AppController::repeatMode() const {
-  return static_cast<int>(m_playbackController->repeatMode());
+  return static_cast<int>(
+      m_playbackController->repeatMode());
 }
 
 bool AppController::shuffleEnabled() const {
