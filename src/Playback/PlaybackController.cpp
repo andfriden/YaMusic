@@ -2,6 +2,7 @@
 
 #include "../MediaControls/MediaControlsFactory.h"
 #include "../Player/PlayerService.h"
+#include "../Player/StreamProxy.h"
 #include "../Yandex/Catalog/TrackService.h"
 
 #include <QDir>
@@ -11,6 +12,8 @@
 #include <QNetworkRequest>
 #include <QStandardPaths>
 #include <QUrl>
+
+#include <utility>
 
 static QString coverCacheDir() {
   return QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
@@ -33,7 +36,8 @@ PlaybackController::PlaybackController(
       m_trackService(trackService),
       m_playerService(playerService),
       m_queueService(queueService),
-      m_coverNetwork(new QNetworkAccessManager(this)) {
+      m_coverNetwork(new QNetworkAccessManager(this)),
+      m_streamNetwork(new QNetworkAccessManager(this)) {
   Q_ASSERT(m_trackService != nullptr);
   Q_ASSERT(m_playerService != nullptr);
   Q_ASSERT(m_queueService != nullptr);
@@ -46,6 +50,7 @@ PlaybackController::PlaybackController(
       this,
       [this]() {
         setState(Playing);
+        releaseStaleProxies();
       });
 
   connect(
@@ -118,6 +123,14 @@ PlaybackController::PlaybackController(
       &PlaybackController::shuffleChanged);
 }
 
+PlaybackController::~PlaybackController() {
+  for (StreamProxy *proxy : std::as_const(m_staleProxies)) {
+    proxy->abort();
+    proxy->deleteLater();
+  }
+  m_staleProxies.clear();
+}
+
 Track PlaybackController::currentTrack() const {
   return m_currentTrack;
 }
@@ -162,7 +175,9 @@ void PlaybackController::playTrack(const Track &track) {
     }
   }
 
+  abortStreamProxy();
   m_currentTrack = track;
+  m_playerService->setTrackDuration(track.durationMs);
   emit currentTrackChanged();
 
   setState(Loading);
@@ -241,6 +256,7 @@ void PlaybackController::resume() {
 
 void PlaybackController::stop() {
   maybeReportPlayback();
+  abortStreamProxy();
   m_playerService->stop();
 }
 
@@ -355,11 +371,62 @@ void PlaybackController::playStream(
     return;
   }
 
-  if (streamUrl != m_playerService->currentUrl()) {
-    m_playerService->playUrl(streamUrl);
-  } else {
-    m_playerService->play();
+  abortStreamProxy();
+
+  QNetworkRequest request{QUrl(streamUrl)};
+  request.setHeader(
+      QNetworkRequest::UserAgentHeader,
+      QStringLiteral("YaMusic/1.0 (Qt)"));
+  request.setAttribute(
+      QNetworkRequest::RedirectPolicyAttribute,
+      QNetworkRequest::NoLessSafeRedirectPolicy);
+
+  QNetworkReply *reply = m_streamNetwork->get(request);
+  reply->setReadBufferSize(1024 * 1024);
+  startStreamProxy(trackId, reply);
+}
+
+void PlaybackController::startStreamProxy(
+    const QString &trackId,
+    QNetworkReply *reply) {
+  auto *proxy = new StreamProxy(this);
+  m_streamProxy = proxy;
+  m_pendingStreamTrackId = trackId;
+
+  if (reply) proxy->setReply(reply);
+
+  connect(
+      proxy,
+      &StreamProxy::networkError,
+      this,
+      [this](const QString &message) {
+        if (m_state == Error)
+          return;
+        setState(Error);
+        emit playbackError(
+            "Stream download failed: " + message);
+      });
+
+  m_playerService->playDevice(proxy);
+}
+
+void PlaybackController::abortStreamProxy() {
+  if (m_streamProxy) {
+    // Не удаляем прокси сразу: ffmpeg-демаксер может ещё читать
+    // из него в своём потоке. Останавливаем сеть, прерываем
+    // ожидание чтения и откладываем прокси до старта нового трека.
+    m_streamProxy->abort();
+    m_staleProxies.append(m_streamProxy);
+    m_streamProxy = nullptr;
   }
+  m_pendingStreamTrackId.clear();
+}
+
+void PlaybackController::releaseStaleProxies() {
+  for (StreamProxy *proxy : std::as_const(m_staleProxies)) {
+    proxy->deleteLater();
+  }
+  m_staleProxies.clear();
 }
 
 bool PlaybackController::playQueueCurrentTrack() {

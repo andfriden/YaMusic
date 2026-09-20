@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QPointer>
 #include <QString>
 #include <functional>
 #include <memory>
@@ -11,7 +12,9 @@
 
 class PlayerService;
 class TrackService;
+class StreamProxy;
 class QNetworkAccessManager;
+class QNetworkReply;
 
 class PlaybackController : public QObject {
   Q_OBJECT
@@ -100,8 +103,18 @@ private:
       const QString &trackId,
       const QString &streamUrl);
 
+  void startStreamProxy(
+      const QString &trackId,
+      QNetworkReply *reply);
+
+  void abortStreamProxy();
+
+  void releaseStaleProxies();
+
   void maybeReportPlayback();
   void resetReportState();
+
+  ~PlaybackController() override;
 
 private:
   TrackService *m_trackService = nullptr;
@@ -114,7 +127,16 @@ private:
   std::unique_ptr<SystemMediaControls> m_systemMediaControls;
 
   QNetworkAccessManager *m_coverNetwork = nullptr;
+  QNetworkAccessManager *m_streamNetwork = nullptr;
   QString m_pendingCoverUri;
+
+  // Буферизованный сетевой поток (обход TLS-проблем FFmpeg на macOS).
+  // Старые прокси не удаляются сразу: ffmpeg может ещё читать из них
+  // в своём потоке. Гарантированно освобождаются при destroy() и
+  // при старте реального воспроизведения следующего трека.
+  StreamProxy *m_streamProxy = nullptr;
+  QList<StreamProxy *> m_staleProxies;
+  QString m_pendingStreamTrackId;
 
   // Отправка статистики прослушивания.
   std::function<QString()> m_uidProvider;

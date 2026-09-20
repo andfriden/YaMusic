@@ -1,8 +1,10 @@
 #pragma once
 
 #include <QAudioOutput>
+#include <QIODevice>
 #include <QMediaPlayer>
 #include <QObject>
+#include <QPointer>
 #include <QString>
 #include <QUrl>
 
@@ -22,6 +24,8 @@ public:
 public slots:
   void play();
   void playUrl(const QString &url);
+  void playDevice(QIODevice *device);
+  void setTrackDuration(qint64 durationMs);
   void pause();
   void resume();
   void stop();
@@ -48,4 +52,6 @@ private:
   QMediaPlayer m_player;
   QAudioOutput m_audioOutput;
   QString m_currentUrl;
+  qint64 m_trackDurationMs = -1;
+  QPointer<QIODevice> m_sourceDevice;
 };

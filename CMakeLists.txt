@@ -155,6 +155,7 @@ set(
 
         # Player / playback
         src/Player/PlayerService.cpp
+        src/Player/StreamProxy.cpp
         src/Playback/PlaybackController.cpp
 
         # Queue

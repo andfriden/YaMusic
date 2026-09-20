@@ -59,6 +59,8 @@ qint64 PlayerService::position() const {
 }
 
 qint64 PlayerService::duration() const {
+  if (m_trackDurationMs > 0)
+    return m_trackDurationMs;
   return m_player.duration();
 }
 
@@ -79,11 +81,37 @@ void PlayerService::playUrl(const QString &url) {
 
   if (m_currentUrl != url) {
     m_currentUrl = url;
+    m_sourceDevice.clear();
     m_player.setSource(QUrl(url));
     emit currentUrlChanged();
   }
 
   m_player.play();
+}
+
+/*
+ * Воспроизведение из QIODevice (буферизованный сетевой поток).
+ *
+ * FFmpeg на macOS не умеет надёжно играть HTTPS-аудио напрямую
+ * (SecureTransport падает с -9806), поэтому аудио качается через
+ * QNetworkAccessManager (свой SSL-стек Qt), а плееру отдаётся уже
+ * распарсенный поток данных. Жизненным циклом устройства управляет
+ * PlayerService: при смене источника старый прокси останавливается.
+ */
+void PlayerService::playDevice(QIODevice *device) {
+  if (!device) return;
+
+  m_currentUrl.clear();
+  m_sourceDevice = device;
+  m_player.setSourceDevice(device);
+  m_player.play();
+}
+
+void PlayerService::setTrackDuration(qint64 durationMs) {
+  if (m_trackDurationMs != durationMs) {
+    m_trackDurationMs = durationMs;
+    emit durationChanged(duration());
+  }
 }
 
 void PlayerService::pause() {
@@ -106,11 +134,23 @@ void PlayerService::togglePlayback() {
 }
 
 void PlayerService::seek(qint64 position) {
-  const qint64 playerDuration = m_player.duration();
-  if (playerDuration <= 0) return;
+  const qint64 effectiveDuration =
+      m_trackDurationMs > 0 ? m_trackDurationMs : m_player.duration();
 
-  const qint64 clampedPosition = qBound(qint64(0), position, playerDuration);
-  m_player.setPosition(clampedPosition);
+  if (position <= 0) {
+    m_player.setPosition(0);
+    return;
+  }
+
+  // Для стримов из QIODevice ffmpeg умеет искать только в пределах
+  // уже скачанного буфера; если длительность неизвестна, всё равно
+  // даём команду плееру — он сам обработает недоступный seek.
+  if (effectiveDuration > 0) {
+    const qint64 clampedPosition = qBound(qint64(0), position, effectiveDuration);
+    m_player.setPosition(clampedPosition);
+  } else {
+    m_player.setPosition(position);
+  }
 }
 
 void PlayerService::setVolume(float volume) {
