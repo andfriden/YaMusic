@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 project(
         YaMusic
-        VERSION 0.10.3.1
+        VERSION 0.11
         LANGUAGES CXX
 )
 
