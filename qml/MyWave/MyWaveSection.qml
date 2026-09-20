@@ -543,7 +543,7 @@ Item {
                             )
                         }
 
-                        onPressed: {
+                        onPressed: function(mouse) {
                             if (
                                 mouse.button !== Qt.RightButton ||
                                 !root.hasController

@@ -14,6 +14,8 @@ Item {
     readonly property bool hasTimedLines:
         root.controller !== null &&
         root.controller !== undefined &&
+        root.controller.lyricsController !== null &&
+        root.controller.lyricsController !== undefined &&
         root.controller.lyricsController.lyricsLineCount > 0
 
     readonly property int currentLine:
@@ -23,7 +25,9 @@ Item {
 
     readonly property string plainText:
         root.controller !== null &&
-        root.controller !== undefined
+        root.controller !== undefined &&
+        root.controller.lyricsController !== null &&
+        root.controller.lyricsController !== undefined
             ? String(root.controller.lyricsController.lyricsText || "")
             : ""
 
@@ -37,6 +41,7 @@ Item {
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
+
             height: 60
 
             anchors.leftMargin: 24
@@ -85,22 +90,26 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     anchors.verticalCenterOffset: -3
+
                     text: "⌄"
+
                     color: AppTheme.textSecondary
                     font.pixelSize: 24
                 }
 
                 MouseArea {
                     id: closeMouseArea
+
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
+
                     onClicked: root.closed()
                 }
             }
         }
 
-        // ---- Timed lyrics: line-by-line with highlight + autoscroll ----
+        // ---- Timed lyrics ----
 
         ListView {
             id: linesView
@@ -119,21 +128,22 @@ Item {
 
             visible: root.hasTimedLines
 
-            model: root.hasTimedLines
-                ? root.controller.lyricsController.lyricsLineCount
-                : 0
+            model:
+                root.hasTimedLines
+                    ? root.controller.lyricsController.lyricsLineCount
+                    : 0
 
-            ScrollBar.vertical:
-                ScrollBar {
-                    policy: ScrollBar.AsNeeded
-                }
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+            }
 
             delegate: Text {
                 required property int index
 
                 width: linesView.width
 
-                text: root.controller.lyricsController.lyricLineText(index)
+                text:
+                    root.controller.lyricsController.lyricLineText(index)
 
                 color:
                     index === root.currentLine
@@ -154,9 +164,13 @@ Item {
                 wrapMode: Text.WordWrap
             }
 
-            // Автопрокрутка к текущей строке
+            // LyricsController actually owns these signals.
             Connections {
-                target: root.controller
+                target:
+                    root.controller !== null &&
+                    root.controller !== undefined
+                        ? root.controller.lyricsController
+                        : null
 
                 function onCurrentLyricLineChanged() {
                     if (
@@ -174,13 +188,16 @@ Item {
 
                 function onLyricsChanged() {
                     if (root.hasTimedLines) {
-                        linesView.positionViewAtIndex(0, ListView.Center)
+                        linesView.positionViewAtIndex(
+                            0,
+                            ListView.Center
+                        )
                     }
                 }
             }
         }
 
-        // ---- Plain lyrics: single text block ----
+        // ---- Plain lyrics ----
 
         Flickable {
             id: plainFlickable
@@ -200,16 +217,17 @@ Item {
             clip: true
             visible: !root.hasTimedLines
 
-            ScrollBar.vertical:
-                ScrollBar {
-                    policy: ScrollBar.AsNeeded
-                }
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+            }
 
             Text {
                 id: plainTextLabel
 
                 width: parent.width
+
                 text: root.plainText
+
                 color: AppTheme.textPrimary
                 font.pixelSize: 17
                 lineHeight: 1.8
