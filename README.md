@@ -24,12 +24,32 @@
 * Свои плейлисты, лайки, недавно прослушанные, альбомы, исполнители
 * Чарты России и мира, жанры, новые релизы
 * Страницы альбомов, плейлистов, исполнителей и жанров
-* Единая очередь: перестановка треков, repeat, shuffle, автопереход на похожий контент
-* Подсветка текущего трека во всех списках
+* Единая очередь: repeat, shuffle, автопереход на похожий контент
+* Подсветка текущего трека
 * Mini Player, Expanded Now Playing, перемотка, громкость, Dynamic Player Accent
 * Текст песен (🎤) с синхронизированной подсветкой строк
 * Тёмная тема Catppuccin (Latte / Macchiato), попап настроек
 * Адаптивный интерфейс: верхняя навигация, боковая и контекстная панели
+
+---
+
+## История прослушивания
+
+YaMusic подключается к Яндекс Музыке по протоколу **Ynison** (долгоживущее WebSocket-соединение):
+регистрирует устройство-плеер, транслирует «сейчас играет» и состояние очереди, отправляет
+heartbeat прогресса и события завершения треков. Раздел «Недавно прослушаны» в приложении
+читается через `/music-history`.
+
+Ограничение со стороны сервера: запись треков в вашу историю на стороне Яндекс Музыки
+(чтобы прослушанное появлялось в истории и в официальном приложении) выполняется только для
+сессий, инициированных официальными клиентами. Ни `/play-audio`, ни `/plays`, ни `/queues`,
+ни Ynison-статусы от неофициального клиента сервер в историю не засчитывает — события
+принимаются (200/ok), но не записываются. Чтобы прослушанное в YaMusic попало в общую
+историю/рекомендации Яндекса, используйте официальное приложение.
+
+Использованная документация: [MarshalX/yandex-music-api](https://github.com/MarshalX/yandex-music-api),
+[acherkashin/yandex-music-open-api](https://github.com/acherkashin/yandex-music-open-api),
+[trudenboy/ma-provider-yandex-ynison](https://github.com/trudenboy/ma-provider-yandex-ynison).
 
 ---
 
@@ -40,7 +60,6 @@
 
 | ОС | Архитектура | Пакет |
 |---|---|---|
-| Windows x64 | установщик | `YaMusic-<version>-windows-x64.exe` |
 | Windows x64 | portable | `YaMusic-<version>-windows-x64-portable.zip` |
 | macOS | Intel | `YaMusic-<version>-macos-x64.dmg` |
 | macOS | Apple Silicon | `YaMusic-<version>-macos-arm64.dmg` |
@@ -48,7 +67,7 @@
 | Linux x86_64 | архив | `YaMusic-<version>-linux-x86_64.tar.gz` |
 
 macOS-пакеты собираются отдельно для Intel (x64) и Apple Silicon (arm64);
-Windows — установщик и portable-версия; Linux — AppImage и архив.
+Windows — portable-версия; Linux — AppImage и архив.
 
 ---
 
@@ -98,7 +117,7 @@ cmake --build build --parallel
 
 Пакеты собираются автоматически в GitHub Actions при пуше тега `v*` (см. `.github/workflows/build.yml`):
 
-* **Windows x64** — `YaMusic-<version>-windows-x64.exe` (NSIS-установщик, `packaging/windows/installer.nsi`) и `YaMusic-<version>-windows-x64-portable.zip`
+* **Windows x64** — `YaMusic-<version>-windows-x64-portable.zip`
 * **macOS** — отдельно для Intel и Apple Silicon: `YaMusic-<version>-macos-x64.dmg`, `YaMusic-<version>-macos-arm64.dmg`
 * **Linux x86_64** — `YaMusic-<version>-linux-x86_64.AppImage` и `YaMusic-<version>-linux-x86_64.tar.gz`
 
@@ -151,6 +170,7 @@ YaMusic/
 | v0.8 | Чарты, жанры, новые релизы, переключение тем ✅ |
 | v0.9 | Текст песен (Lyrics) ✅ |
 | v0.10 | Системные медиа-кнопки: MPRIS (Linux), SMTC (Windows), MPRemoteCommandCenter (macOS) ✅ |
+| v0.11 | Full Search, похожие треки, автопереход на похожий контент, история через /music-history, Ynison ✅ |
 
 ---
 
