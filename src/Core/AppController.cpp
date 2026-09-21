@@ -17,6 +17,8 @@
 #include "../Yandex/Personal/PlaylistService.h"
 #include "../Yandex/Personal/RecentListeningService.h"
 #include "../Yandex/Personal/YandexPersonal.h"
+#include "../Ynison/YnisonClient.h"
+#include "../Ynison/YnisonReporter.h"
 #include "PlayerAccentService.h"
 
 #include <QClipboard>
@@ -56,7 +58,9 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
       m_lyricsController(
           new LyricsController(m_trackService, m_playbackController, m_playerService, this)),
       m_themeController(new ThemeController(this)),
-      m_accentController(new AccentController(m_playerAccentService, m_playbackController, this)) {
+      m_accentController(new AccentController(m_playerAccentService, m_playbackController, this)),
+      m_ynisonClient(new YnisonClient(this)),
+      m_ynisonReporter(new YnisonReporter(m_ynisonClient, m_playerService, m_queueService, this)) {
   Q_ASSERT(m_auth != nullptr);
   Q_ASSERT(m_accountService != nullptr);
 
@@ -117,6 +121,17 @@ void AppController::connectAccount() {
                 [this]() -> QString {
                   return m_accountUid;
                 });
+
+            // Подключаемся к Ynison: только активное устройство-плеер
+            // в долгоживущей WebSocket-сессии заставляет сервер писать
+            // в «Историю прослушивания».
+            if (m_auth->isAuthenticated() && m_ynisonClient) {
+              m_ynisonClient->setToken(m_auth->token());
+              m_ynisonClient->connectToYnison();
+
+              if (m_ynisonReporter)
+                m_ynisonReporter->start();
+            }
 
             // Список личных плейлистов нужен в пикере «Добавить в плейлист»
             // на всех страницах — грузим сразу при входе, а не только

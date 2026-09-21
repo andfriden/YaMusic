@@ -219,6 +219,11 @@ set(
         src/Yandex/Personal/RecentListeningModel.cpp
         src/Yandex/Personal/RecentListeningService.cpp
         src/Yandex/Personal/YandexPersonal.cpp
+
+        # Ynison (история прослушивания)
+        src/Ynison/WebSocketClient.cpp
+        src/Ynison/YnisonClient.cpp
+        src/Ynison/YnisonReporter.cpp
 )
 
 # =============================================================

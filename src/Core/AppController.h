@@ -7,6 +7,8 @@
 #include "../Yandex/Catalog/SearchPlaylistsModel.h"
 #include "../Yandex/Catalog/SimilarTracksModel.h"
 #include "../Yandex/Personal/NewPlaylistsService.h"
+#include "../Ynison/YnisonClient.h"
+#include "../Ynison/YnisonReporter.h"
 #include "AccentController.h"
 #include "AlbumController.h"
 #include "ArtistController.h"
@@ -352,6 +354,9 @@ private:
   LyricsController *m_lyricsController = nullptr;
   ThemeController *m_themeController = nullptr;
   AccentController *m_accentController = nullptr;
+
+  YnisonClient *m_ynisonClient = nullptr;
+  YnisonReporter *m_ynisonReporter = nullptr;
 
   QString m_accountUid;
   bool m_playAlbumAfterLoad = false;
