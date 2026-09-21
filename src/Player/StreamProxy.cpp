@@ -7,12 +7,7 @@ StreamProxy::StreamProxy(QObject *parent) : QIODevice(parent) {
 }
 
 StreamProxy::~StreamProxy() {
-    m_destroyed = true;
-    if (m_reply) {
-        m_reply->disconnect(this);
-        m_reply->abort();
-        m_reply->deleteLater();
-    }
+    abort();
 }
 
 void StreamProxy::setReply(QNetworkReply *reply) {
@@ -60,12 +55,22 @@ void StreamProxy::setReply(QNetworkReply *reply) {
 // Буфер очищается — освобождаем память; объект остаётся живым,
 // пока ffmpeg-демаксер не закончит с ним работу.
 void StreamProxy::abort() {
+    if (m_destroyed)
+        return;
+
     m_destroyed = true;
+
     if (m_reply) {
+        // Не вызываем abort() на reply: он синхронно закрывает
+        // QSslSocket, а отложенный readyRead дёргает read() по уже
+        // закрытому сокету -> "QIODevice::read (QSslSocket): device
+        // not open". Отключаем сигналы и отдаём reply QNAM'у —
+        // он сам корректно закроет соединение при deleteLater().
         m_reply->disconnect(this);
-        m_reply->abort();
         m_reply->deleteLater();
+        m_reply.clear();
     }
+
     QMutexLocker lock(&m_mutex);
     m_finished = true;
     m_buffer.clear();
