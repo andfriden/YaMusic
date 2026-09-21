@@ -3,6 +3,7 @@
 #include "../Models/Account.h"
 #include "../Models/Track.h"
 #include "Catalog/SearchResult.h"
+
 #include <QJsonObject>
 #include <QList>
 #include <QNetworkAccessManager>
@@ -25,7 +26,8 @@ public:
   QNetworkReply *get(const QString &path);
   QNetworkReply *post(const QString &path, const QJsonObject &body);
   QNetworkReply *postForm(const QString &path, const QUrlQuery &body);
-  QNetworkReply *rawPost(const QNetworkRequest &request, const QByteArray &data);
+  QNetworkReply *rawPost(const QNetworkRequest &request,
+                         const QByteArray &data);
 
   QNetworkRequest createRequest(const QString &path) const;
 
@@ -36,12 +38,18 @@ public:
   // Отправляет факт прослушивания трека на сервер
   // (POST /play-audio). Сервер сам добавляет трек
   // в «Недавно прослушаны» и учитывает в рекомендациях.
-  // Параметры передаются как form-urlencoded:
+  //
+  // Параметры:
   // track-id, album-id, uid, from, from-cache,
-  // timestamp, client-now, track-length-seconds,
-  // total-played-seconds, end-position-seconds.
-  void reportPlayback(const QString &trackId, const QString &albumId, const QString &uid,
-                      int trackLengthSeconds, int playedSeconds, int endPositionSeconds);
+  // play-id, timestamp, client-now,
+  // track-length-seconds, total-played-seconds,
+  // end-position-seconds.
+  void reportPlayback(const QString &trackId,
+                      const QString &albumId,
+                      const QString &uid,
+                      int trackLengthSeconds,
+                      int playedSeconds,
+                      int endPositionSeconds);
 
 signals:
   void requestError(const QString &message);
@@ -49,7 +57,7 @@ signals:
   void searchReceived(const SearchResults &results);
   void tracksReceived(const QList<Track> &tracks);
 
-  // true — сервер принял факт прослушивания (result == "ok").
+  // true — сервер принял факт прослушивания.
   void playbackReported(bool ok);
 
 private:

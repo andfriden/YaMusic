@@ -75,18 +75,17 @@ PlaybackController::PlaybackController(
       this,
       &PlaybackController::handlePlaybackFinished);
 
-  /*
-   * Ошибка PlayerService не запускает автоматическое
-   * восстановление Stream URL.
-   *
-   * Это соответствует поведению v0.9.0:
-   * ошибка -> Error + playbackError.
-   */
   connect(
       m_playerService,
       &PlayerService::errorOccurred,
       this,
       [this](const QString &message) {
+        // Даже если воспроизведение завершилось ошибкой
+        // (например, сетевой/TLS/FFmpeg error), нужно
+        // отправить факт прослушивания, если был достигнут
+        // минимальный порог.
+        maybeReportPlayback();
+
         setState(Error);
         emit playbackError(message);
       });
@@ -128,6 +127,7 @@ PlaybackController::~PlaybackController() {
     proxy->abort();
     proxy->deleteLater();
   }
+
   m_staleProxies.clear();
 }
 
@@ -156,15 +156,15 @@ void PlaybackController::playTrack(const Track &track) {
     return;
   }
 
-  /*
-   * Новый трек = новый отчёт прослушивания.
-   */
+  const bool changingTrack =
+      !m_currentTrack.id.isEmpty() &&
+      m_currentTrack.id != track.id;
+
+  if (changingTrack)
+    maybeReportPlayback();
+
   resetReportState();
 
-  /*
-   * Если трек уже находится в очереди,
-   * синхронизируем currentIndex.
-   */
   const QList<Track> queueTracks =
       m_queueService->tracks();
 
@@ -176,8 +176,10 @@ void PlaybackController::playTrack(const Track &track) {
   }
 
   abortStreamProxy();
+
   m_currentTrack = track;
   m_playerService->setTrackDuration(track.durationMs);
+
   emit currentTrackChanged();
 
   setState(Loading);
@@ -354,12 +356,6 @@ void PlaybackController::handleStreamUrl(
   playStream(trackId, url);
 }
 
-/*
- * Прямое воспроизведение сетевого потока.
- *
- * Никакого предварительного скачивания MP3
- * в локальный файл здесь нет.
- */
 void PlaybackController::playStream(
     const QString &trackId,
     const QString &streamUrl) {
@@ -374,15 +370,20 @@ void PlaybackController::playStream(
   abortStreamProxy();
 
   QNetworkRequest request{QUrl(streamUrl)};
+
   request.setHeader(
       QNetworkRequest::UserAgentHeader,
       QStringLiteral("YaMusic/1.0 (Qt)"));
+
   request.setAttribute(
       QNetworkRequest::RedirectPolicyAttribute,
       QNetworkRequest::NoLessSafeRedirectPolicy);
 
-  QNetworkReply *reply = m_streamNetwork->get(request);
+  QNetworkReply *reply =
+      m_streamNetwork->get(request);
+
   reply->setReadBufferSize(1024 * 1024);
+
   startStreamProxy(trackId, reply);
 }
 
@@ -390,10 +391,12 @@ void PlaybackController::startStreamProxy(
     const QString &trackId,
     QNetworkReply *reply) {
   auto *proxy = new StreamProxy(this);
+
   m_streamProxy = proxy;
   m_pendingStreamTrackId = trackId;
 
-  if (reply) proxy->setReply(reply);
+  if (reply)
+    proxy->setReply(reply);
 
   connect(
       proxy,
@@ -402,7 +405,9 @@ void PlaybackController::startStreamProxy(
       [this](const QString &message) {
         if (m_state == Error)
           return;
+
         setState(Error);
+
         emit playbackError(
             "Stream download failed: " + message);
       });
@@ -412,20 +417,18 @@ void PlaybackController::startStreamProxy(
 
 void PlaybackController::abortStreamProxy() {
   if (m_streamProxy) {
-    // Не удаляем прокси сразу: ffmpeg-демаксер может ещё читать
-    // из него в своём потоке. Останавливаем сеть, прерываем
-    // ожидание чтения и откладываем прокси до старта нового трека.
     m_streamProxy->abort();
     m_staleProxies.append(m_streamProxy);
     m_streamProxy = nullptr;
   }
+
   m_pendingStreamTrackId.clear();
 }
 
 void PlaybackController::releaseStaleProxies() {
-  for (StreamProxy *proxy : std::as_const(m_staleProxies)) {
+  for (StreamProxy *proxy : std::as_const(m_staleProxies))
     proxy->deleteLater();
-  }
+
   m_staleProxies.clear();
 }
 
@@ -446,10 +449,6 @@ void PlaybackController::handlePlaybackFinished() {
   const QueueService::RepeatMode mode =
       m_queueService->repeatMode();
 
-  /*
-   * RepeatOne:
-   * переигрываем текущий трек.
-   */
   if (mode == QueueService::RepeatOne) {
     if (playQueueCurrentTrack())
       return;
@@ -458,10 +457,6 @@ void PlaybackController::handlePlaybackFinished() {
     return;
   }
 
-  /*
-   * Есть следующий трек:
-   * переходим к нему.
-   */
   if (m_queueService->hasNext()) {
     m_queueService->next();
 
@@ -469,10 +464,6 @@ void PlaybackController::handlePlaybackFinished() {
       return;
   }
 
-  /*
-   * RepeatAll:
-   * возвращаемся к началу очереди.
-   */
   if (mode == QueueService::RepeatAll &&
       m_queueService->count() > 0) {
     m_queueService->setCurrentIndex(0);
@@ -481,12 +472,6 @@ void PlaybackController::handlePlaybackFinished() {
       return;
   }
 
-  /*
-   * Очередь закончилась.
-   *
-   * В частности, My Wave использует этот сигнал,
-   * чтобы запросить следующую партию.
-   */
   const QString sourceType =
       m_queueService->sourceType();
 
@@ -519,39 +504,35 @@ static QString normalizeCoverUri(
 
 static SystemMediaControls::Metadata
 makeMediaMetadata(const Track &track) {
-  SystemMediaControls::Metadata md;
+  SystemMediaControls::Metadata metadata;
 
-  md.title = track.title;
+  metadata.title = track.title;
 
-  md.artist =
+  metadata.artist =
       track.artists.isEmpty()
           ? QString()
           : track.artists.first().name;
 
-  md.album =
+  metadata.album =
       track.albums.isEmpty()
           ? QString()
           : track.albums.first().title;
 
-  md.durationMs = track.durationMs;
-  md.trackId = track.id;
+  metadata.durationMs = track.durationMs;
+  metadata.trackId = track.id;
 
-  /*
-   * MPRIS использует локальный file:// URL
-   * для кэшированной обложки.
-   */
   const QString cached =
       coverFilePath(track.id);
 
   if (QFile::exists(cached)) {
-    md.coverUrl =
+    metadata.coverUrl =
         QUrl::fromLocalFile(cached).toString();
   } else {
-    md.coverUrl =
+    metadata.coverUrl =
         normalizeCoverUri(track.coverUri);
   }
 
-  return md;
+  return metadata;
 }
 
 static QString mprisLoopStatus(
@@ -577,9 +558,6 @@ void PlaybackController::setupSystemMediaControls() {
   if (m_systemMediaControls == nullptr)
     return;
 
-  /*
-   * Системные команды -> PlaybackController.
-   */
   connect(
       m_systemMediaControls.get(),
       &SystemMediaControls::playRequested,
@@ -623,9 +601,6 @@ void PlaybackController::setupSystemMediaControls() {
         m_playerService->seek(positionMs);
       });
 
-  /*
-   * Текущий трек -> системные медиаконтролы.
-   */
   connect(
       this,
       &PlaybackController::currentTrackChanged,
@@ -634,19 +609,16 @@ void PlaybackController::setupSystemMediaControls() {
         if (!m_systemMediaControls->isEnabled())
           m_systemMediaControls->setEnabled(true);
 
-        const auto md =
+        const auto metadata =
             makeMediaMetadata(m_currentTrack);
 
-        m_systemMediaControls->setMetadata(md);
+        m_systemMediaControls->setMetadata(metadata);
         m_systemMediaControls->setDuration(
-            md.durationMs);
+            metadata.durationMs);
 
         fetchCurrentCover();
       });
 
-  /*
-   * Состояние воспроизведения -> система.
-   */
   connect(
       this,
       &PlaybackController::stateChanged,
@@ -756,14 +728,10 @@ void PlaybackController::fetchCurrentCover() {
         file.write(data);
         file.close();
 
-        /*
-         * Перепубликуем metadata,
-         * чтобы MPRIS подхватил file:// обложку.
-         */
-        const auto md =
+        const auto metadata =
             makeMediaMetadata(m_currentTrack);
 
-        m_systemMediaControls->setMetadata(md);
+        m_systemMediaControls->setMetadata(metadata);
       });
 }
 
@@ -772,15 +740,6 @@ void PlaybackController::setUidProvider(
   m_uidProvider = provider;
 }
 
-/*
- * Отправка факта прослушивания:
- *
- * - минимум 30 секунд
- *   ИЛИ
- * - минимум 50% длительности.
- *
- * Вызывается при pause, stop и завершении трека.
- */
 void PlaybackController::maybeReportPlayback() {
   if (m_reportSubmitted ||
       m_currentTrack.id.isEmpty()) {
