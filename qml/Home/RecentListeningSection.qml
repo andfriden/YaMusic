@@ -7,203 +7,113 @@ Item {
 
     property var controller: null
 
-    // =============================================================
-    // Model
-    // =============================================================
-
-    readonly property bool hasController:
-        root.controller !== null &&
-        root.controller !== undefined
-
     readonly property var recentModel:
-            root.hasController &&
-        root.controller.recentListeningModel !== null &&
-        root.controller.recentListeningModel !== undefined
-        ? root.controller.recentListeningModel
+        controller &&
+        controller.recentListeningModel
+        ? controller.recentListeningModel
         : null
-
-    // =============================================================
-    // Layout
-    // =============================================================
 
     readonly property int horizontalMargin: 12
     readonly property int verticalMargin: 12
-    readonly property int headerHeight: 28
-    readonly property int contentSpacing: 8
+    readonly property int headerHeight: 30
+    readonly property int contentSpacing: 10
     readonly property int trackHeight: 68
     readonly property int trackSpacing: 6
     readonly property int maxVisibleTracks: 7
 
     readonly property int listHeight:
-        (
-            root.maxVisibleTracks *
-            root.trackHeight
-        ) +
-        (
-            (
-                root.maxVisibleTracks - 1
-            ) *
-            root.trackSpacing
-        )
+        maxVisibleTracks * trackHeight +
+        (maxVisibleTracks - 1) * trackSpacing
 
     implicitHeight:
-        root.verticalMargin * 2 +
-        root.headerHeight +
-        root.contentSpacing +
-        root.listHeight
-
-    // =============================================================
-    // Background
-    // =============================================================
+        verticalMargin * 2 +
+        headerHeight +
+        contentSpacing +
+        listHeight
 
     Rectangle {
         anchors.fill: parent
-
         radius: 10
-
-        color:
-            AppTheme.panel
-
+        color: AppTheme.panel
         border.width: 1
-
-        border.color:
-            AppTheme.borderSubtle
+        border.color: AppTheme.borderSubtle
     }
 
-    // =============================================================
-    // Content
-    // =============================================================
-
     Column {
-        id: contentColumn
+        anchors.fill: parent
+        anchors.leftMargin: root.horizontalMargin
+        anchors.rightMargin: root.horizontalMargin
+        anchors.topMargin: root.verticalMargin
+        anchors.bottomMargin: root.verticalMargin
 
-        x:
-            root.horizontalMargin
-
-        y:
-            root.verticalMargin
-
-        width:
-            Math.max(
-                0,
-                root.width -
-                root.horizontalMargin * 2
-            )
-
-        spacing:
-            root.contentSpacing
-
-        // =========================================================
-        // Header
-        // =========================================================
+        spacing: root.contentSpacing
 
         Row {
-            width:
-                parent.width
-
-            height:
-                root.headerHeight
-
+            width: parent.width
+            height: root.headerHeight
             spacing: 10
 
             Label {
-                id: titleLabel
+                width: Math.max(
+                    0,
+                    parent.width -
+                    countLabel.implicitWidth -
+                    10
+                )
 
-                width:
-                    Math.max(
-                        0,
-                        parent.width -
-                        countLabel.implicitWidth -
-                        10
-                    )
+                height: parent.height
 
-                height:
-                    parent.height
-
-                text:
-                    qsTr("Недавно слушали")
-
-                color:
-                    AppTheme.textPrimary
+                text: qsTr("Недавно слушали")
+                color: AppTheme.textPrimary
 
                 font.pixelSize: 18
                 font.bold: true
 
-                verticalAlignment:
-                    Text.AlignVCenter
-
-                elide:
-                    Text.ElideRight
+                verticalAlignment: Text.AlignVCenter
+                elide: Text.ElideRight
             }
 
             Label {
                 id: countLabel
 
-                height:
-                    parent.height
+                height: parent.height
 
                 text:
-                        root.recentModel !== null &&
-                    root.recentModel.count !== undefined &&
-                    Number(root.recentModel.count) > 0
+                    root.recentModel &&
+                    root.recentModel.count > 0
                     ? qsTr("%1 треков")
-                        .arg(
-                        Number(
-                            root.recentModel.count
-                        )
-                    )
+                        .arg(root.recentModel.count)
                     : ""
 
-                color:
-                    AppTheme.textSecondary
-
+                color: AppTheme.textSecondary
                 font.pixelSize: 12
 
-                verticalAlignment:
-                    Text.AlignVCenter
+                verticalAlignment: Text.AlignVCenter
             }
         }
 
-        // =========================================================
-        // Tracks
-        // =========================================================
+        Item {
+            width: parent.width
+            height: root.listHeight
 
-        ListView {
-            id: tracksView
+            ListView {
+                id: tracksView
 
-            width:
-                parent.width
+                anchors.fill: parent
 
-            height:
-                root.listHeight
+                model: root.recentModel
 
-            model:
-                root.recentModel
+                clip: true
+                spacing: root.trackSpacing
 
-            clip:
-                true
+                boundsBehavior: Flickable.StopAtBounds
+                interactive: contentHeight > height
 
-            spacing:
-                root.trackSpacing
-
-            boundsBehavior:
-                Flickable.StopAtBounds
-
-            interactive:
-                true
-
-            ScrollBar.vertical:
-                ScrollBar {
-                    policy:
-                        ScrollBar.AsNeeded
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
                 }
 
-            // =====================================================
-            // Track delegate
-            // =====================================================
-
-            delegate:
-                Rectangle {
+                delegate: Rectangle {
                     id: trackDelegate
 
                     required property int index
@@ -218,15 +128,11 @@ Item {
 
                     width:
                         tracksView.width -
-                        (
-                            tracksView.ScrollBar.vertical.visible
-                                ? 10
-                                : 0
-                        )
+                        (tracksView.ScrollBar.vertical.visible
+                         ? 10
+                         : 0)
 
-                    height:
-                        root.trackHeight
-
+                    height: root.trackHeight
                     radius: 8
 
                     color:
@@ -234,34 +140,20 @@ Item {
                         root.controller.currentTrackId !== "" &&
                         trackDelegate.trackId ===
                             root.controller.currentTrackId
-                            ? AppTheme.panelActive
-                            : (
-                                rowMouseArea.containsMouse
-                                    ? AppTheme.panelActive
-                                    : AppTheme.panelSecondary
-                            )
+                        ? AppTheme.panelActive
+                        : rowMouseArea.containsMouse
+                            ? AppTheme.panelHover
+                            : AppTheme.panelSecondary
 
                     border.width:
                         root.controller &&
                         root.controller.currentTrackId !== "" &&
                         trackDelegate.trackId ===
                             root.controller.currentTrackId
-                            ? 1
-                            : 0
+                        ? 1
+                        : 0
 
-                    border.color:
-                        AppTheme.accent
-
-                    Behavior on color {
-                        ColorAnimation {
-                            duration: 120
-                            easing.type: Easing.OutCubic
-                        }
-                    }
-
-                    // =================================================
-                    // Artwork
-                    // =================================================
+                    border.color: AppTheme.accent
 
                     Rectangle {
                         id: coverContainer
@@ -269,43 +161,29 @@ Item {
                         width: 52
                         height: 52
 
-                        anchors.left:
-                            parent.left
-
-                        anchors.leftMargin:
-                            8
-
-                        anchors.verticalCenter:
-                            parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.leftMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
 
                         radius: 6
-
-                        color:
-                            AppTheme.artworkPlaceholder
+                        color: AppTheme.artworkPlaceholder
 
                         clip: true
 
                         Image {
-                            id: cover
+                            id: coverImage
 
-                            anchors.fill:
-                                parent
+                            anchors.fill: parent
 
                             source:
-                                    trackDelegate.coverUri.length > 0
+                                trackDelegate.coverUri.length > 0
                                 ? "image://yandex/" +
-                                trackDelegate.coverUri
+                                  trackDelegate.coverUri
                                 : ""
 
-                            sourceSize:
-                                Qt.size(
-                                    104,
-                                    104
-                                )
+                            sourceSize: Qt.size(104, 104)
 
-                            fillMode:
-                                Image.PreserveAspectCrop
-
+                            fillMode: Image.PreserveAspectCrop
                             asynchronous: true
                             cache: true
                             smooth: true
@@ -315,98 +193,61 @@ Item {
                         }
 
                         Label {
-                            anchors.centerIn:
-                                parent
+                            anchors.centerIn: parent
 
-                            text:
-                                "♪"
+                            text: "♪"
 
-                            color:
-                                AppTheme.textSecondary
-
-                            font.pixelSize:
-                                20
+                            color: AppTheme.textSecondary
+                            font.pixelSize: 20
 
                             visible:
-                                cover.status !== Image.Ready
+                                coverImage.status !== Image.Ready
                         }
                     }
-
-                    // =================================================
-                    // Track information
-                    // =================================================
 
                     Column {
                         id: trackInfo
 
-                        anchors.left:
-                            coverContainer.right
+                        anchors.left: coverContainer.right
+                        anchors.leftMargin: 12
 
-                        anchors.leftMargin:
-                            12
+                        anchors.right: durationLabel.left
+                        anchors.rightMargin: 12
 
-                        anchors.right:
-                            durationLabel.left
-
-                        anchors.rightMargin:
-                            12
-
-                        anchors.verticalCenter:
-                            parent.verticalCenter
+                        anchors.verticalCenter: parent.verticalCenter
 
                         spacing: 2
 
-                        // ---------------------------------------------
-                        // Title
-                        // ---------------------------------------------
-
                         Label {
-                            width:
-                                parent.width
-
-                            height:
-                                20
+                            width: parent.width
+                            height: 20
 
                             text:
-                                    trackDelegate.title.length > 0
+                                trackDelegate.title.length > 0
                                 ? trackDelegate.title
                                 : qsTr("Без названия")
 
-                            color:
-                                AppTheme.textPrimary
+                            color: AppTheme.textPrimary
 
                             font.pixelSize: 14
                             font.bold: true
 
-                            elide:
-                                Text.ElideRight
-
+                            elide: Text.ElideRight
                             maximumLineCount: 1
                         }
 
-                        // ---------------------------------------------
-                        // Artist
-                        // ---------------------------------------------
-
                         Item {
-                            width:
-                                parent.width
-
+                            width: parent.width
                             height: 18
 
                             Label {
                                 id: artistLabel
 
-                                width:
-                                    Math.min(
-                                        implicitWidth,
-                                        parent.width
-                                    )
-
-                                height: 18
+                                width: parent.width
+                                height: parent.height
 
                                 text:
-                                        trackDelegate.artist.length > 0
+                                    trackDelegate.artist.length > 0
                                     ? trackDelegate.artist
                                     : qsTr(
                                         "Неизвестный исполнитель"
@@ -414,43 +255,36 @@ Item {
 
                                 color:
                                     artistMouseArea.containsMouse
-                                        ? AppTheme.accent
-                                        : AppTheme.textSecondary
+                                    ? AppTheme.accent
+                                    : AppTheme.textSecondary
 
                                 font.pixelSize: 12
 
-                                elide:
-                                    Text.ElideRight
-
+                                elide: Text.ElideRight
                                 maximumLineCount: 1
                             }
 
                             MouseArea {
                                 id: artistMouseArea
 
-                                anchors.fill:
-                                    artistLabel
+                                anchors.fill: artistLabel
 
                                 enabled:
-                                    root.hasController &&
+                                    root.controller &&
                                     trackDelegate.artistId.length > 0
 
                                 hoverEnabled: true
 
                                 cursorShape:
                                     enabled
-                                        ? Qt.PointingHandCursor
-                                        : Qt.ArrowCursor
+                                    ? Qt.PointingHandCursor
+                                    : Qt.ArrowCursor
 
                                 z: 10
 
                                 onClicked: {
-                                    if (
-                                        !enabled ||
-                                        !root.hasController
-                                    ) {
+                                    if (!enabled)
                                         return
-                                    }
 
                                     root.controller.loadArtist(
                                         trackDelegate.artistId
@@ -459,60 +293,37 @@ Item {
                             }
                         }
 
-                        // ---------------------------------------------
-                        // Album
-                        // ---------------------------------------------
-
                         Label {
-                            width:
-                                parent.width
+                            width: parent.width
+                            height: 14
 
-                            height:
-                                14
+                            text: trackDelegate.album
 
-                            text:
-                                trackDelegate.album
-
-                            color:
-                                AppTheme.textMuted
-
+                            color: AppTheme.textMuted
                             font.pixelSize: 10
 
-                            elide:
-                                Text.ElideRight
-
+                            elide: Text.ElideRight
                             maximumLineCount: 1
 
-                            visible:
-                                text.length > 0
+                            visible: text.length > 0
                         }
                     }
-
-                    // =================================================
-                    // Duration
-                    // =================================================
 
                     Label {
                         id: durationLabel
 
                         width: 44
 
-                        anchors.right:
-                            parent.right
-
-                        anchors.rightMargin:
-                            14
-
-                        anchors.verticalCenter:
-                            parent.verticalCenter
+                        anchors.right: parent.right
+                        anchors.rightMargin: 14
+                        anchors.verticalCenter: parent.verticalCenter
 
                         text:
                             root.formatDuration(
                                 trackDelegate.durationMs
                             )
 
-                        color:
-                            AppTheme.textSecondary
+                        color: AppTheme.textSecondary
 
                         font.pixelSize: 11
 
@@ -520,45 +331,37 @@ Item {
                             Text.AlignRight
                     }
 
-                    // =================================================
-                    // Whole row click
-                    // =================================================
-
                     MouseArea {
                         id: rowMouseArea
 
-                        anchors.fill:
-                            parent
+                        anchors.fill: parent
 
                         hoverEnabled: true
-
-                        cursorShape:
-                            Qt.PointingHandCursor
+                        cursorShape: Qt.PointingHandCursor
 
                         acceptedButtons:
                             Qt.LeftButton | Qt.RightButton
 
                         z: 0
 
-                        onClicked: {
-                            if (
-                                !root.hasController
-                            ) {
+                        onClicked: function(mouse) {
+                            if (!root.controller)
                                 return
-                            }
+
+                            if (mouse.button !== Qt.LeftButton)
+                                return
 
                             root.controller.selectRecentListening(
                                 trackDelegate.index
                             )
                         }
 
-                        onPressed: {
-                            if (
-                                mouse.button !== Qt.RightButton ||
-                                !root.hasController
-                            ) {
+                        onPressed: function(mouse) {
+                            if (!root.controller)
                                 return
-                            }
+
+                            if (mouse.button !== Qt.RightButton)
+                                return
 
                             root.controller.copyTrack(
                                 trackDelegate.title,
@@ -567,73 +370,36 @@ Item {
                         }
                     }
                 }
+            }
 
-            // =====================================================
-            // Empty state
-            // =====================================================
+            Label {
+                anchors.centerIn: parent
 
-            Item {
-                anchors.fill:
-                    parent
+                text: qsTr("Недавно слушали пока пусто")
+
+                color: AppTheme.textSecondary
+                font.pixelSize: 12
 
                 visible:
                     root.recentModel !== null &&
-                    root.recentModel.count !== undefined &&
-                    Number(root.recentModel.count) === 0
-
-                Label {
-                    anchors.centerIn:
-                        parent
-
-                    text:
-                        qsTr(
-                            "Недавно слушали пока пусто"
-                        )
-
-                    color:
-                        AppTheme.textSecondary
-
-                    font.pixelSize: 12
-                }
+                    root.recentModel.count === 0
             }
         }
     }
 
-    // =============================================================
-    // Helpers
-    // =============================================================
-
     function formatDuration(milliseconds) {
-        var value =
-            Number(milliseconds)
+        var value = Number(milliseconds)
 
-        if (
-            !isFinite(value) ||
-            value <= 0
-        ) {
+        if (!isFinite(value) || value <= 0)
             return "0:00"
-        }
 
-        var totalSeconds =
-            Math.floor(
-                value / 1000
-            )
-
-        var minutes =
-            Math.floor(
-                totalSeconds / 60
-            )
-
-        var seconds =
-            totalSeconds % 60
+        var totalSeconds = Math.floor(value / 1000)
+        var minutes = Math.floor(totalSeconds / 60)
+        var seconds = totalSeconds % 60
 
         return minutes +
-            ":" +
-            (
-                    seconds < 10
-                    ? "0"
-                    : ""
-            ) +
-            seconds
+               ":" +
+               (seconds < 10 ? "0" : "") +
+               seconds
     }
 }

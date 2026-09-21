@@ -6,7 +6,9 @@ void PersonalController::connectRecentlyPlayed() {
   connect(m_recentListeningService, &RecentListeningService::tracksReceived, this,
           [this](const QList<Track> &tracks) {
             m_recentListeningModel->setTracks(tracks);
-            emit statusChanged(QStringLiteral("Недавно слушали: %1 треков").arg(tracks.size()));
+
+            emit statusChanged(
+                QStringLiteral("Недавно слушали: %1 треков").arg(tracks.size()));
           });
 
   connect(m_recentListeningService, &RecentListeningService::errorOccurred, this,

@@ -1,238 +1,167 @@
 #include "RecentListeningService.h"
-#include "../Auth/YandexAuth.h"
+
 #include "../Parsers.h"
 #include "../YandexClient.h"
+
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonValue>
 #include <QNetworkReply>
-#include <QUrlQuery>
+#include <QSet>
 
-RecentListeningService::RecentListeningService(YandexAuth *auth, QObject *parent)
-    : YandexServiceBase(auth, parent) {
-  connect(m_yandexClient, &YandexClient::tracksReceived, this, [this](const QList<Track> &tracks) {
-    QList<Track> orderedTracks;
-    QHash<QString, Track> tracksById;
-
-    for (const Track &track : tracks) {
-      if (track.id.isEmpty()) continue;
-      tracksById.insert(track.id, track);
-    }
-
-    for (const RecentListeningTrack &reference : m_pendingReferences) {
-      const auto iterator = tracksById.constFind(reference.trackId);
-      if (iterator == tracksById.constEnd()) continue;
-      orderedTracks.append(iterator.value());
-    }
-
-    m_pendingReferences.clear();
-    m_loading = false;
-    emit loadingChanged(false);
-
-    for (const Track &track : orderedTracks) {
-      QString artistName;
-
-      if (!track.artists.isEmpty()) {
-        artistName = track.artists.first().name;
-      }
-    }
-
-    emit tracksReceived(orderedTracks);
-  });
-
-  connect(m_yandexClient, &YandexClient::requestError, this, [this](const QString &message) {
-    m_pendingReferences.clear();
-    m_loading = false;
-    emit loadingChanged(false);
-    emit errorOccurred(message);
-  });
-}
+RecentListeningService::RecentListeningService(YandexAuth *auth,
+                                               QObject *parent)
+    : YandexServiceBase(auth, parent) {}
 
 void RecentListeningService::setUserId(const QString &userId) {
-  m_userId = userId.trimmed();
+  m_userId = userId;
 }
 
 void RecentListeningService::load(int trackCount, int contextCount) {
-  if (m_loading) {
-    return;
-  }
+  Q_UNUSED(contextCount)
 
-  if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+  if (m_loading)
     return;
-  }
 
   if (m_userId.isEmpty()) {
-    emit errorOccurred("ID пользователя Яндекс Музыки не задан");
+    emit errorOccurred(
+        QStringLiteral("Пользователь не авторизован"));
     return;
   }
 
-  if (trackCount <= 0) {
-    trackCount = 50;
-  }
+    if (!ensureAuthenticated()) {
+        emit errorOccurred(
+            QStringLiteral("Пользователь не авторизован"));
+        return;
+    }
+  trackCount = qMax(1, trackCount);
 
-  if (contextCount <= 0) {
-    contextCount = 10;
-  }
-
-  QUrlQuery query;
-  query.addQueryItem("trackCount", QString::number(trackCount));
-  query.addQueryItem("contextCount", QString::number(contextCount));
-  query.addQueryItem("types", "playlist,album,artist");
-
-  const QString path =
-      QStringLiteral("/users/%1/contexts?%2").arg(m_userId).arg(query.toString(QUrl::FullyEncoded));
-  m_pendingReferences.clear();
   m_loading = true;
   emit loadingChanged(true);
+
+  const QString path =
+      QStringLiteral("/music-history?fullModelsCount=%1")
+          .arg(trackCount);
+
   QNetworkReply *reply = m_yandexClient->get(path);
 
-  connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-    const QByteArray data = reply->readAll();
+  if (!reply) {
+    m_loading = false;
+    emit loadingChanged(false);
+    emit errorOccurred(
+        QStringLiteral(
+            "Не удалось выполнить запрос истории прослушивания"));
+    return;
+  }
 
-    if (reply->error() != QNetworkReply::NoError) {
-      const QString message = reply->errorString();
-      reply->deleteLater();
-      m_loading = false;
-      emit loadingChanged(false);
-      emit errorOccurred(message);
-      return;
-    }
+  connect(reply, &QNetworkReply::finished, this,
+          [this, reply, trackCount]() {
+            const QByteArray data = reply->readAll();
+            const QNetworkReply::NetworkError networkError =
+                reply->error();
+            const QString errorString = reply->errorString();
 
-    QJsonParseError parseError;
-    const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
+            reply->deleteLater();
 
-    if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-      reply->deleteLater();
-      m_loading = false;
-      emit loadingChanged(false);
-      emit errorOccurred("Некорректный ответ истории Яндекс Музыки");
-      return;
-    }
+            if (networkError != QNetworkReply::NoError) {
+              m_loading = false;
+              emit loadingChanged(false);
+              emit errorOccurred(
+                  QStringLiteral(
+                      "Ошибка истории прослушивания: %1")
+                      .arg(errorString));
+              return;
+            }
 
-    const QList<RecentListeningTrack> references = parseResponse(data);
-    reply->deleteLater();
+            const QList<Track> tracks =
+                parseHistory(data, trackCount);
 
-    if (references.isEmpty()) {
-      m_loading = false;
-      emit loadingChanged(false);
-      emit tracksReceived({});
-      return;
-    }
-
-    m_pendingReferences = references;
-    QStringList trackIds;
-
-    for (const RecentListeningTrack &reference : references) {
-      if (reference.trackId.isEmpty()) continue;
-
-      if (!trackIds.contains(reference.trackId)) {
-        trackIds.append(reference.trackId);
-      }
-    }
-
-    if (trackIds.isEmpty()) {
-      m_pendingReferences.clear();
-      m_loading = false;
-      emit loadingChanged(false);
-      emit tracksReceived({});
-      return;
-    }
-
-    m_yandexClient->getTracks(trackIds);
-  });
+            m_loading = false;
+            emit loadingChanged(false);
+            emit tracksReceived(tracks);
+          });
 }
 
-QList<RecentListeningTrack> RecentListeningService::parseResponse(const QByteArray &data) const {
-  QList<RecentListeningTrack> result;
-  QJsonParseError parseError;
-  const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
+QList<Track> RecentListeningService::parseHistory(
+    const QByteArray &data,
+    int trackCount) const {
 
-  if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-    return result;
-  }
+  QList<Track> tracks;
+  QSet<QString> seenTrackIds;
 
-  const QJsonObject resultObject = unwrapResult(document);
+  const QJsonDocument document =
+      QJsonDocument::fromJson(data);
 
-  if (resultObject.isEmpty()) {
-    return result;
-  }
+  if (!document.isObject())
+    return tracks;
 
-  const QJsonArray contexts = resultObject.value("contexts").toArray();
+  const QJsonObject root = document.object();
+  const QJsonObject result =
+      root.value(QStringLiteral("result")).toObject();
 
-  for (const QJsonValue &contextValue : contexts) {
-    if (!contextValue.isObject()) continue;
-    const QJsonObject context = contextValue.toObject();
-    const QJsonArray tracks = context.value("tracks").toArray();
+  if (result.isEmpty())
+    return tracks;
 
-    for (const QJsonValue &trackValue : tracks) {
-      if (!trackValue.isObject()) continue;
-      const RecentListeningTrack track = parseListenedTrack(trackValue.toObject());
-      if (track.trackId.isEmpty()) continue;
-      result.append(track);
-    }
-  }
+  const QJsonArray historyTabs =
+      result.value(QStringLiteral("historyTabs")).toArray();
 
-  QList<RecentListeningTrack> uniqueTracks;
+  for (const QJsonValue &tabValue : historyTabs) {
+    if (!tabValue.isObject())
+      continue;
 
-  for (const RecentListeningTrack &track : result) {
-    bool exists = false;
+    const QJsonObject tab = tabValue.toObject();
+    const QJsonArray items =
+        tab.value(QStringLiteral("items")).toArray();
 
-    for (const RecentListeningTrack &existing : uniqueTracks) {
-      if (existing.trackId == track.trackId) {
-        exists = true;
-        break;
+    for (const QJsonValue &itemValue : items) {
+      if (!itemValue.isObject())
+        continue;
+
+      const QJsonObject item = itemValue.toObject();
+      const QJsonArray historyTracks =
+          item.value(QStringLiteral("tracks")).toArray();
+
+      for (const QJsonValue &historyTrackValue : historyTracks) {
+        if (!historyTrackValue.isObject())
+          continue;
+
+        const QJsonObject historyTrack =
+            historyTrackValue.toObject();
+
+        if (historyTrack.value(QStringLiteral("type")).toString() !=
+            QStringLiteral("track")) {
+          continue;
+        }
+
+        const QJsonObject trackData =
+            historyTrack.value(QStringLiteral("data")).toObject();
+
+        if (trackData.isEmpty())
+          continue;
+
+        const QJsonObject fullModel =
+            trackData.value(QStringLiteral("fullModel")).toObject();
+
+        if (fullModel.isEmpty())
+          continue;
+
+        const Track track = parseTrack(fullModel);
+
+        if (track.id.isEmpty())
+          continue;
+
+        if (seenTrackIds.contains(track.id))
+          continue;
+
+        seenTrackIds.insert(track.id);
+        tracks.append(track);
+
+        if (tracks.size() >= trackCount)
+          return tracks;
       }
     }
-
-    if (!exists) {
-      uniqueTracks.append(track);
-    }
   }
 
-  return uniqueTracks;
-}
-
-RecentListeningTrack RecentListeningService::parseListenedTrack(const QJsonObject &object) const {
-  RecentListeningTrack result;
-  const QJsonValue trackIdValue = object.value("trackId");
-
-  if (trackIdValue.isObject()) {
-    const QJsonObject trackIdObject = trackIdValue.toObject();
-    const QJsonValue idValue = trackIdObject.value("id");
-
-    if (idValue.isString()) {
-      result.trackId = idValue.toString();
-    } else if (idValue.isDouble()) {
-      const qint64 id = idValue.toInteger();
-
-      if (id > 0) {
-        result.trackId = QString::number(id);
-      }
-    }
-  } else if (trackIdValue.isString()) {
-    result.trackId = trackIdValue.toString();
-  } else if (trackIdValue.isDouble()) {
-    const qint64 id = trackIdValue.toInteger();
-
-    if (id > 0) {
-      result.trackId = QString::number(id);
-    }
-  }
-
-  QString timestampString = object.value("timeStamp").toString();
-
-  if (timestampString.isEmpty()) {
-    timestampString = object.value("timestamp").toString();
-  }
-
-  if (!timestampString.isEmpty()) {
-    result.timestamp = QDateTime::fromString(timestampString, Qt::ISODate);
-
-    if (!result.timestamp.isValid()) {
-      result.timestamp = QDateTime::fromString(timestampString, Qt::ISODateWithMs);
-    }
-  }
-
-  return result;
+  return tracks;
 }
