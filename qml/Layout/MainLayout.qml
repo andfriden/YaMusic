@@ -2,16 +2,19 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
+/*
+ * Каркас приложения: верхняя панель, область контента и контекстная
+ * панель справа. Текущий раздел/страница живут в NavigationController,
+ * который является единственным источником правды для навигации.
+ */
 Item {
     id: root
 
     property var controller
     property var authController
 
-    NavigationController {
-        id: navigationController
-        controller: root.controller
-    }
+    readonly property int topBarHeight: 68
+    readonly property int contextPanelWidth: 280
 
     readonly property string currentSection:
         navigationController.currentSection
@@ -31,8 +34,10 @@ Item {
     readonly property string contextType:
         navigationController.contextTypeForCurrentPage()
 
-    readonly property int topBarHeight: 68
-    readonly property int contextPanelWidth: 280
+    NavigationController {
+        id: navigationController
+        controller: root.controller
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -57,9 +62,7 @@ Item {
             navigationController.selectSection(section)
         }
 
-        onBackRequested: {
-            navigationController.goBack()
-        }
+        onBackRequested: navigationController.goBack()
     }
 
     Row {
@@ -70,66 +73,46 @@ Item {
 
         spacing: 0
 
+        // ---------------------------------------------------------
+        // Область контента
+        // ---------------------------------------------------------
+
         Item {
             id: mainArea
 
-            width:
-                parent.width -
-                (
-                    root.contextPanelVisible
-                        ? root.contextPanelWidth + 1
-                        : 0
-                )
-
+            width: parent.width - (root.contextPanelVisible ? root.contextPanelWidth + 1 : 0)
             height: parent.height
-
             clip: true
 
             ScrollView {
                 id: contentScrollView
 
                 anchors.fill: parent
-
                 anchors.topMargin: 20
                 anchors.leftMargin: 28
                 anchors.rightMargin: 28
-                anchors.bottomMargin: 0
 
                 clip: true
 
-                ScrollBar.vertical: ScrollBar {
-                    policy: ScrollBar.AsNeeded
-                }
+                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
                 contentWidth: availableWidth
-
-                contentHeight:
-                    Math.max(
-                        pageLoader.height +
-                        bottomContentSpacer.height,
-                        availableHeight
-                    )
+                contentHeight: Math.max(
+                    pageLoader.height + bottomContentSpacer.height,
+                    availableHeight
+                )
 
                 Loader {
                     id: pageLoader
 
                     width: contentScrollView.availableWidth
+                    height: item ? item.implicitHeight : 0
 
-                    height:
-                            item !== null &&
-                        item !== undefined
-                        ? item.implicitHeight
-                        : 0
-
+                    // Страница всегда занимает всю ширину контента
                     onLoaded: {
-                        if (
-                            item === null ||
-                            item === undefined
-                        ) {
-                            return
+                        if (item) {
+                            item.width = pageLoader.width
                         }
-
-                        item.width = pageLoader.width
                     }
                 }
 
@@ -138,31 +121,26 @@ Item {
 
                     width: contentScrollView.availableWidth
                     height: 40
-
                     y: pageLoader.height
                 }
             }
         }
 
+        // Разделитель между контентом и контекстной панелью
         Rectangle {
-            width:
-                root.contextPanelVisible
-                    ? 1
-                    : 0
-
+            width: root.contextPanelVisible ? 1 : 0
             height: parent.height
-
             color: AppTheme.divider
         }
+
+        // ---------------------------------------------------------
+        // Контекстная панель (похожие исполнители, другие альбомы…)
+        // ---------------------------------------------------------
 
         ContextPanel {
             id: contextPanel
 
-            width:
-                root.contextPanelVisible
-                    ? root.contextPanelWidth
-                    : 0
-
+            width: root.contextPanelVisible ? root.contextPanelWidth : 0
             height: parent.height
 
             contextType: root.contextType
@@ -170,21 +148,26 @@ Item {
         }
     }
 
+    // -------------------------------------------------------------
+    // Сигналы навигации
+    //
+    // Страницы разделов (home, genres) сами не знают про
+    // NavigationController, поэтому сообщают о навигации через
+    // сигналы. Один Connections на оба раздела: отсутствующие
+    // сигналы игнорируются благодаря ignoreUnknownSignals.
+    // -------------------------------------------------------------
+
     Connections {
         target: navigationController
 
         function onPageLoadRequested(source, properties) {
-            pageLoader.setSource(
-                source,
-                properties
-            )
+            pageLoader.setSource(source, properties)
         }
     }
 
     Connections {
-        target:
-                root.currentPageType === "section" &&
-            root.currentSection === "home"
+        target: root.currentPageType === "section" &&
+                (root.currentSection === "home" || root.currentSection === "genres")
             ? pageLoader.item
             : null
 
@@ -209,30 +192,9 @@ Item {
         function onMyPlaylistsRequested() {
             navigationController.selectSection("library")
         }
-    }
 
-    Connections {
-        target:
-                root.currentPageType === "section" &&
-            root.currentSection === "genres"
-            ? pageLoader.item
-            : null
-
-        ignoreUnknownSignals: true
-
-        function onGenreRequested(
-            genreId,
-            title,
-            image,
-            color,
-            subGenres
-        ) {
-            navigationController.openGenrePage(
-                genreId,
-                title,
-                image,
-                color
-            )
+        function onGenreRequested(genreId, title, image, color, subGenres) {
+            navigationController.openGenrePage(genreId, title, image, color)
         }
     }
 }

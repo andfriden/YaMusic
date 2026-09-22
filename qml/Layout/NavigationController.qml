@@ -1,582 +1,283 @@
 import QtQuick
 import YaMusic 1.0
 
-
+/*
+ * Навигация приложения: единственный источник правды для текущего
+ * раздела/страницы. Управляет стеком истории для детальных страниц
+ * (исполнитель, альбом, плейлист, жанр) и запрашивает загрузку
+ * страницы через сигнал pageLoadRequested.
+ */
 Item {
     id: root
 
-
     // =============================================================
-    // Controller
+    // Контроллер
     // =============================================================
 
     property var controller
 
-
     // =============================================================
-    // Navigation state
-    // =============================================================
-
-    property string currentSection:
-        "home"
-
-    property string currentPageType:
-        "section"
-
-    property string currentDetailId:
-        ""
-
-    property string currentGenreTitle:
-        ""
-
-    property string currentGenreImage:
-        ""
-
-    property string currentGenreColor:
-        ""
-
-    property var navigationStack:
-        []
-
-
-    // =============================================================
-    // Signals
+    // Состояние навигации
     // =============================================================
 
-    signal pageLoadRequested(
-        string source,
-        var properties
-    )
+    property string currentSection: "home"
+    property string currentPageType: "section"
+    property string currentDetailId: ""
 
+    property string currentGenreTitle: ""
+    property string currentGenreImage: ""
+    property string currentGenreColor: ""
+
+    property var navigationStack: []
+
+    signal pageLoadRequested(string source, var properties)
 
     // =============================================================
-    // Controller navigation
+    // Команды контроллера (навигация из C++/моделей)
     // =============================================================
 
     Connections {
-        target:
-            root.controller
+        target: root.controller
+        ignoreUnknownSignals: true
 
-        ignoreUnknownSignals:
-            true
-
-
-        function onArtistPageRequested(
-            artistId
-        ) {
-            root.openArtistPage(
-                artistId
-            )
+        function onArtistPageRequested(artistId) {
+            root.openArtistPage(artistId)
         }
 
-
-        function onAlbumPageRequested(
-            albumId
-        ) {
-            root.openAlbumPage(
-                albumId
-            )
+        function onAlbumPageRequested(albumId) {
+            root.openAlbumPage(albumId)
         }
-
 
         function onPlaylistPageRequested() {
             root.openPlaylistPage()
         }
 
-
-        function onSearchPageRequested(
-            query
-        ) {
-            root.selectSection(
-                "search"
-            )
+        function onSearchPageRequested(query) {
+            root.selectSection("search")
         }
     }
 
-
     // =============================================================
-    // Select section
+    // Выбор раздела
     // =============================================================
 
-    function selectSection(
-        section
-    ) {
+    function selectSection(section) {
+        root.navigationStack = []
 
-        root.navigationStack =
-            []
-
-        root.currentSection =
-            String(
-                section || "home"
-            )
-
-        root.currentPageType =
-            "section"
-
-        root.currentDetailId =
-            ""
-
-        root.currentGenreTitle =
-            ""
-
-        root.currentGenreImage =
-            ""
-
-        root.currentGenreColor =
-            ""
+        root.currentSection = String(section || "home")
+        root.currentPageType = "section"
+        root.currentDetailId = ""
+        root.currentGenreTitle = ""
+        root.currentGenreImage = ""
+        root.currentGenreColor = ""
 
         root.requestPageLoad()
     }
 
-
     // =============================================================
-    // Artist
+    // Открытие детальной страницы
     // =============================================================
 
-    function openArtistPage(
-        artistId
-    ) {
-        const id =
-            String(
-                artistId || ""
-            ).trim()
+    // Общая часть для всех детальных страниц: запоминаем текущее
+    // состояние в стеке и переключаемся на новый тип страницы
+    function pushPage(pageType, id, extra) {
+        const normalizedId = String(id || "").trim()
 
-        if (
-            id.length === 0
-        ) {
+        if (normalizedId.length === 0) {
             return
         }
 
-        root.navigationStack =
-            root.navigationStack.concat(
-                [
-                    {
-                        type:
-                        root.currentPageType,
+        root.navigationStack = root.navigationStack.concat([{
+            type: root.currentPageType,
+            section: root.currentSection,
+            id: root.currentDetailId
+        }])
 
-                        section:
-                        root.currentSection,
+        root.currentPageType = pageType
+        root.currentDetailId = normalizedId
 
-                        id:
-                        root.currentDetailId
-                    }
-                ]
-            )
-
-        root.currentPageType =
-            "artist"
-
-        root.currentDetailId =
-            id
-
-        root.requestPageLoad()
-    }
-
-
-    // =============================================================
-    // Album
-    // =============================================================
-
-    function openAlbumPage(
-        albumId
-    ) {
-        const id =
-            String(
-                albumId || ""
-            ).trim()
-
-        if (
-            id.length === 0
-        ) {
-            return
+        if (extra) {
+            root.currentGenreTitle = extra.title || ""
+            root.currentGenreImage = extra.image || ""
+            root.currentGenreColor = extra.color || ""
         }
 
-        root.navigationStack =
-            root.navigationStack.concat(
-                [
-                    {
-                        type:
-                        root.currentPageType,
-
-                        section:
-                        root.currentSection,
-
-                        id:
-                        root.currentDetailId
-                    }
-                ]
-            )
-
-        root.currentPageType =
-            "album"
-
-        root.currentDetailId =
-            id
-
         root.requestPageLoad()
     }
 
+    function openArtistPage(artistId) {
+        root.pushPage("artist", artistId)
+    }
 
-    // =============================================================
-    // Playlist
-    // =============================================================
+    function openAlbumPage(albumId) {
+        root.pushPage("album", albumId)
+    }
 
     function openPlaylistPage() {
-        root.navigationStack =
-            root.navigationStack.concat(
-                [
-                    {
-                        type:
-                        root.currentPageType,
+        // У плейлиста нет id — тип страницы "playlist" (kind достаёт
+        // сам контроллер)
+        root.navigationStack = root.navigationStack.concat([{
+            type: root.currentPageType,
+            section: root.currentSection,
+            id: root.currentDetailId
+        }])
 
-                        section:
-                        root.currentSection,
-
-                        id:
-                        root.currentDetailId
-                    }
-                ]
-            )
-
-        root.currentPageType =
-            "playlist"
-
-        root.currentDetailId =
-            ""
+        root.currentPageType = "playlist"
+        root.currentDetailId = ""
 
         root.requestPageLoad()
     }
 
-
-    // =============================================================
-    // Genre
-    // =============================================================
-
-    function openGenrePage(
-        genreId,
-        title,
-        image,
-        color
-    ) {
-        const id =
-            String(
-                genreId || ""
-            ).trim()
-
-        if (
-            id.length === 0
-        ) {
-            return
-        }
-
-        root.navigationStack =
-            root.navigationStack.concat(
-                [
-                    {
-                        type:
-                        root.currentPageType,
-
-                        section:
-                        root.currentSection,
-
-                        id:
-                        root.currentDetailId
-                    }
-                ]
-            )
-
-        root.currentGenreTitle =
-            title || ""
-
-        root.currentGenreImage =
-            image || ""
-
-        root.currentGenreColor =
-            color || ""
-
-        root.currentPageType =
-            "genre"
-
-        root.currentDetailId =
-            id
-
-        root.requestPageLoad()
+    function openGenrePage(genreId, title, image, color) {
+        root.pushPage("genre", genreId, {
+            title: title || "",
+            image: image || "",
+            color: color || ""
+        })
     }
 
-
     // =============================================================
-    // Back
+    // Назад
     // =============================================================
 
     function goBack() {
-        if (
-            root.navigationStack.length === 0
-        ) {
+        if (root.navigationStack.length === 0) {
             return
         }
 
-        const stack =
-            root.navigationStack.slice()
+        const stack = root.navigationStack.slice()
+        const previous = stack.pop()
 
-        const previous =
-            stack.pop()
+        root.navigationStack = stack
 
-        root.navigationStack =
-            stack
-
-        root.currentPageType =
-            previous.type || "section"
-
-        root.currentSection =
-            previous.section || "home"
-
-        root.currentDetailId =
-            previous.id || ""
+        root.currentPageType = previous.type || "section"
+        root.currentSection = previous.section || "home"
+        root.currentDetailId = previous.id || ""
 
         root.requestPageLoad()
     }
 
-
     // =============================================================
-    // Request page load
+    // Загрузка страницы
     // =============================================================
 
     function requestPageLoad() {
-        const source =
-            root.pageSourceForCurrentPage()
+        let properties = { controller: root.controller }
 
-        let properties = {
-            controller:
-            root.controller
-        }
-
-
-        if (
-            root.currentPageType === "genre"
-        ) {
+        if (root.currentPageType === "genre") {
             properties = {
-                controller:
-                root.controller,
-
-                genreId:
-                root.currentDetailId,
-
-                genreTitle:
-                root.currentGenreTitle,
-
-                genreImage:
-                root.currentGenreImage,
-
-                genreColor:
-                root.currentGenreColor
+                controller: root.controller,
+                genreId: root.currentDetailId,
+                genreTitle: root.currentGenreTitle,
+                genreImage: root.currentGenreImage,
+                genreColor: root.currentGenreColor
             }
         }
 
-
-        root.pageLoadRequested(
-            source,
-            properties
-        )
+        root.pageLoadRequested(root.pageSourceForCurrentPage(), properties)
     }
-
-
-    // =============================================================
-    // Page source
-    // =============================================================
 
     function pageSourceForCurrentPage() {
-        switch (
-            root.currentPageType
-            ) {
+        switch (root.currentPageType) {
             case "artist":
                 return "../Pages/ArtistPage.qml"
-
             case "album":
                 return "../Pages/AlbumPage.qml"
-
             case "playlist":
                 return "../Pages/PlaylistPage.qml"
-
             case "genre":
                 return "../Pages/GenrePage.qml"
-
             case "section":
             default:
-                return root.pageSourceForSection(
-                    root.currentSection
-                )
+                return root.pageSourceForSection(root.currentSection)
         }
     }
 
-
-    // =============================================================
-    // Section source
-    // =============================================================
-
-    function pageSourceForSection(
-        section
-    ) {
-        switch (
-            section
-            ) {
+    function pageSourceForSection(section) {
+        switch (section) {
             case "home":
                 return "../Pages/HomePage.qml"
-
             case "search":
                 return "../Pages/SearchPage.qml"
-
             case "wave":
                 return "../Pages/MyWavePage.qml"
-
             case "library":
-                return "../Pages/LibraryPage.qml"
-
-            case "playlists":
-                return "../Pages/PlaylistsPage.qml"
-
-            case "recent":
-                return "../Pages/RecentPage.qml"
-
-            case "chart":
-                return "../Pages/ChartPage.qml"
-
-            case "genres":
-                return "../Pages/GenresPage.qml"
-
-            case "sport":
-                return "../Pages/SportPage.qml"
-
             case "liked":
                 return "../Pages/LibraryPage.qml"
-
-            case "albums":
-                return "../Pages/AlbumPage.qml"
-
-            case "artists":
-                return "../Pages/ArtistPage.qml"
-
+            case "playlists":
+                return "../Pages/PlaylistsPage.qml"
+            case "recent":
+                return "../Pages/RecentPage.qml"
+            case "chart":
+                return "../Pages/ChartPage.qml"
+            case "genres":
+                return "../Pages/GenresPage.qml"
+            case "sport":
+                return "../Pages/SportPage.qml"
             default:
                 return "../Pages/HomePage.qml"
         }
     }
 
-
     // =============================================================
-    // Context type
+    // Тип контекстной панели
     // =============================================================
 
     function contextTypeForCurrentPage() {
-        switch (
-            root.currentPageType
-            ) {
+        switch (root.currentPageType) {
             case "artist":
                 return "artist"
-
             case "album":
                 return "album"
-
             case "playlist":
                 return "playlist"
-
             case "genre":
                 return "home"
-
             case "section":
             default:
-                return root.contextTypeForSection(
-                    root.currentSection
-                )
+                return root.contextTypeForSection(root.currentSection)
         }
     }
 
-
-    function contextTypeForSection(
-        section
-    ) {
-        switch (
-            section
-            ) {
-            case "home":
-                return "home"
-
-            case "search":
-                return "home"
-
+    function contextTypeForSection(section) {
+        switch (section) {
             case "wave":
                 return "mywave"
-
             case "library":
                 return "library"
-
+            case "home":
+            case "search":
             case "playlists":
-                return "home"
-
             case "recent":
-                return "home"
-
             case "chart":
-                return "home"
-
             case "genres":
-                return "home"
-
             case "sport":
-                return "home"
-
             case "liked":
-                return "home"
-
             default:
                 return "home"
         }
     }
 
-
     // =============================================================
-    // Controller changed
+    // Инициализация
     // =============================================================
 
     onControllerChanged: {
-        if (
-            root.controller !== null &&
-            root.controller !== undefined
-        ) {
+        if (root.controller !== null && root.controller !== undefined) {
             root.requestPageLoad()
         }
     }
 
-
-    // =============================================================
-    // Initial state
-    // =============================================================
-
     Component.onCompleted: {
-        root.currentSection =
-            "home"
+        root.currentSection = "home"
+        root.currentPageType = "section"
+        root.currentDetailId = ""
+        root.currentGenreTitle = ""
+        root.currentGenreImage = ""
+        root.currentGenreColor = ""
+        root.navigationStack = []
 
-        root.currentPageType =
-            "section"
-
-        root.currentDetailId =
-            ""
-
-        root.currentGenreTitle =
-            ""
-
-        root.currentGenreImage =
-            ""
-
-        root.currentGenreColor =
-            ""
-
-        root.navigationStack =
-            []
-
-
-        if (
-            root.controller !== null &&
-            root.controller !== undefined
-        ) {
+        if (root.controller !== null && root.controller !== undefined) {
             root.requestPageLoad()
         }
     }
