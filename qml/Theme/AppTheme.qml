@@ -122,11 +122,17 @@ QtObject {
      * ============================================================
      *
      * Все цвета строятся только из базовой Catppuccin-палитры.
+     *
+     * Полярность важна: на обеих темах контейнер (panel) должен
+     * быть ТЕМНЕЕ фона страницы, а строки (panelSecondary) —
+     * СВЕТЛЕЕ контейнера. На светлой теме так и было (mantle —
+     * base), на тёмной panel = surface0 оказывался СВЕТЛЕЕ фона и
+     * строки с тем же цветом сливались с контейнером.
      */
 
     readonly property color panel:
         dark
-            ? macchiatoSurface0
+            ? macchiatoMantle
             : latteMantle
 
     readonly property color panelSecondary:
