@@ -3,6 +3,11 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import YaMusic 1.0
 
+/*
+ * Верхняя панель: назад, бренд, разделы навигации и настройки.
+ * Секции перечислены в Repeater, чтобы не дублировать вёрстку
+ * кнопки-таба.
+ */
 Item {
     id: root
 
@@ -16,8 +21,7 @@ Item {
 
     readonly property int barHeight: 68
 
-    implicitHeight:
-        root.barHeight
+    implicitHeight: root.barHeight
 
     Rectangle {
         anchors.fill: parent
@@ -26,49 +30,35 @@ Item {
 
     RowLayout {
         anchors.fill: parent
-
         anchors.leftMargin: 28
         anchors.rightMargin: 28
 
         spacing: 8
 
-        // =========================================================
-        // Back
-        // =========================================================
+        // ---------------------------------------------------------
+        // Назад
+        // ---------------------------------------------------------
 
         Item {
             id: backArea
 
-            Layout.preferredWidth:
-                root.canGoBack
-                    ? 40
-                    : 0
-
+            Layout.preferredWidth: root.canGoBack ? 40 : 0
             Layout.preferredHeight: 36
 
-            visible:
-                root.canGoBack
+            visible: root.canGoBack
 
             Rectangle {
                 anchors.fill: parent
                 radius: 10
 
-                color:
-                    backMouseArea.containsMouse
-                        ? AppTheme.panelHover
-                        : "transparent"
+                color: backMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
             }
 
             Text {
                 anchors.centerIn: parent
 
                 text: "‹"
-
-                color:
-                    backMouseArea.containsMouse
-                        ? AppTheme.textPrimary
-                        : AppTheme.textSecondary
-
+                color: backMouseArea.containsMouse ? AppTheme.textPrimary : AppTheme.textSecondary
                 font.pixelSize: 30
                 font.weight: Font.Light
             }
@@ -84,9 +74,9 @@ Item {
             }
         }
 
-        // =========================================================
-        // Brand
-        // =========================================================
+        // ---------------------------------------------------------
+        // Бренд
+        // ---------------------------------------------------------
 
         Item {
             Layout.preferredWidth: 150
@@ -97,12 +87,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
 
                 text: "YaMusic"
-
-                color:
-                    brandMouseArea.containsMouse
-                        ? AppTheme.accent
-                        : AppTheme.textPrimary
-
+                color: brandMouseArea.containsMouse ? AppTheme.accent : AppTheme.textPrimary
                 font.pixelSize: 25
                 font.weight: Font.Bold
 
@@ -122,9 +107,9 @@ Item {
             }
         }
 
-        // =========================================================
-        // Navigation
-        // =========================================================
+        // ---------------------------------------------------------
+        // Навигация
+        // ---------------------------------------------------------
 
         Repeater {
             model: [
@@ -141,30 +126,28 @@ Item {
 
                 required property var modelData
 
-                Layout.preferredWidth:
-                    navigationText.implicitWidth + 28
-
-                Layout.preferredHeight: 38
-
                 readonly property bool active:
                     root.currentSection === modelData.section
+
+                Layout.preferredWidth: navigationText.implicitWidth + 28
+                Layout.preferredHeight: 38
 
                 Rectangle {
                     anchors.fill: parent
                     radius: 10
 
-                    color:
-                        navigationItem.active
-                            ? AppTheme.panelActive
-                            : navigationMouseArea.containsMouse
-                                ? AppTheme.panelHover
-                                : "transparent"
+                    color: navigationItem.active
+                        ? AppTheme.panelActive
+                        : navigationMouseArea.containsMouse
+                            ? AppTheme.panelHover
+                            : "transparent"
 
                     Behavior on color {
                         ColorAnimation { duration: 100 }
                     }
                 }
 
+                // Индикатор активного раздела
                 Rectangle {
                     anchors.left: parent.left
                     anchors.right: parent.right
@@ -173,10 +156,7 @@ Item {
                     height: 2
                     radius: 1
 
-                    color:
-                        navigationItem.active
-                            ? AppTheme.accent
-                            : "transparent"
+                    color: navigationItem.active ? AppTheme.accent : "transparent"
 
                     Behavior on color {
                         ColorAnimation { duration: 120 }
@@ -189,18 +169,9 @@ Item {
                     anchors.centerIn: parent
 
                     text: navigationItem.modelData.title
-
-                    color:
-                        navigationItem.active
-                            ? AppTheme.textPrimary
-                            : AppTheme.textSecondary
-
+                    color: navigationItem.active ? AppTheme.textPrimary : AppTheme.textSecondary
                     font.pixelSize: 14
-
-                    font.weight:
-                        navigationItem.active
-                            ? Font.DemiBold
-                            : Font.Normal
+                    font.weight: navigationItem.active ? Font.DemiBold : Font.Normal
 
                     Behavior on color {
                         ColorAnimation { duration: 100 }
@@ -214,24 +185,22 @@ Item {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
 
-                    onClicked: {
-                        root.sectionSelected(navigationItem.modelData.section)
-                    }
+                    onClicked: root.sectionSelected(navigationItem.modelData.section)
                 }
             }
         }
 
-        // =========================================================
-        // Spacer — прижимает настройки к правому краю
-        // =========================================================
+        // ---------------------------------------------------------
+        // Распорка — прижимает настройки к правому краю
+        // ---------------------------------------------------------
 
         Item {
             Layout.fillWidth: true
         }
 
-        // =========================================================
-        // Settings
-        // =========================================================
+        // ---------------------------------------------------------
+        // Настройки
+        // ---------------------------------------------------------
 
         Item {
             id: settingsButton
@@ -243,17 +212,10 @@ Item {
                 anchors.fill: parent
                 radius: 10
 
-                color:
-                    settingsMouseArea.containsMouse
-                        ? AppTheme.panelHover
-                        : AppTheme.panelSubtle
+                color: settingsMouseArea.containsMouse ? AppTheme.panelHover : AppTheme.panelSubtle
 
                 border.width: 1
-
-                border.color:
-                    settingsMouseArea.containsMouse
-                        ? AppTheme.border
-                        : AppTheme.borderSubtle
+                border.color: settingsMouseArea.containsMouse ? AppTheme.border : AppTheme.borderSubtle
 
                 Behavior on color {
                     ColorAnimation { duration: 120 }
@@ -268,12 +230,7 @@ Item {
                 anchors.centerIn: parent
 
                 text: "⚙"
-
-                color:
-                    settingsMouseArea.containsMouse
-                        ? AppTheme.textPrimary
-                        : AppTheme.textSecondary
-
+                color: settingsMouseArea.containsMouse ? AppTheme.textPrimary : AppTheme.textSecondary
                 font.pixelSize: 16
 
                 Behavior on color {
@@ -293,6 +250,10 @@ Item {
         }
     }
 
+    // -------------------------------------------------------------
+    // Меню настроек
+    // -------------------------------------------------------------
+
     Popup {
         id: settingsPopup
 
@@ -302,19 +263,14 @@ Item {
         x: settingsButton.x + settingsButton.width - width
         y: settingsButton.y + settingsButton.height + 6
 
-        closePolicy:
-            Popup.CloseOnEscape |
-            Popup.CloseOnPressOutside
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
-        background:
-            Rectangle {
-                color: AppTheme.panel
-
-                border.width: 1
-                border.color: AppTheme.borderSubtle
-
-                radius: 10
-            }
+        background: Rectangle {
+            color: AppTheme.panel
+            border.width: 1
+            border.color: AppTheme.borderSubtle
+            radius: 10
+        }
 
         Column {
             anchors.fill: parent
@@ -322,8 +278,7 @@ Item {
 
             spacing: 8
 
-            // Theme switcher
-
+            // Тёмная тема
             Row {
                 width: parent.width
                 height: 30
@@ -331,7 +286,6 @@ Item {
 
                 Text {
                     text: "Тёмная тема"
-
                     color: AppTheme.textPrimary
                     font.pixelSize: 13
 
@@ -348,10 +302,7 @@ Item {
                         anchors.fill: parent
                         radius: 4
 
-                        color:
-                            AppTheme.dark
-                                ? AppTheme.accent
-                                : AppTheme.panelSecondary
+                        color: AppTheme.dark ? AppTheme.accent : AppTheme.panelSecondary
 
                         border.width: 1
                         border.color: AppTheme.border
@@ -359,12 +310,8 @@ Item {
                         Text {
                             anchors.centerIn: parent
 
-                            text:
-                                AppTheme.dark
-                                    ? "✓"
-                                    : ""
-
-                            color: AppTheme.textPrimary
+                            text: AppTheme.dark ? "✓" : ""
+                            color: AppTheme.onAccent
                             font.pixelSize: 12
                         }
 
@@ -382,17 +329,13 @@ Item {
                 }
             }
 
-            // Logout
-
+            // Выход
             Rectangle {
                 width: parent.width
                 height: 34
                 radius: 8
 
-                color:
-                    logoutArea.containsMouse
-                        ? AppTheme.panelActive
-                        : AppTheme.panelSecondary
+                color: logoutArea.containsMouse ? AppTheme.panelActive : AppTheme.panelSecondary
 
                 border.width: 1
                 border.color: AppTheme.borderSubtle
@@ -401,12 +344,7 @@ Item {
                     anchors.centerIn: parent
 
                     text: "Выйти"
-
-                    color:
-                        logoutArea.containsMouse
-                            ? AppTheme.error
-                            : AppTheme.textPrimary
-
+                    color: logoutArea.containsMouse ? AppTheme.error : AppTheme.textPrimary
                     font.pixelSize: 13
                     font.weight: Font.Medium
                 }
