@@ -176,6 +176,16 @@ QtObject {
             ? macchiatoSurface2
             : latteSurface1
 
+    // Полупрозрачная граница для панелей, которые не должны
+    // выглядеть «жирно» (контекстные панели)
+    readonly property color borderWeak:
+        Qt.rgba(
+            border.r,
+            border.g,
+            border.b,
+            0.35
+        )
+
 
     /*
      * ============================================================
@@ -283,4 +293,44 @@ QtObject {
         dark
             ? macchiatoSurface1
             : latteSurface0
+
+
+    /*
+     * ============================================================
+     * Accent with alpha — для фонов/обводок на акцентном цвете
+     * ============================================================
+     */
+
+    readonly property color onAccent:
+        "white"
+
+
+    /*
+     * ============================================================
+     * Helpers
+     * ============================================================
+     *
+     * Общие утилиты приложения вынесены сюда, чтобы не
+     * дублировать их в каждом компоненте.
+     */
+
+    // "m:ss" из миллисекунд (0:00 для пустого/нулевого значения)
+    function formatTime(ms) {
+        return theme.formatDuration(ms)
+    }
+
+    // "m:ss" из миллисекунд
+    function formatDuration(ms) {
+        var value = Number(ms)
+
+        if (!isFinite(value) || value <= 0) {
+            return "0:00"
+        }
+
+        var totalSeconds = Math.floor(value / 1000)
+        var minutes = Math.floor(totalSeconds / 60)
+        var seconds = totalSeconds % 60
+
+        return minutes + ":" + (seconds < 10 ? "0" : "") + seconds
+    }
 }
