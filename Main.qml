@@ -7,6 +7,20 @@ import "Home"
 import "Components"
 import "Pages"
 
+/*
+ * Корневой элемент приложения.
+ *
+ * Экран состоит из трёх слоёв, которые переключаются через
+ * window.activeOverlay:
+ *
+ *   0 — основной экран (MainLayout + NowPlayingBar)
+ *   1 — развёрнутый плеер (ExpandedNowPlaying)
+ *   2 — текст песни (LyricsView)
+ *
+ * Основной экран и оверлеи взаимно исключают друг друга по
+ * видимости; состояние хранится в одном int, а не в двух bool —
+ * это исключает противоречивые комбинации (оба флага true).
+ */
 ApplicationWindow {
     id: window
 
@@ -15,20 +29,17 @@ ApplicationWindow {
     minimumWidth: 1100
     minimumHeight: 720
     visible: true
-    title: "YaMusic"
+    title: qsTr("YaMusic")
     color: AppTheme.background
 
-    property bool expandedNowPlayingVisible: false
-    property bool lyricsVisible: false
+    // ---- Состояние оверлея ----
+    readonly property int overlayNone: 0
+    readonly property int overlayNowPlaying: 1
+    readonly property int overlayLyrics: 2
 
-Connections {
-        target: appController
+    property int activeOverlay: overlayNone
 
-        function onStatusChanged(message) {
-            statusBar.message = message
-        }
-    }
-
+    // ---- Тема ----
     Connections {
         target: appController.themeController
 
@@ -41,28 +52,32 @@ Connections {
         AppTheme.dark = appController.themeController.darkTheme
     }
 
-    Loader {
-        id: pageLoader
+    // ---- Статус-бар ----
+    Connections {
+        target: appController
 
+        function onStatusChanged(message) {
+            statusBar.show(message)
+        }
+    }
+
+    // ---- Экран входа (только когда не авторизован) ----
+    Loader {
         anchors.fill: parent
 
         active: !authController.authenticated
-
-        source: "Pages/LoginPage.qml"
+        source: active ? "Pages/LoginPage.qml" : ""
     }
 
+    // ---- Основной экран ----
     Column {
-        id: applicationLayout
-
         anchors.fill: parent
         spacing: 0
 
         visible: authController.authenticated &&
-            !window.expandedNowPlayingVisible
+            window.activeOverlay === window.overlayNone
 
         MainLayout {
-            id: mainLayout
-
             width: parent.width
             height: parent.height - nowPlayingBar.height
 
@@ -78,51 +93,39 @@ Connections {
 
             controller: appController
 
-            onExpandedRequested: {
-                window.expandedNowPlayingVisible = true
-            }
-
+            onExpandedRequested: window.activeOverlay = window.overlayNowPlaying
             onLyricsRequested: {
                 appController.lyricsController.loadLyrics()
-                window.lyricsVisible = true
+                window.activeOverlay = window.overlayLyrics
             }
         }
+    }
+
+    // ---- Оверлеи ----
+    // Каждый сам полноэкранный (anchors.fill внутри себя).
+    ExpandedNowPlaying {
+        anchors.fill: parent
+
+        visible: authController.authenticated &&
+            window.activeOverlay === window.overlayNowPlaying
+
+        controller: appController
+
+        onClosed: window.activeOverlay = window.overlayNone
+    }
+
+    LyricsView {
+        anchors.fill: parent
+
+        visible: authController.authenticated &&
+            window.activeOverlay === window.overlayLyrics
+
+        controller: appController
+
+        onClosed: window.activeOverlay = window.overlayNone
     }
 
     StatusBar {
         id: statusBar
-
-        visible: false
-        message: "Готово"
-    }
-
-    ExpandedNowPlaying {
-        id: expandedNowPlaying
-
-        anchors.fill: parent
-
-        visible: authController.authenticated &&
-            window.expandedNowPlayingVisible
-
-        controller: appController
-
-        onClosed: {
-            window.expandedNowPlayingVisible = false
-        }
-    }
-
-    LyricsView {
-        id: lyricsView
-
-        anchors.fill: parent
-
-        visible: authController.authenticated &&
-            window.lyricsVisible
-
-        controller: appController
-
-        onClosed: {
-            window.lyricsVisible = false
-        }
     }
 }
