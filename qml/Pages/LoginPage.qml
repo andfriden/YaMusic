@@ -3,6 +3,11 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import YaMusic 1.0
 
+/*
+ * Экран входа: открывает страницу авторизации Яндекса, принимает
+ * токен (или полный URL из адресной строки) и передаёт его
+ * authController.loginWithToken().
+ */
 Item {
     id: root
 
@@ -10,17 +15,14 @@ Item {
         anchors.centerIn: parent
 
         width: Math.min(parent.width * 0.8, 500)
-
         spacing: 20
 
         Label {
             Layout.alignment: Qt.AlignHCenter
 
             text: "Вход в YaMusic"
-
             font.pixelSize: 28
             font.bold: true
-
             color: AppTheme.textPrimary
         }
 
@@ -28,10 +30,8 @@ Item {
             Layout.fillWidth: true
 
             text: "Войдите через Яндекс и скопируйте адрес страницы после авторизации."
-
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
-
             color: AppTheme.textSecondary
         }
 
@@ -53,10 +53,8 @@ Item {
             Layout.fillWidth: true
 
             text: "После входа скопируйте всю строку из адресной строки браузера и вставьте её сюда."
-
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
-
             color: AppTheme.textSecondary
         }
 
@@ -76,13 +74,10 @@ Item {
             Layout.alignment: Qt.AlignHCenter
 
             text: "Продолжить"
-
             enabled: tokenField.text.trim().length > 0
 
             onClicked: {
-                authController.loginWithToken(
-                    tokenField.text
-                )
+                authController.loginWithToken(tokenField.text)
             }
         }
 
@@ -92,10 +87,8 @@ Item {
             Layout.fillWidth: true
 
             visible: text.length > 0
-
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
-
             color: AppTheme.textSecondary
         }
     }
