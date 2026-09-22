@@ -2,674 +2,303 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
+/*
+ * Контекстная панель «Моя волна»: случайные треки из недавней
+ * истории прослушивания (источник — recentListeningModel).
+ */
 Item {
     id: root
 
     property var controller
 
-
-    /*
-     * ============================================================
-     * Random tracks
-     * ============================================================
-     */
+    readonly property bool hasController:
+        root.controller !== null && root.controller !== undefined
 
     ListModel {
         id: randomTracksModel
     }
 
-
-    /*
-     * ============================================================
-     * Panel
-     * ============================================================
-     */
-
     Rectangle {
-        anchors.fill:
-            parent
+        anchors.fill: parent
 
-        radius:
-            10
-
-        color:
-            AppTheme.backgroundPrimary
-
-        border.width:
-            1
-
-        border.color:
-            AppTheme.panelHover
-
+        radius: 10
+        color: AppTheme.backgroundPrimary
+        border.width: 1
+        border.color: AppTheme.panelHover
 
         Column {
-            anchors.fill:
-                parent
+            anchors.fill: parent
+            anchors.margins: 14
 
-            anchors.margins:
-                14
+            spacing: 12
 
-            spacing:
-                12
-
-
-            /*
-             * ====================================================
-             * Header
-             * ====================================================
-             */
-
+            // Заголовок
             Label {
-                width:
-                    parent.width
+                width: parent.width
 
-                text:
-                    qsTr("Недавно слушали")
-
-                color:
-                    AppTheme.textPrimary
-
-                font.pixelSize:
-                    18
-
-                font.bold:
-                    true
+                text: qsTr("Недавно слушали")
+                color: AppTheme.textPrimary
+                font.pixelSize: 18
+                font.bold: true
             }
 
-
-            /*
-             * ====================================================
-             * Empty state
-             * ====================================================
-             */
-
+            // Пустое состояние
             Column {
                 id: emptyState
 
-                width:
-                    parent.width
+                width: parent.width
+                height: parent.height - 46
 
-                height:
-                    parent.height - 46
+                spacing: 8
+                anchors.horizontalCenter: parent.horizontalCenter
 
-                spacing:
-                    8
-
-                anchors.horizontalCenter:
-                    parent.horizontalCenter
-
-                visible:
-                    randomTracksModel.count === 0
-
+                visible: randomTracksModel.count === 0
 
                 BusyIndicator {
-                    width:
-                        28
+                    width: 28
+                    height: 28
 
-                    height:
-                        28
+                    anchors.horizontalCenter: parent.horizontalCenter
 
-                    anchors.horizontalCenter:
-                        parent.horizontalCenter
-
-                    running:
-                        root.controller !== null &&
-                        root.controller !== undefined &&
-                        root.controller.loadingMyWave
+                    running: root.hasController && root.controller.loadingMyWave
                 }
 
-
                 Label {
-                    width:
-                        parent.width
+                    width: parent.width
 
-                    text:
-                            root.controller === null ||
-                        root.controller === undefined ||
+                    text: !root.hasController ||
                         root.controller.recentListeningModel === undefined ||
                         root.controller.recentListeningModel === null
-                        ? qsTr(
-                            "История прослушивания недоступна"
-                        )
-                        : qsTr(
-                            "Загрузка истории..."
-                        )
+                        ? qsTr("История прослушивания недоступна")
+                        : qsTr("Загрузка истории...")
 
-                    color:
-                        AppTheme.textMuted
+                    color: AppTheme.textMuted
+                    font.pixelSize: 12
 
-                    font.pixelSize:
-                        12
-
-                    horizontalAlignment:
-                        Text.AlignHCenter
-
-                    verticalAlignment:
-                        Text.AlignVCenter
-
-                    wrapMode:
-                        Text.WordWrap
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    wrapMode: Text.WordWrap
                 }
             }
 
-
-            /*
-             * ====================================================
-             * Random tracks
-             * ====================================================
-             */
-
+            // Список случайных треков
             ListView {
                 id: tracksView
 
-                width:
-                    parent.width
+                width: parent.width
+                height: parent.height - 46
 
-                height:
-                    parent.height - 46
+                visible: randomTracksModel.count > 0
 
-                visible:
-                    randomTracksModel.count > 0
+                clip: true
+                spacing: 6
 
-                clip:
-                    true
+                model: randomTracksModel
 
-                spacing:
-                    6
+                boundsBehavior: Flickable.StopAtBounds
 
-                model:
-                    randomTracksModel
+                ScrollBar.vertical: ScrollBar {
+                    policy: tracksView.contentHeight > tracksView.height
+                        ? ScrollBar.AsNeeded
+                        : ScrollBar.AlwaysOff
+                }
 
-                boundsBehavior:
-                    Flickable.StopAtBounds
+                delegate: Rectangle {
+                    id: trackDelegate
 
+                    required property int sourceIndex
+                    required property string title
+                    required property string artist
+                    required property string coverUri
 
-                ScrollBar.vertical:
-                    ScrollBar {
-                        policy:
-                                tracksView.contentHeight >
-                            tracksView.height
-                            ? ScrollBar.AsNeeded
-                            : ScrollBar.AlwaysOff
-                    }
+                    width: tracksView.width
+                    height: 64
 
+                    radius: 8
+                    color: trackMouse.containsMouse
+                        ? AppTheme.panelHover
+                        : AppTheme.panelSecondary
 
-                delegate:
+                    border.width: 1
+                    border.color: trackMouse.containsMouse
+                        ? AppTheme.border
+                        : AppTheme.borderSubtle
+
+                    // Обложка
                     Rectangle {
-                        id: trackDelegate
+                        id: artwork
 
-                        required property int sourceIndex
-                        required property string trackId
-                        required property string title
-                        required property string artist
-                        required property string artistId
-                        required property string album
-                        required property string albumId
-                        required property string coverUri
-                        required property int durationMs
+                        width: 52
+                        height: 52
 
-                        width:
-                            tracksView.width
+                        anchors.left: parent.left
+                        anchors.leftMargin: 6
+                        anchors.verticalCenter: parent.verticalCenter
 
-                        height:
-                            64
+                        radius: 6
+                        color: AppTheme.artworkPlaceholder
+                        clip: true
 
-                        radius:
-                            8
+                        Image {
+                            id: coverImage
 
-                        color:
-                            trackMouse.containsMouse
-                                ? AppTheme.panelHover
-                                : AppTheme.panelSecondary
+                            anchors.fill: parent
 
-                        border.width:
-                            1
+                            source: trackDelegate.coverUri.length > 0
+                                ? "image://yandex/" + trackDelegate.coverUri
+                                : ""
 
-                        border.color:
-                            trackMouse.containsMouse
-                                ? AppTheme.border
-                                : AppTheme.borderSubtle
+                            sourceSize: Qt.size(52, 52)
 
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true
+                            cache: true
+                            smooth: true
 
-                        /*
-                         * ------------------------------------------------
-                         * Artwork
-                         * ------------------------------------------------
-                         */
-
-                        Rectangle {
-                            id: artwork
-
-                            width:
-                                52
-
-                            height:
-                                52
-
-                            anchors.left:
-                                parent.left
-
-                            anchors.leftMargin:
-                                6
-
-                            anchors.verticalCenter:
-                                parent.verticalCenter
-
-                            radius:
-                                6
-
-                            color:
-                                AppTheme.artworkPlaceholder
-
-                            clip:
-                                true
-
-
-                            Image {
-                                id: coverImage
-
-                                anchors.fill:
-                                    parent
-
-                                source:
-                                        trackDelegate.coverUri.length > 0
-                                    ? "image://yandex/" +
-                                    trackDelegate.coverUri
-                                    : ""
-
-                                sourceSize:
-                                    Qt.size(
-                                        52,
-                                        52
-                                    )
-
-                                fillMode:
-                                    Image.PreserveAspectCrop
-
-                                asynchronous:
-                                    true
-
-                                cache:
-                                    true
-
-                                smooth:
-                                    true
-
-                                visible:
-                                    status === Image.Ready
-                            }
-
-
-                            Label {
-                                anchors.centerIn:
-                                    parent
-
-                                text:
-                                    "♪"
-
-                                color:
-                                    AppTheme.textDisabled
-
-                                font.pixelSize:
-                                    20
-
-                                visible:
-                                    coverImage.status !==
-                                    Image.Ready
-                            }
+                            visible: status === Image.Ready
                         }
 
+                        Label {
+                            anchors.centerIn: parent
 
-                        /*
-                         * ------------------------------------------------
-                         * Track information
-                         * ------------------------------------------------
-                         */
+                            text: "♪"
+                            color: AppTheme.textDisabled
+                            font.pixelSize: 20
 
-                        Column {
-                            anchors.left:
-                                artwork.right
+                            visible: coverImage.status !== Image.Ready
+                        }
+                    }
 
-                            anchors.leftMargin:
-                                10
+                    // Информация
+                    Column {
+                        anchors.left: artwork.right
+                        anchors.leftMargin: 10
+                        anchors.right: parent.right
+                        anchors.rightMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
 
-                            anchors.right:
-                                parent.right
+                        spacing: 2
 
-                            anchors.rightMargin:
-                                8
+                        Label {
+                            width: parent.width
 
-                            anchors.verticalCenter:
-                                parent.verticalCenter
+                            text: trackDelegate.title.length > 0
+                                ? trackDelegate.title
+                                : qsTr("Без названия")
 
-                            spacing:
-                                2
+                            color: AppTheme.textPrimary
+                            font.pixelSize: 13
+                            font.bold: true
 
-
-                            Label {
-                                width:
-                                    parent.width
-
-                                text:
-                                        trackDelegate.title.length > 0
-                                    ? trackDelegate.title
-                                    : qsTr(
-                                        "Без названия"
-                                    )
-
-                                color:
-                                    AppTheme.textPrimary
-
-                                font.pixelSize:
-                                    13
-
-                                font.bold:
-                                    true
-
-                                elide:
-                                    Text.ElideRight
-
-                                maximumLineCount:
-                                    1
-                            }
-
-
-                            Label {
-                                width:
-                                    parent.width
-
-                                text:
-                                        trackDelegate.artist.length > 0
-                                    ? trackDelegate.artist
-                                    : qsTr(
-                                        "Неизвестный исполнитель"
-                                    )
-
-                                color:
-                                    trackMouse.containsMouse
-                                        ? AppTheme.accent
-                                        : AppTheme.textSecondary
-
-                                font.pixelSize:
-                                    11
-
-                                elide:
-                                    Text.ElideRight
-
-                                maximumLineCount:
-                                    1
-                            }
-
-
-                            Label {
-                                width:
-                                    parent.width
-
-                                text:
-                                    trackDelegate.album
-
-                                color:
-                                    AppTheme.textMuted
-
-                                font.pixelSize:
-                                    10
-
-                                elide:
-                                    Text.ElideRight
-
-                                maximumLineCount:
-                                    1
-
-                                visible:
-                                    text.length > 0
-                            }
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
                         }
 
+                        Label {
+                            width: parent.width
 
-                        /*
-                         * ------------------------------------------------
-                         * Click
-                         * ------------------------------------------------
-                         */
+                            text: trackDelegate.artist.length > 0
+                                ? trackDelegate.artist
+                                : qsTr("Неизвестный исполнитель")
 
-                        MouseArea {
-                            id: trackMouse
+                            color: trackMouse.containsMouse
+                                ? AppTheme.accent
+                                : AppTheme.textSecondary
 
-                            anchors.fill:
-                                parent
+                            font.pixelSize: 11
 
-                            hoverEnabled:
-                                true
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
+                        }
+                    }
 
-                            cursorShape:
-                                Qt.PointingHandCursor
+                    // Клик — воспроизведение из истории
+                    MouseArea {
+                        id: trackMouse
 
-                            onClicked: {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
 
-                                if (
-                                    root.controller === null ||
-                                    root.controller === undefined
-                                ) {
-                                    return
-                                }
-
-                                root.controller
-                                    .selectRecentListening(
-                                    trackDelegate.sourceIndex
-                                )
+                        onClicked: {
+                            if (root.hasController) {
+                                root.controller.selectRecentListening(trackDelegate.sourceIndex)
                             }
                         }
                     }
+                }
             }
         }
     }
 
-
-    /*
-     * ============================================================
-     * Build random tracks
-     * ============================================================
-     */
+    // =============================================================
+    // Заполнение списка случайными треками
+    // =============================================================
 
     function rebuildRandomTracks() {
-
         randomTracksModel.clear()
 
-            root.controller
-
-
-
-        if (
-            root.controller === null ||
-            root.controller === undefined
-        ) {
-                        return
-        }
-
-
-        var model =
-            root.controller.recentListeningModel
-
-        if (
-            model === null ||
-            model === undefined
-        ) {
+        if (!root.hasController) {
             return
         }
 
+        const model = root.controller.recentListeningModel
 
-        /*
-         * The model itself does not expose a QML count property.
-         *
-         * We ask C++ for the random selection directly.
-         */
-
-        var items =
-            model.randomTrackData(
-                10
-            )
-
-
-
-        if (
-            items === null ||
-            items === undefined
-        ) {
+        if (model === null || model === undefined) {
             return
         }
 
-            items.length
+        // Модель не имеет QML-свойства count — просим случайную
+        // выборку напрямую у C++
+        const items = model.randomTrackData(10)
 
+        if (items === null || items === undefined) {
+            return
+        }
 
+        for (let i = 0; i < items.length; ++i) {
+            const item = items[i]
 
-        for (
-            var i = 0;
-            i < items.length;
-            ++i
-        ) {
-
-            var item =
-                items[i]
-
-
-            if (
-                item === null ||
-                item === undefined
-            ) {
+            if (item === null || item === undefined) {
                 continue
             }
 
-
-            randomTracksModel.append(
-                {
-                    sourceIndex:
-                        Number(
-                            item.sourceIndex
-                        ),
-
-                    trackId:
-                        String(
-                            item.trackId ||
-                            ""
-                        ),
-
-                    title:
-                        String(
-                            item.title ||
-                            ""
-                        ),
-
-                    artist:
-                        String(
-                            item.artist ||
-                            ""
-                        ),
-
-                    artistId:
-                        String(
-                            item.artistId ||
-                            ""
-                        ),
-
-                    album:
-                        String(
-                            item.album ||
-                            ""
-                        ),
-
-                    albumId:
-                        String(
-                            item.albumId ||
-                            ""
-                        ),
-
-                    coverUri:
-                        String(
-                            item.coverUri ||
-                            ""
-                        ),
-
-                    durationMs:
-                        Number(
-                            item.durationMs ||
-                            0
-                        )
-                }
-            )
+            randomTracksModel.append({
+                sourceIndex: Number(item.sourceIndex),
+                trackId: String(item.trackId || ""),
+                title: String(item.title || ""),
+                artist: String(item.artist || ""),
+                artistId: String(item.artistId || ""),
+                album: String(item.album || ""),
+                albumId: String(item.albumId || ""),
+                coverUri: String(item.coverUri || ""),
+                durationMs: Number(item.durationMs || 0)
+            })
         }
-
     }
 
-
-    /*
-     * ============================================================
-     * Model signals
-     * ============================================================
-     */
-
+    // Перестраиваем при любом изменении модели истории
     Connections {
-        target:
-                root.controller !== null &&
-            root.controller !== undefined
-            ? root.controller.recentListeningModel
-            : null
-
+        target: root.hasController ? root.controller.recentListeningModel : null
 
         function onModelReset() {
-
-                + " recent modelReset"
-
-
-            rebuildRandomTracks()
+            root.rebuildRandomTracks()
         }
-
 
         function onRowsInserted() {
-
-
-                + " recent rowsInserted"
-
-
-            rebuildRandomTracks()
+            root.rebuildRandomTracks()
         }
-
 
         function onRowsRemoved() {
-
-                + " recent rowsRemoved"
-
-            rebuildRandomTracks()
+            root.rebuildRandomTracks()
         }
     }
 
-
-    /*
-     * ============================================================
-     * Controller changes
-     * ============================================================
-     */
-
     onControllerChanged: {
-
-            + " controllerChanged"
-
-        rebuildRandomTracks()
+        root.rebuildRandomTracks()
     }
 
-
-    /*
-     * ============================================================
-     * Startup
-     * ============================================================
-     */
-
     Component.onCompleted: {
-
-            root.controller
-
-
-        rebuildRandomTracks()
-
-
+        root.rebuildRandomTracks()
     }
 }
