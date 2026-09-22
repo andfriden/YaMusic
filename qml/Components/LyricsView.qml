@@ -2,6 +2,13 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
+/*
+ * Экран текста песни (оверлей).
+ *
+ * Если у трека есть синхронизированный текст (строки с таймкодами) —
+ * показывается ListView с подсветкой текущей строки и автопрокруткой;
+ * иначе — простой текст (Flickable).
+ */
 Item {
     id: root
 
@@ -11,11 +18,12 @@ Item {
 
     anchors.fill: parent
 
+    readonly property bool hasController:
+        root.controller !== null && root.controller !== undefined
+
     readonly property bool hasTimedLines:
-        root.controller !== null &&
-        root.controller !== undefined &&
-        root.controller.lyricsController !== null &&
-        root.controller.lyricsController !== undefined &&
+        root.hasController &&
+        root.controller.lyricsController !== null && root.controller.lyricsController !== undefined &&
         root.controller.lyricsController.lyricsLineCount > 0
 
     readonly property int currentLine:
@@ -24,10 +32,8 @@ Item {
             : -1
 
     readonly property string plainText:
-        root.controller !== null &&
-        root.controller !== undefined &&
-        root.controller.lyricsController !== null &&
-        root.controller.lyricsController !== undefined
+        root.hasController &&
+        root.controller.lyricsController !== null && root.controller.lyricsController !== undefined
             ? String(root.controller.lyricsController.lyricsText || "")
             : ""
 
@@ -35,36 +41,37 @@ Item {
         anchors.fill: parent
         color: AppTheme.backgroundSecondary
 
-        // ---- Header ----
+        // ---------------------------------------------------------
+        // Шапка
+        // ---------------------------------------------------------
 
         Item {
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
-
-            height: 60
-
             anchors.leftMargin: 24
             anchors.rightMargin: 24
             anchors.topMargin: 12
+
+            height: 60
 
             Text {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
 
-                text:
-                    root.controller !== null &&
-                    root.controller !== undefined
-                        ? String(root.controller.currentTrackTitle || "")
-                        : ""
+                width: parent.width - 60
+
+                text: root.hasController
+                    ? String(root.controller.currentTrackTitle || "")
+                    : ""
 
                 color: AppTheme.textPrimary
                 font.pixelSize: 20
                 font.weight: Font.DemiBold
                 elide: Text.ElideRight
-                width: parent.width - 60
             }
 
+            // Кнопка закрытия
             Item {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
@@ -76,15 +83,10 @@ Item {
                     anchors.fill: parent
                     radius: width / 2
 
-                    color:
-                        closeMouseArea.containsMouse
-                            ? Qt.rgba(
-                                AppTheme.textPrimary.r,
-                                AppTheme.textPrimary.g,
-                                AppTheme.textPrimary.b,
-                                0.12
-                            )
-                            : "transparent"
+                    color: closeMouseArea.containsMouse
+                        ? Qt.rgba(AppTheme.textPrimary.r, AppTheme.textPrimary.g,
+                                  AppTheme.textPrimary.b, 0.12)
+                        : "transparent"
                 }
 
                 Text {
@@ -92,7 +94,6 @@ Item {
                     anchors.verticalCenterOffset: -3
 
                     text: "⌄"
-
                     color: AppTheme.textSecondary
                     font.pixelSize: 24
                 }
@@ -109,7 +110,9 @@ Item {
             }
         }
 
-        // ---- Timed lyrics ----
+        // ---------------------------------------------------------
+        // Синхронизированный текст
+        // ---------------------------------------------------------
 
         ListView {
             id: linesView
@@ -128,76 +131,53 @@ Item {
 
             visible: root.hasTimedLines
 
-            model:
-                root.hasTimedLines
-                    ? root.controller.lyricsController.lyricsLineCount
-                    : 0
+            model: root.hasTimedLines
+                ? root.controller.lyricsController.lyricsLineCount
+                : 0
 
-            ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AsNeeded
-            }
+            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
             delegate: Text {
                 required property int index
 
                 width: linesView.width
 
-                text:
-                    root.controller.lyricsController.lyricLineText(index)
+                text: root.controller.lyricsController.lyricLineText(index)
 
-                color:
-                    index === root.currentLine
-                        ? AppTheme.accent
-                        : AppTheme.textPrimary
-
-                font.pixelSize:
-                    index === root.currentLine
-                        ? 20
-                        : 17
-
-                font.weight:
-                    index === root.currentLine
-                        ? Font.DemiBold
-                        : Font.Normal
+                color: index === root.currentLine ? AppTheme.accent : AppTheme.textPrimary
+                font.pixelSize: index === root.currentLine ? 20 : 17
+                font.weight: index === root.currentLine ? Font.DemiBold : Font.Normal
 
                 lineHeight: 1.6
                 wrapMode: Text.WordWrap
             }
 
-            // LyricsController actually owns these signals.
+            // Сигналы о смене строки и загрузке текста приходят от
+            // LyricsController (не от корневого controller)
             Connections {
-                target:
-                    root.controller !== null &&
-                    root.controller !== undefined
-                        ? root.controller.lyricsController
-                        : null
+                target: root.hasController
+                    ? root.controller.lyricsController
+                    : null
 
                 function onCurrentLyricLineChanged() {
-                    if (
-                        !root.hasTimedLines ||
-                        root.currentLine < 0
-                    ) {
+                    if (!root.hasTimedLines || root.currentLine < 0) {
                         return
                     }
 
-                    linesView.positionViewAtIndex(
-                        root.currentLine,
-                        ListView.Center
-                    )
+                    linesView.positionViewAtIndex(root.currentLine, ListView.Center)
                 }
 
                 function onLyricsChanged() {
                     if (root.hasTimedLines) {
-                        linesView.positionViewAtIndex(
-                            0,
-                            ListView.Center
-                        )
+                        linesView.positionViewAtIndex(0, ListView.Center)
                     }
                 }
             }
         }
 
-        // ---- Plain lyrics ----
+        // ---------------------------------------------------------
+        // Простой текст
+        // ---------------------------------------------------------
 
         Flickable {
             id: plainFlickable
@@ -217,9 +197,7 @@ Item {
             clip: true
             visible: !root.hasTimedLines
 
-            ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AsNeeded
-            }
+            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
             Text {
                 id: plainTextLabel

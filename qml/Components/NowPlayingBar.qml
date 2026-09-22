@@ -3,6 +3,14 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import YaMusic 1.0
 
+/*
+ * Нижняя панель плеера: информация о треке, управление
+ * воспроизведением, прогресс, громкость и кнопки (лайк, текст,
+ * развернуть).
+ *
+ * Цветовая подсветка (playerAccent) берётся из обложки трека,
+ * когда доступна (PlayerAccentService), иначе — AppTheme.accent.
+ */
 Rectangle {
     id: root
 
@@ -11,25 +19,22 @@ Rectangle {
     signal expandedRequested()
     signal lyricsRequested()
 
+    readonly property bool hasController:
+        root.controller !== null && root.controller !== undefined
+
     readonly property bool hasTrack:
-        root.controller !== null &&
-        root.controller !== undefined &&
+        root.hasController &&
         String(root.controller.currentTrackTitle || "").length > 0
 
     readonly property bool loading:
-        root.controller !== null &&
-        root.controller !== undefined &&
-        root.controller.playbackState === 1
+        root.hasController && root.controller.playbackState === 1
 
     readonly property bool playing:
-        root.controller !== null &&
-        root.controller !== undefined &&
-        root.controller.playing
+        root.hasController && root.controller.playing
 
     readonly property bool hasPlayerAccent:
         root.hasTrack &&
-        root.controller !== null &&
-        root.controller !== undefined &&
+        root.hasController &&
         root.controller.accentController.playerAccent !== undefined &&
         root.controller.accentController.playerAccent !== null &&
         root.controller.accentController.playerAccent.valid
@@ -41,25 +46,13 @@ Rectangle {
 
     height: 124
 
-    color:
-        root.hasPlayerAccent
-            ? Qt.rgba(
-                root.playerAccent.r,
-                root.playerAccent.g,
-                root.playerAccent.b,
-                0.09
-            )
-            : AppTheme.panel
+    color: root.hasPlayerAccent
+        ? Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.09)
+        : AppTheme.panel
 
-    border.color:
-        root.hasPlayerAccent
-            ? Qt.rgba(
-                root.playerAccent.r,
-                root.playerAccent.g,
-                root.playerAccent.b,
-                0.14
-            )
-            : AppTheme.border
+    border.color: root.hasPlayerAccent
+        ? Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.14)
+        : AppTheme.border
 
     border.width: 1
     radius: 12
@@ -73,9 +66,9 @@ Rectangle {
 
         spacing: 0
 
-        // =========================================================
-        // Track information
-        // =========================================================
+        // ---------------------------------------------------------
+        // Информация о треке
+        // ---------------------------------------------------------
 
         RowLayout {
             id: trackInfo
@@ -93,11 +86,8 @@ Rectangle {
                 Layout.preferredWidth: 58
                 Layout.preferredHeight: 58
 
-                source:
-                        root.hasTrack &&
-                    root.controller.currentTrackCoverUri
-                    ? "image://yandex/" +
-                    root.controller.currentTrackCoverUri
+                source: root.hasTrack && root.controller.currentTrackCoverUri
+                    ? "image://yandex/" + root.controller.currentTrackCoverUri
                     : ""
 
                 fillMode: Image.PreserveAspectCrop
@@ -106,14 +96,10 @@ Rectangle {
 
                 Rectangle {
                     anchors.fill: parent
-
                     radius: 9
 
                     color: "transparent"
-
-                    border.color:
-                        AppTheme.borderSubtle
-
+                    border.color: AppTheme.borderSubtle
                     border.width: 1
                 }
             }
@@ -126,122 +112,80 @@ Rectangle {
                 Label {
                     Layout.fillWidth: true
 
-                    text:
-                        root.hasTrack
-                            ? root.controller.currentTrackTitle
-                            : "Нет воспроизводимого трека"
+                    text: root.hasTrack
+                        ? root.controller.currentTrackTitle
+                        : "Нет воспроизводимого трека"
 
-                    color:
-                        AppTheme.textPrimary
-
+                    color: AppTheme.textPrimary
                     font.pixelSize: 14
                     font.weight: Font.DemiBold
 
-                    elide:
-                        Text.ElideRight
-
+                    elide: Text.ElideRight
                     maximumLineCount: 1
                 }
 
                 Label {
                     Layout.fillWidth: true
 
-                    text:
-                        root.hasTrack
-                            ? root.controller.currentTrackArtist
-                            : ""
+                    text: root.hasTrack ? root.controller.currentTrackArtist : ""
 
-                    color:
-                        AppTheme.textSecondary
-
+                    color: AppTheme.textSecondary
                     font.pixelSize: 12
 
-                    elide:
-                        Text.ElideRight
-
+                    elide: Text.ElideRight
                     maximumLineCount: 1
 
                     MouseArea {
                         anchors.fill: parent
 
-                        enabled:
-                            root.hasTrack &&
-                            String(
-                                root.controller.currentTrackArtistId ||
-                                ""
-                            ).length > 0
+                        enabled: root.hasTrack &&
+                            String(root.controller.currentTrackArtistId || "").length > 0
 
-                        cursorShape:
-                            Qt.PointingHandCursor
+                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
 
                         onClicked: {
-                            if (!root.controller)
+                            if (!root.controller) {
                                 return
+                            }
 
-                            root.controller.loadArtist(
-                                root.controller.currentTrackArtistId
-                            )
+                            root.controller.loadArtist(root.controller.currentTrackArtistId)
                         }
                     }
                 }
             }
 
-            // =====================================================
-            // Like
-            // =====================================================
-
+            // Лайк
             Item {
                 id: likeButton
 
                 Layout.preferredWidth: 36
                 Layout.preferredHeight: 36
 
-                visible:
-                    root.hasTrack
+                visible: root.hasTrack
 
                 Rectangle {
                     anchors.fill: parent
-
                     radius: 18
 
-                    color:
-                        likeMouseArea.containsMouse
-                            ? AppTheme.panelHover
-                            : "transparent"
-
-                    opacity:
-                        likeMouseArea.containsMouse
-                            ? 1
-                            : 0
+                    color: likeMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
+                    opacity: likeMouseArea.containsMouse ? 1 : 0
 
                     Behavior on opacity {
-                        NumberAnimation {
-                            duration: 100
-                        }
+                        NumberAnimation { duration: 100 }
                     }
                 }
 
                 Label {
                     anchors.centerIn: parent
 
-                    text:
-                            root.controller &&
-                        root.controller.currentTrackLiked
-                        ? "♥"
-                        : "♡"
-
-                    color:
-                            root.controller &&
-                        root.controller.currentTrackLiked
+                    text: root.controller && root.controller.currentTrackLiked ? "♥" : "♡"
+                    color: root.controller && root.controller.currentTrackLiked
                         ? AppTheme.accent
                         : AppTheme.textSecondary
-
                     font.pixelSize: 21
 
                     Behavior on color {
-                        ColorAnimation {
-                            duration: 120
-                        }
+                        ColorAnimation { duration: 120 }
                     }
                 }
 
@@ -250,36 +194,23 @@ Rectangle {
 
                     anchors.fill: parent
 
-                    enabled:
-                        root.hasTrack &&
-                        root.controller !== null &&
-                        root.controller !== undefined &&
-                        String(
-                            root.controller.currentTrackId || ""
-                        ).length > 0
+                    enabled: root.hasTrack && root.hasController &&
+                        String(root.controller.currentTrackId || "").length > 0
 
-                    cursorShape:
-                        enabled
-                            ? Qt.PointingHandCursor
-                            : Qt.ArrowCursor
+                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
 
                     onClicked: {
-                        if (!root.controller)
+                        if (!root.controller) {
                             return
+                        }
 
-                        const trackId =
-                            String(
-                                root.controller.currentTrackId ||
-                                ""
-                            )
+                        const trackId = String(root.controller.currentTrackId || "")
 
-                        if (trackId.length === 0)
+                        if (trackId.length === 0) {
                             return
+                        }
 
-                        root.controller.toggleLike(
-                            trackId,
-                            root.controller.currentTrackLiked
-                        )
+                        root.controller.toggleLike(trackId, root.controller.currentTrackLiked)
                     }
                 }
             }
@@ -289,57 +220,42 @@ Rectangle {
             Layout.preferredWidth: 18
         }
 
-        // =========================================================
-        // Center controls
-        // =========================================================
+        // ---------------------------------------------------------
+        // Центральное управление
+        // ---------------------------------------------------------
 
         ColumnLayout {
             id: centerControls
 
-            Layout.alignment:
-                Qt.AlignVCenter
-
-            Layout.preferredWidth:
-                470
+            Layout.alignment: Qt.AlignVCenter
+            Layout.preferredWidth: 470
 
             spacing: 7
 
             RowLayout {
-                Layout.alignment:
-                    Qt.AlignHCenter
+                Layout.alignment: Qt.AlignHCenter
 
                 spacing: 8
 
-                // -------------------------------------------------
-                // Shuffle
-                // -------------------------------------------------
-
+                // Перемешать
                 Item {
                     width: 38
                     height: 38
 
                     Rectangle {
                         anchors.fill: parent
-
                         radius: 19
 
-                        color:
-                            shuffleMouseArea.containsMouse
-                                ? AppTheme.panelHover
-                                : "transparent"
+                        color: shuffleMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
                     }
 
                     Label {
                         anchors.centerIn: parent
 
                         text: "⤨"
-
-                        color:
-                                root.controller &&
-                            root.controller.shuffleEnabled
+                        color: root.controller && root.controller.shuffleEnabled
                             ? root.playerAccent
                             : AppTheme.textSecondary
-
                         font.pixelSize: 20
                     }
 
@@ -347,44 +263,33 @@ Rectangle {
                         id: shuffleMouseArea
 
                         anchors.fill: parent
-
-                        cursorShape:
-                            Qt.PointingHandCursor
+                        cursorShape: Qt.PointingHandCursor
 
                         onClicked: {
-                            if (root.controller)
+                            if (root.controller) {
                                 root.controller.toggleShuffle()
+                            }
                         }
                     }
                 }
 
-                // -------------------------------------------------
-                // Previous
-                // -------------------------------------------------
-
+                // Назад
                 Item {
                     width: 42
                     height: 42
 
                     Rectangle {
                         anchors.fill: parent
-
                         radius: 21
 
-                        color:
-                            previousMouseArea.containsMouse
-                                ? AppTheme.panelHover
-                                : "transparent"
+                        color: previousMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
                     }
 
                     Label {
                         anchors.centerIn: parent
 
                         text: "‹"
-
-                        color:
-                            AppTheme.textPrimary
-
+                        color: AppTheme.textPrimary
                         font.pixelSize: 32
                         font.weight: Font.Light
                     }
@@ -393,106 +298,73 @@ Rectangle {
                         id: previousMouseArea
 
                         anchors.fill: parent
-
-                        cursorShape:
-                            Qt.PointingHandCursor
+                        cursorShape: Qt.PointingHandCursor
 
                         onClicked: {
-                            if (root.controller)
+                            if (root.controller) {
                                 root.controller.previous()
+                            }
                         }
                     }
                 }
 
-                // -------------------------------------------------
-                // Play / Pause
-                // -------------------------------------------------
-
+                // Играть / пауза
                 Item {
                     width: 50
                     height: 50
 
                     Rectangle {
                         anchors.fill: parent
-
                         radius: 25
-
-                        color:
-                            root.playerAccent
+                        color: root.playerAccent
                     }
 
                     Label {
                         anchors.centerIn: parent
 
-                        text:
-                            root.loading
-                                ? "…"
-                                : root.playing
-                                    ? "Ⅱ"
-                                    : "▶"
-
-                        color:
-                            AppTheme.textPrimary
-
-                        font.pixelSize:
-                            root.playing
-                                ? 20
-                                : 19
-
-                        font.weight:
-                            Font.DemiBold
+                        text: root.loading ? "…" : root.playing ? "Ⅱ" : "▶"
+                        color: AppTheme.onAccent
+                        font.pixelSize: root.playing ? 20 : 19
+                        font.weight: Font.DemiBold
                     }
 
                     MouseArea {
                         id: playMouseArea
 
                         anchors.fill: parent
-
-                        cursorShape:
-                            Qt.PointingHandCursor
+                        cursorShape: Qt.PointingHandCursor
 
                         onClicked: {
-                            if (!root.controller)
+                            if (!root.controller || root.loading) {
                                 return
+                            }
 
-                            if (root.loading)
-                                return
-
-                            if (root.playing)
+                            if (root.playing) {
                                 root.controller.pause()
-                            else
+                            } else {
                                 root.controller.play()
+                            }
                         }
                     }
                 }
 
-                // -------------------------------------------------
-                // Next
-                // -------------------------------------------------
-
+                // Вперёд
                 Item {
                     width: 42
                     height: 42
 
                     Rectangle {
                         anchors.fill: parent
-
                         radius: 21
 
-                        color:
-                            nextMouseArea.containsMouse
-                                ? AppTheme.panelHover
-                                : "transparent"
+                        color: nextMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
                     }
 
                     Label {
                         anchors.centerIn: parent
 
                         text: "›"
-
-                        color:
-                            AppTheme.textPrimary
-
+                        color: AppTheme.textPrimary
                         font.pixelSize: 32
                         font.weight: Font.Light
                     }
@@ -501,51 +373,35 @@ Rectangle {
                         id: nextMouseArea
 
                         anchors.fill: parent
-
-                        cursorShape:
-                            Qt.PointingHandCursor
+                        cursorShape: Qt.PointingHandCursor
 
                         onClicked: {
-                            if (root.controller)
+                            if (root.controller) {
                                 root.controller.next()
+                            }
                         }
                     }
                 }
 
-                // -------------------------------------------------
-                // Repeat
-                // -------------------------------------------------
-
+                // Повтор
                 Item {
                     width: 38
                     height: 38
 
                     Rectangle {
                         anchors.fill: parent
-
                         radius: 19
 
-                        color:
-                            repeatMouseArea.containsMouse
-                                ? AppTheme.panelHover
-                                : "transparent"
+                        color: repeatMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
                     }
 
                     Label {
                         anchors.centerIn: parent
 
-                        text:
-                                root.controller &&
-                            root.controller.repeatMode === 1
-                            ? "↻1"
-                            : "↻"
-
-                        color:
-                                root.controller &&
-                            root.controller.repeatMode !== 0
+                        text: root.controller && root.controller.repeatMode === 1 ? "↻1" : "↻"
+                        color: root.controller && root.controller.repeatMode !== 0
                             ? root.playerAccent
                             : AppTheme.textSecondary
-
                         font.pixelSize: 18
                     }
 
@@ -553,21 +409,20 @@ Rectangle {
                         id: repeatMouseArea
 
                         anchors.fill: parent
-
-                        cursorShape:
-                            Qt.PointingHandCursor
+                        cursorShape: Qt.PointingHandCursor
 
                         onClicked: {
-                            if (root.controller)
+                            if (root.controller) {
                                 root.controller.cycleRepeat()
+                            }
                         }
                     }
                 }
             }
 
-            // =====================================================
-            // Progress
-            // =====================================================
+            // -----------------------------------------------------
+            // Прогресс
+            // -----------------------------------------------------
 
             RowLayout {
                 Layout.fillWidth: true
@@ -577,20 +432,10 @@ Rectangle {
                 Label {
                     Layout.preferredWidth: 38
 
-                    text:
-                        root.formatTime(
-                            root.controller
-                                ? root.controller.position
-                                : 0
-                        )
-
-                    color:
-                        AppTheme.textMuted
-
+                    text: AppTheme.formatTime(root.controller ? root.controller.position : 0)
+                    color: AppTheme.textMuted
                     font.pixelSize: 10
-
-                    horizontalAlignment:
-                        Text.AlignRight
+                    horizontalAlignment: Text.AlignRight
                 }
 
                 Item {
@@ -600,77 +445,40 @@ Rectangle {
                     Layout.preferredHeight: 12
 
                     Rectangle {
-                        anchors.verticalCenter:
-                            parent.verticalCenter
-
-                        anchors.left:
-                            parent.left
-
-                        anchors.right:
-                            parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.right: parent.right
 
                         height: 4
                         radius: 2
 
-                        color:
-                            AppTheme.panelSecondary
+                        color: AppTheme.panelSecondary
 
                         Rectangle {
-                            width:
-                                    root.controller &&
-                                root.controller.duration > 0
-                                ? parent.width *
-                                Math.max(
-                                    0,
-                                    Math.min(
-                                        1,
-                                        root.controller.position /
-                                        root.controller.duration
-                                    )
-                                )
+                            width: root.controller && root.controller.duration > 0
+                                ? parent.width * Math.max(0, Math.min(1,
+                                    root.controller.position / root.controller.duration))
                                 : 0
 
-                            height:
-                                parent.height
-
+                            height: parent.height
                             radius: 2
 
-                            color:
-                                root.playerAccent
+                            color: root.playerAccent
                         }
                     }
 
                     MouseArea {
                         anchors.fill: parent
-
-                        cursorShape:
-                            Qt.PointingHandCursor
+                        cursorShape: Qt.PointingHandCursor
 
                         onClicked: function(mouse) {
-                            if (!root.controller)
-                                return
-
-                            if (
-                                root.controller.duration <= 0
-                            ) {
+                            if (!root.controller || root.controller.duration <= 0) {
                                 return
                             }
 
-                            const ratio =
-                                Math.max(
-                                    0,
-                                    Math.min(
-                                        1,
-                                        mouse.x / width
-                                    )
-                                )
+                            const ratio = Math.max(0, Math.min(1, mouse.x / width))
 
-                            root.controller.seek(
-                                Math.round(
-                                    root.controller.duration *
-                                    ratio
-                                )
-                            )
+                            root.controller.seek(Math.round(root.controller.duration * ratio))
                         }
                     }
                 }
@@ -678,20 +486,10 @@ Rectangle {
                 Label {
                     Layout.preferredWidth: 38
 
-                    text:
-                        root.formatTime(
-                            root.controller
-                                ? root.controller.duration
-                                : 0
-                        )
-
-                    color:
-                        AppTheme.textMuted
-
+                    text: AppTheme.formatTime(root.controller ? root.controller.duration : 0)
+                    color: AppTheme.textMuted
                     font.pixelSize: 10
-
-                    horizontalAlignment:
-                        Text.AlignLeft
+                    horizontalAlignment: Text.AlignLeft
                 }
             }
         }
@@ -700,13 +498,12 @@ Rectangle {
             Layout.preferredWidth: 18
         }
 
-        // =========================================================
-        // Right controls
-        // =========================================================
+        // ---------------------------------------------------------
+        // Правое управление
+        // ---------------------------------------------------------
 
         RowLayout {
             Layout.fillWidth: true
-
             Layout.minimumWidth: 250
             Layout.preferredWidth: 360
             Layout.maximumWidth: 430
@@ -717,40 +514,25 @@ Rectangle {
                 Layout.fillWidth: true
             }
 
-            // -----------------------------------------------------
-            // Lyrics button
-            // -----------------------------------------------------
-
+            // Текст песни
             Item {
                 width: 38
                 height: 38
 
-                visible:
-                    root.controller !== null &&
-                    root.controller !== undefined &&
-                    String(
-                        root.controller.currentTrackTitle || ""
-                    ).length > 0
+                visible: root.hasTrack
 
                 Rectangle {
                     anchors.fill: parent
-
                     radius: 19
 
-                    color:
-                        lyricsMouseArea.containsMouse
-                            ? AppTheme.panelHover
-                            : "transparent"
+                    color: lyricsMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
                 }
 
                 Label {
                     anchors.centerIn: parent
 
                     text: "🎤"
-
-                    color:
-                        AppTheme.textSecondary
-
+                    color: AppTheme.textSecondary
                     font.pixelSize: 15
                 }
 
@@ -758,47 +540,29 @@ Rectangle {
                     id: lyricsMouseArea
 
                     anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
 
-                    cursorShape:
-                        Qt.PointingHandCursor
-
-                    onClicked: {
-                        root.lyricsRequested()
-                    }
+                    onClicked: root.lyricsRequested()
                 }
             }
 
-            // -----------------------------------------------------
-            // Volume button
-            // -----------------------------------------------------
-
+            // Громкость (вкл/выкл)
             Item {
                 width: 38
                 height: 38
 
                 Rectangle {
                     anchors.fill: parent
-
                     radius: 19
 
-                    color:
-                        volumeMouseArea.containsMouse
-                            ? AppTheme.panelHover
-                            : "transparent"
+                    color: volumeMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
                 }
 
                 Label {
                     anchors.centerIn: parent
 
-                    text:
-                            root.controller &&
-                        root.controller.volume > 0
-                        ? "◖"
-                        : "×"
-
-                    color:
-                        AppTheme.textSecondary
-
+                    text: root.controller && root.controller.volume > 0 ? "◖" : "×"
+                    color: AppTheme.textSecondary
                     font.pixelSize: 19
                 }
 
@@ -806,17 +570,14 @@ Rectangle {
                     id: volumeMouseArea
 
                     anchors.fill: parent
-
-                    cursorShape:
-                        Qt.PointingHandCursor
+                    cursorShape: Qt.PointingHandCursor
 
                     onClicked: {
-                        if (!root.controller)
+                        if (!root.controller) {
                             return
+                        }
 
-                        if (
-                            root.controller.volume > 0
-                        ) {
+                        if (root.controller.volume > 0) {
                             root.controller.setVolume(0)
                         } else {
                             root.controller.setVolume(1)
@@ -825,10 +586,7 @@ Rectangle {
                 }
             }
 
-            // -----------------------------------------------------
-            // Volume slider
-            // -----------------------------------------------------
-
+            // Ползунок громкости
             Slider {
                 id: volumeSlider
 
@@ -838,100 +596,63 @@ Rectangle {
                 from: 0
                 to: 1
 
-                value:
-                    root.controller
-                        ? root.controller.volume
-                        : 0
+                value: root.controller ? root.controller.volume : 0
 
                 onMoved: {
-                    if (root.controller)
+                    if (root.controller) {
                         root.controller.setVolume(value)
+                    }
                 }
 
                 background: Rectangle {
-                    x:
-                        volumeSlider.leftPadding
+                    x: volumeSlider.leftPadding
+                    y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
 
-                    y:
-                        volumeSlider.topPadding +
-                        volumeSlider.availableHeight / 2 -
-                        height / 2
-
-                    width:
-                        volumeSlider.availableWidth
-
+                    width: volumeSlider.availableWidth
                     height: 4
                     radius: 2
 
-                    color:
-                        AppTheme.panelSecondary
+                    color: AppTheme.panelSecondary
 
                     Rectangle {
-                        width:
-                            volumeSlider.visualPosition *
-                            parent.width
-
-                        height:
-                            parent.height
-
+                        width: volumeSlider.visualPosition * parent.width
+                        height: parent.height
                         radius: 2
 
-                        color:
-                            root.playerAccent
+                        color: root.playerAccent
                     }
                 }
 
                 handle: Rectangle {
-                    x:
-                        volumeSlider.leftPadding +
-                        volumeSlider.visualPosition *
-                        (
-                            volumeSlider.availableWidth -
-                            width
-                        )
-
-                    y:
-                        volumeSlider.topPadding +
-                        volumeSlider.availableHeight / 2 -
-                        height / 2
+                    x: volumeSlider.leftPadding +
+                       volumeSlider.visualPosition * (volumeSlider.availableWidth - width)
+                    y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
 
                     width: 10
                     height: 10
-
                     radius: 5
 
-                    color:
-                        root.playerAccent
+                    color: root.playerAccent
                 }
             }
 
-            // -----------------------------------------------------
-            // Expand
-            // -----------------------------------------------------
-
+            // Развернуть
             Item {
                 width: 38
                 height: 38
 
                 Rectangle {
                     anchors.fill: parent
-
                     radius: 19
 
-                    color:
-                        expandMouseArea.containsMouse
-                            ? AppTheme.panelHover
-                            : "transparent"
+                    color: expandMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
                 }
 
                 Label {
                     anchors.centerIn: parent
 
                     text: "☰"
-
-                    color:
-                        AppTheme.textSecondary
-
+                    color: AppTheme.textSecondary
                     font.pixelSize: 16
                 }
 
@@ -939,38 +660,11 @@ Rectangle {
                     id: expandMouseArea
 
                     anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
 
-                    cursorShape:
-                        Qt.PointingHandCursor
-
-                    onClicked: {
-                        root.expandedRequested()
-                    }
+                    onClicked: root.expandedRequested()
                 }
             }
         }
-    }
-
-    // =============================================================
-    // Helpers
-    // =============================================================
-
-    function formatTime(ms) {
-        if (!ms || ms < 0)
-            return "0:00"
-
-        const totalSeconds =
-            Math.floor(ms / 1000)
-
-        const minutes =
-            Math.floor(totalSeconds / 60)
-
-        const seconds =
-            totalSeconds % 60
-
-        return minutes +
-            ":" +
-            (seconds < 10 ? "0" : "") +
-            seconds
     }
 }

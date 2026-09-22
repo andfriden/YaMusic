@@ -2,6 +2,10 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
+/*
+ * Попап выбора плейлиста для добавления трека.
+ * Открывается с установленными trackId/albumId.
+ */
 Popup {
     id: root
 
@@ -27,6 +31,7 @@ Popup {
     Column {
         anchors.fill: parent
         anchors.margins: 16
+
         spacing: 12
 
         Label {
@@ -39,6 +44,7 @@ Popup {
         ListView {
             width: parent.width
             height: parent.height - 40
+
             clip: true
             spacing: 6
 
@@ -57,16 +63,17 @@ Popup {
 
                 width: parent ? parent.width : 0
                 height: 56
+
                 radius: 8
-                color: mouseArea.containsMouse
-                    ? AppTheme.panelHover
-                    : "transparent"
+                color: mouseArea.containsMouse ? AppTheme.panelHover : "transparent"
 
                 MouseArea {
                     id: mouseArea
+
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
+
                     onClicked: {
                         if (root.controller && root.trackId.length > 0) {
                             root.controller.addTrackToPlaylist(
@@ -82,14 +89,15 @@ Popup {
 
                 Image {
                     id: plCover
+
                     anchors.left: parent.left
                     anchors.leftMargin: 8
                     anchors.verticalCenter: parent.verticalCenter
+
                     width: 40
                     height: 40
-                    source: coverUri.length > 0
-                        ? "image://yandex/" + coverUri
-                        : ""
+
+                    source: coverUri.length > 0 ? "image://yandex/" + coverUri : ""
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
                     cache: true
@@ -98,7 +106,9 @@ Popup {
                         anchors.fill: parent
                         radius: 6
                         color: AppTheme.surface
+
                         visible: plCover.status !== Image.Ready
+
                         Label {
                             anchors.centerIn: parent
                             text: "♪"
@@ -114,10 +124,12 @@ Popup {
                     anchors.right: parent.right
                     anchors.rightMargin: 12
                     anchors.verticalCenter: parent.verticalCenter
+
                     spacing: 2
 
                     Label {
                         width: parent.width
+
                         text: title
                         color: AppTheme.textPrimary
                         font.pixelSize: 13
@@ -127,6 +139,7 @@ Popup {
 
                     Label {
                         width: parent.width
+
                         text: trackCount > 0 ? trackCount + " треков" : ""
                         color: AppTheme.textMuted
                         font.pixelSize: 11
@@ -137,9 +150,11 @@ Popup {
 
             Label {
                 anchors.centerIn: parent
+
                 text: "Нет плейлистов"
                 color: AppTheme.textSecondary
                 font.pixelSize: 13
+
                 visible: parent.count === 0
             }
         }

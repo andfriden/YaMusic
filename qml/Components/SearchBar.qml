@@ -2,6 +2,9 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
+/*
+ * Поле поиска с иконкой и индикатором загрузки.
+ */
 Item {
     id: root
 
@@ -9,163 +12,81 @@ Item {
 
     height: 42
 
-    // =============================================================
-    // Search field
-    // =============================================================
-
     TextField {
         id: searchField
 
-        anchors.fill:
-            parent
+        anchors.fill: parent
 
-        leftPadding:
-            42
+        leftPadding: 42
+        rightPadding: 42
 
-        rightPadding:
-            42
+        placeholderText: "Поиск музыки"
 
-        placeholderText:
-            "Поиск музыки"
+        color: AppTheme.textPrimary
+        placeholderTextColor: AppTheme.textMuted
 
-        color:
-            AppTheme.textPrimary
+        selectionColor: AppTheme.accent
+        selectedTextColor: AppTheme.textPrimary
 
-        placeholderTextColor:
-            AppTheme.textMuted
+        font.pixelSize: 14
 
-        selectionColor:
-            AppTheme.accent
-
-        selectedTextColor:
-            AppTheme.textPrimary
-
-        font.pixelSize:
-            14
-
-        enabled:
-            root.controller !== null &&
-            root.controller !== undefined &&
+        enabled: root.controller !== null && root.controller !== undefined &&
             !root.controller.searching
 
-        background:
-            Rectangle {
-                radius: 11
+        background: Rectangle {
+            radius: 11
 
-                color:
-                    searchField.activeFocus
-                        ? AppTheme.panelActive
-                        : AppTheme.panelSubtle
+            color: searchField.activeFocus ? AppTheme.panelActive : AppTheme.panelSubtle
 
-                border.width:
-                    searchField.activeFocus
-                        ? 1
-                        : 0
+            border.width: searchField.activeFocus ? 1 : 0
+            border.color: AppTheme.accent
 
-                border.color:
-                    AppTheme.accent
-
-                Behavior on color {
-                    ColorAnimation {
-                        duration: 120
-                    }
-                }
+            Behavior on color {
+                ColorAnimation { duration: 120 }
             }
-
-        // ---------------------------------------------------------
-        // Search icon
-        // ---------------------------------------------------------
-
-        Text {
-            anchors.left:
-                parent.left
-
-            anchors.leftMargin:
-                14
-
-            anchors.verticalCenter:
-                parent.verticalCenter
-
-            text:
-                "⌕"
-
-            color:
-                searchField.activeFocus
-                    ? AppTheme.textPrimary
-                    : AppTheme.textMuted
-
-            font.pixelSize:
-                23
-
-            font.weight:
-                Font.Light
         }
 
-        // ---------------------------------------------------------
-        // Loading indicator
-        // ---------------------------------------------------------
-
+        // Иконка поиска
         Text {
-            anchors.right:
-                parent.right
+            anchors.left: parent.left
+            anchors.leftMargin: 14
+            anchors.verticalCenter: parent.verticalCenter
 
-            anchors.rightMargin:
-                14
+            text: "⌕"
+            color: searchField.activeFocus ? AppTheme.textPrimary : AppTheme.textMuted
+            font.pixelSize: 23
+            font.weight: Font.Light
+        }
 
-            anchors.verticalCenter:
-                parent.verticalCenter
+        // Индикатор загрузки
+        Text {
+            anchors.right: parent.right
+            anchors.rightMargin: 14
+            anchors.verticalCenter: parent.verticalCenter
 
-            visible:
-                root.controller !== null &&
-                root.controller !== undefined &&
+            visible: root.controller !== null && root.controller !== undefined &&
                 root.controller.searching
 
-            text:
-                "…"
-
-            color:
-                AppTheme.accent
-
-            font.pixelSize:
-                18
-
-            font.bold:
-                true
+            text: "…"
+            color: AppTheme.accent
+            font.pixelSize: 18
+            font.bold: true
         }
 
-        // ---------------------------------------------------------
-        // Search
-        // ---------------------------------------------------------
-
-        onAccepted: {
-            root.performSearch()
-        }
+        onAccepted: root.performSearch()
     }
 
-    // =============================================================
-    // Search
-    // =============================================================
+    function performSearch() {
+        const query = searchField.text.trim()
 
-    function performSearch()
-    {
-        const query =
-            searchField.text.trim()
-
-        if (
-            query.length === 0
-        ) {
+        if (query.length === 0) {
             return
         }
 
-        if (
-            root.controller === null ||
-            root.controller === undefined
-        ) {
+        if (root.controller === null || root.controller === undefined) {
             return
         }
 
-        root.controller.search(
-            query
-        )
+        root.controller.search(query)
     }
 }
