@@ -419,7 +419,7 @@ Item {
                         anchors.centerIn: parent
 
                         text: root.playing ? "Ⅱ" : "▶"
-                        color: AppTheme.onAccent
+                        color: AppTheme.accentOn
                         font.pixelSize: 21
                     }
 
@@ -699,13 +699,6 @@ Item {
                 model: upNextModel
 
                 delegate: TrackListItem {
-                    sourceIndex: model.sourceIndex
-                    title: model.title
-                    artist: model.artist
-                    artistId: model.artistId
-                    coverUri: model.coverUri
-                    durationMs: model.durationMs
-
                     onActivated: root.selectQueueTrack(sourceIndex)
                 }
             }
@@ -728,13 +721,6 @@ Item {
                 model: root.hasController ? root.controller.similarTracksModel : null
 
                 delegate: TrackListItem {
-                    sourceIndex: model.sourceIndex
-                    title: model.title
-                    artist: model.artist
-                    artistId: model.artistId
-                    coverUri: model.coverUri
-                    durationMs: model.durationMs
-
                     onActivated: {
                         if (root.hasController) {
                             root.controller.selectSimilarTrack(sourceIndex)

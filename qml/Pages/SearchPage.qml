@@ -77,7 +77,7 @@ Item {
 
                                     text: parent.modelData
                                     color: modelData === tabBar.currentTab
-                                        ? AppTheme.onAccent
+                                        ? AppTheme.accentOn
                                         : AppTheme.textSecondary
                                     font.pixelSize: 13
                                     font.bold: modelData === tabBar.currentTab

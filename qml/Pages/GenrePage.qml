@@ -158,7 +158,7 @@ Item {
                             ? "Загрузка..."
                             : "▶  Радио"
 
-                        color: AppTheme.onAccent
+                        color: AppTheme.accentOn
                         font.pixelSize: 13
                         font.bold: true
                     }

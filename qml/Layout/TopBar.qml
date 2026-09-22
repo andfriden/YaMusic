@@ -311,7 +311,7 @@ Item {
                             anchors.centerIn: parent
 
                             text: AppTheme.dark ? "✓" : ""
-                            color: AppTheme.onAccent
+                            color: AppTheme.accentOn
                             font.pixelSize: 12
                         }
 

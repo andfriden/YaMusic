@@ -16,7 +16,9 @@ Item {
     width: linkText.implicitWidth
     height: linkText.implicitHeight
 
-    readonly property bool enabled:
+    // Не называем свойство "enabled" — оно перекрыло бы базовое
+    // Item.enabled и Qt выдал бы warning о переопределении
+    readonly property bool linkEnabled:
         root.entityId.length > 0 &&
         root.controller !== null && root.controller !== undefined
 
@@ -34,11 +36,11 @@ Item {
             anchors.fill: parent
 
             hoverEnabled: true
-            enabled: root.enabled
-            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+            enabled: root.linkEnabled
+            cursorShape: root.linkEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
 
             onClicked: {
-                if (!root.enabled) {
+                if (!root.linkEnabled) {
                     return
                 }
 

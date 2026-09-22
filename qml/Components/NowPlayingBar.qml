@@ -323,7 +323,7 @@ Rectangle {
                         anchors.centerIn: parent
 
                         text: root.loading ? "…" : root.playing ? "Ⅱ" : "▶"
-                        color: AppTheme.onAccent
+                        color: AppTheme.accentOn
                         font.pixelSize: root.playing ? 20 : 19
                         font.weight: Font.DemiBold
                     }
