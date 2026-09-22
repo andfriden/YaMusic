@@ -2,6 +2,11 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
+/*
+ * Секции персональных плейлистов (подборки).
+ * Используется и на главной (homeMode = true — ограничение до 4
+ * карточек и фильтр по типам), и в сетке плейлистов целиком.
+ */
 Item {
     id: root
 
@@ -9,41 +14,30 @@ Item {
     property bool homeMode: false
 
     // =============================================================
-    // Layout
+    // Геометрия
     // =============================================================
 
     readonly property int sectionSpacing: 32
     readonly property int titleSpacing: 14
     readonly property int cardSpacing: 18
-    readonly property int cardHorizontalPadding: 0
     readonly property int artworkTextSpacing: 10
     readonly property int titleHeight: 20
     readonly property int trackCountHeight: 16
 
-    // =============================================================
-    // Size
-    // =============================================================
-
-    implicitHeight:
-        sectionsColumn.implicitHeight
+    implicitHeight: sectionsColumn.implicitHeight
 
     // =============================================================
-    // Sections
+    // Секции
     // =============================================================
 
     Column {
         id: sectionsColumn
 
-        width:
-            parent.width
-
-        spacing:
-            root.sectionSpacing
+        width: parent.width
+        spacing: root.sectionSpacing
 
         Repeater {
-            model:
-                    root.controller !== null &&
-                root.controller !== undefined
+            model: root.controller !== null && root.controller !== undefined
                 ? root.controller.personalPlaylistsModel
                 : null
 
@@ -55,10 +49,7 @@ Item {
                 required property var playlists
                 required property var albums
 
-                // =================================================
-                // Home filtering
-                // =================================================
-
+                // Фильтр для главной: показываем только нужные типы
                 readonly property bool allowedOnHome:
                     !root.homeMode ||
                     sectionItem.type === "personal-playlists" ||
@@ -68,130 +59,70 @@ Item {
                 readonly property bool isAlbumsSection:
                     sectionItem.type === "new-releases"
 
+                // На главной — не больше 4 карточек в ряду
                 readonly property var visiblePlaylists:
                     root.homeMode
                         ? sectionItem.playlists.slice(0, 4)
                         : sectionItem.playlists
 
-                width:
-                    sectionsColumn.width
+                readonly property bool hasContent:
+                    sectionItem.isAlbumsSection
+                        ? sectionItem.albums !== null && sectionItem.albums !== undefined &&
+                          sectionItem.albums.length > 0
+                        : sectionItem.visiblePlaylists !== null &&
+                          sectionItem.visiblePlaylists !== undefined &&
+                          sectionItem.visiblePlaylists.length > 0
 
-                spacing:
-                    root.titleSpacing
+                width: sectionsColumn.width
+                spacing: root.titleSpacing
 
-                visible:
-                    sectionItem.allowedOnHome &&
-                    (
-                        sectionItem.isAlbumsSection
-                            ? (
-                                sectionItem.albums !== null &&
-                                sectionItem.albums !== undefined &&
-                                sectionItem.albums.length > 0
-                            )
-                            : (
-                                sectionItem.visiblePlaylists !== null &&
-                                sectionItem.visiblePlaylists !== undefined &&
-                                sectionItem.visiblePlaylists.length > 0
-                            )
-                    )
+                visible: sectionItem.allowedOnHome && sectionItem.hasContent
 
-                // =================================================
-                // Card geometry
-                // =================================================
+                // Ширина карточки = (ширина - отступы) / кол-во
+                readonly property real cardWidth: {
+                    const count = sectionItem.isAlbumsSection
+                        ? sectionItem.albums.length
+                        : sectionItem.visiblePlaylists.length
 
-                readonly property real availableWidth:
-                    Math.max(
-                        0,
-                        sectionItem.width -
-                        (
-                            Math.max(
-                                0,
-                                sectionItem.isAlbumsSection
-                                    ? sectionItem.albums.length - 1
-                                    : sectionItem.visiblePlaylists.length - 1
-                            ) *
-                            root.cardSpacing
-                        )
-                    )
+                    if (count <= 0) {
+                        return 0
+                    }
 
-                readonly property real cardWidth:
-                        sectionItem.isAlbumsSection
-                            ? sectionItem.albums.length > 0
-                                ? sectionItem.availableWidth /
-                                sectionItem.albums.length
-                                : 0
-                            : sectionItem.visiblePlaylists.length > 0
-                                ? sectionItem.availableWidth /
-                                sectionItem.visiblePlaylists.length
-                                : 0
-
-                readonly property real artworkSize:
-                    Math.max(
-                        1,
-                        sectionItem.cardWidth
-                    )
-
-                readonly property real cardHeight:
-                    sectionItem.artworkSize +
-                    root.artworkTextSpacing +
-                    root.titleHeight +
-                    root.trackCountHeight +
-                    8
-
-                // =================================================
-                // Section title
-                // =================================================
-
-                Label {
-                    width:
-                        parent.width
-
-                    height:
-                        26
-
-                    text:
-                        sectionItem.title
-
-                    color:
-                        AppTheme.textPrimary
-
-                    font.pixelSize:
-                        20
-
-                    font.weight:
-                        Font.DemiBold
-
-                    verticalAlignment:
-                        Text.AlignVCenter
-
-                    elide:
-                        Text.ElideRight
-
-                    maximumLineCount:
-                        1
+                    return (sectionItem.width -
+                        Math.max(0, count - 1) * root.cardSpacing) / count
                 }
 
-                // =================================================
-                // Playlist row
-                // =================================================
+                readonly property real cardHeight:
+                    sectionItem.cardWidth + root.artworkTextSpacing +
+                    root.titleHeight + root.trackCountHeight + 8
 
+                // Заголовок секции
+                Label {
+                    width: parent.width
+                    height: 26
+
+                    text: sectionItem.title
+
+                    color: AppTheme.textPrimary
+                    font.pixelSize: 20
+                    font.weight: Font.DemiBold
+
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                // Ряд карточек
                 Row {
-                    id: playlistsRow
+                    width: parent.width
+                    height: sectionItem.cardHeight
 
-                    width:
-                        parent.width
-
-                    height:
-                        sectionItem.cardHeight
-
-                    spacing:
-                        root.cardSpacing
+                    spacing: root.cardSpacing
 
                     Repeater {
-                        model:
-                            sectionItem.isAlbumsSection
-                                ? sectionItem.albums
-                                : sectionItem.visiblePlaylists
+                        model: sectionItem.isAlbumsSection
+                            ? sectionItem.albums
+                            : sectionItem.visiblePlaylists
 
                         delegate: Item {
                             id: playlistCard
@@ -201,320 +132,159 @@ Item {
                             readonly property bool isAlbumCard:
                                 sectionItem.isAlbumsSection
 
-                            width:
-                                sectionItem.cardWidth
+                            width: sectionItem.cardWidth
+                            height: sectionItem.cardHeight
 
-                            height:
-                                sectionItem.cardHeight
-
-                            // =================================================
-                            // Artwork
-                            // =================================================
-
+                            // Обложка
                             Rectangle {
                                 id: artworkBox
 
-                                width:
-                                    sectionItem.artworkSize
+                                width: sectionItem.cardWidth
+                                height: sectionItem.cardWidth
 
-                                height:
-                                    sectionItem.artworkSize
+                                anchors.left: parent.left
+                                anchors.top: parent.top
 
-                                anchors.left:
-                                    parent.left
+                                radius: 12
+                                color: AppTheme.panelSubtle
+                                clip: true
 
-                                anchors.top:
-                                    parent.top
-
-                                radius:
-                                    12
-
-                                color:
-                                    AppTheme.panelSubtle
-
-                                clip:
-                                    true
-
-                                scale:
-                                    playlistMouseArea.containsMouse
-                                        ? 1.015
-                                        : 1.0
+                                scale: playlistMouseArea.containsMouse ? 1.015 : 1.0
 
                                 Behavior on scale {
-                                    NumberAnimation {
-                                        duration: 140
-                                        easing.type:
-                                            Easing.OutCubic
-                                    }
+                                    NumberAnimation { duration: 140; easing.type: Easing.OutCubic }
                                 }
 
                                 Image {
                                     id: cover
 
-                                    anchors.fill:
-                                        parent
+                                    anchors.fill: parent
 
-                                    source:
-                                            playlistCard.modelData.coverUri &&
-                                        String(
-                                            playlistCard.modelData.coverUri
-                                        ).length > 0
-                                        ? "image://yandex/" +
-                                        String(
-                                            playlistCard.modelData.coverUri
-                                        )
+                                    source: playlistCard.modelData.coverUri &&
+                                        String(playlistCard.modelData.coverUri).length > 0
+                                        ? "image://yandex/" + String(playlistCard.modelData.coverUri)
                                         : ""
 
-                                    sourceSize:
-                                        Qt.size(
-                                            Math.max(
-                                                1,
-                                                artworkBox.width * 2
-                                            ),
-                                            Math.max(
-                                                1,
-                                                artworkBox.height * 2
-                                            )
-                                        )
+                                    sourceSize: Qt.size(
+                                        Math.max(1, artworkBox.width * 2),
+                                        Math.max(1, artworkBox.height * 2))
 
-                                    fillMode:
-                                        Image.PreserveAspectCrop
+                                    fillMode: Image.PreserveAspectCrop
+                                    asynchronous: true
+                                    cache: true
+                                    smooth: true
 
-                                    asynchronous:
-                                        true
-
-                                    cache:
-                                        true
-
-                                    smooth:
-                                        true
-
-                                    visible:
-                                        status === Image.Ready
+                                    visible: status === Image.Ready
                                 }
 
                                 Label {
-                                    anchors.centerIn:
-                                        parent
+                                    anchors.centerIn: parent
 
-                                    text:
-                                        "♪"
+                                    text: "♪"
+                                    color: AppTheme.textSecondary
+                                    font.pixelSize: 32
 
-                                    color:
-                                        AppTheme.textSecondary
-
-                                    font.pixelSize:
-                                        32
-
-                                    visible:
-                                        cover.status !==
-                                        Image.Ready
+                                    visible: cover.status !== Image.Ready
                                 }
 
-                                // Subtle hover overlay
+                                // Лёгкая подсветка при наведении
                                 Rectangle {
-                                    anchors.fill:
-                                        parent
+                                    anchors.fill: parent
+                                    radius: 12
 
-                                    radius:
-                                        12
-
-                                    color:
-                                        playlistMouseArea.containsMouse
-                                            ? AppTheme.panelHover
-                                            : "transparent"
-
-                                    opacity:
-                                        playlistMouseArea.containsMouse
-                                            ? 0.08
-                                            : 0
+                                    color: playlistMouseArea.containsMouse
+                                        ? AppTheme.panelHover
+                                        : "transparent"
+                                    opacity: playlistMouseArea.containsMouse ? 0.08 : 0
 
                                     Behavior on opacity {
-                                        NumberAnimation {
-                                            duration: 120
-                                        }
+                                        NumberAnimation { duration: 120 }
                                     }
                                 }
                             }
 
-                            // =================================================
-                            // Title
-                            // =================================================
-
+                            // Название
                             Label {
                                 id: titleLabel
 
-                                anchors.left:
-                                    parent.left
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.top: artworkBox.bottom
+                                anchors.topMargin: root.artworkTextSpacing
 
-                                anchors.right:
-                                    parent.right
+                                height: root.titleHeight
 
-                                anchors.top:
-                                    artworkBox.bottom
+                                text: String(playlistCard.modelData.title || "")
 
-                                anchors.topMargin:
-                                    root.artworkTextSpacing
+                                color: AppTheme.textPrimary
+                                font.pixelSize: 14
+                                font.weight: Font.Medium
 
-                                height:
-                                    root.titleHeight
-
-                                text:
-                                    String(
-                                        playlistCard.modelData.title ||
-                                        ""
-                                    )
-
-                                color:
-                                    playlistMouseArea.containsMouse
-                                        ? AppTheme.textPrimary
-                                        : AppTheme.textPrimary
-
-                                font.pixelSize:
-                                    14
-
-                                font.weight:
-                                    Font.Medium
-
-                                verticalAlignment:
-                                    Text.AlignVCenter
-
-                                elide:
-                                    Text.ElideRight
-
-                                maximumLineCount:
-                                    1
+                                verticalAlignment: Text.AlignVCenter
+                                elide: Text.ElideRight
+                                maximumLineCount: 1
                             }
 
-                            // =================================================
-                            // Track count
-                            // =================================================
-
+                            // Кол-во треков / год
                             Label {
                                 id: trackCountLabel
 
-                                anchors.left:
-                                    parent.left
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.top: titleLabel.bottom
+                                anchors.topMargin: 2
 
-                                anchors.right:
-                                    parent.right
+                                height: root.trackCountHeight
 
-                                anchors.top:
-                                    titleLabel.bottom
+                                text: playlistCard.isAlbumCard
+                                    ? (Number(playlistCard.modelData.year || 0) > 0
+                                        ? String(playlistCard.modelData.year)
+                                        : "")
+                                    : (Number(playlistCard.modelData.trackCount || 0) > 0
+                                        ? qsTr("%1 треков").arg(
+                                            Number(playlistCard.modelData.trackCount))
+                                        : "")
 
-                                anchors.topMargin:
-                                    2
+                                color: AppTheme.textMuted
+                                font.pixelSize: 11
 
-                                height:
-                                    root.trackCountHeight
+                                verticalAlignment: Text.AlignVCenter
+                                elide: Text.ElideRight
+                                maximumLineCount: 1
 
-                                text:
-                                    playlistCard.isAlbumCard
-                                        ? Number(
-                                            playlistCard.modelData.year || 0
-                                        ) > 0
-                                            ? String(
-                                                playlistCard.modelData.year
-                                            )
-                                            : ""
-                                        : Number(
-                                            playlistCard.modelData.trackCount ||
-                                            0
-                                        ) > 0
-                                            ? qsTr("%1 треков")
-                                                .arg(
-                                                Number(
-                                                    playlistCard.modelData.trackCount
-                                                )
-                                            )
-                                            : ""
-
-                                color:
-                                    AppTheme.textMuted
-
-                                font.pixelSize:
-                                    11
-
-                                verticalAlignment:
-                                    Text.AlignVCenter
-
-                                elide:
-                                    Text.ElideRight
-
-                                maximumLineCount:
-                                    1
-
-                                visible:
-                                    text.length > 0
+                                visible: text.length > 0
                             }
 
-                            // =================================================
-                            // Click
-                            // =================================================
-
+                            // Клик
                             MouseArea {
                                 id: playlistMouseArea
 
-                                anchors.fill:
-                                    parent
-
-                                hoverEnabled:
-                                    true
-
-                                cursorShape:
-                                    Qt.PointingHandCursor
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
 
                                 onClicked: {
-                                    if (
-                                        root.controller === null ||
-                                        root.controller === undefined
-                                    ) {
+                                    if (root.controller === null || root.controller === undefined) {
                                         return
                                     }
 
-                                    if (
-                                        playlistCard.isAlbumCard
-                                    ) {
-                                        const albumId =
-                                            String(
-                                                playlistCard.modelData.albumId ||
-                                                ""
-                                            )
+                                    if (playlistCard.isAlbumCard) {
+                                        const albumId = String(playlistCard.modelData.albumId || "")
 
-                                        if (
-                                            albumId.length === 0
-                                        ) {
+                                        if (albumId.length === 0) {
                                             return
                                         }
 
-                                        root.controller.loadAlbum(
-                                            albumId
-                                        )
+                                        root.controller.loadAlbum(albumId)
                                     } else {
-                                        const uid =
-                                            String(
-                                                playlistCard.modelData.uid ||
-                                                ""
-                                            )
+                                        const uid = String(playlistCard.modelData.uid || "")
+                                        const kind = Number(playlistCard.modelData.kind || 0)
 
-                                        const kind =
-                                            Number(
-                                                playlistCard.modelData.kind ||
-                                                0
-                                            )
-
-                                        if (
-                                            uid.length === 0 ||
-                                            kind <= 0
-                                        ) {
+                                        if (uid.length === 0 || kind <= 0) {
                                             return
                                         }
 
-                                        root.controller
-                                            .selectPersonalPlaylist(
-                                            uid,
-                                            kind
-                                        )
+                                        root.controller.selectPersonalPlaylist(uid, kind)
                                     }
                                 }
                             }

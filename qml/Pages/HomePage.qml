@@ -2,121 +2,53 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-
+/*
+ * Главная страница: поиск, моя волна (компактная), подборки
+ * плейлистов и недавно прослушанное.
+ */
 Item {
     id: root
 
-
-    // =============================================================
-    // Controller
-    // =============================================================
-
     property var controller
 
-
-    // =============================================================
-    // Page size
-    // =============================================================
-
-    width:
-        parent
-            ? parent.width
-            : 0
-
-    implicitWidth:
-        width
-
-    implicitHeight:
-        content.implicitHeight
-
-    height:
-        implicitHeight
-
-
-    // =============================================================
-    // Initial data loading
-    // =============================================================
+    width: parent ? parent.width : 0
+    implicitWidth: width
+    implicitHeight: content.implicitHeight
+    height: implicitHeight
 
     Component.onCompleted: {
-        if (
-            root.controller !== null &&
-            root.controller !== undefined
-        ) {
+        if (root.controller !== null && root.controller !== undefined) {
             root.controller.loadMyWave()
             root.controller.loadRecommendations()
         }
     }
 
-
-    // =============================================================
-    // Content
-    // =============================================================
-
     Column {
         id: content
 
-        width:
-            parent.width
-
-        spacing:
-            24
-
-
-        // =========================================================
-        // Search
-        // =========================================================
+        width: parent.width
+        spacing: 24
 
         SearchBar {
-            width:
-                content.width
-
-            controller:
-                root.controller
+            width: content.width
+            controller: root.controller
         }
-
-
-        // =========================================================
-        // My Wave
-        // =========================================================
 
         MyWaveSection {
-            width:
-                content.width
-
-            compactMode:
-                true
-
-            controller:
-                root.controller
+            width: content.width
+            compactMode: true
+            controller: root.controller
         }
-
-
-        // =========================================================
-        // Personal playlists
-        // =========================================================
 
         PersonalPlaylistsSection {
-            width:
-                content.width
-
-            controller:
-                root.controller
-
-            homeMode:
-                true
+            width: content.width
+            controller: root.controller
+            homeMode: true
         }
 
-
-        // =========================================================
-        // Recently listened
-        // =========================================================
-
         RecentListeningSection {
-            width:
-                content.width
-
-            controller:
-                root.controller
+            width: content.width
+            controller: root.controller
         }
     }
 }
