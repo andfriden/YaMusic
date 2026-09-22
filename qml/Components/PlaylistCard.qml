@@ -22,13 +22,19 @@ Item {
     property string subtitle: ""
 
     property int cardWidth: 180
-    property int cardHeight: 238
+    property int cardHeight: 0
     property int cornerRadius: 10
 
     signal activated()
 
     width: root.cardWidth
-    height: root.cardHeight
+
+    // Высота по умолчанию считается от ширины: квадратная обложка
+    // (ширина - 16) + 8+8 отступы + 18 название + 3 + 16 подпись.
+    // Передаётся cardHeight > 0 — используется он.
+    height: root.cardHeight > 0
+        ? root.cardHeight
+        : Math.round(root.cardWidth + 45)
 
     Rectangle {
         anchors.fill: parent
@@ -147,7 +153,11 @@ Item {
 
             height: 16
 
-            text: root.subtitle.length > 0 ? root.subtitle : ""
+            text: root.subtitle.length > 0
+                ? root.subtitle
+                : root.trackCount > 0
+                    ? qsTr("%1 треков").arg(root.trackCount)
+                    : ""
 
             color: AppTheme.textSecondary
             font.pixelSize: 11

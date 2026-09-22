@@ -43,9 +43,11 @@ Item {
 
     readonly property int margin: 20
     readonly property int spacing: 12
-    readonly property int columns: 5
+    readonly property int columns: 6
 
-    readonly property int cardWidth:
+    // Ширина карточки считается от реальной ширины сетки, чтобы
+    // карточки заполняли ряд целиком
+    readonly property real cardWidth:
         Math.floor((contentColumn.width - spacing * (columns - 1)) / columns)
 
     width: parent ? parent.width : 0
@@ -292,6 +294,7 @@ Item {
                     required property var modelData
 
                     controller: root.controller
+                    cardWidth: root.cardWidth
                     coverUri: String(modelData.coverUri || "")
                     title: String(modelData.title || "")
                     trackCount: Number(modelData.trackCount || 0)
