@@ -359,7 +359,8 @@ set(
         "${YAMUSIC_QML_ROOT}/Components/ExpandedNowPlaying.qml"
         "${YAMUSIC_QML_ROOT}/Components/LyricsView.qml"
         "${YAMUSIC_QML_ROOT}/Components/ChartTrackRow.qml"
-        "${YAMUSIC_QML_ROOT}/Components/PersonalChartSection.qml"
+        "${YAMUSIC_QML_ROOT}/Components/TrackRow.qml"
+        "${YAMUSIC_QML_ROOT}/Components/PlaylistCard.qml"
         "${YAMUSIC_QML_ROOT}/Components/PlaylistPicker.qml"
 
         # Pages
@@ -386,9 +387,6 @@ set(
         # My Wave
         "${YAMUSIC_QML_ROOT}/MyWave/MyWaveSection.qml"
 
-        # Search
-        "${YAMUSIC_QML_ROOT}/Search/SearchResultsSection.qml"
-
         # Context
         "${YAMUSIC_QML_ROOT}/Context/ContextPanelMyWave.qml"
         "${YAMUSIC_QML_ROOT}/Context/ContextPanelArtist.qml"
@@ -399,7 +397,6 @@ set(
         # Layout
         "${YAMUSIC_QML_ROOT}/Layout/ContextPanel.qml"
         "${YAMUSIC_QML_ROOT}/Layout/MainLayout.qml"
-        "${YAMUSIC_QML_ROOT}/Layout/Sidebar.qml"
         "${YAMUSIC_QML_ROOT}/Layout/TopBar.qml"
         "${YAMUSIC_QML_ROOT}/Layout/NavigationController.qml"
 
