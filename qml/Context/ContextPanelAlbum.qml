@@ -2,31 +2,31 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
+/*
+ * Контекстная панель альбома: другие альбомы исполнителя.
+ */
 Item {
     id: root
 
     property var controller
 
     readonly property var albumController:
-            root.controller !== null &&
-        root.controller !== undefined &&
-        root.controller.albumController !== undefined &&
-        root.controller.albumController !== null
-        ? root.controller.albumController
-        : null
+        root.controller !== null && root.controller !== undefined &&
+        root.controller.albumController !== undefined && root.controller.albumController !== null
+            ? root.controller.albumController
+            : null
 
     readonly property var otherAlbumsModel:
-            root.albumController !== null &&
+        root.albumController !== null &&
         root.albumController.otherAlbumsModel !== undefined &&
         root.albumController.otherAlbumsModel !== null
-        ? root.albumController.otherAlbumsModel
-        : null
+            ? root.albumController.otherAlbumsModel
+            : null
 
     Rectangle {
         anchors.fill: parent
 
         color: AppTheme.backgroundSecondary
-
         border.width: 1
         border.color: AppTheme.borderSubtle
 
@@ -36,46 +36,30 @@ Item {
 
             spacing: 12
 
-            // =====================================================
-            // Header
-            // =====================================================
-
+            // Заголовок
             Label {
                 width: parent.width
 
                 text: qsTr("Другие альбомы")
-
                 color: AppTheme.textPrimary
-
                 font.pixelSize: 17
                 font.bold: true
-
                 elide: Text.ElideRight
             }
 
             Label {
                 width: parent.width
 
-                text: qsTr(
-                    "Другие релизы этого исполнителя"
-                )
-
+                text: qsTr("Другие релизы этого исполнителя")
                 color: AppTheme.textMuted
-
                 font.pixelSize: 11
-
                 wrapMode: Text.WordWrap
             }
 
-            // =====================================================
-            // Albums
-            // =====================================================
-
+            // Список альбомов
             Item {
                 width: parent.width
-
-                height:
-                    parent.height - 70
+                height: parent.height - 70
 
                 ListView {
                     id: albumsView
@@ -83,23 +67,17 @@ Item {
                     anchors.fill: parent
 
                     clip: true
-
                     spacing: 8
 
-                    model:
-                        root.otherAlbumsModel
+                    model: root.otherAlbumsModel
 
-                    boundsBehavior:
-                        Flickable.StopAtBounds
+                    boundsBehavior: Flickable.StopAtBounds
 
-                    ScrollBar.vertical:
-                        ScrollBar {
-                            policy:
-                                    albumsView.contentHeight >
-                                albumsView.height
-                                ? ScrollBar.AsNeeded
-                                : ScrollBar.AlwaysOff
-                        }
+                    ScrollBar.vertical: ScrollBar {
+                        policy: albumsView.contentHeight > albumsView.height
+                            ? ScrollBar.AsNeeded
+                            : ScrollBar.AlwaysOff
+                    }
 
                     delegate: Rectangle {
                         id: albumRow
@@ -110,47 +88,32 @@ Item {
                         required property string coverUri
                         required property int year
 
-                        width:
-                            albumsView.width
-
+                        width: albumsView.width
                         height: 92
 
                         radius: 9
-
-                        color:
-                            albumMouse.containsMouse
-                                ? AppTheme.panelActive
-                                : AppTheme.panelSecondary
+                        color: albumMouse.containsMouse
+                            ? AppTheme.panelActive
+                            : AppTheme.panelSecondary
 
                         border.width: 1
+                        border.color: albumMouse.containsMouse
+                            ? AppTheme.border
+                            : AppTheme.borderSubtle
 
-                        border.color:
-                            albumMouse.containsMouse
-                                ? AppTheme.border
-                                : AppTheme.borderSubtle
-
-                        // =================================================
-                        // Artwork
-                        // =================================================
-
+                        // Обложка
                         Rectangle {
                             id: albumArtwork
 
                             width: 76
                             height: 76
 
-                            anchors.left:
-                                parent.left
-
+                            anchors.left: parent.left
                             anchors.leftMargin: 7
-
-                            anchors.verticalCenter:
-                                parent.verticalCenter
+                            anchors.verticalCenter: parent.verticalCenter
 
                             radius: 6
-
                             color: AppTheme.surface
-
                             clip: true
 
                             Image {
@@ -158,156 +121,101 @@ Item {
 
                                 anchors.fill: parent
 
-                                source:
-                                        albumRow.coverUri.length > 0
-                                    ? "image://yandex/" +
-                                    albumRow.coverUri
+                                source: albumRow.coverUri.length > 0
+                                    ? "image://yandex/" + albumRow.coverUri
                                     : ""
 
-                                sourceSize:
-                                    Qt.size(76, 76)
+                                sourceSize: Qt.size(76, 76)
 
-                                fillMode:
-                                    Image.PreserveAspectCrop
-
+                                fillMode: Image.PreserveAspectCrop
                                 asynchronous: true
                                 cache: true
 
-                                visible:
-                                    status === Image.Ready
+                                visible: status === Image.Ready
                             }
 
                             Label {
                                 anchors.centerIn: parent
 
                                 text: "♪"
-
                                 color: AppTheme.textMuted
-
                                 font.pixelSize: 22
 
-                                visible:
-                                    albumImage.status !==
-                                    Image.Ready
+                                visible: albumImage.status !== Image.Ready
                             }
                         }
 
-                        // =================================================
-                        // Album information
-                        // =================================================
-
+                        // Информация
                         Column {
-                            anchors.left:
-                                albumArtwork.right
-
+                            anchors.left: albumArtwork.right
                             anchors.leftMargin: 11
-
-                            anchors.right:
-                                parent.right
-
+                            anchors.right: parent.right
                             anchors.rightMargin: 8
-
-                            anchors.verticalCenter:
-                                parent.verticalCenter
+                            anchors.verticalCenter: parent.verticalCenter
 
                             spacing: 3
 
                             Label {
                                 width: parent.width
 
-                                text:
-                                        albumRow.title.length > 0
+                                text: albumRow.title.length > 0
                                     ? albumRow.title
                                     : qsTr("Без названия")
 
                                 color: AppTheme.textPrimary
-
                                 font.pixelSize: 13
                                 font.bold: true
-
-                                elide:
-                                    Text.ElideRight
+                                elide: Text.ElideRight
                             }
 
                             Label {
                                 width: parent.width
 
-                                text:
-                                        albumRow.year > 0
-                                    ? String(albumRow.year)
-                                    : ""
-
+                                text: albumRow.year > 0 ? String(albumRow.year) : ""
                                 color: AppTheme.textMuted
-
                                 font.pixelSize: 11
 
-                                visible:
-                                    text.length > 0
+                                visible: text.length > 0
                             }
                         }
-
-                        // =================================================
-                        // Click
-                        // =================================================
 
                         MouseArea {
                             id: albumMouse
 
                             anchors.fill: parent
-
                             hoverEnabled: true
-
-                            cursorShape:
-                                Qt.PointingHandCursor
+                            cursorShape: Qt.PointingHandCursor
 
                             onClicked: {
-
-                                if (
-                                    root.controller === null ||
-                                    root.controller === undefined
-                                ) {
+                                if (root.controller === null || root.controller === undefined) {
                                     return
                                 }
 
-                                if (
-                                    albumRow.albumId.length === 0
-                                ) {
+                                if (albumRow.albumId.length === 0) {
                                     return
                                 }
 
-                                root.controller.loadAlbum(
-                                    albumRow.albumId
-                                )
+                                root.controller.loadAlbum(albumRow.albumId)
                             }
                         }
                     }
                 }
 
-                // =====================================================
-                // Empty / loading state
-                // =====================================================
-
+                // Пустое состояние / загрузка
                 Label {
                     anchors.centerIn: parent
 
-                    width:
-                        parent.width - 20
+                    width: parent.width - 20
 
-                    text:
-                            root.albumController !== null &&
-                        root.albumController.loading
+                    text: root.albumController !== null && root.albumController.loading
                         ? qsTr("Загрузка...")
                         : qsTr("Нет других альбомов")
 
                     color: AppTheme.textDisabled
-
                     font.pixelSize: 12
 
-                    horizontalAlignment:
-                        Text.AlignHCenter
-
-                    visible:
-                        albumsView.count === 0
+                    horizontalAlignment: Text.AlignHCenter
+                    visible: albumsView.count === 0
                 }
             }
         }

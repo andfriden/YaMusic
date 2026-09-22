@@ -2,25 +2,26 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
+/*
+ * Контекстная панель исполнителя: список похожих исполнителей.
+ */
 Item {
     id: root
 
     property var controller
 
     readonly property var artistController:
-            root.controller !== null &&
-        root.controller !== undefined &&
-        root.controller.artistController !== undefined &&
-        root.controller.artistController !== null
-        ? root.controller.artistController
-        : null
+        root.controller !== null && root.controller !== undefined &&
+        root.controller.artistController !== undefined && root.controller.artistController !== null
+            ? root.controller.artistController
+            : null
 
     readonly property var similarArtistsModel:
-            root.artistController !== null &&
+        root.artistController !== null &&
         root.artistController.similarArtistsModel !== undefined &&
         root.artistController.similarArtistsModel !== null
-        ? root.artistController.similarArtistsModel
-        : null
+            ? root.artistController.similarArtistsModel
+            : null
 
     Rectangle {
         id: panel
@@ -28,10 +29,8 @@ Item {
         anchors.fill: parent
 
         color: AppTheme.backgroundSecondary
-
         border.width: 1
         border.color: AppTheme.borderSubtle
-
         radius: 12
 
         Column {
@@ -44,12 +43,9 @@ Item {
                 width: parent.width
 
                 text: qsTr("Похожие исполнители")
-
                 color: AppTheme.textPrimary
-
                 font.pixelSize: 17
                 font.bold: true
-
                 elide: Text.ElideRight
             }
 
@@ -57,11 +53,8 @@ Item {
                 width: parent.width
 
                 text: qsTr("Исполнители с похожим звучанием")
-
                 color: AppTheme.textMuted
-
                 font.pixelSize: 11
-
                 wrapMode: Text.WordWrap
             }
 
@@ -75,7 +68,6 @@ Item {
                     anchors.fill: parent
 
                     clip: true
-
                     spacing: 8
 
                     model: root.similarArtistsModel
@@ -83,14 +75,12 @@ Item {
                     boundsBehavior: Flickable.StopAtBounds
 
                     ScrollBar.vertical: ScrollBar {
-                        policy:
-                                artistsView.contentHeight > artistsView.height
+                        policy: artistsView.contentHeight > artistsView.height
                             ? ScrollBar.AsNeeded
                             : ScrollBar.AlwaysOff
                     }
 
                     delegate: Rectangle {
-
                         required property int index
                         required property string artistId
                         required property string name
@@ -100,19 +90,16 @@ Item {
                         height: 58
 
                         radius: 8
-
-                        color:
-                            mouseArea.containsMouse
-                                ? AppTheme.panelActive
-                                : AppTheme.panelSecondary
+                        color: mouseArea.containsMouse
+                            ? AppTheme.panelActive
+                            : AppTheme.panelSecondary
 
                         border.width: 1
+                        border.color: mouseArea.containsMouse
+                            ? AppTheme.border
+                            : AppTheme.borderSubtle
 
-                        border.color:
-                            mouseArea.containsMouse
-                                ? AppTheme.border
-                                : AppTheme.borderSubtle
-
+                        // Круглая обложка
                         Rectangle {
                             id: artwork
 
@@ -124,9 +111,7 @@ Item {
                             anchors.verticalCenter: parent.verticalCenter
 
                             radius: width / 2
-
                             color: AppTheme.artworkPlaceholder
-
                             clip: true
 
                             Image {
@@ -134,33 +119,24 @@ Item {
 
                                 anchors.fill: parent
 
-                                source:
-                                        coverUri.length > 0
-                                    ? "image://yandex/" + coverUri
-                                    : ""
-
+                                source: coverUri.length > 0 ? "image://yandex/" + coverUri : ""
                                 sourceSize: Qt.size(44, 44)
 
                                 fillMode: Image.PreserveAspectCrop
-
                                 asynchronous: true
                                 cache: true
 
-                                visible:
-                                    status === Image.Ready
+                                visible: status === Image.Ready
                             }
 
                             Label {
                                 anchors.centerIn: parent
 
                                 text: "♪"
-
                                 color: AppTheme.textMuted
-
                                 font.pixelSize: 18
 
-                                visible:
-                                    image.status !== Image.Ready
+                                visible: image.status !== Image.Ready
                             }
                         }
 
@@ -177,12 +153,9 @@ Item {
                                 width: parent.width
 
                                 text: name
-
                                 color: AppTheme.textPrimary
-
                                 font.pixelSize: 13
                                 font.bold: true
-
                                 elide: Text.ElideRight
                             }
 
@@ -190,9 +163,7 @@ Item {
                                 width: parent.width
 
                                 text: qsTr("Исполнитель")
-
                                 color: AppTheme.textMuted
-
                                 font.pixelSize: 11
                             }
                         }
@@ -201,46 +172,35 @@ Item {
                             id: mouseArea
 
                             anchors.fill: parent
-
                             hoverEnabled: true
-
                             cursorShape: Qt.PointingHandCursor
 
                             onClicked: {
-                                if (root.artistController === null) {
-                                    return
+                                if (root.artistController !== null) {
+                                    root.artistController.selectSimilarArtist(index)
                                 }
-
-                                root.artistController.selectSimilarArtist(
-                                    index
-                                )
                             }
                         }
                     }
                 }
 
+                // Пустое состояние / загрузка
                 Label {
                     anchors.centerIn: parent
 
                     width: parent.width - 20
 
-                    text:
-                            root.artistController !== null &&
-                        root.artistController.loading
+                    text: root.artistController !== null && root.artistController.loading
                         ? qsTr("Загрузка...")
                         : qsTr("Нет похожих исполнителей")
 
                     color: AppTheme.textDisabled
-
                     font.pixelSize: 12
 
                     horizontalAlignment: Text.AlignHCenter
-
-                    visible:
-                        artistsView.count === 0
+                    visible: artistsView.count === 0
                 }
             }
         }
     }
-
 }

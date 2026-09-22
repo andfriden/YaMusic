@@ -2,6 +2,9 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
+/*
+ * Контекстная панель медиатеки: заглушка-описание.
+ */
 Item {
     id: root
 
@@ -11,14 +14,8 @@ Item {
         anchors.fill: parent
 
         color: AppTheme.backgroundSecondary
-
         border.width: 1
-        border.color: Qt.rgba(
-            AppTheme.border.r,
-            AppTheme.border.g,
-            AppTheme.border.b,
-            0.35
-        )
+        border.color: AppTheme.borderWeak
 
         Column {
             anchors.fill: parent
@@ -29,13 +26,8 @@ Item {
             Label {
                 width: parent.width
 
-                text:
-                    qsTr(
-                        "Вам может понравиться"
-                    )
-
+                text: qsTr("Вам может понравиться")
                 color: AppTheme.textPrimary
-
                 font.pixelSize: 17
                 font.bold: true
             }
@@ -43,17 +35,10 @@ Item {
             Label {
                 width: parent.width
 
-                text:
-                    qsTr(
-                        "Музыка, которая может вам понравиться"
-                    )
-
+                text: qsTr("Музыка, которая может вам понравиться")
                 color: AppTheme.textMuted
-
                 font.pixelSize: 11
-
-                wrapMode:
-                    Text.WordWrap
+                wrapMode: Text.WordWrap
             }
         }
     }
