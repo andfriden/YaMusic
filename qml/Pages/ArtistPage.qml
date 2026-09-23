@@ -254,19 +254,54 @@ Item {
                     }
 
                     Button {
-                        width: 140
-                        height: 38
+                        id: listenButton
 
-                        text: qsTr("▶  Слушать")
+                        width: 164
+                        height: 40
+
+                        text: qsTr("▶   Слушать")
 
                         enabled: !root.loading &&
                             root.artistController !== null &&
                             root.artistModel !== null &&
                             artistTracksView.count > 0
 
+                        hoverEnabled: true
+
+                        HoverHandler {
+                            cursorShape: Qt.PointingHandCursor
+                        }
+
                         onClicked: {
                             if (root.artistController !== null) {
                                 root.artistController.playArtist()
+                            }
+                        }
+
+                        contentItem: Text {
+                            text: listenButton.text
+                            color: listenButton.enabled
+                                ? AppTheme.accentOn
+                                : AppTheme.textDisabled
+                            font.pixelSize: 13
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        background: Rectangle {
+                            radius: listenButton.height / 2
+                            color: !listenButton.enabled
+                                ? AppTheme.panelSecondary
+                                : listenButton.hovered
+                                    ? AppTheme.accentHover
+                                    : AppTheme.accent
+
+                            border.width: listenButton.enabled ? 0 : 1
+                            border.color: AppTheme.borderSubtle
+
+                            Behavior on color {
+                                ColorAnimation { duration: 140; easing.type: Easing.OutCubic }
                             }
                         }
                     }
