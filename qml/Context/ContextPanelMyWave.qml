@@ -2,10 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Контекстная панель «Моя волна»: случайные треки из недавней
- * истории прослушивания (источник — recentListeningModel).
- */
 Item {
     id: root
 
@@ -32,7 +28,6 @@ Item {
 
             spacing: 12
 
-            // Заголовок
             Label {
                 width: parent.width
 
@@ -42,7 +37,6 @@ Item {
                 font.bold: true
             }
 
-            // Пустое состояние
             Column {
                 id: emptyState
 
@@ -81,7 +75,6 @@ Item {
                 }
             }
 
-            // Список случайных треков
             ListView {
                 id: tracksView
 
@@ -124,7 +117,6 @@ Item {
                         ? AppTheme.border
                         : AppTheme.borderSubtle
 
-                    // Обложка
                     Rectangle {
                         id: artwork
 
@@ -169,7 +161,6 @@ Item {
                         }
                     }
 
-                    // Информация
                     Column {
                         anchors.left: artwork.right
                         anchors.leftMargin: 10
@@ -212,7 +203,6 @@ Item {
                         }
                     }
 
-                    // Клик — воспроизведение из истории
                     MouseArea {
                         id: trackMouse
 
@@ -231,10 +221,6 @@ Item {
         }
     }
 
-    // =============================================================
-    // Заполнение списка случайными треками
-    // =============================================================
-
     function rebuildRandomTracks() {
         randomTracksModel.clear()
 
@@ -248,8 +234,6 @@ Item {
             return
         }
 
-        // Модель не имеет QML-свойства count — просим случайную
-        // выборку напрямую у C++
         const items = model.randomTrackData(10)
 
         if (items === null || items === undefined) {
@@ -277,7 +261,6 @@ Item {
         }
     }
 
-    // Перестраиваем при любом изменении модели истории
     Connections {
         target: root.hasController ? root.controller.recentListeningModel : null
 

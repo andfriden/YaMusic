@@ -2,9 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Поле поиска с иконкой и индикатором загрузки.
- */
 Item {
     id: root
 
@@ -46,7 +43,6 @@ Item {
             }
         }
 
-        // Иконка поиска
         Text {
             anchors.left: parent.left
             anchors.leftMargin: 14
@@ -58,7 +54,6 @@ Item {
             font.weight: Font.Light
         }
 
-        // Индикатор загрузки
         Text {
             anchors.right: parent.right
             anchors.rightMargin: 14

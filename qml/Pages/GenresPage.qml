@@ -2,19 +2,10 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Страница жанров: сетка жанровых карточек с цветной обложкой.
- * Клик по жанру испускает genreRequested — навигацией занимается
- * MainLayout (страница не знает про NavigationController).
- */
 Item {
     id: root
 
     property var controller
-
-    // -------------------------------------------------------------
-    // Состояние
-    // -------------------------------------------------------------
 
     readonly property var genreController:
         root.controller && root.controller.genreController
@@ -23,10 +14,6 @@ Item {
 
     readonly property var genreModel:
         root.genreController ? root.genreController.model : null
-
-    // -------------------------------------------------------------
-    // Геометрия сетки
-    // -------------------------------------------------------------
 
     readonly property int margin: 24
     readonly property int spacing: 16
@@ -44,6 +31,7 @@ Item {
     implicitHeight: contentColumn.implicitHeight + root.margin * 2
     height: implicitHeight
 
+    // Навигацию выполняет MainLayout, страница её не знает
     signal genreRequested(string genreId, string title, string image, string color, var subGenres)
 
     Rectangle {
@@ -60,7 +48,6 @@ Item {
         width: Math.max(0, root.width - root.margin * 2)
         spacing: 20
 
-        // Заголовок
         Label {
             width: parent.width
 
@@ -71,7 +58,6 @@ Item {
             elide: Text.ElideRight
         }
 
-        // Пустое состояние / загрузка
         Label {
             width: parent.width
 
@@ -88,7 +74,6 @@ Item {
             horizontalAlignment: Text.AlignHCenter
         }
 
-        // Сетка жанров
         Grid {
             id: genreGrid
 
@@ -116,7 +101,6 @@ Item {
                         ? model.color
                         : AppTheme.panelSecondary
 
-                    // Обложка
                     Image {
                         anchors.fill: parent
 
@@ -129,13 +113,12 @@ Item {
                         cache: true
                     }
 
-                    // Затемнение для читаемости текста
+                    // Затемнение, чтобы белый текст читался
                     Rectangle {
                         anchors.fill: parent
                         color: "#40000000"
                     }
 
-                    // Градиент снизу
                     Rectangle {
                         anchors.left: parent.left
                         anchors.right: parent.right
@@ -149,7 +132,6 @@ Item {
                         }
                     }
 
-                    // Название жанра
                     Label {
                         anchors.left: parent.left
                         anchors.right: parent.right

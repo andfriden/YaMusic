@@ -2,9 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Страница «Недавно слушали» — полная версия секции RecentListeningSection.
- */
 Item {
     id: root
 

@@ -5,24 +5,11 @@ import QtQuick
 QtObject {
     id: theme
 
-    /*
-     * ============================================================
-     * Theme mode
-     * ============================================================
-     *
-     * false = Latte
-     * true  = Macchiato
-     */
-
+    // false = Latte, true = Macchiato
     property bool dark: false
 
 
-    /*
-     * ============================================================
-     * Catppuccin Latte
-     * ============================================================
-     */
-
+    // Catppuccin Latte
     readonly property color latteRosewater: "#dc8a78"
     readonly property color latteFlamingo:  "#dd7878"
     readonly property color lattePink:      "#ea76cb"
@@ -54,12 +41,7 @@ QtObject {
     readonly property color latteCrust:     "#dce0e8"
 
 
-    /*
-     * ============================================================
-     * Catppuccin Macchiato
-     * ============================================================
-     */
-
+    // Catppuccin Macchiato
     readonly property color macchiatoRosewater: "#f4dbd6"
     readonly property color macchiatoFlamingo:  "#f0c6c6"
     readonly property color macchiatoPink:      "#f5bde6"
@@ -91,12 +73,6 @@ QtObject {
     readonly property color macchiatoCrust:     "#181926"
 
 
-    /*
-     * ============================================================
-     * Background
-     * ============================================================
-     */
-
     readonly property color backgroundPrimary:
         dark
             ? macchiatoBase
@@ -116,20 +92,7 @@ QtObject {
             : latteCrust
 
 
-    /*
-     * ============================================================
-     * Panels
-     * ============================================================
-     *
-     * Все цвета строятся только из базовой Catppuccin-палитры.
-     *
-     * Полярность важна: на обеих темах контейнер (panel) должен
-     * быть ТЕМНЕЕ фона страницы, а строки (panelSecondary) —
-     * СВЕТЛЕЕ контейнера. На светлой теме так и было (mantle —
-     * base), на тёмной panel = surface0 оказывался СВЕТЛЕЕ фона и
-     * строки с тем же цветом сливались с контейнером.
-     */
-
+    // Контейнер должен быть темнее фона, строки — светлее контейнера (на тёмной теме surface0 сливается)
     readonly property color panel:
         dark
             ? macchiatoMantle
@@ -161,12 +124,6 @@ QtObject {
             : latteSurface0
 
 
-    /*
-     * ============================================================
-     * Borders
-     * ============================================================
-     */
-
     readonly property color border:
         dark
             ? macchiatoSurface2
@@ -182,8 +139,7 @@ QtObject {
             ? macchiatoSurface2
             : latteSurface1
 
-    // Полупрозрачная граница для панелей, которые не должны
-    // выглядеть «жирно» (контекстные панели)
+    // Полупрозрачная, чтобы панели (контекстные) не выглядели «жирно»
     readonly property color borderWeak:
         Qt.rgba(
             border.r,
@@ -192,12 +148,6 @@ QtObject {
             0.35
         )
 
-
-    /*
-     * ============================================================
-     * Text
-     * ============================================================
-     */
 
     readonly property color textPrimary:
         dark
@@ -225,12 +175,6 @@ QtObject {
             : latteOverlay0
 
 
-    /*
-     * ============================================================
-     * Placeholder
-     * ============================================================
-     */
-
     readonly property color placeholder:
         dark
             ? macchiatoSurface1
@@ -239,12 +183,6 @@ QtObject {
     readonly property color artworkPlaceholder:
         placeholder
 
-
-    /*
-     * ============================================================
-     * Accent
-     * ============================================================
-     */
 
     readonly property color accent:
         dark
@@ -261,12 +199,6 @@ QtObject {
             ? macchiatoSurface0
             : latteSurface0
 
-
-    /*
-     * ============================================================
-     * Status
-     * ============================================================
-     */
 
     readonly property color success:
         dark
@@ -289,46 +221,21 @@ QtObject {
             : latteBlue
 
 
-    /*
-     * ============================================================
-     * Divider
-     * ============================================================
-     */
-
     readonly property color divider:
         dark
             ? macchiatoSurface1
             : latteSurface0
 
 
-    /*
-     * ============================================================
-     * Accent with alpha — для фонов/обводок на акцентном цвете
-     * ============================================================
-     */
-
-    // Цвет текста/иконок поверх accent. Имя не может начинаться с
-    // "on"+заглавная буква — QML резервирует такие имена под
-    // обработчики сигналов.
+    // Имя onAccent зарезервировано QML под обработчики сигналов
     readonly property color accentOn:
         "white"
 
 
-    /*
-     * ============================================================
-     * Helpers
-     * ============================================================
-     *
-     * Общие утилиты приложения вынесены сюда, чтобы не
-     * дублировать их в каждом компоненте.
-     */
-
-    // "m:ss" из миллисекунд (0:00 для пустого/нулевого значения)
     function formatTime(ms) {
         return theme.formatDuration(ms)
     }
 
-    // "m:ss" из миллисекунд
     function formatDuration(ms) {
         var value = Number(ms)
 

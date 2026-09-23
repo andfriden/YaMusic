@@ -2,13 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Экран текста песни (оверлей).
- *
- * Если у трека есть синхронизированный текст (строки с таймкодами) —
- * показывается ListView с подсветкой текущей строки и автопрокруткой;
- * иначе — простой текст (Flickable).
- */
 Item {
     id: root
 
@@ -41,10 +34,6 @@ Item {
         anchors.fill: parent
         color: AppTheme.backgroundSecondary
 
-        // ---------------------------------------------------------
-        // Шапка
-        // ---------------------------------------------------------
-
         Item {
             anchors.top: parent.top
             anchors.left: parent.left
@@ -71,7 +60,6 @@ Item {
                 elide: Text.ElideRight
             }
 
-            // Кнопка закрытия
             Item {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
@@ -109,10 +97,6 @@ Item {
                 }
             }
         }
-
-        // ---------------------------------------------------------
-        // Синхронизированный текст
-        // ---------------------------------------------------------
 
         ListView {
             id: linesView
@@ -174,10 +158,6 @@ Item {
                 }
             }
         }
-
-        // ---------------------------------------------------------
-        // Простой текст
-        // ---------------------------------------------------------
 
         Flickable {
             id: plainFlickable

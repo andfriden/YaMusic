@@ -2,22 +2,11 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Секция "Моя волна".
- *
- * Используется и на главной (compactMode = true), и на отдельной
- * странице (compactMode = false). В компактном режиме меньше
- * отступы, высота строк и число видимых треков.
- */
 Item {
     id: root
 
     property var controller: null
     property bool compactMode: false
-
-    // =============================================================
-    // Состояние
-    // =============================================================
 
     readonly property bool hasController:
         root.controller !== null && root.controller !== undefined
@@ -32,10 +21,6 @@ Item {
 
     readonly property bool hasTracks: root.trackCount > 0
 
-    // =============================================================
-    // Геометрия
-    // =============================================================
-
     readonly property int horizontalMargin: root.compactMode ? 12 : 20
     readonly property int verticalMargin: root.compactMode ? 12 : 20
     readonly property int contentSpacing: root.compactMode ? 10 : 14
@@ -43,8 +28,6 @@ Item {
     readonly property int trackHeight: root.compactMode ? 58 : 68
     readonly property int trackSpacing: 6
 
-    // Показываем не больше maxVisibleTracks треков; остальное —
-    // прокрутка
     readonly property int maxVisibleTracks: root.compactMode ? 5 : 10
 
     readonly property int visibleTrackCount:
@@ -64,10 +47,6 @@ Item {
     implicitHeight:
         root.hasTracks ? root.verticalMargin * 2 + root.contentHeight : 0
 
-    // =============================================================
-    // Фон
-    // =============================================================
-
     Rectangle {
         anchors.fill: parent
 
@@ -78,10 +57,6 @@ Item {
         border.width: 1
         border.color: AppTheme.borderSubtle
     }
-
-    // =============================================================
-    // Контент
-    // =============================================================
 
     Column {
         id: contentColumn

@@ -2,10 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Попап выбора плейлиста для добавления трека.
- * Открывается с установленными trackId/albumId.
- */
 Popup {
     id: root
 

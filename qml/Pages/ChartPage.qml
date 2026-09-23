@@ -2,10 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Страница чартов: два списка (Россия, Мир) по 5 позиций,
- * используют общий компонент ChartTrackRow.
- */
 Item {
     id: root
 
@@ -43,7 +39,6 @@ Item {
         width: parent.width
         spacing: 28
 
-        // Заголовок
         Text {
             width: parent.width
 
@@ -54,12 +49,10 @@ Item {
             font.bold: true
         }
 
-        // Россия + Мир
         Row {
             width: parent.width
             spacing: 20
 
-            // Россия
             Column {
                 width: (parent.width - parent.spacing) / 2
                 spacing: 10
@@ -96,7 +89,6 @@ Item {
                 }
             }
 
-            // Мир
             Column {
                 width: (parent.width - parent.spacing) / 2
                 spacing: 10

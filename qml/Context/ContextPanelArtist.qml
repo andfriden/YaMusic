@@ -2,9 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Контекстная панель исполнителя: список похожих исполнителей.
- */
 Item {
     id: root
 
@@ -99,7 +96,6 @@ Item {
                             ? AppTheme.border
                             : AppTheme.borderSubtle
 
-                        // Круглая обложка
                         Rectangle {
                             id: artwork
 
@@ -184,7 +180,6 @@ Item {
                     }
                 }
 
-                // Пустое состояние / загрузка
                 Label {
                     anchors.centerIn: parent
 

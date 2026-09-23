@@ -2,20 +2,11 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Секции персональных плейлистов (подборки).
- * Используется и на главной (homeMode = true — ограничение до 4
- * карточек и фильтр по типам), и в сетке плейлистов целиком.
- */
 Item {
     id: root
 
     property var controller
     property bool homeMode: false
-
-    // =============================================================
-    // Геометрия
-    // =============================================================
 
     readonly property int sectionSpacing: 32
     readonly property int titleSpacing: 14
@@ -25,10 +16,6 @@ Item {
     readonly property int trackCountHeight: 16
 
     implicitHeight: sectionsColumn.implicitHeight
-
-    // =============================================================
-    // Секции
-    // =============================================================
 
     Column {
         id: sectionsColumn
@@ -49,7 +36,6 @@ Item {
                 required property var playlists
                 required property var albums
 
-                // Фильтр для главной: показываем только нужные типы
                 readonly property bool allowedOnHome:
                     !root.homeMode ||
                     sectionItem.type === "personal-playlists" ||
@@ -78,7 +64,6 @@ Item {
 
                 visible: sectionItem.allowedOnHome && sectionItem.hasContent
 
-                // Ширина карточки = (ширина - отступы) / кол-во
                 readonly property real cardWidth: {
                     const count = sectionItem.isAlbumsSection
                         ? sectionItem.albums.length
@@ -96,7 +81,6 @@ Item {
                     sectionItem.cardWidth + root.artworkTextSpacing +
                     root.titleHeight + root.trackCountHeight + 8
 
-                // Заголовок секции
                 Label {
                     width: parent.width
                     height: 26
@@ -112,7 +96,6 @@ Item {
                     maximumLineCount: 1
                 }
 
-                // Ряд карточек
                 Row {
                     width: parent.width
                     height: sectionItem.cardHeight
@@ -135,7 +118,6 @@ Item {
                             width: sectionItem.cardWidth
                             height: sectionItem.cardHeight
 
-                            // Обложка
                             Rectangle {
                                 id: artworkBox
 
@@ -187,7 +169,6 @@ Item {
                                     visible: cover.status !== Image.Ready
                                 }
 
-                                // Лёгкая подсветка при наведении
                                 Rectangle {
                                     anchors.fill: parent
                                     radius: 12
@@ -203,7 +184,6 @@ Item {
                                 }
                             }
 
-                            // Название
                             Label {
                                 id: titleLabel
 
@@ -225,7 +205,6 @@ Item {
                                 maximumLineCount: 1
                             }
 
-                            // Кол-во треков / год
                             Label {
                                 id: trackCountLabel
 
@@ -255,7 +234,6 @@ Item {
                                 visible: text.length > 0
                             }
 
-                            // Клик
                             MouseArea {
                                 id: playlistMouseArea
 

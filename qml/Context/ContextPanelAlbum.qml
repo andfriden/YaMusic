@@ -2,9 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Контекстная панель альбома: другие альбомы исполнителя.
- */
 Item {
     id: root
 
@@ -36,7 +33,6 @@ Item {
 
             spacing: 12
 
-            // Заголовок
             Label {
                 width: parent.width
 
@@ -56,7 +52,6 @@ Item {
                 wrapMode: Text.WordWrap
             }
 
-            // Список альбомов
             Item {
                 width: parent.width
                 height: parent.height - 70
@@ -101,7 +96,6 @@ Item {
                             ? AppTheme.border
                             : AppTheme.borderSubtle
 
-                        // Обложка
                         Rectangle {
                             id: albumArtwork
 
@@ -145,7 +139,6 @@ Item {
                             }
                         }
 
-                        // Информация
                         Column {
                             anchors.left: albumArtwork.right
                             anchors.leftMargin: 11
@@ -201,7 +194,6 @@ Item {
                     }
                 }
 
-                // Пустое состояние / загрузка
                 Label {
                     anchors.centerIn: parent
 

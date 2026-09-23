@@ -2,11 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Каркас приложения: верхняя панель, область контента и контекстная
- * панель справа. Текущий раздел/страница живут в NavigationController,
- * который является единственным источником правды для навигации.
- */
 Item {
     id: root
 
@@ -73,10 +68,6 @@ Item {
 
         spacing: 0
 
-        // ---------------------------------------------------------
-        // Область контента
-        // ---------------------------------------------------------
-
         Item {
             id: mainArea
 
@@ -108,7 +99,6 @@ Item {
                     width: contentScrollView.availableWidth
                     height: item ? item.implicitHeight : 0
 
-                    // Страница всегда занимает всю ширину контента
                     onLoaded: {
                         if (item) {
                             item.width = pageLoader.width
@@ -126,16 +116,11 @@ Item {
             }
         }
 
-        // Разделитель между контентом и контекстной панелью
         Rectangle {
             width: root.contextPanelVisible ? 1 : 0
             height: parent.height
             color: AppTheme.divider
         }
-
-        // ---------------------------------------------------------
-        // Контекстная панель (похожие исполнители, другие альбомы…)
-        // ---------------------------------------------------------
 
         ContextPanel {
             id: contextPanel
@@ -148,15 +133,6 @@ Item {
         }
     }
 
-    // -------------------------------------------------------------
-    // Сигналы навигации
-    //
-    // Страницы разделов (home, genres) сами не знают про
-    // NavigationController, поэтому сообщают о навигации через
-    // сигналы. Один Connections на оба раздела: отсутствующие
-    // сигналы игнорируются благодаря ignoreUnknownSignals.
-    // -------------------------------------------------------------
-
     Connections {
         target: navigationController
 
@@ -165,6 +141,7 @@ Item {
         }
     }
 
+    // Страницы разделов не знают про NavigationController, поэтому сообщают о навигации сигналами
     Connections {
         target: root.currentPageType === "section" &&
                 (root.currentSection === "home" || root.currentSection === "genres")

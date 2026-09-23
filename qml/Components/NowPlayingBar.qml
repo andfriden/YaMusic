@@ -3,14 +3,6 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import YaMusic 1.0
 
-/*
- * Нижняя панель плеера: информация о треке, управление
- * воспроизведением, прогресс, громкость и кнопки (лайк, текст,
- * развернуть).
- *
- * Цветовая подсветка (playerAccent) берётся из обложки трека,
- * когда доступна (PlayerAccentService), иначе — AppTheme.accent.
- */
 Rectangle {
     id: root
 
@@ -65,10 +57,6 @@ Rectangle {
         anchors.bottomMargin: 12
 
         spacing: 0
-
-        // ---------------------------------------------------------
-        // Информация о треке
-        // ---------------------------------------------------------
 
         RowLayout {
             id: trackInfo
@@ -154,7 +142,6 @@ Rectangle {
                 }
             }
 
-            // Лайк
             Item {
                 id: likeButton
 
@@ -220,10 +207,6 @@ Rectangle {
             Layout.preferredWidth: 18
         }
 
-        // ---------------------------------------------------------
-        // Центральное управление
-        // ---------------------------------------------------------
-
         ColumnLayout {
             id: centerControls
 
@@ -237,7 +220,6 @@ Rectangle {
 
                 spacing: 8
 
-                // Перемешать
                 Item {
                     width: 38
                     height: 38
@@ -273,7 +255,6 @@ Rectangle {
                     }
                 }
 
-                // Назад
                 Item {
                     width: 42
                     height: 42
@@ -308,7 +289,6 @@ Rectangle {
                     }
                 }
 
-                // Играть / пауза
                 Item {
                     width: 50
                     height: 50
@@ -348,7 +328,6 @@ Rectangle {
                     }
                 }
 
-                // Вперёд
                 Item {
                     width: 42
                     height: 42
@@ -383,7 +362,6 @@ Rectangle {
                     }
                 }
 
-                // Повтор
                 Item {
                     width: 38
                     height: 38
@@ -419,10 +397,6 @@ Rectangle {
                     }
                 }
             }
-
-            // -----------------------------------------------------
-            // Прогресс
-            // -----------------------------------------------------
 
             RowLayout {
                 Layout.fillWidth: true
@@ -498,10 +472,6 @@ Rectangle {
             Layout.preferredWidth: 18
         }
 
-        // ---------------------------------------------------------
-        // Правое управление
-        // ---------------------------------------------------------
-
         RowLayout {
             Layout.fillWidth: true
             Layout.minimumWidth: 250
@@ -514,7 +484,6 @@ Rectangle {
                 Layout.fillWidth: true
             }
 
-            // Текст песни
             Item {
                 width: 38
                 height: 38
@@ -546,7 +515,6 @@ Rectangle {
                 }
             }
 
-            // Громкость (вкл/выкл)
             Item {
                 width: 38
                 height: 38
@@ -586,7 +554,6 @@ Rectangle {
                 }
             }
 
-            // Ползунок громкости
             Slider {
                 id: volumeSlider
 
@@ -636,7 +603,6 @@ Rectangle {
                 }
             }
 
-            // Развернуть
             Item {
                 width: 38
                 height: 38

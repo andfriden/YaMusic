@@ -2,9 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Страница «Моя волна» — полная (не компактная) версия секции.
- */
 Item {
     id: root
 

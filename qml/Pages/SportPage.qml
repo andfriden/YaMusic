@@ -2,10 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Страница «Спорт»: плейлисты по тегу "sport" через genreController.
- * Вёрстка сетки общая с GenrePage (PlaylistCard).
- */
 Item {
     id: root
 
@@ -17,16 +13,11 @@ Item {
             ? root.controller.genreController
             : null
 
-    // -------------------------------------------------------------
-    // Геометрия
-    // -------------------------------------------------------------
-
     readonly property int margin: 20
     readonly property int spacing: 12
     readonly property int columns: 6
 
-    // Ширина карточки считается от реальной ширины сетки, чтобы
-    // карточки заполняли ряд целиком
+    // Ширина из реальной ширины сетки, чтобы карточки заполняли ряд
     readonly property real cardWidth:
         Math.floor((contentColumn.width - spacing * (columns - 1)) / columns)
 
@@ -51,7 +42,6 @@ Item {
 
         spacing: 28
 
-        // Заголовок
         Column {
             width: parent.width
             spacing: 6
@@ -130,7 +120,6 @@ Item {
             }
         }
 
-        // Пустое состояние
         Label {
             visible: root.genreController !== null &&
                 !root.genreController.genreLoading &&
@@ -146,7 +135,6 @@ Item {
             horizontalAlignment: Text.AlignHCenter
         }
 
-        // Загрузка
         Label {
             visible: root.genreController !== null && root.genreController.genreLoading
 

@@ -1,10 +1,6 @@
 import QtQuick
 import YaMusic 1.0
 
-/*
- * Кликабельная ссылка на сущность (исполнитель/альбом).
- * При наличии entityId и controller открывает страницу.
- */
 Item {
     id: root
 

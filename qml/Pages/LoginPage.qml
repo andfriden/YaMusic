@@ -3,11 +3,6 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import YaMusic 1.0
 
-/*
- * Экран входа: открывает страницу авторизации Яндекса, принимает
- * токен (или полный URL из адресной строки) и передаёт его
- * authController.loginWithToken().
- */
 Item {
     id: root
 

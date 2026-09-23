@@ -2,11 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Строка чарта: номер позиции, обложка, название и исполнитель.
- * Левый клик — воспроизведение, правый — копирование названия.
- * Используется в ChartPage (Россия / Мир).
- */
 Item {
     id: root
 
@@ -117,7 +112,6 @@ Item {
             }
 
             onPressed: {
-                // Правый клик — копировать название/исполнителя
                 if (mouse.button !== Qt.RightButton) {
                     return
                 }

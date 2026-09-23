@@ -1,13 +1,7 @@
-pragma ComponentBehavior: Bound
-
 import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Страница альбома: шапка с обложкой и информацией, список треков.
- * Список треков переиспользует TrackRow.
- */
 Item {
     id: root
 
@@ -15,10 +9,6 @@ Item {
 
     width: parent ? parent.width : 0
     implicitHeight: pageColumn.implicitHeight + 56
-
-    // -------------------------------------------------------------
-    // Состояние
-    // -------------------------------------------------------------
 
     readonly property var albumController:
         root.controller !== null && root.controller !== undefined &&
@@ -51,10 +41,6 @@ Item {
             ? String(root.albumController.currentAlbumCoverUri || "")
             : ""
 
-    // -------------------------------------------------------------
-    // Фон
-    // -------------------------------------------------------------
-
     PlaylistPicker {
         id: addToPlaylistPopup
         controller: root.controller
@@ -65,17 +51,13 @@ Item {
         color: AppTheme.backgroundPrimary
     }
 
-    // -------------------------------------------------------------
-    // Контент (скроллит внешний ScrollView в MainLayout)
-    // -------------------------------------------------------------
-
+    // Контент скроллит внешний ScrollView в MainLayout
     Column {
         id: pageColumn
 
         width: root.width
         spacing: 20
 
-        // Заголовок страницы
         Label {
             width: parent.width
             height: 42
@@ -91,7 +73,6 @@ Item {
             maximumLineCount: 1
         }
 
-        // Шапка альбома
         Rectangle {
             width: parent.width
             height: 216
@@ -107,7 +88,6 @@ Item {
 
                 spacing: 20
 
-                // Обложка
                 Rectangle {
                     width: 180
                     height: 180
@@ -157,7 +137,6 @@ Item {
                     }
                 }
 
-                // Информация
                 Column {
                     width: parent.width - 200
 
@@ -237,7 +216,6 @@ Item {
             }
         }
 
-        // Панель треков
         Rectangle {
             width: parent.width
 
@@ -330,6 +308,7 @@ Item {
 
                     // Пустое состояние
                     Rectangle {
+
                         width: parent.width
                         height: 72
 
@@ -358,10 +337,6 @@ Item {
             height: 100
         }
     }
-
-    // -------------------------------------------------------------
-    // Индикатор загрузки
-    // -------------------------------------------------------------
 
     BusyIndicator {
         id: loadingIndicator

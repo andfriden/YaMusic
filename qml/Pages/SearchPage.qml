@@ -2,10 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Страница поиска: поле ввода и 4 вкладки результатов
- * (треки, альбомы, исполнители, плейлисты).
- */
 Item {
     id: root
 
@@ -44,7 +40,6 @@ Item {
                 anchors.fill: parent
                 spacing: 8
 
-                // Табы
                 Rectangle {
                     width: parent.width
                     height: 36
@@ -98,10 +93,6 @@ Item {
                 Item {
                     width: parent.width
                     height: parent.height - 44
-
-                    // -------------------------------------------------
-                    // 0: Треки
-                    // -------------------------------------------------
 
                     ListView {
                         id: tracksView
@@ -158,10 +149,6 @@ Item {
                                 root.controller.searchModel.count === 0
                         }
                     }
-
-                    // -------------------------------------------------
-                    // 1: Альбомы
-                    // -------------------------------------------------
 
                     ListView {
                         id: albumsView
@@ -295,10 +282,6 @@ Item {
                         }
                     }
 
-                    // -------------------------------------------------
-                    // 2: Исполнители
-                    // -------------------------------------------------
-
                     ListView {
                         id: artistsView
 
@@ -337,7 +320,6 @@ Item {
                                 onClicked: root.controller.selectSearchArtist(index)
                             }
 
-                            // Круглая обложка
                             Rectangle {
                                 anchors.left: parent.left
                                 anchors.leftMargin: 8
@@ -404,10 +386,6 @@ Item {
                                 root.controller.searchArtistsModel.count === 0
                         }
                     }
-
-                    // -------------------------------------------------
-                    // 3: Плейлисты
-                    // -------------------------------------------------
 
                     ListView {
                         id: playlistsView
@@ -536,7 +514,6 @@ Item {
         }
     }
 
-    // Состояние вкладок
     QtObject {
         id: tabBar
 

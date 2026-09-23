@@ -2,9 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Контекстная панель плейлиста: похожие плейлисты.
- */
 Item {
     id: root
 

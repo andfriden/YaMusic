@@ -2,10 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Страница «Плейлисты»: подборки плейлистов из personalPlaylistsModel.
- * Карточки используют общий компонент PlaylistCard.
- */
 Item {
     id: root
 
@@ -32,7 +28,6 @@ Item {
 
         spacing: 28
 
-        // Заголовок
         Label {
             width: parent.width
 
@@ -43,7 +38,6 @@ Item {
             elide: Text.ElideRight
         }
 
-        // Секции
         Repeater {
             model: root.controller !== null && root.controller !== undefined
                 ? root.controller.personalPlaylistsModel
@@ -63,7 +57,6 @@ Item {
                     sectionItem.playlists !== undefined &&
                     sectionItem.playlists.length > 0
 
-                // Заголовок секции
                 Label {
                     width: parent.width
                     height: 24
@@ -79,7 +72,6 @@ Item {
                     maximumLineCount: 1
                 }
 
-                // Сетка карточек
                 Grid {
                     width: parent.width
 

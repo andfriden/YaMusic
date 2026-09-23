@@ -2,10 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Главная страница: поиск, моя волна (компактная), подборки
- * плейлистов и недавно прослушанное.
- */
 Item {
     id: root
 

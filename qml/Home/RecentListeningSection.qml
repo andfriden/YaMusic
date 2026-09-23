@@ -2,10 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Секция "Недавно слушали" на главной.
- * Показывает до maxVisibleTracks последних треков в карточке-панели.
- */
 Item {
     id: root
 

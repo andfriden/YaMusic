@@ -2,10 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Страница конкретного жанра: радиостанция, треки станции и
- * сетка плейлистов жанра.
- */
 Item {
     id: root
 
@@ -14,10 +10,6 @@ Item {
     property string genreTitle: ""
     property string genreImage: ""
     property string genreColor: ""
-
-    // -------------------------------------------------------------
-    // Состояние
-    // -------------------------------------------------------------
 
     readonly property var genreController:
         root.controller !== null && root.controller !== undefined &&
@@ -37,16 +29,11 @@ Item {
             ? AppTheme.accentHover
             : Qt.rgba(0.15, 0.15, 0.15, 1.0)
 
-    // -------------------------------------------------------------
-    // Геометрия
-    // -------------------------------------------------------------
-
     readonly property int margin: 20
     readonly property int spacing: 12
     readonly property int columns: 6
 
-    // Ширина карточки считается от реальной ширины сетки, чтобы
-    // карточки заполняли ряд целиком
+    // Ширина из реальной ширины сетки, чтобы карточки заполняли ряд
     readonly property real cardWidth:
         Math.floor((contentColumn.width - spacing * (columns - 1)) / columns)
 
@@ -70,10 +57,6 @@ Item {
         anchors.margins: root.margin
 
         spacing: 28
-
-        // ---------------------------------------------------------
-        // Шапка жанра
-        // ---------------------------------------------------------
 
         Row {
             width: parent.width
@@ -130,7 +113,6 @@ Item {
                     font.pixelSize: 15
                 }
 
-                // Кнопка «Радио»
                 Rectangle {
                     id: radioButton
 
@@ -182,10 +164,6 @@ Item {
                 }
             }
         }
-
-        // ---------------------------------------------------------
-        // Треки радиостанции
-        // ---------------------------------------------------------
 
         Rectangle {
             width: parent.width
@@ -261,10 +239,6 @@ Item {
             }
         }
 
-        // ---------------------------------------------------------
-        // Плейлисты жанра
-        // ---------------------------------------------------------
-
         Label {
             width: parent.width
 
@@ -317,7 +291,6 @@ Item {
             }
         }
 
-        // Пустое состояние
         Label {
             visible: root.genreController !== null &&
                 !root.genreController.genreLoading &&
@@ -333,7 +306,6 @@ Item {
             horizontalAlignment: Text.AlignHCenter
         }
 
-        // Загрузка
         Label {
             visible: root.genreController !== null && root.genreController.genreLoading
 
@@ -346,10 +318,6 @@ Item {
             horizontalAlignment: Text.AlignHCenter
         }
     }
-
-    // -------------------------------------------------------------
-    // Загрузка жанра при смене genreId
-    // -------------------------------------------------------------
 
     onGenreIdChanged: {
         if (root.genreController !== null && root.genreId.length > 0) {

@@ -2,15 +2,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import YaMusic 1.0
 
-/*
- * Карточка плейлиста/альбома для сеток.
- *
- * Заменяет три почти одинаковые копии (PlaylistsPage, GenrePage,
- * SportPage). Отличия:
- *   - coverUri/title/trackCount и подпись под обложкой
- *   - activated(): клик по карточке — родитель сам выбирает
- *     selectPersonalPlaylist() или loadAlbum()
- */
 Item {
     id: root
 
@@ -29,9 +20,7 @@ Item {
 
     width: root.cardWidth
 
-    // Высота по умолчанию считается от ширины: квадратная обложка
-    // (ширина - 16) + 8+8 отступы + 18 название + 3 + 16 подпись.
-    // Передаётся cardHeight > 0 — используется он.
+    // Высота от ширины (квадратная обложка + подписи); cardHeight > 0 — заданная
     height: root.cardHeight > 0
         ? root.cardHeight
         : Math.round(root.cardWidth + 45)
@@ -52,10 +41,6 @@ Item {
         Behavior on color {
             ColorAnimation { duration: 140; easing.type: Easing.OutCubic }
         }
-
-        // ---------------------------------------------------------
-        // Обложка
-        // ---------------------------------------------------------
 
         Rectangle {
             id: artworkBox
@@ -98,8 +83,7 @@ Item {
                 visible: cover.status !== Image.Ready
             }
 
-            // Обводка поверх обложки, чтобы скругление не "съедалось"
-            // краем изображения
+            // Обводка поверх изображения, чтобы скругление не съедалось краем картинки
             Rectangle {
                 anchors.fill: parent
                 radius: 8
@@ -111,10 +95,6 @@ Item {
                     : AppTheme.borderSubtle
             }
         }
-
-        // ---------------------------------------------------------
-        // Название
-        // ---------------------------------------------------------
 
         Label {
             id: titleLabel
@@ -137,10 +117,6 @@ Item {
             elide: Text.ElideRight
             maximumLineCount: 1
         }
-
-        // ---------------------------------------------------------
-        // Подпись (кол-во треков или год)
-        // ---------------------------------------------------------
 
         Label {
             id: countLabel
@@ -168,10 +144,6 @@ Item {
 
             visible: text.length > 0
         }
-
-        // ---------------------------------------------------------
-        // Клик
-        // ---------------------------------------------------------
 
         MouseArea {
             id: mouseArea

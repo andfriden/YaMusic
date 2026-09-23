@@ -1,10 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
 
-/*
- * Статус-бар: всплывающее сообщение внизу окна.
- * Показывается через show(), исчезает через hideDelay мс.
- */
 Label {
     id: root
 
