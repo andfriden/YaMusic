@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 project(
         YaMusic
-        VERSION 0.11.2
+        VERSION 0.11.3
         LANGUAGES CXX
 )
 
@@ -23,7 +23,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # =============================================================
 
 find_package(
-        Qt6 6.10
+        Qt6 6.9
         REQUIRED COMPONENTS
         Quick
         Network
@@ -33,14 +33,14 @@ find_package(
 if(UNIX AND NOT APPLE)
 
     find_package(
-            Qt6 6.10
+            Qt6 6.9
             REQUIRED COMPONENTS
             DBus
     )
 
 endif()
 
-qt_standard_project_setup(REQUIRES 6.10)
+qt_standard_project_setup(REQUIRES 6.9)
 
 # =============================================================
 # Paths
