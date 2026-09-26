@@ -670,9 +670,6 @@ qt_generate_deploy_qml_app_script(
         deploy_script
 
         NO_UNSUPPORTED_PLATFORM_ERROR
-
-        EXCLUDE_PLUGINS
-        qt6ct
 )
 
 install(
