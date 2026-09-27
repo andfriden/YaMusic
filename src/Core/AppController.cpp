@@ -1,4 +1,5 @@
 #include "AppController.h"
+#include <QStringList>
 #include "../Models/PersonalPlaylist.h"
 #include "../Player/PlayerService.h"
 #include "../Queue/QueueService.h"
@@ -35,6 +36,7 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
       m_newPlaylistsService(new NewPlaylistsService(m_auth, m_playlistService, this)),
       m_likesService(new LikesService(m_auth, this)),
       m_albumService(new AlbumService(m_auth, this)),
+      m_artistRadioAlbumService(new AlbumService(m_auth, this)),
       m_artistService(new ArtistService(m_auth, this)),
       m_chartService(new ChartService(m_auth, this)),
       m_genreService(new GenreService(m_auth, this)),
@@ -51,7 +53,8 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
       m_similarTracksModel(new SimilarTracksModel(this)),
       m_albumController(new AlbumController(m_albumService, m_artistService, m_playbackController,
                                             m_likesService, this)),
-      m_artistController(new ArtistController(m_artistService, m_playbackController, this)),
+      m_artistController(new ArtistController(m_artistService, m_artistRadioAlbumService,
+                                              m_playbackController, this)),
       m_chartController(new ChartController(m_chartService, m_playbackController, this)),
       m_genreController(new GenreController(m_genreService, m_playlistService, m_stationService,
                                             m_playbackController, this)),
@@ -350,9 +353,14 @@ void AppController::connectPlayback() {
              * Когда текущая очередь закончилась, он сообщает
              * playlistExhausted. Только здесь My Wave должна
              * запросить следующую партию.
-             */
+             */ 
             if (sourceType == "myWave") {
               m_personalController->handleMyWavePlaybackFinished();
+              return;
+            }
+
+            if (sourceType == "artistRadio") {
+              m_artistController->handleArtistRadioExhausted();
               return;
             }
 
@@ -396,15 +404,16 @@ void AppController::connectPlayback() {
                       .arg(first.name));
 
             } else if (sourceType == "album") {
-              const QString artistId =
-                  currentTrackArtistId();
+              const QString artistId = m_albumController->currentArtistId();
 
               if (artistId.isEmpty()) {
                 return;
               }
 
-              loadArtist(artistId);
-              emit statusChanged("Исполнитель альбома");
+              const QString artistName = m_albumController->currentArtistName();
+              const QStringList playedTrackIds = m_albumController->currentAlbumTrackIds();
+              m_artistController->continueFromAlbumRadio(artistId, artistName, playedTrackIds);
+              emit statusChanged("Продолжение по альбомам исполнителя");
             }
           });
 }

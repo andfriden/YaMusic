@@ -25,10 +25,12 @@ public:
   explicit ArtistService(YandexAuth *auth, QObject *parent = nullptr);
   void loadArtist(const QString &id);
   void loadArtistAlbums(const QString &artistId);
+  void loadSimilarArtists(const QString &artistId);
 
 signals:
   void artistReceived(const ArtistDetails &artist);
-  void artistAlbumsReceived(const QList<Album> &albums);
+  void artistAlbumsReceived(const QString &artistId, const QList<Album> &albums);
+  void similarArtistsReceived(const QString &artistId, const QList<Artist> &artists);
   void errorOccurred(const QString &message);
 
 private:

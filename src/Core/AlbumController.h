@@ -5,6 +5,7 @@
 #include "../Yandex/Catalog/ArtistAlbumsModel.h"
 #include <QObject>
 #include <QString>
+#include <QStringList>
 
 class AlbumService;
 class ArtistService;
@@ -52,6 +53,15 @@ public:
   QString albumCoverUri() const;
 
   int albumTrackCount() const;
+
+  // Исполнитель текущего альбома (заполняется при загрузке «Других альбомов»).
+  QString currentArtistId() const;
+
+  // Имя исполнителя текущего альбома (из первого трека).
+  QString currentArtistName() const;
+
+  // ID треков текущего альбома (уже воспроизведённых).
+  QStringList currentAlbumTrackIds() const;
 
 signals:
 

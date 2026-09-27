@@ -32,6 +32,9 @@ Item {
     readonly property bool loading:
         root.artistController !== null && root.artistController.loading === true
 
+    readonly property bool radioLoading:
+        root.artistController !== null && root.artistController.radioLoading === true
+
     readonly property string artistId:
         root.artistController !== null
             ? String(root.artistController.artistId || "")
@@ -259,9 +262,10 @@ Item {
                         width: 164
                         height: 40
 
-                        text: qsTr("▶   Слушать")
+                        text: root.radioLoading ? qsTr("Загрузка...") : qsTr("▶   Слушать")
 
                         enabled: !root.loading &&
+                            !root.radioLoading &&
                             root.artistController !== null &&
                             root.artistModel !== null &&
                             artistTracksView.count > 0

@@ -38,7 +38,9 @@ AlbumController::AlbumController(AlbumService *albumService, ArtistService *arti
   });
 
   connect(m_artistService, &ArtistService::artistAlbumsReceived, this,
-          [this](const QList<Album> &albums) { m_otherAlbumsModel->setAlbums(albums); });
+          [this](const QString &, const QList<Album> &albums) {
+            m_otherAlbumsModel->setAlbums(albums);
+          });
 
   if (m_likesService) {
     connect(m_likesService, &LikesService::likeChanged, this,
@@ -117,6 +119,42 @@ QString AlbumController::albumCoverUri() const {
 
 int AlbumController::albumTrackCount() const {
   return m_albumModel ? m_albumModel->count() : 0;
+}
+
+QString AlbumController::currentArtistId() const {
+  return m_currentArtistId;
+}
+
+QString AlbumController::currentArtistName() const {
+  const QList<Track> tracks = m_albumModel ? m_albumModel->tracks() : QList<Track>();
+
+  if (tracks.isEmpty()) {
+    return QString();
+  }
+
+  const Track &first = tracks.first();
+
+  if (first.artists.isEmpty()) {
+    return QString();
+  }
+
+  return first.artists.first().name;
+}
+
+QStringList AlbumController::currentAlbumTrackIds() const {
+  QStringList ids;
+
+  if (!m_albumModel) {
+    return ids;
+  }
+
+  for (const Track &track : m_albumModel->tracks()) {
+    if (!track.id.isEmpty()) {
+      ids.append(track.id);
+    }
+  }
+
+  return ids;
 }
 
 void AlbumController::loadOtherAlbumsForCurrentArtist(const AlbumDetails &album) {

@@ -1,14 +1,16 @@
 #include "ArtistController.h"
 #include "../Playback/PlaybackController.h"
 #include "../Queue/QueueService.h"
+#include "../Yandex/Catalog/AlbumService.h"
 #include "../Yandex/Catalog/ArtistService.h"
 
-ArtistController::ArtistController(ArtistService *artistService,
+ArtistController::ArtistController(ArtistService *artistService, AlbumService *albumService,
                                    PlaybackController *playbackController, QObject *parent)
-    : QObject(parent), m_artistService(artistService), m_playbackController(playbackController),
-      m_artistModel(new ArtistModel(this)), m_albumsModel(new ArtistAlbumsModel(this)),
-      m_similarArtistsModel(new SimilarArtistsModel(this)) {
+    : QObject(parent), m_artistService(artistService), m_albumService(albumService),
+      m_playbackController(playbackController), m_artistModel(new ArtistModel(this)),
+      m_albumsModel(new ArtistAlbumsModel(this)), m_similarArtistsModel(new SimilarArtistsModel(this)) {
   Q_ASSERT(m_artistService != nullptr);
+  Q_ASSERT(m_albumService != nullptr);
   Q_ASSERT(m_playbackController != nullptr);
 
   connect(m_artistService, &ArtistService::artistReceived, this,
@@ -68,9 +70,69 @@ ArtistController::ArtistController(ArtistService *artistService,
   });
 
   connect(m_artistService, &ArtistService::artistAlbumsReceived, this,
-          [this](const QList<Album> &albums) {
-            m_allAlbums = albums;
-            applyAlbumFilter();
+          [this](const QString &artistId, const QList<Album> &albums) {
+            // Радио артиста: альбомы текущего радио-артиста идут в радио,
+            // альбомы отображаемого на странице исполнителя — на страницу.
+            if (m_radioActive && m_radioLoading && artistId == m_radioCurrentArtistId) {
+              startLoadingRadioAlbums(albums);
+              return;
+            }
+
+            if (!m_radioActive || artistId != m_radioCurrentArtistId) {
+              if (artistId == m_artistId) {
+                m_allAlbums = albums;
+                applyAlbumFilter();
+              }
+            }
+          });
+
+  connect(m_artistService, &ArtistService::similarArtistsReceived, this,
+          [this](const QString &artistId, const QList<Artist> &artists) {
+            if (!m_radioActive || artistId != m_radioCurrentArtistId) {
+              return;
+            }
+
+            QList<Artist> cleaned;
+            for (const Artist &artist : artists) {
+              if (artist.id.isEmpty()) continue;
+              cleaned.append(artist);
+            }
+
+            m_radioSimilarPool = cleaned;
+            m_radioSimilarLoaded = true;
+
+            if (m_radioWaitingForSimilar) {
+              m_radioWaitingForSimilar = false;
+              continueRadioToNextArtist();
+            }
+          });
+
+  connect(m_albumService, &AlbumService::albumReceived, this,
+          [this](const AlbumDetails &details) {
+            if (!m_radioActive || !m_radioLoading) {
+              return;
+            }
+
+            const QString id = details.album.id;
+            if (id.isEmpty() || m_pendingAlbumIds.isEmpty()) {
+              return;
+            }
+
+            // Загружаем альбомы последовательно, сохраняя их порядок.
+            if (m_pendingAlbumIds.first() != id) {
+              return;
+            }
+            m_pendingAlbumIds.removeFirst();
+
+            m_radioArtistQueued += appendRadioAlbumTracks(details.tracks);
+
+            if (m_pendingAlbumIds.isEmpty()) {
+              m_radioLoading = false;
+              emit radioLoadingChanged();
+              continueIfStalled();
+            } else {
+              loadRadioAlbum(m_pendingAlbumIds.first());
+            }
           });
 }
 
@@ -130,17 +192,270 @@ void ArtistController::selectSimilarArtist(int index) {
 }
 
 void ArtistController::playArtist() {
-  const QList<Track> tracks = m_artistModel->tracks();
+  startArtistRadio();
+}
 
-  if (tracks.isEmpty()) {
-    emit statusChanged("У исполнителя нет доступных треков");
+void ArtistController::continueFromAlbumRadio(const QString &artistId, const QString &artistName,
+                                              const QStringList &playedTrackIds) {
+  const QString id = artistId.trimmed();
+
+  if (id.isEmpty()) {
+    emit statusChanged("Нет исполнителя для продолжения альбома");
     return;
   }
 
-  const Track &track = tracks.first();
-  emit trackSelected(track);
-  m_playbackController->playFromSource(tracks, 0, m_artistName, "artist");
-  emit statusChanged(QStringLiteral("Воспроизведение исполнителя: %1").arg(m_artistName));
+  m_radioActive = true;
+  m_radioVisitedArtists.clear();
+  m_radioQueuedTrackIds.clear();
+
+  for (const QString &trackId : playedTrackIds) {
+    if (!trackId.isEmpty()) {
+      m_radioQueuedTrackIds.insert(trackId);
+    }
+  }
+
+  // Альбом уже играл — продолжаем с него, не перезапуская очередь.
+  m_radioPlaying = true;
+  m_radioNeedsResume = true;
+  m_radioWaitingForSimilar = false;
+  m_radioSimilarPool.clear();
+
+  QueueService *queue = m_playbackController->queueService();
+  queue->setRepeatMode(QueueService::RepeatOff);
+
+  beginRadioArtist(id, artistName);
+}
+
+void ArtistController::startArtistRadio() {
+  if (m_artistId.isEmpty()) {
+    emit statusChanged("Нет исполнителя для радио");
+    return;
+  }
+
+  m_radioActive = true;
+  m_radioVisitedArtists.clear();
+  m_radioQueuedTrackIds.clear();
+  m_radioPlaying = false;
+  m_radioNeedsResume = false;
+  m_radioWaitingForSimilar = false;
+  m_radioSimilarPool.clear();
+
+  QueueService *queue = m_playbackController->queueService();
+  queue->clear();
+  queue->clearSource();
+  queue->setRepeatMode(QueueService::RepeatOff);
+
+  beginRadioArtist(m_artistId, m_artistName);
+}
+
+void ArtistController::beginRadioArtist(const QString &artistId, const QString &artistName) {
+  const QString id = artistId.trimmed();
+
+  if (id.isEmpty()) {
+    if (m_radioActive) {
+      endRadioArtist();
+    }
+    return;
+  }
+
+  m_radioActive = true;
+  m_radioCurrentArtistId = id;
+  m_radioCurrentArtistName = artistName;
+  m_radioLoading = true;
+  m_radioWaitingForSimilar = false;
+  m_radioSimilarLoaded = false;
+  m_radioArtistQueued = 0;
+  m_pendingAlbumIds.clear();
+  m_radioVisitedArtists.insert(id);
+  emit radioLoadingChanged();
+  emit statusChanged(QStringLiteral("Радио исполнителя: %1").arg(artistName));
+
+  // Для похожих исполнителей цепочки берём их список похожих, чтобы продолжать по ним.
+  m_artistService->loadSimilarArtists(id);
+
+  if (id == m_artistId && !m_allAlbums.isEmpty()) {
+    startLoadingRadioAlbums(m_allAlbums);
+  } else {
+    m_artistService->loadArtistAlbums(id);
+  }
+}
+
+void ArtistController::startLoadingRadioAlbums(const QList<Album> &albums) {
+  m_pendingAlbumIds.clear();
+
+  for (const Album &album : albums) {
+    const QString id = album.id.trimmed();
+    if (id.isEmpty()) continue;
+    m_pendingAlbumIds.append(id);
+  }
+
+  if (m_pendingAlbumIds.isEmpty()) {
+    m_radioLoading = false;
+    emit radioLoadingChanged();
+    continueIfStalled();
+    return;
+  }
+
+  loadRadioAlbum(m_pendingAlbumIds.first());
+}
+
+void ArtistController::loadRadioAlbum(const QString &albumId) {
+  m_albumService->loadAlbum(albumId);
+}
+
+int ArtistController::appendRadioAlbumTracks(const QList<Track> &tracks) {
+  QueueService *queue = m_playbackController->queueService();
+  QList<Track> toAdd;
+
+  for (const Track &track : tracks) {
+    if (track.id.isEmpty()) continue;
+    if (m_radioQueuedTrackIds.contains(track.id)) continue;
+    m_radioQueuedTrackIds.insert(track.id);
+    toAdd.append(track);
+  }
+
+  if (toAdd.isEmpty()) {
+    return 0;
+  }
+
+  queue->addTracks(toAdd);
+  queue->setSource(m_radioCurrentArtistName, "artistRadio");
+  tryAdvanceRadio();
+  return toAdd.size();
+}
+
+void ArtistController::tryAdvanceRadio() {
+  QueueService *queue = m_playbackController->queueService();
+
+  if (!m_radioPlaying) {
+    if (queue->count() <= 0) {
+      return;
+    }
+    m_radioPlaying = true;
+    m_radioNeedsResume = false;
+    if (!queue->setCurrentIndex(0)) {
+      m_radioPlaying = false;
+      return;
+    }
+    const Track first = queue->currentTrack();
+    if (first.id.isEmpty()) {
+      m_radioPlaying = false;
+      return;
+    }
+    m_playbackController->playTrack(first);
+    emit statusChanged(QStringLiteral("Радио исполнителя: %1").arg(m_radioCurrentArtistName));
+    return;
+  }
+
+  if (!m_radioNeedsResume) {
+    return;
+  }
+
+  m_radioNeedsResume = false;
+
+  if (queue->hasNext()) {
+    queue->next();
+    const Track next = queue->currentTrack();
+    if (!next.id.isEmpty()) {
+      m_playbackController->playTrack(next);
+    }
+    return;
+  }
+
+  // Очередь пуста даже после добавления — значит артист не дал треков.
+  m_radioNeedsResume = true;
+}
+
+void ArtistController::continueIfStalled() {
+  if (!m_radioActive) {
+    return;
+  }
+
+  QueueService *queue = m_playbackController->queueService();
+
+  if (m_radioNeedsResume) {
+    if (queue->hasNext()) {
+      m_radioNeedsResume = false;
+      queue->next();
+      const Track next = queue->currentTrack();
+      if (!next.id.isEmpty()) {
+        m_radioPlaying = true;
+        m_playbackController->playTrack(next);
+      }
+      return;
+    }
+    continueRadioToNextArtist();
+    return;
+  }
+
+  // Ещё ни разу не запускались и очередь пуста — текущий артист не дал треков.
+  if (!m_radioPlaying && queue->count() == 0) {
+    continueRadioToNextArtist();
+  }
+}
+
+void ArtistController::handleArtistRadioExhausted() {
+  if (!m_radioActive) {
+    return;
+  }
+
+  if (!m_pendingAlbumIds.isEmpty()) {
+    // Ещё грузятся альбомы текущего артиста — дождёмся их.
+    m_radioNeedsResume = true;
+    return;
+  }
+
+  m_radioNeedsResume = true;
+  continueRadioToNextArtist();
+}
+
+void ArtistController::continueRadioToNextArtist() {
+  if (!m_radioActive) {
+    return;
+  }
+
+  if (m_radioVisitedArtists.size() >= MaxRadioArtists) {
+    endRadioArtist();
+    return;
+  }
+
+  if (!m_radioSimilarLoaded) {
+    m_radioWaitingForSimilar = true;
+    return;
+  }
+
+  Artist next;
+  for (const Artist &artist : m_radioSimilarPool) {
+    if (artist.id.isEmpty()) continue;
+    if (m_radioVisitedArtists.contains(artist.id)) continue;
+    if (!m_radioCurrentArtistId.isEmpty() && artist.id == m_radioCurrentArtistId) continue;
+    next = artist;
+    break;
+  }
+
+  m_radioSimilarPool.clear();
+
+  if (next.id.isEmpty()) {
+    endRadioArtist();
+    return;
+  }
+
+  m_radioWaitingForSimilar = false;
+  beginRadioArtist(next.id, next.name);
+}
+
+void ArtistController::endRadioArtist() {
+  m_radioActive = false;
+  m_radioLoading = false;
+  m_radioNeedsResume = false;
+  m_radioWaitingForSimilar = false;
+  m_pendingAlbumIds.clear();
+  emit radioLoadingChanged();
+  emit statusChanged("Радио исполнителя завершено");
+}
+
+bool ArtistController::radioLoading() const {
+  return m_radioLoading;
 }
 
 ArtistModel *ArtistController::artistModel() const {

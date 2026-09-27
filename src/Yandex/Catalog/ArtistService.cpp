@@ -99,7 +99,7 @@ void ArtistService::loadArtistAlbums(const QString &id) {
   const QString cacheKey = "albums/" + artistId;
   QList<Album> cached;
   if (m_albumsCache.get(cacheKey, cached)) {
-    emit artistAlbumsReceived(cached);
+    emit artistAlbumsReceived(artistId, cached);
     return;
   }
 
@@ -144,7 +144,62 @@ void ArtistService::loadArtistAlbums(const QString &id) {
 
     reply->deleteLater();
     m_albumsCache.put(cacheKey, albums);
-    emit artistAlbumsReceived(albums);
+    emit artistAlbumsReceived(artistId, albums);
+  });
+}
+
+void ArtistService::loadSimilarArtists(const QString &id) {
+  if (!ensureAuthenticated()) {
+    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    return;
+  }
+
+  const QString artistId = id.trimmed();
+
+  if (artistId.isEmpty()) {
+    emit errorOccurred("ID исполнителя не указан");
+    return;
+  }
+
+  QNetworkReply *reply = m_yandexClient->get(QStringLiteral("/artists/%1/similar").arg(artistId));
+
+  connect(reply, &QNetworkReply::finished, this, [this, reply, artistId]() {
+    const QByteArray data = reply->readAll();
+
+    if (reply->error() != QNetworkReply::NoError) {
+      reply->deleteLater();
+      emit errorOccurred(reply->errorString());
+      return;
+    }
+
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
+
+    if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
+      reply->deleteLater();
+      emit errorOccurred("Некорректный ответ похожих исполнителей");
+      return;
+    }
+
+    const QJsonObject result = unwrapResult(document);
+    QJsonArray artists =
+        firstArray(result, {"similarArtists", "similar_artists", "artists", "similar", "items"});
+
+    if (artists.isEmpty() && result.value("similarArtists").isObject()) {
+      const QJsonObject similarObject = result.value("similarArtists").toObject();
+      artists = firstArray(similarObject, {"artists", "items"});
+    }
+
+    QList<Artist> similar;
+    for (const QJsonValue &value : artists) {
+      if (!value.isObject()) continue;
+      const Artist artist = ::parseArtist(value.toObject());
+      if (artist.id.isEmpty() || artist.name.isEmpty()) continue;
+      similar.append(artist);
+    }
+
+    reply->deleteLater();
+    emit similarArtistsReceived(artistId, similar);
   });
 }
 

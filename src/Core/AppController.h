@@ -334,6 +334,7 @@ private:
   NewPlaylistsService *m_newPlaylistsService;
   LikesService *m_likesService;
   AlbumService *m_albumService;
+  AlbumService *m_artistRadioAlbumService;
   ArtistService *m_artistService;
   ChartService *m_chartService;
   GenreService *m_genreService;
