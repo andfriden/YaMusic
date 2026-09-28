@@ -1,14 +1,18 @@
 #include "StationsController.h"
 #include "../Playback/PlaybackController.h"
+#include "../Player/PlayerService.h"
 #include "../Queue/QueueService.h"
 #include "../Yandex/Catalog/StationService.h"
 
 StationsController::StationsController(StationService *stationService,
-                                       PlaybackController *playbackController, QObject *parent)
+                                       PlaybackController *playbackController,
+                                       PlayerService *playerService, QObject *parent)
     : QObject(parent), m_stationService(stationService),
-      m_playbackController(playbackController), m_tracksModel(new GenreStationModel(this)) {
+      m_playbackController(playbackController), m_playerService(playerService),
+      m_tracksModel(new GenreStationModel(this)) {
   Q_ASSERT(m_stationService != nullptr);
   Q_ASSERT(m_playbackController != nullptr);
+  Q_ASSERT(m_playerService != nullptr);
 
   connect(m_stationService, &StationService::stationsReceived, this,
           [this](const QList<Station> &stations) {
@@ -28,6 +32,8 @@ StationsController::StationsController(StationService *stationService,
             queue->setRepeatMode(QueueService::RepeatOff);
             m_queuedTrackIds.clear();
             m_queueTokens.clear();
+            m_currentStationTrackId.clear();
+            m_stationTrackStarted = false;
             m_stationPlaying = false;
             m_stationNeedsResume = false;
             m_tracksModel->clear();
@@ -49,6 +55,39 @@ StationsController::StationsController(StationService *stationService,
             emit stationLoadingChanged();
             emit statusChanged(message);
           });
+
+  // Фидбек ротора: trackStarted / trackFinished по границам трека.
+  connect(m_playerService, &PlayerService::playbackStarted, this, [this]() {
+    if (!m_stationActive || !isStationSource()) return;
+    if (m_currentStationTrackId.isEmpty()) return;
+    if (m_stationTrackStarted) return;
+    m_stationTrackStarted = true;
+    m_stationService->sendStationFeedback("trackStarted", m_currentStationTrackId, 0);
+  });
+
+  connect(m_playbackController, &PlaybackController::currentTrackChanged, this, [this]() {
+    if (!m_stationActive || !isStationSource()) return;
+    const Track current = m_playbackController->queueService()->currentTrack();
+    if (current.id.isEmpty()) return;
+    if (m_currentStationTrackId == current.id) return;
+    m_currentStationTrackId = current.id;
+    m_stationTrackStarted = false;
+  });
+
+  connect(m_playerService, &PlayerService::playbackFinished, this, [this]() {
+    if (!m_stationActive || !isStationSource()) return;
+    const QString finishedId = m_currentStationTrackId;
+    const bool wasStarted = m_stationTrackStarted;
+    const qint64 playedSeconds = m_playerService->position() / 1000;
+    if (wasStarted) {
+      m_stationService->sendStationFeedback("trackFinished", finishedId, playedSeconds);
+    }
+    m_stationTrackStarted = false;
+  });
+}
+
+bool StationsController::isStationSource() const {
+  return m_playbackController->queueService()->sourceType() == "station";
 }
 
 QString StationsController::labelForType(const QString &type) {
@@ -279,6 +318,25 @@ QVariantList StationsController::groups() const {
 
 bool StationsController::stationLoading() const {
   return m_stationLoading;
+}
+
+bool StationsController::isStationActive() const {
+  return m_stationActive;
+}
+
+void StationsController::reportStationSkip() {
+  if (!m_stationActive) return;
+  const QString id = m_currentStationTrackId;
+  if (id.isEmpty()) return;
+  const qint64 playedSeconds = m_playerService ? m_playerService->position() / 1000 : 0;
+  m_stationService->sendStationFeedback("skip", id, playedSeconds);
+}
+
+void StationsController::reportStationLikeChanged(const QString &trackId, bool liked) {
+  if (!m_stationActive) return;
+  const QString id = trackId.trimmed();
+  if (id.isEmpty()) return;
+  m_stationService->sendStationFeedback(liked ? "like" : "unlike", id, 0);
 }
 
 GenreStationModel *StationsController::tracksModel() const {

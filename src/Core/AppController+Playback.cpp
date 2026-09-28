@@ -15,6 +15,10 @@ void AppController::stop() {
 }
 
 void AppController::next() {
+  // Пропуск текущего трека станции (если играет станция) — фидбек ротора.
+  if (m_playbackController->queueService()->sourceType() == "station") {
+    m_stationsController->reportStationSkip();
+  }
   if (!m_playbackController->next()) {
     emit statusChanged("Следующего трека нет");
   }

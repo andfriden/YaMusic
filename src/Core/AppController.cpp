@@ -58,8 +58,8 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
       m_chartController(new ChartController(m_chartService, m_playbackController, this)),
       m_genreController(new GenreController(m_genreService, m_playlistService, m_stationService,
                                             m_playbackController, this)),
-      m_stationsController(
-          new StationsController(m_stationService, m_playbackController, this)),
+      m_stationsController(new StationsController(m_stationService, m_playbackController,
+                                                  m_playerService, this)),
       m_lyricsController(
           new LyricsController(m_trackService, m_playbackController, m_playerService, this)),
       m_themeController(new ThemeController(this)),
@@ -489,10 +489,17 @@ void AppController::toggleLike(const QString &trackId, bool liked) {
     return;
   }
 
-  if (liked) {
+  const bool wasLiked = liked;
+
+  if (wasLiked) {
     m_likesService->removeLike(m_accountUid, id);
   } else {
     m_likesService->addLike(m_accountUid, id);
+  }
+
+  // Фидбек ротора: станция запоминает, что трек понравился/не понравился.
+  if (m_playbackController->queueService()->sourceType() == "station") {
+    m_stationsController->reportStationLikeChanged(id, !wasLiked);
   }
 }
 

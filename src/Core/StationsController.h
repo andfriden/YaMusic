@@ -8,6 +8,7 @@
 #include <QVariantList>
 
 class PlaybackController;
+class PlayerService;
 class StationService;
 
 // Контроллер раздела «Станции»: список станций, сгруппированный по типу.
@@ -26,7 +27,7 @@ class StationsController : public QObject {
 
 public:
   explicit StationsController(StationService *stationService, PlaybackController *playbackController,
-                              QObject *parent = nullptr);
+                              PlayerService *playerService, QObject *parent = nullptr);
 
   Q_INVOKABLE void loadStations();
 
@@ -34,6 +35,14 @@ public:
 
   // Вызывается из AppController при playlistExhausted источника "station".
   void handleStationPlaylistExhausted();
+
+  bool isStationActive() const;
+
+  // Пропуск текущего трека станции (сыграно x сек).
+  void reportStationSkip();
+
+  // Изменение лайка трека станции (только фидбек ротора, лайки уже сделаны).
+  void reportStationLikeChanged(const QString &trackId, bool liked);
 
   bool loading() const;
 
@@ -59,6 +68,8 @@ private:
 
   void tryAdvanceStation();
 
+  bool isStationSource() const;
+
   static QString labelForType(const QString &type);
 
   static int typeOrder(const QString &type);
@@ -68,6 +79,8 @@ private:
   StationService *m_stationService = nullptr;
 
   PlaybackController *m_playbackController = nullptr;
+
+  PlayerService *m_playerService = nullptr;
 
   GenreStationModel *m_tracksModel = nullptr;
 
@@ -79,6 +92,8 @@ private:
   bool m_stationPlaying = false;
   bool m_stationNeedsResume = false;
   QString m_stationTitle;
+  QString m_currentStationTrackId;
+  bool m_stationTrackStarted = false;
   QSet<QString> m_queuedTrackIds;
   QList<QString> m_queueTokens;
 };

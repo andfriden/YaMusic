@@ -31,6 +31,11 @@ public:
   // треков. Ротор не возвращает их повторно, если передать очередь целиком.
   void loadMoreStationSession(const QStringList &queueTokens);
 
+  // Событие ротора для активной сессии: trackStarted / trackFinished / skip /
+  // like / unlike (POST /rotor/session/<id>/feedback).
+  void sendStationFeedback(const QString &type, const QString &trackId,
+                           qint64 totalPlayedSeconds = 0);
+
   void sendFeedback(const QString &stationType, const QString &stationId, const QString &event,
                     const QString &trackId, const QString &batchId, qint64 totalPlayedSeconds = 0);
 
@@ -53,4 +58,5 @@ private:
   YandexClient *m_yandexClient = nullptr;
   bool m_loading = false;
   QString m_sessionId;
+  QString m_batchId;
 };

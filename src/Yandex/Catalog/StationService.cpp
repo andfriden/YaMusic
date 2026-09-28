@@ -298,9 +298,48 @@ void StationService::startStationSession(const QString &stationType, const QStri
       return fail("Яндекс Музыка не вернула сессию с треками");
 
     m_sessionId = sessionId;
+    m_batchId = batchId;
     emit sessionStarted(sessionId, batchId, tracks);
     reply->deleteLater();
   });
+}
+
+void StationService::sendStationFeedback(const QString &type, const QString &trackId,
+                                         qint64 totalPlayedSeconds) {
+  const QString eventType = type.trimmed();
+  const QString id = trackId.trimmed();
+  if (eventType.isEmpty() || id.isEmpty()) {
+    return;
+  }
+  if (m_sessionId.isEmpty()) {
+    return;
+  }
+  if (!m_auth->isAuthenticated()) {
+    return;
+  }
+
+  m_yandexClient->setToken(m_auth->token());
+
+  QJsonObject event;
+  event.insert("type", eventType);
+  event.insert("timestamp", QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
+  event.insert("trackId", id);
+  if (eventType == "trackFinished" || eventType == "skip") {
+    event.insert("totalPlayedSeconds", qMax(0LL, totalPlayedSeconds));
+  }
+
+  QJsonObject body;
+  body.insert("from", "web-home-rup_main-radio-default");
+  body.insert("batchId", m_batchId);
+  body.insert("event", event);
+
+  QNetworkReply *reply =
+      m_yandexClient->post(QStringLiteral("/rotor/session/%1/feedback").arg(m_sessionId), body);
+  if (reply == nullptr) {
+    return;
+  }
+
+  connect(reply, &QNetworkReply::finished, this, [reply]() { reply->deleteLater(); });
 }
 
 void StationService::loadMoreStationSession(const QStringList &queueTokens) {
