@@ -664,17 +664,30 @@ endif()
 # the installation tree so the user does not need Qt installed.
 # =============================================================
 
-qt_generate_deploy_qml_app_script(
-        TARGET
-        appYaMusic
+# Свой deploy-скрипт (вместо qt_generate_deploy_qml_app_script):
+# исключаем libqt6ct.so из бандла — у него нет RPATH, и стандартный
+# деплой падает на file(RPATH_SET). Приложениям qt6ct не нужен.
+set(YAMUSIC_DEPLOY_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/deploy_qml_app_manual.cmake")
 
-        OUTPUT_SCRIPT
-        deploy_script
+file(
+        WRITE
+        "${YAMUSIC_DEPLOY_SCRIPT}"
 
-        NO_UNSUPPORTED_PLATFORM_ERROR
+"include(\"${CMAKE_CURRENT_BINARY_DIR}/.qt/QtDeploySupport.cmake\")\n"
+"include(\"\${CMAKE_CURRENT_LIST_DIR}/appYaMusic-plugins.cmake\" OPTIONAL)\n"
+"set(__QT_DEPLOY_I18N_CATALOGS \"qtbase;qtdeclarative;qtmultimedia\")\n"
+"qt6_deploy_qml_imports(TARGET appYaMusic PLUGINS_FOUND plugins_found)\n"
+"qt6_deploy_runtime_dependencies(\n"
+"    EXECUTABLE \"${CMAKE_CURRENT_BINARY_DIR}/yamusic\"\n"
+"    ADDITIONAL_MODULES \${plugins_found}\n"
+"    GENERATE_QT_CONF\n"
+"    NO_TRANSLATIONS\n"
+"    EXCLUDE_PLUGIN_TYPES \"platformthemes\"\n"
+"    POST_EXCLUDE_REGEXES \".*qt6ct.*\"\n"
+")\n"
 )
 
 install(
         SCRIPT
-        "${deploy_script}"
+        "${YAMUSIC_DEPLOY_SCRIPT}"
 )
