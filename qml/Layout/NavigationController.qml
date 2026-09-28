@@ -175,6 +175,8 @@ Item {
                 return "../Pages/ChartPage.qml"
             case "genres":
                 return "../Pages/GenresPage.qml"
+            case "stations":
+                return "../Pages/StationsPage.qml"
             case "sport":
                 return "../Pages/SportPage.qml"
             default:

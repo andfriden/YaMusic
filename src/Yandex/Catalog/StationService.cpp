@@ -14,6 +14,87 @@ StationService::StationService(YandexAuth *auth, QObject *parent)
   Q_ASSERT(m_auth);
 }
 
+static QString stationTypeOf(const QJsonObject &id) {
+  return id.value("type").toString().trimmed();
+}
+
+static QString stationTagOf(const QJsonObject &id) {
+  return id.value("tag").toString().trimmed();
+}
+
+static QString imageUrlOf(const QJsonObject &icon) {
+  const QString fullImageUrl = icon.value("fullImageUrl").toString();
+  if (!fullImageUrl.trimmed().isEmpty()) {
+    return fullImageUrl;
+  }
+  return icon.value("imageUrl").toString();
+}
+
+void StationService::loadStations() {
+  if (!m_auth->isAuthenticated()) {
+    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    return;
+  }
+
+  m_yandexClient->setToken(m_auth->token());
+  QUrlQuery query;
+  query.addQueryItem("language", "ru");
+  const auto path = QStringLiteral("/rotor/stations/list?%1")
+                        .arg(query.toString(QUrl::FullyEncoded));
+  QNetworkReply *reply = m_yandexClient->get(path);
+
+  if (reply == nullptr) {
+    emit errorOccurred("Не удалось создать запрос списка станций");
+    return;
+  }
+
+  connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+    auto fail = [&](const QString &msg) {
+      emit errorOccurred(msg);
+      reply->deleteLater();
+    };
+    const QByteArray data = reply->readAll();
+    if (reply->error() != QNetworkReply::NoError) return fail(reply->errorString());
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
+    if (parseError.error != QJsonParseError::NoError) return fail("Некорректный ответ списка станций");
+
+    QJsonArray result;
+    if (document.isArray()) {
+      result = document.array();
+    } else if (document.isObject()) {
+      result = document.object().value("result").toArray();
+    }
+    if (result.isEmpty()) return fail("Список станций пуст");
+
+    QList<Station> stations;
+
+    for (const QJsonValue &value : result) {
+      if (!value.isObject()) continue;
+      const QJsonObject item = value.toObject();
+      const QJsonObject stationObject = item.value("station").toObject();
+      if (stationObject.isEmpty()) continue;
+      const QJsonObject id = stationObject.value("id").toObject();
+      if (id.isEmpty()) continue;
+
+      Station station;
+      station.type = stationTypeOf(id);
+      station.tag = stationTagOf(id);
+      station.name = stationObject.value("name").toString();
+      const QJsonObject icon = stationObject.value("icon").toObject();
+      station.imageUrl = imageUrlOf(icon);
+      station.backgroundColor = icon.value("backgroundColor").toString();
+
+      if (station.type.isEmpty() || station.tag.isEmpty()) continue;
+      stations.append(station);
+    }
+
+    if (stations.isEmpty()) return fail("Список станций пуст");
+    emit stationsReceived(stations);
+    reply->deleteLater();
+  });
+}
+
 void StationService::loadStationTracks(const QString &stationType, const QString &stationId,
                                        const QString &queueTrackId) {
   if (m_loading) return;
@@ -148,7 +229,141 @@ void StationService::sendFeedback(const QString &stationType, const QString &sta
   });
 }
 
-// TODO(#171): вынести общий парсинг трека из StationService и YandexPersonal
+QList<Track> StationService::parseSessionSequence(const QJsonArray &sequence,
+                                                  const StationService *self) {
+  QList<Track> tracks;
+  for (const QJsonValue &value : sequence) {
+    if (!value.isObject()) continue;
+    const QJsonObject item = value.toObject();
+    const QJsonObject trackObject = item.value("track").toObject();
+    if (trackObject.isEmpty()) continue;
+    const QString type = item.value("type").toString();
+    if (!type.isEmpty() && type != "track") continue;
+    const Track track = self->parseTrack(trackObject);
+    if (!track.id.isEmpty()) tracks.append(track);
+  }
+  return tracks;
+}
+
+QString StationService::trackIdOfQueueToken(const QString &queueToken) {
+  const QString token = queueToken.trimmed();
+  const int colon = token.indexOf(':');
+  return colon > 0 ? token.left(colon) : token;
+}
+
+void StationService::startStationSession(const QString &stationType, const QString &stationTag) {
+  const QString type = stationType.trimmed();
+  const QString tag = stationTag.trimmed();
+  if (type.isEmpty() || tag.isEmpty()) {
+    emit errorOccurred("Некорректная станция для сессии");
+    return;
+  }
+  if (!m_auth->isAuthenticated()) {
+    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    return;
+  }
+
+  m_yandexClient->setToken(m_auth->token());
+  QJsonObject settings2;
+  settings2.insert("language", "russian");
+  settings2.insert("diversity", "high");
+  settings2.insert("mood", 0.5);
+  settings2.insert("energy", 0.25);
+
+  QJsonObject body;
+  body.insert("includeTracksInResponse", true);
+  body.insert("interactive", true);
+  body.insert("seeds", QJsonArray{QStringLiteral("%1:%2").arg(type, tag)});
+  body.insert("settings2", settings2);
+
+  QNetworkReply *reply = m_yandexClient->post(QStringLiteral("/rotor/session/new"), body);
+  if (reply == nullptr) {
+    emit errorOccurred("Не удалось создать запрос сессии станции");
+    return;
+  }
+
+  connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+    auto fail = [&](const QString &msg) {
+      emit errorOccurred(msg);
+      reply->deleteLater();
+    };
+    const QByteArray data = reply->readAll();
+    if (reply->error() != QNetworkReply::NoError) return fail(reply->errorString());
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
+    if (parseError.error != QJsonParseError::NoError || !document.isObject())
+      return fail("Некорректный ответ начала сессии");
+    const QJsonObject result = unwrapResult(document);
+    if (result.isEmpty()) return fail("Ответ начала сессии пуст");
+
+    const QString sessionId = result.value("radioSessionId").toString().trimmed();
+    const QString batchId = result.value("batchId").toString().trimmed();
+    const QList<Track> tracks =
+        parseSessionSequence(result.value("sequence").toArray(), this);
+    if (sessionId.isEmpty() || tracks.isEmpty())
+      return fail("Яндекс Музыка не вернула сессию с треками");
+
+    m_sessionId = sessionId;
+    emit sessionStarted(sessionId, batchId, tracks);
+    reply->deleteLater();
+  });
+}
+
+void StationService::loadMoreStationSession(const QString &queueToken) {
+  const QString token = queueToken.trimmed();
+  if (token.isEmpty()) {
+    emit errorOccurred("Нет токена для продолжения сессии станции");
+    return;
+  }
+  if (m_sessionId.isEmpty()) {
+    emit errorOccurred("Нет активной сессии станции");
+    return;
+  }
+  if (!m_auth->isAuthenticated()) {
+    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    return;
+  }
+
+  m_yandexClient->setToken(m_auth->token());
+  QJsonObject feedbackItem;
+  feedbackItem.insert("type", "trackStarted");
+  feedbackItem.insert("trackId", trackIdOfQueueToken(token));
+
+  QJsonObject body;
+  body.insert("feedback", QJsonArray{feedbackItem});
+  body.insert("queue", QJsonArray{token});
+
+  const auto path = QStringLiteral("/rotor/session/%1/tracks").arg(m_sessionId);
+  QNetworkReply *reply = m_yandexClient->post(path, body);
+  if (reply == nullptr) {
+    emit errorOccurred("Не удалось создать запрос продолжения сессии");
+    return;
+  }
+
+  connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+    auto fail = [&](const QString &msg) {
+      emit errorOccurred(msg);
+      reply->deleteLater();
+    };
+    const QByteArray data = reply->readAll();
+    if (reply->error() != QNetworkReply::NoError) return fail(reply->errorString());
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
+    if (parseError.error != QJsonParseError::NoError || !document.isObject())
+      return fail("Некорректный ответ продолжения сессии");
+    const QJsonObject result = unwrapResult(document);
+    if (result.isEmpty()) return fail("Ответ продолжения сессии пуст");
+
+    const QString batchId = result.value("batchId").toString().trimmed();
+    const QList<Track> tracks =
+        parseSessionSequence(result.value("sequence").toArray(), this);
+    if (tracks.isEmpty()) return fail("Яндекс Музыка не вернула следующие треки");
+
+    emit moreSessionTracksReceived(batchId, tracks);
+    reply->deleteLater();
+  });
+}
+
 Track StationService::parseTrack(const QJsonObject &object) const {
   Track track;
   track.id = parseId(object);

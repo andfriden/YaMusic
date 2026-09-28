@@ -18,6 +18,7 @@
 #include "LyricsController.h"
 #include "PersonalController.h"
 #include "SearchController.h"
+#include "StationsController.h"
 #include "ThemeController.h"
 #include <QObject>
 #include <QString>
@@ -81,6 +82,7 @@ class AppController : public QObject {
   Q_PROPERTY(ArtistController *artistController READ artistController CONSTANT)
   Q_PROPERTY(ChartController *chartController READ chartController CONSTANT)
   Q_PROPERTY(GenreController *genreController READ genreController CONSTANT)
+  Q_PROPERTY(StationsController *stationsController READ stationsController CONSTANT)
   Q_PROPERTY(LyricsController *lyricsController READ lyricsController CONSTANT)
   Q_PROPERTY(ThemeController *themeController READ themeController CONSTANT)
   Q_PROPERTY(AccentController *accentController READ accentController CONSTANT)
@@ -219,6 +221,7 @@ public:
   ArtistController *artistController() const;
   ChartController *chartController() const;
   GenreController *genreController() const;
+  StationsController *stationsController() const;
   LyricsController *lyricsController() const;
   ThemeController *themeController() const;
   AccentController *accentController() const;
@@ -320,6 +323,7 @@ private:
   void connectArtist();
   void connectChart();
   void connectGenre();
+  void connectStations();
   void connectPlayback();
   void connectPlayer();
 
@@ -352,6 +356,7 @@ private:
   ArtistController *m_artistController;
   ChartController *m_chartController;
   GenreController *m_genreController;
+  StationsController *m_stationsController;
   LyricsController *m_lyricsController = nullptr;
   ThemeController *m_themeController = nullptr;
   AccentController *m_accentController = nullptr;

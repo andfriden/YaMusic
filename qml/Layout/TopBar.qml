@@ -99,6 +99,7 @@ Item {
                 { title: "Моя волна", section: "wave" },
                 { title: "Чарты", section: "chart" },
                 { title: "Жанры", section: "genres" },
+                { title: "Станции", section: "stations" },
                 { title: "Плейлисты", section: "playlists" },
                 { title: "Спорт", section: "sport" },
                 { title: "Мне нравится", section: "liked" }

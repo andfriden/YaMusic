@@ -67,3 +67,19 @@ QString GenreStationModel::lastTrackId() const {
   }
   return m_tracks.last().id;
 }
+
+QString GenreStationModel::lastQueueToken() const {
+  if (m_tracks.isEmpty()) {
+    return {};
+  }
+  const Track &track = m_tracks.last();
+  if (track.id.isEmpty()) {
+    return {};
+  }
+  const QString albumId =
+      track.albums.isEmpty() ? QString() : track.albums.first().id;
+  if (albumId.isEmpty()) {
+    return track.id;
+  }
+  return QStringLiteral("%1:%2").arg(track.id, albumId);
+}

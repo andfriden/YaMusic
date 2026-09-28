@@ -58,6 +58,8 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
       m_chartController(new ChartController(m_chartService, m_playbackController, this)),
       m_genreController(new GenreController(m_genreService, m_playlistService, m_stationService,
                                             m_playbackController, this)),
+      m_stationsController(
+          new StationsController(m_stationService, m_playbackController, this)),
       m_lyricsController(
           new LyricsController(m_trackService, m_playbackController, m_playerService, this)),
       m_themeController(new ThemeController(this)),
@@ -75,6 +77,7 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
   connectArtist();
   connectChart();
   connectGenre();
+  connectStations();
   connectPlayback();
   connectPlayer();
 
@@ -303,6 +306,11 @@ void AppController::connectGenre() {
           &AppController::statusChanged);
 }
 
+void AppController::connectStations() {
+  connect(m_stationsController, &StationsController::statusChanged, this,
+          &AppController::statusChanged);
+}
+
 void AppController::connectPlayback() {
   connect(m_playbackController, &PlaybackController::currentTrackChanged, this,
           [this]() {
@@ -361,6 +369,11 @@ void AppController::connectPlayback() {
 
             if (sourceType == "artistRadio") {
               m_artistController->handleArtistRadioExhausted();
+              return;
+            }
+
+            if (sourceType == "station") {
+              m_stationsController->handleStationPlaylistExhausted();
               return;
             }
 
@@ -610,7 +623,11 @@ ChartController *AppController::chartController() const {
 }
 
 GenreController *AppController::genreController() const {
-  return m_genreController;
+return m_genreController;
+}
+
+StationsController *AppController::stationsController() const {
+  return m_stationsController;
 }
 
 LyricsController *AppController::lyricsController() const {

@@ -135,6 +135,7 @@ set(
         src/Core/AccentController.cpp
         src/Core/ChartController.cpp
         src/Core/GenreController.cpp
+        src/Core/StationsController.cpp
         src/Core/LibraryController.cpp
         src/Core/LyricsController.cpp
         src/Core/PersonalController.cpp
@@ -377,6 +378,7 @@ set(
         "${YAMUSIC_QML_ROOT}/Pages/GenresPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/GenrePage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/SportPage.qml"
+        "${YAMUSIC_QML_ROOT}/Pages/StationsPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/LoginPage.qml"
 
         # Home
