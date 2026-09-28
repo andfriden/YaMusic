@@ -80,4 +80,5 @@ private:
   bool m_stationNeedsResume = false;
   QString m_stationTitle;
   QSet<QString> m_queuedTrackIds;
+  QList<QString> m_queueTokens;
 };

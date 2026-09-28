@@ -5,6 +5,7 @@
 #include <QList>
 #include <QObject>
 #include <QString>
+#include <QStringList>
 
 class YandexAuth;
 class YandexClient;
@@ -26,7 +27,9 @@ public:
   // Сессионный ротор: POST /rotor/session/new и /rotor/session/<id>/tracks.
   void startStationSession(const QString &stationType, const QString &stationTag);
 
-  void loadMoreStationSession(const QString &queueToken);
+  // queueTokens — накопленная очередь вида "<trackId>:<albumId>" всех сыгранных
+  // треков. Ротор не возвращает их повторно, если передать очередь целиком.
+  void loadMoreStationSession(const QStringList &queueTokens);
 
   void sendFeedback(const QString &stationType, const QString &stationId, const QString &event,
                     const QString &trackId, const QString &batchId, qint64 totalPlayedSeconds = 0);
@@ -45,7 +48,6 @@ private:
 
   static QList<Track> parseSessionSequence(const QJsonArray &sequence,
                                            const StationService *self);
-  static QString trackIdOfQueueToken(const QString &queueToken);
 
   YandexAuth *m_auth = nullptr;
   YandexClient *m_yandexClient = nullptr;

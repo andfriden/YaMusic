@@ -27,6 +27,7 @@ StationsController::StationsController(StationService *stationService,
             queue->clearSource();
             queue->setRepeatMode(QueueService::RepeatOff);
             m_queuedTrackIds.clear();
+            m_queueTokens.clear();
             m_stationPlaying = false;
             m_stationNeedsResume = false;
             m_tracksModel->clear();
@@ -54,11 +55,23 @@ QString StationsController::labelForType(const QString &type) {
   const QString t = type.trimmed();
   if (t == "user") return "Мои станции";
   if (t == "genre") return "Жанры";
+  if (t == "editorial") return "Подборки";
+  if (t == "personal") return "Персональное";
   if (t == "mood") return "Настроение";
-  if (t == "language") return "Язык";
+  if (t == "mix-by-mood") return "Миксы по настроению";
+  if (t == "activity") return "Активность";
+  if (t == "mix-by-activity") return "Миксы по активности";
+  if (t == "epoch") return "Эпохи";
   if (t == "decade") return "Десятилетия";
+  if (t == "language") return "Язык";
+  if (t == "local-language") return "Языки";
+  if (t == "tempo") return "Темп";
+  if (t == "mix-by-tempo") return "Миксы по темпу";
+  if (t == "mix-by-genre") return "Миксы по жанрам";
+  if (t == "mix-by-micro-genre") return "Миксы по микрожанрам";
+  if (t == "micro-genre") return "Микрожанры";
+  if (t == "author") return "Авторы";
   if (t == "diversity") return "Разнообразие";
-  if (t == "activity") return "Активности";
   return t;
 }
 
@@ -66,11 +79,22 @@ int StationsController::typeOrder(const QString &type) {
   const QString t = type.trimmed();
   if (t == "user") return 0;
   if (t == "genre") return 1;
-  if (t == "mood") return 2;
-  if (t == "language") return 3;
-  if (t == "decade") return 4;
-  if (t == "diversity") return 5;
-  if (t == "activity") return 6;
+  if (t == "editorial") return 2;
+  if (t == "personal") return 3;
+  if (t == "mood") return 4;
+  if (t == "activity") return 5;
+  if (t == "epoch") return 6;
+  if (t == "decade") return 7;
+  if (t == "language" || t == "local-language") return 8;
+  if (t == "tempo") return 9;
+  if (t == "mix-by-mood") return 10;
+  if (t == "mix-by-genre") return 11;
+  if (t == "mix-by-micro-genre") return 12;
+  if (t == "mix-by-activity") return 13;
+  if (t == "mix-by-tempo") return 14;
+  if (t == "micro-genre") return 15;
+  if (t == "author") return 16;
+  if (t == "diversity") return 17;
   return 100;
 }
 
@@ -159,6 +183,13 @@ void StationsController::appendTrackBatch(const QList<Track> &tracks) {
     if (track.id.isEmpty()) continue;
     if (m_queuedTrackIds.contains(track.id)) continue;
     m_queuedTrackIds.insert(track.id);
+
+    const QString albumId =
+        track.albums.isEmpty() ? QString() : track.albums.first().id;
+    const QString token =
+        albumId.isEmpty() ? track.id : QStringLiteral("%1:%2").arg(track.id, albumId);
+    m_queueTokens.append(token);
+
     toAdd.append(track);
   }
 
@@ -166,7 +197,9 @@ void StationsController::appendTrackBatch(const QList<Track> &tracks) {
     return;
   }
 
-  queue->addTracks(toAdd);
+  for (const Track &track : toAdd) {
+    queue->addTrack(track);
+  }
   queue->setSource(QStringLiteral("Станция: %1").arg(m_stationTitle), "station");
   m_tracksModel->appendTracks(toAdd);
   tryAdvanceStation();
@@ -223,9 +256,7 @@ void StationsController::handleStationPlaylistExhausted() {
     return;
   }
 
-  const QString token = m_tracksModel->lastQueueToken();
-
-  if (token.isEmpty()) {
+  if (m_queueTokens.isEmpty()) {
     m_stationActive = false;
     emit statusChanged("Станция не дала треков");
     return;
@@ -235,7 +266,7 @@ void StationsController::handleStationPlaylistExhausted() {
   m_stationLoading = true;
   emit stationLoadingChanged();
   emit statusChanged("Загрузка следующих треков станции...");
-  m_stationService->loadMoreStationSession(token);
+  m_stationService->loadMoreStationSession(m_queueTokens);
 }
 
 bool StationsController::loading() const {

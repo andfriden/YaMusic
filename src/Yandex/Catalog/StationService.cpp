@@ -245,12 +245,6 @@ QList<Track> StationService::parseSessionSequence(const QJsonArray &sequence,
   return tracks;
 }
 
-QString StationService::trackIdOfQueueToken(const QString &queueToken) {
-  const QString token = queueToken.trimmed();
-  const int colon = token.indexOf(':');
-  return colon > 0 ? token.left(colon) : token;
-}
-
 void StationService::startStationSession(const QString &stationType, const QString &stationTag) {
   const QString type = stationType.trimmed();
   const QString tag = stationTag.trimmed();
@@ -309,12 +303,7 @@ void StationService::startStationSession(const QString &stationType, const QStri
   });
 }
 
-void StationService::loadMoreStationSession(const QString &queueToken) {
-  const QString token = queueToken.trimmed();
-  if (token.isEmpty()) {
-    emit errorOccurred("Нет токена для продолжения сессии станции");
-    return;
-  }
+void StationService::loadMoreStationSession(const QStringList &queueTokens) {
   if (m_sessionId.isEmpty()) {
     emit errorOccurred("Нет активной сессии станции");
     return;
@@ -324,14 +313,30 @@ void StationService::loadMoreStationSession(const QString &queueToken) {
     return;
   }
 
+  QStringList tokenList;
+  for (const QString &token : queueTokens) {
+    if (!token.trimmed().isEmpty()) {
+      tokenList.append(token.trimmed());
+    }
+  }
+  if (tokenList.isEmpty()) {
+    emit errorOccurred("Нет очереди для продолжения сессии станции");
+    return;
+  }
+
   m_yandexClient->setToken(m_auth->token());
-  QJsonObject feedbackItem;
-  feedbackItem.insert("type", "trackStarted");
-  feedbackItem.insert("trackId", trackIdOfQueueToken(token));
+
+  // Ротор не возвращает уже сыгранные треки, если передать всю очередь
+  // вида "<trackId>:<albumId>", накопленную по сессии. Фидбек уходит
+  // отдельными запросами, здесь достаточно пустого массива.
+  QJsonArray queue;
+  for (const QString &token : tokenList) {
+    queue.append(token);
+  }
 
   QJsonObject body;
-  body.insert("feedback", QJsonArray{feedbackItem});
-  body.insert("queue", QJsonArray{token});
+  body.insert("feedbacks", QJsonArray());
+  body.insert("queue", queue);
 
   const auto path = QStringLiteral("/rotor/session/%1/tracks").arg(m_sessionId);
   QNetworkReply *reply = m_yandexClient->post(path, body);

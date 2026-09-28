@@ -28,7 +28,7 @@ Item {
     readonly property int spacing: 12
     readonly property real cardWidth:
         Math.floor((root.width - root.margin * 2 - spacing * (columns - 1)) / columns)
-    readonly property int cardHeight: 96
+    readonly property int cardHeight: 108
 
     width: parent ? parent.width : 0
     implicitWidth: width
@@ -189,7 +189,7 @@ Item {
                                 anchors.right: parent.right
                                 anchors.bottom: parent.bottom
 
-                                height: 44
+                                height: 56
 
                                 gradient: Gradient {
                                     GradientStop { position: 0.0; color: "transparent" }
@@ -205,11 +205,11 @@ Item {
 
                                 text: modelData.title || ""
                                 color: "white"
-                                font.pixelSize: 13
+                                font.pixelSize: 12
                                 font.bold: true
 
-                                elide: Text.ElideRight
-                                maximumLineCount: 1
+                                wrapMode: Text.Wrap
+                                maximumLineCount: 2
                             }
 
                             MouseArea {
@@ -329,7 +329,7 @@ Item {
                             anchors.right: parent.right
                             anchors.bottom: parent.bottom
 
-                            height: 44
+height: 56
 
                             gradient: Gradient {
                                 GradientStop { position: 0.0; color: "transparent" }
@@ -345,11 +345,11 @@ Item {
 
                             text: modelData.title || ""
                             color: "white"
-                            font.pixelSize: 13
+                            font.pixelSize: 12
                             font.bold: true
 
-                            elide: Text.ElideRight
-                            maximumLineCount: 1
+                            wrapMode: Text.Wrap
+                            maximumLineCount: 2
                         }
 
                         MouseArea {

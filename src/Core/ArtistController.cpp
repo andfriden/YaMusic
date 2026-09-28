@@ -318,7 +318,9 @@ int ArtistController::appendRadioAlbumTracks(const QList<Track> &tracks) {
     return 0;
   }
 
-  queue->addTracks(toAdd);
+  for (const Track &track : toAdd) {
+    queue->addTrack(track);
+  }
   queue->setSource(m_radioCurrentArtistName, "artistRadio");
   tryAdvanceRadio();
   return toAdd.size();

@@ -22,6 +22,4 @@ public:
   QHash<int, QByteArray> roleNames() const override;
   void appendTracks(const QList<Track> &tracks);
   QString lastTrackId() const;
-  // Токен очереди ротора для последнего трека: "<trackId>:<albumId>".
-  QString lastQueueToken() const;
 };
