@@ -664,46 +664,64 @@ endif()
 # the installation tree so the user does not need Qt installed.
 # =============================================================
 
-# Свой deploy-скрипт вместо qt_generate_deploy_qml_app_script:
-# пропускаем установку переводов. В CI (Qt 6.9.0) опций
-# EXCLUDE_PLUGIN_TYPES/EXCLUDE_PLUGINS нет, а qt6ct-плагин туда не входит,
-# поэтому генерируем опцию исключения только если qt6ct реально установлен
-# в этом окружении (иначе локальный board простол бандлится и падает на RPATH).
-set(YAMUSIC_EXCLUDE_QT6CT "")
+if(UNIX AND NOT APPLE)
+  # Linux: свой deploy-скрипт вместо qt_generate_deploy_qml_app_script.
+  # Пропускаем установку переводов. В CI (Qt 6.9.0) опций
+  # EXCLUDE_PLUGIN_TYPES/EXCLUDE_PLUGINS нет, а qt6ct-плагин туда не входит,
+  # поэтому генерируем опцию исключения только если qt6ct реально установлен
+  # в этом окружении (иначе локальный плагин бандлится и падает на RPATH).
+  set(YAMUSIC_EXCLUDE_QT6CT "")
 
-find_file(YAMUSIC_QT6CT_PLUGIN
-        libqt6ct.so
-        HINTS
-        "${CMAKE_PREFIX_PATH}/lib/qt6/plugins/platformthemes"
-        "/usr/lib/qt6/plugins/platformthemes"
-        "/usr/lib/x86_64-linux-gnu/qt6/plugins/platformthemes"
-        "/usr/local/qt6/plugins/platformthemes"
-)
+  find_file(YAMUSIC_QT6CT_PLUGIN
+          libqt6ct.so
+          HINTS
+          "${CMAKE_PREFIX_PATH}/lib/qt6/plugins/platformthemes"
+          "/usr/lib/qt6/plugins/platformthemes"
+          "/usr/lib/x86_64-linux-gnu/qt6/plugins/platformthemes"
+          "/usr/local/qt6/plugins/platformthemes"
+  )
 
-if(YAMUSIC_QT6CT_PLUGIN)
-    set(YAMUSIC_EXCLUDE_QT6CT "EXCLUDE_PLUGIN_TYPES \"platformthemes\"")
+  if(YAMUSIC_QT6CT_PLUGIN)
+      set(YAMUSIC_EXCLUDE_QT6CT "EXCLUDE_PLUGIN_TYPES \"platformthemes\"")
+  endif()
+
+  set(YAMUSIC_DEPLOY_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/deploy_qml_app_manual.cmake")
+
+  file(
+          WRITE
+          "${YAMUSIC_DEPLOY_SCRIPT}"
+
+      "include(\"${CMAKE_CURRENT_BINARY_DIR}/.qt/QtDeploySupport.cmake\")\n"
+      "include(\"\${CMAKE_CURRENT_LIST_DIR}/appYaMusic-plugins.cmake\" OPTIONAL)\n"
+      "set(__QT_DEPLOY_I18N_CATALOGS \"qtbase;qtdeclarative;qtmultimedia\")\n"
+      "qt6_deploy_qml_imports(TARGET appYaMusic PLUGINS_FOUND plugins_found)\n"
+      "qt6_deploy_runtime_dependencies(\n"
+      "    EXECUTABLE \"${CMAKE_CURRENT_BINARY_DIR}/yamusic\"\n"
+      "    ADDITIONAL_MODULES \${plugins_found}\n"
+      "    GENERATE_QT_CONF\n"
+      "    NO_TRANSLATIONS\n"
+      "    ${YAMUSIC_EXCLUDE_QT6CT}\n"
+      ")\n"
+  )
+
+  install(
+          SCRIPT
+          "${YAMUSIC_DEPLOY_SCRIPT}"
+  )
+else()
+  # Windows / macOS: штатный скрипт (сам выбирает windeployqt/macdeployqt
+  # с правильными путями и расширением исполняемого файла).
+  qt_generate_deploy_qml_app_script(
+          TARGET
+          appYaMusic
+
+          OUTPUT_SCRIPT
+          deploy_script
+
+          NO_UNSUPPORTED_PLATFORM_ERROR
+  )
+  install(
+          SCRIPT
+          "${deploy_script}"
+  )
 endif()
-
-set(YAMUSIC_DEPLOY_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/deploy_qml_app_manual.cmake")
-
-file(
-        WRITE
-        "${YAMUSIC_DEPLOY_SCRIPT}"
-
-"include(\"${CMAKE_CURRENT_BINARY_DIR}/.qt/QtDeploySupport.cmake\")\n"
-"include(\"\${CMAKE_CURRENT_LIST_DIR}/appYaMusic-plugins.cmake\" OPTIONAL)\n"
-"set(__QT_DEPLOY_I18N_CATALOGS \"qtbase;qtdeclarative;qtmultimedia\")\n"
-"qt6_deploy_qml_imports(TARGET appYaMusic PLUGINS_FOUND plugins_found)\n"
-"qt6_deploy_runtime_dependencies(\n"
-"    EXECUTABLE \"${CMAKE_CURRENT_BINARY_DIR}/yamusic\"\n"
-"    ADDITIONAL_MODULES \${plugins_found}\n"
-"    GENERATE_QT_CONF\n"
-"    NO_TRANSLATIONS\n"
-"    ${YAMUSIC_EXCLUDE_QT6CT}\n"
-")\n"
-)
-
-install(
-        SCRIPT
-        "${YAMUSIC_DEPLOY_SCRIPT}"
-)
