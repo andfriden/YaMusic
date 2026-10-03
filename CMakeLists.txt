@@ -664,9 +664,26 @@ endif()
 # the installation tree so the user does not need Qt installed.
 # =============================================================
 
-# Свой deploy-скрипт (вместо qt_generate_deploy_qml_app_script):
-# исключаем libqt6ct.so из бандла — у него нет RPATH, и стандартный
-# деплой падает на file(RPATH_SET). Приложениям qt6ct не нужен.
+# Свой deploy-скрипт вместо qt_generate_deploy_qml_app_script:
+# пропускаем установку переводов. В CI (Qt 6.9.0) опций
+# EXCLUDE_PLUGIN_TYPES/EXCLUDE_PLUGINS нет, а qt6ct-плагин туда не входит,
+# поэтому генерируем опцию исключения только если qt6ct реально установлен
+# в этом окружении (иначе локальный board простол бандлится и падает на RPATH).
+set(YAMUSIC_EXCLUDE_QT6CT "")
+
+find_file(YAMUSIC_QT6CT_PLUGIN
+        libqt6ct.so
+        HINTS
+        "${CMAKE_PREFIX_PATH}/lib/qt6/plugins/platformthemes"
+        "/usr/lib/qt6/plugins/platformthemes"
+        "/usr/lib/x86_64-linux-gnu/qt6/plugins/platformthemes"
+        "/usr/local/qt6/plugins/platformthemes"
+)
+
+if(YAMUSIC_QT6CT_PLUGIN)
+    set(YAMUSIC_EXCLUDE_QT6CT "EXCLUDE_PLUGIN_TYPES \"platformthemes\"")
+endif()
+
 set(YAMUSIC_DEPLOY_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/deploy_qml_app_manual.cmake")
 
 file(
@@ -682,8 +699,7 @@ file(
 "    ADDITIONAL_MODULES \${plugins_found}\n"
 "    GENERATE_QT_CONF\n"
 "    NO_TRANSLATIONS\n"
-"    EXCLUDE_PLUGIN_TYPES \"platformthemes\"\n"
-"    POST_EXCLUDE_REGEXES \".*qt6ct.*\"\n"
+"    ${YAMUSIC_EXCLUDE_QT6CT}\n"
 ")\n"
 )
 
