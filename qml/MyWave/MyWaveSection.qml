@@ -83,6 +83,18 @@ Item {
             maximumLineCount: 1
         }
 
+        // Градиентный акцентный штрих под заголовком «Моя волна».
+        Rectangle {
+            width: 46
+            height: 3
+            radius: 1.5
+
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: AppTheme.accent }
+                GradientStop { position: 1.0; color: AppTheme.mauveAccent }
+            }
+        }
+
         ListView {
             id: trackList
 

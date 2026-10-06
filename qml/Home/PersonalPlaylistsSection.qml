@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Effects
 import YaMusic 1.0
 
 Item {
@@ -96,6 +97,18 @@ Item {
                     maximumLineCount: 1
                 }
 
+                // Градиентный акцентный штрих под заголовком секции.
+                Rectangle {
+                    width: 40
+                    height: 3
+                    radius: 1.5
+
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: AppTheme.accent }
+                        GradientStop { position: 1.0; color: AppTheme.mauveAccent }
+                    }
+                }
+
                 Row {
                     width: parent.width
                     height: sectionItem.cardHeight
@@ -118,71 +131,89 @@ Item {
                             width: sectionItem.cardWidth
                             height: sectionItem.cardHeight
 
-                            Rectangle {
-                                id: artworkBox
+                            Item {
+                                    id: artworkWrap
 
-                                width: sectionItem.cardWidth
-                                height: sectionItem.cardWidth
+                                    width: sectionItem.cardWidth
+                                    height: sectionItem.cardWidth
 
-                                anchors.left: parent.left
-                                anchors.top: parent.top
+                                    anchors.left: parent.left
+                                    anchors.top: parent.top
 
-                                radius: 12
-                                color: AppTheme.panelSubtle
-                                clip: true
+                                    // Мягкая тень под обложкой.
+                                    MultiEffect {
+                                        anchors.fill: parent
+                                        source: artworkBox
+                                        shadowEnabled: true
+                                        shadowBlur: 0.4
+                                        shadowColor: AppTheme.shadowColor
+                                        shadowVerticalOffset: 4
+                                        shadowOpacity: 0.5
+                                        z: -1
+                                    }
 
-                                scale: playlistMouseArea.containsMouse ? 1.015 : 1.0
+                                    Rectangle {
+                                        id: artworkBox
 
-                                Behavior on scale {
-                                    NumberAnimation { duration: 140; easing.type: Easing.OutCubic }
-                                }
+                                        anchors.fill: parent
 
-                                Image {
-                                    id: cover
+                                        radius: 12
+                                        color: AppTheme.panelSubtle
+                                        clip: true
 
-                                    anchors.fill: parent
+                                        scale: playlistMouseArea.containsMouse ? 1.015 : 1.0
 
-                                    source: playlistCard.modelData.coverUri &&
-                                        String(playlistCard.modelData.coverUri).length > 0
-                                        ? "image://yandex/" + String(playlistCard.modelData.coverUri)
-                                        : ""
+                                        Behavior on scale {
+                                            NumberAnimation { duration: 140; easing.type: Easing.OutCubic }
+                                        }
 
-                                    sourceSize: Qt.size(
-                                        Math.max(1, artworkBox.width * 2),
-                                        Math.max(1, artworkBox.height * 2))
+                                        Image {
+                                            id: cover
 
-                                    fillMode: Image.PreserveAspectCrop
-                                    asynchronous: true
-                                    cache: true
-                                    smooth: true
+                                            anchors.fill: parent
 
-                                    visible: status === Image.Ready
-                                }
+                                            source: playlistCard.modelData.coverUri &&
+                                                String(playlistCard.modelData.coverUri).length > 0
+                                                ? "image://yandex/" + String(playlistCard.modelData.coverUri)
+                                                : ""
 
-                                Label {
-                                    anchors.centerIn: parent
+                                            sourceSize: Qt.size(
+                                                Math.max(1, artworkBox.width * 2),
+                                                Math.max(1, artworkBox.height * 2))
 
-                                    text: "♪"
-                                    color: AppTheme.textSecondary
-                                    font.pixelSize: 32
+                                            fillMode: Image.PreserveAspectCrop
+                                            asynchronous: true
+                                            cache: true
+                                            smooth: true
 
-                                    visible: cover.status !== Image.Ready
-                                }
+                                            visible: status === Image.Ready
+                                        }
 
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: 12
+                                        Label {
+                                            anchors.centerIn: parent
 
-                                    color: playlistMouseArea.containsMouse
-                                        ? AppTheme.panelHover
-                                        : "transparent"
-                                    opacity: playlistMouseArea.containsMouse ? 0.08 : 0
+                                            text: "♪"
+                                            color: AppTheme.textSecondary
+                                            font.pixelSize: 32
 
-                                    Behavior on opacity {
-                                        NumberAnimation { duration: 120 }
+                                            visible: cover.status !== Image.Ready
+                                        }
+
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            radius: 12
+
+                                            color: playlistMouseArea.containsMouse
+                                                ? AppTheme.panelHover
+                                                : "transparent"
+                                            opacity: playlistMouseArea.containsMouse ? 0.08 : 0
+
+                                            Behavior on opacity {
+                                                NumberAnimation { duration: 120 }
+                                            }
+                                        }
                                     }
                                 }
-                            }
 
                             Label {
                                 id: titleLabel

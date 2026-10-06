@@ -64,6 +64,26 @@ Item {
         border.width: root.highlighted || root.alwaysBorder ? 1 : 0
         border.color: root.highlighted ? AppTheme.accent : AppTheme.borderSubtle
 
+        // Акцентная боковая полоска слева — маркер текущего трека.
+        Rectangle {
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+
+            width: 3
+            height: root.highlighted ? parent.height - 16 : 0
+            radius: 1.5
+
+            color: AppTheme.accent
+            opacity: root.highlighted ? 1 : 0
+
+            Behavior on height {
+                NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+            }
+            Behavior on opacity {
+                NumberAnimation { duration: 200 }
+            }
+        }
+
         Rectangle {
             id: coverContainer
 

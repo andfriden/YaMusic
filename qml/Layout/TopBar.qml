@@ -66,21 +66,55 @@ Item {
         }
 
         Item {
-            Layout.preferredWidth: 150
+            Layout.preferredWidth: 170
             Layout.fillHeight: true
 
             Text {
+                id: logoText
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
 
                 text: "YaMusic"
-                color: brandMouseArea.containsMouse ? AppTheme.accent : AppTheme.textPrimary
                 font.pixelSize: 25
                 font.weight: Font.Bold
+
+                color: brandMouseArea.containsMouse ? AppTheme.accent : AppTheme.textPrimary
 
                 Behavior on color {
                     ColorAnimation { duration: 120 }
                 }
+            }
+
+            // Градиентный акцентный штрих под логотипом — появляется
+            // с плавной анимацией при наведении.
+            Rectangle {
+                id: brandUnderline
+
+                anchors.left: logoText.left
+                anchors.right: logoText.right
+                anchors.top: logoText.bottom
+                anchors.topMargin: 2
+
+                height: 3
+                radius: 1.5
+
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: AppTheme.accent }
+                    GradientStop { position: 1.0; color: AppTheme.mauveAccent }
+                }
+
+                opacity: 0.0
+
+                Behavior on opacity {
+                    NumberAnimation { duration: 140 }
+                }
+
+                states: [
+                    State {
+                        when: brandMouseArea.containsMouse
+                        PropertyChanges { target: brandUnderline; opacity: 1.0 }
+                    }
+                ]
             }
 
             MouseArea {

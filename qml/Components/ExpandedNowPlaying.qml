@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Effects
 import YaMusic 1.0
 
 Item {
@@ -104,9 +105,13 @@ Item {
                 anchors.fill: parent
                 radius: width / 2
 
-                color: closeMouseArea.containsMouse
-                    ? Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.16)
-                    : Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.12)
+                // Цвет обложки (playerAccent) — непрозрачный, чтобы
+                // кнопка не сливалась с таким же полупрозрачным фоном.
+                color: root.playerAccent
+
+                // Тень и светлая обводка отделяют кнопку от фона.
+                border.width: 2
+                border.color: Qt.rgba(1, 1, 1, 0.22)
 
                 Behavior on color {
                     ColorAnimation { duration: 140; easing.type: Easing.OutCubic }
@@ -118,7 +123,7 @@ Item {
                 anchors.verticalCenterOffset: -3
 
                 text: "⌄"
-                color: Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.85)
+                color: AppTheme.accentOn
                 font.pixelSize: 24
             }
 
@@ -373,7 +378,55 @@ Item {
                     }
                 }
 
+                // Пульсирующее свечение вокруг большой кнопки play.
+                height: 56
+                width: 56
+
+                MultiEffect {
+                    anchors.fill: parent
+                    source: bigPlayButton
+                    shadowEnabled: true
+                    shadowBlur: 0.7
+                    shadowColor: root.playerAccent
+                    shadowHorizontalOffset: 0
+                    shadowVerticalOffset: 0
+                    shadowOpacity: root.playing ? glowStrengthHolder.value : 0
+
+                    Behavior on shadowOpacity {
+                        NumberAnimation { duration: 250 }
+                    }
+                }
+
+                QtObject {
+                    id: glowStrengthHolder
+                    property real value: 0.45
+                }
+
+                SequentialAnimation {
+                    id: bigPulseAnim
+                    loops: Animation.Infinite
+                    running: root.playing
+
+                    NumberAnimation {
+                        target: glowStrengthHolder
+                        property: "value"
+                        from: 0.25
+                        to: 0.75
+                        duration: 1300
+                        easing.type: Easing.InOutSine
+                    }
+                    NumberAnimation {
+                        target: glowStrengthHolder
+                        property: "value"
+                        from: 0.75
+                        to: 0.25
+                        duration: 1300
+                        easing.type: Easing.InOutSine
+                    }
+                }
+
                 Rectangle {
+                    id: bigPlayButton
                     width: 56
                     height: 56
 

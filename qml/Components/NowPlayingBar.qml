@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Effects
 import YaMusic 1.0
 
 Rectangle {
@@ -48,6 +49,32 @@ Rectangle {
 
     border.width: 1
     radius: 12
+
+    // Декоративная градиентная кромка по верху панели.
+    Rectangle {
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+        height: 2
+
+        visible: root.hasPlayerAccent
+
+        gradient: Gradient {
+            GradientStop {
+                position: 0.0
+                color: Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.0)
+            }
+            GradientStop {
+                position: 0.5
+                color: Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.5)
+            }
+            GradientStop {
+                position: 1.0
+                color: Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.0)
+            }
+        }
+    }
 
     RowLayout {
         anchors.fill: parent
@@ -293,7 +320,57 @@ Rectangle {
                     width: 50
                     height: 50
 
+                    // Мягкое пульсирующее свечение вокруг кнопки при воспроизведении.
+                    // В QtQuick.Effects свечение реализуется цветной тенью
+                    // с размытием (shadowColor=акцент, амплитуда анимируется).
+                    MultiEffect {
+                        id: playGlow
+
+                        anchors.fill: parent
+                        source: playButton
+                        shadowEnabled: true
+                        shadowBlur: 0.7
+                        shadowColor: root.playerAccent
+                        shadowHorizontalOffset: 0
+                        shadowVerticalOffset: 0
+                        shadowOpacity: root.playing ? glowStrengthHolder.value : 0
+
+                        Behavior on shadowOpacity {
+                            NumberAnimation { duration: 250 }
+                        }
+                    }
+
+                    // Посредник для плавной пульсации амплитуды свечения.
+                    QtObject {
+                        id: glowStrengthHolder
+                        property real value: 0.45
+                    }
+
+                    SequentialAnimation {
+                        id: pulseGlowAnim
+                        loops: Animation.Infinite
+                        running: root.playing
+
+                        NumberAnimation {
+                            target: glowStrengthHolder
+                            property: "value"
+                            from: 0.25
+                            to: 0.75
+                            duration: 1300
+                            easing.type: Easing.InOutSine
+                        }
+                        NumberAnimation {
+                            target: glowStrengthHolder
+                            property: "value"
+                            from: 0.75
+                            to: 0.25
+                            duration: 1300
+                            easing.type: Easing.InOutSine
+                        }
+                    }
+
                     Rectangle {
+                        id: playButton
                         anchors.fill: parent
                         radius: 25
                         color: root.playerAccent

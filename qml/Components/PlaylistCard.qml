@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Effects
 import YaMusic 1.0
 
 Item {
@@ -24,6 +25,39 @@ Item {
     height: root.cardHeight > 0
         ? root.cardHeight
         : Math.round(root.cardWidth + 45)
+
+    // Невидимый источник для тени — тот же контур, что и карточка.
+    // opacity:0 (не visible:false), чтобы MultiEffect мог отрендерить
+    // источник в скрытый буфер.
+    Rectangle {
+        id: shadowSource
+
+        anchors.fill: parent
+        radius: root.cornerRadius
+        color: "black"
+        opacity: 0
+    }
+
+    // Мягкая тень под карточкой через MultiEffect (QtQuick.Effects).
+    MultiEffect {
+        id: shadow
+
+        anchors.fill: parent
+        z: -1
+
+        source: shadowSource
+        shadowEnabled: true
+
+        shadowBlur: 0.5
+        shadowColor: AppTheme.shadowColor
+        shadowVerticalOffset: 5
+        shadowHorizontalOffset: 0
+        shadowOpacity: mouseArea.containsMouse ? 0.9 : 0.5
+
+        Behavior on shadowOpacity {
+            NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+        }
+    }
 
     Rectangle {
         anchors.fill: parent
