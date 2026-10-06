@@ -220,7 +220,7 @@ Item {
 
                                 anchors.left: parent.left
                                 anchors.right: parent.right
-                                anchors.top: artworkBox.bottom
+                                anchors.top: artworkWrap.bottom
                                 anchors.topMargin: root.artworkTextSpacing
 
                                 height: root.titleHeight

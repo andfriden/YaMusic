@@ -23,11 +23,11 @@ static QString stationTagOf(const QJsonObject &id) {
 }
 
 static QString imageUrlOf(const QJsonObject &icon) {
-  const QString fullImageUrl = icon.value("fullImageUrl").toString();
-  if (!fullImageUrl.trimmed().isEmpty()) {
-    return fullImageUrl;
-  }
-  return icon.value("imageUrl").toString();
+  QString fullImageUrl = icon.value("fullImageUrl").toString().trimmed();
+  if (fullImageUrl.isEmpty())
+    fullImageUrl = icon.value("imageUrl").toString().trimmed();
+
+  return fullImageUrl;
 }
 
 void StationService::loadStations() {

@@ -113,8 +113,11 @@ Item {
                         Image {
                             anchors.fill: parent
 
+                            // imageUrl прогоняем через провайдер обложек:
+                            // он нормализует %%/%25%25, добавляет схему и
+                            // отключает HTTP/2 (устраняет «refused a stream»).
                             source: modelData.imageUrl && modelData.imageUrl.length > 0
-                                ? modelData.imageUrl
+                                ? "image://yandex/" + modelData.imageUrl
                                 : ""
 
                             fillMode: Image.PreserveAspectCrop
