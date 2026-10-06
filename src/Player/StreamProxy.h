@@ -58,4 +58,10 @@ private:
     bool m_destroyed = false;
     mutable QMutex m_mutex;
     QWaitCondition m_cond;
+
+    // Минимальный объём данных, который накапливаем ДО того, как
+    // начать отдавать байты демаксеру. FFmpeg с маленьким буфером
+    // (первые килобайты) не может корректно определить формат и
+    // падает с «Invalid data found when processing input».
+    static constexpr qint64 kMinProbeBytes = 256 * 1024;
 };

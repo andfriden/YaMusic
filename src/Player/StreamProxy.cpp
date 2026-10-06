@@ -1,6 +1,5 @@
 #include "StreamProxy.h"
 #include <QNetworkReply>
-#include <limits>
 
 StreamProxy::StreamProxy(QObject *parent) : QIODevice(parent) {
     open(ReadOnly | Unbuffered);
@@ -21,6 +20,11 @@ void StreamProxy::setReply(QNetworkReply *reply) {
 
     connect(reply, &QNetworkReply::readyRead, this, [this]() {
         QMutexLocker lock(&m_mutex);
+        // Если соединение оборвано/закрыто — не читаем из reply,
+        // чтобы QNetworkReply не читал из закрытого QSslSocket
+        // («QIODevice::read (QSslSocket): device not open»).
+        if (m_finished || m_error || !m_reply)
+            return;
         m_buffer.append(m_reply->readAll());
         m_cond.wakeAll();
     });
@@ -29,7 +33,9 @@ void StreamProxy::setReply(QNetworkReply *reply) {
         QMutexLocker lock(&m_mutex);
         if (!m_finished) {
             m_finished = true;
-            m_buffer.append(m_reply->readAll());
+            // Дочитываем остаток только если соединение не оборвано.
+            if (!m_error && m_reply)
+                m_buffer.append(m_reply->readAll());
             m_cond.wakeAll();
         }
         if (m_reply)
@@ -84,6 +90,11 @@ bool StreamProxy::atEnd() const {
 
 qint64 StreamProxy::readData(char *data, qint64 maxSize) {
     QMutexLocker lock(&m_mutex);
+    // Дожидаемся минимального объёма данных, чтобы ffmpeg мог
+    // корректно определить формат (иначе «Invalid data» при probe).
+    while (!m_finished && m_buffer.size() < kMinProbeBytes) {
+        m_cond.wait(&m_mutex);
+    }
     while (pos() >= m_buffer.size() && !m_finished) {
         m_cond.wait(&m_mutex);
     }
@@ -112,12 +123,17 @@ qint64 StreamProxy::size() const {
     QMutexLocker lock(&m_mutex);
     if (m_totalSize > 0)
         return m_totalSize;
-    // Возвращаем максимально возможное значение, чтобы FFmpeg НЕ оценивал
-    // длительность трека через (file_size / bitrate) — иначе для маленького
-    // начального буфера (первые килобайты) получится длительность ~0.3 с.
-    // С таким sentinel FFmpeg полагается на реальные MPEG-заголовки (XING/VBRI
-    // для VBR или длительность по накопленным кадрам), что даёт верную цифру.
-    return std::numeric_limits<qint64>::max();
+
+    if (m_finished)
+        return m_buffer.size();
+
+    // Пока грузим, возвращаем «текущий буфер + запас»: больше текущего
+    // объёма (не даём QIODevice::read() считать это концом потока), но
+    // конечное число. max() провоцирует ffmpeg на гигантский seek() и
+    // повторное чтение с начала («Invalid data found when processing
+    // input»). Конечный размер даёт стабильный прогресс.
+    const qint64 growth = m_buffer.size() / 2 + 1024;
+    return m_buffer.size() + growth;
 }
 
 qint64 StreamProxy::bytesAvailable() const {

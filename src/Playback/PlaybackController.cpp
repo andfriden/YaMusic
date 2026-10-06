@@ -379,6 +379,13 @@ void PlaybackController::playStream(
       QNetworkRequest::RedirectPolicyAttribute,
       QNetworkRequest::NoLessSafeRedirectPolicy);
 
+  // Долгие аудио-стримы надёжнее по HTTP/1.1: на HTTP/2 сервер
+  // Яндекса сбрасывает соединение («Server refused a stream»),
+  // что приводит к обрыву SSL и чтению из закрытого сокета.
+  request.setAttribute(
+      QNetworkRequest::Http2AllowedAttribute,
+      false);
+
   QNetworkReply *reply =
       m_streamNetwork->get(request);
 
