@@ -47,6 +47,7 @@ jobs:
             build-essential \
             cmake \
             ninja-build \
+            libtag1-dev \
             file
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
@@ -133,7 +134,7 @@ jobs:
 
       - name: Install build tools
         run: |
-          brew install cmake ninja
+          brew install cmake ninja taglib
       - name: Configure
         run: |
           cmake \
@@ -211,7 +212,7 @@ jobs:
 
       - name: Install build tools
         run: |
-          brew install cmake ninja
+          brew install cmake ninja taglib
       - name: Configure (arm64)
         run: |
           cmake \
@@ -294,6 +295,12 @@ jobs:
           cache: true
 
 
+      - name: Install taglib (vcpkg)
+        shell: pwsh
+        run: |
+          . C:\vcpkg\scripts\buildsystems\msbuild_install.ps1 2>$null
+          vcpkg install taglib:x64-windows --triplet x64-windows
+
       - name: Configure
         shell: pwsh
         run: |
@@ -302,6 +309,7 @@ jobs:
             -B build `
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" `
             -DCMAKE_INSTALL_PREFIX="$env:GITHUB_WORKSPACE\dist"
       - name: Build
         shell: pwsh
