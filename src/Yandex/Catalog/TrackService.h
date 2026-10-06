@@ -5,6 +5,7 @@
 #include <QList>
 #include <QRegularExpression>
 #include <QString>
+#include <functional>
 
 class YandexClient;
 
@@ -24,6 +25,13 @@ public:
   explicit TrackService(YandexAuth *auth, QObject *parent = nullptr);
 
   void loadStreamInfo(const QString &trackId);
+
+  // Получает прямой URL для скачивания трека и его кодек.
+  // В отличие от loadStreamInfo (который выбирает лучший
+  // стрим для воспроизведения), здесь результат отдаётся
+  // сигналом downloadUrlReceived(trackId, url, codec) —
+  // например, для сохранения файла с тегами и артворком.
+  void loadDownloadUrl(const QString &trackId);
 
   // Загружает дополнительную информацию о треке
   // (текст песни) через /tracks/{id}/supplement.
@@ -46,6 +54,14 @@ signals:
 
   void streamUrlReceived(const QString &trackId, const QString &url);
 
+  // Отдаёт сигнатурный URL прямого скачивания и кодек
+  // выбранного стрима (mp3/aac/flac). Используется для
+  // сохранения файла с метаданными и вложенным артворком.
+  void downloadUrlReceived(
+      const QString &trackId,
+      const QString &url,
+      const QString &codec);
+
   void supplementReceived(const TrackSupplementary &supplement);
 
   void similarTracksReceived(const QList<Track> &tracks);
@@ -58,7 +74,18 @@ signals:
 private:
   TrackStreamInfo selectBestStream(const QList<TrackStreamInfo> &streams) const;
 
-  void resolveStream(const QString &trackId, const TrackStreamInfo &stream);
+  void resolveStream(
+      const QString &trackId,
+      const TrackStreamInfo &stream,
+      const std::function<void(const QString &url)> &onResolved = {});
+
+  // Общая логика запроса /download-info: выбирает лучший
+  // стрим по выбранному кодеку/битрейту и резолвит подписанный
+  // URL. Если preferredCodec непустой, отдаётся именно он.
+  void requestDownloadInfo(
+      const QString &trackId,
+      const QString &preferredCodec,
+      const std::function<void(const QString &url, const QString &codec)> &onResolved);
 
   void parseLrc(const QString &lrcText, TrackSupplementary &out) const;
 };

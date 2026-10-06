@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 project(
         YaMusic
-        VERSION 0.12.0
+        VERSION 0.12.1
         LANGUAGES CXX
 )
 
@@ -40,7 +40,14 @@ if(UNIX AND NOT APPLE)
 
 endif()
 
+# TagLib — запись тегов и вложенного артворка в скачанные файлы.
+# Собственный FindTagLib.cmake (см. cmake/FindTagLib.cmake).
+find_package(TagLib REQUIRED)
+
 qt_standard_project_setup(REQUIRES 6.9)
+
+# Каталог модулей CMake (включая FindTagLib.cmake).
+list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # =============================================================
 # Paths
@@ -153,6 +160,10 @@ set(
         src/Models/PersonalPlaylist.cpp
         src/Models/Playlist.cpp
         src/Models/Track.cpp
+
+        # Download
+        src/Download/DownloadService.cpp
+        src/Download/TagWriter.cpp
 
         # Player / playback
         src/Player/PlayerService.cpp
@@ -555,6 +566,8 @@ target_link_libraries(
         Qt6::Quick
         Qt6::Network
         Qt6::Multimedia
+
+        TagLib::TagLib
 )
 
 # =============================================================

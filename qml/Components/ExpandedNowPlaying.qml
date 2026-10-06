@@ -435,6 +435,78 @@ Item {
                     }
                 }
             }
+
+            Row {
+                id: downloadRow
+
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: controls.bottom
+                anchors.topMargin: 16
+
+                spacing: 8
+
+                Rectangle {
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    visible: root.hasTrack && root.hasController &&
+                        root.controller.downloadService !== null
+
+                    width: downloadLabel.implicitWidth + 34
+                    height: 36
+                    radius: 18
+
+                    color: downloadMouseArea.containsMouse
+                        ? Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.14)
+                        : Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.08)
+
+                    Behavior on color {
+                        ColorAnimation { duration: 140; easing.type: Easing.OutCubic }
+                    }
+
+                    Text {
+                        id: downloadLabel
+
+                        anchors.centerIn: parent
+
+                        readonly property int dlState:
+                            root.hasController && root.controller.downloadService
+                                ? root.controller.downloadService.state
+                                : 0
+
+                        text: {
+                            if (downloadLabel.dlState === 1) {
+                                return "Скачивание…"
+                            }
+                            if (downloadLabel.dlState === 2) {
+                                return "✓ Скачано"
+                            }
+                            if (downloadLabel.dlState === 3) {
+                                return "Ошибка — повторить"
+                            }
+                            return "↓ Скачать"
+                        }
+                        color: downloadLabel.dlState === 2
+                            ? AppTheme.accent
+                            : (downloadLabel.dlState === 3 ? AppTheme.error : AppTheme.textPrimary)
+                        font.pixelSize: 13
+                        font.weight: Font.DemiBold
+                    }
+
+                    MouseArea {
+                        id: downloadMouseArea
+
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (root.hasController) {
+                                root.controller.downloadCurrentTrack()
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         Item {

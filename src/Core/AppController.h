@@ -2,6 +2,7 @@
 
 #include "../Models/Track.h"
 #include "../Playback/PlaybackController.h"
+#include "../Download/DownloadService.h"
 #include "../Yandex/Catalog/SearchAlbumsModel.h"
 #include "../Yandex/Catalog/SearchArtistsModel.h"
 #include "../Yandex/Catalog/SearchPlaylistsModel.h"
@@ -126,6 +127,10 @@ class AppController : public QObject {
   Q_PROPERTY(bool shuffleEnabled READ shuffleEnabled NOTIFY shuffleChanged)
   Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
 
+  // Скачивание текущего трека (с тегами и артворком).
+  Q_PROPERTY(
+      DownloadService *downloadService READ downloadService CONSTANT)
+
   Q_PROPERTY(QString playbackSourceTitle READ playbackSourceTitle NOTIFY playbackSourceChanged)
   Q_PROPERTY(QString playbackSourceType READ playbackSourceType NOTIFY playbackSourceChanged)
   Q_PROPERTY(int queueCount READ queueCount NOTIFY queueChanged)
@@ -198,6 +203,12 @@ public:
   Q_INVOKABLE void setVolume(float volume);
 
   Q_INVOKABLE void copyTrack(const QString &title, const QString &artist);
+
+  // Запускает скачивание текущего воспроизводимого трека
+  // в «Загрузки» с тегами и вложенным артворком.
+  Q_INVOKABLE void downloadCurrentTrack();
+
+  DownloadService *downloadService() const;
 
   QString playbackSourceTitle() const;
   QString playbackSourceType() const;
@@ -366,6 +377,7 @@ private:
   LyricsController *m_lyricsController = nullptr;
   ThemeController *m_themeController = nullptr;
   AccentController *m_accentController = nullptr;
+  DownloadService *m_downloadService = nullptr;
 
   YnisonClient *m_ynisonClient = nullptr;
   YnisonReporter *m_ynisonReporter = nullptr;

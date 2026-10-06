@@ -12,6 +12,7 @@
 #include "../Yandex/Catalog/SearchService.h"
 #include "../Yandex/Catalog/StationService.h"
 #include "../Yandex/Catalog/TrackService.h"
+#include "../Download/DownloadService.h"
 #include "../Yandex/Personal/LikesService.h"
 #include "../Yandex/Personal/NewPlaylistsService.h"
 #include "../Yandex/Personal/PersonalLanding.h"
@@ -64,6 +65,7 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
           new LyricsController(m_trackService, m_playbackController, m_playerService, this)),
       m_themeController(new ThemeController(this)),
       m_accentController(new AccentController(m_playerAccentService, m_playbackController, this)),
+      m_downloadService(new DownloadService(m_trackService, this)),
       m_ynisonClient(new YnisonClient(this)),
       m_ynisonReporter(new YnisonReporter(m_ynisonClient, m_playerService, m_queueService, this)) {
   Q_ASSERT(m_auth != nullptr);
@@ -88,6 +90,12 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
 
   connect(m_queueService, &QueueService::currentChanged, this,
           &AppController::queueChanged);
+
+  connect(
+      m_downloadService,
+      &DownloadService::statusChanged,
+      this,
+      &AppController::statusChanged);
 
   connect(m_likesService, &LikesService::likeChanged, this,
           [this](const QString &trackId, bool) {
@@ -835,6 +843,22 @@ void AppController::copyTrack(const QString &title,
 
 QString AppController::currentTrackCoverUri() const {
   return m_playbackController->currentTrack().coverUri;
+}
+
+void AppController::downloadCurrentTrack() {
+  const Track track =
+      m_playbackController->currentTrack();
+
+  if (track.id.isEmpty()) {
+    emit statusChanged("Нет трека для скачивания");
+    return;
+  }
+
+  m_downloadService->downloadCurrentTrack(track);
+}
+
+DownloadService *AppController::downloadService() const {
+  return m_downloadService;
 }
 
 qint64 AppController::position() const {

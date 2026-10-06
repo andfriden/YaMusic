@@ -12,6 +12,8 @@
 #include <QRegularExpression>
 #include <QXmlStreamReader>
 
+#include <functional>
+
 namespace {
 constexpr auto DownloadInfoSalt = "XGRlBW9FXlekgbPrRHuSiA";
 } // namespace
@@ -33,6 +35,46 @@ TrackService::TrackService(
 
 void TrackService::loadStreamInfo(
     const QString &trackId) {
+  requestDownloadInfo(
+      trackId,
+      {},
+      [this, trackId](
+          const QString &url,
+          const QString &) {
+        emit streamUrlReceived(
+            trackId,
+            url);
+      });
+}
+
+void TrackService::loadDownloadUrl(
+    const QString &trackId) {
+  const QString trimmedTrackId =
+      trackId.trimmed();
+
+  // Для сохранения отдаём предпочтение MP3 (максимальная
+  // совместимость тегов и плееров), если такой вариант есть.
+  requestDownloadInfo(
+      trimmedTrackId,
+      QStringLiteral("mp3"),
+      [this, trimmedTrackId](
+          const QString &url,
+          const QString &codec) {
+        emit downloadUrlReceived(
+            trimmedTrackId,
+            url,
+            codec);
+      });
+}
+
+// Общая двухшаговая схема получения подписанного URL стрима:
+//   1) GET /tracks/{id}/download-info
+//   2) резолв подписи (host/path/ts/s) и сборка get-mp3-URL
+// onResolved вызывается с финальным URL и выбранным кодеком.
+void TrackService::requestDownloadInfo(
+    const QString &trackId,
+    const QString &preferredCodec,
+    const std::function<void(const QString &url, const QString &codec)> &onResolved) {
   if (!ensureAuthenticated()) {
     emit errorOccurred(
         "Токен Яндекс Музыки не установлен");
@@ -59,7 +101,7 @@ void TrackService::loadStreamInfo(
       reply,
       &QNetworkReply::finished,
       this,
-      [this, reply, trimmedTrackId]() {
+      [this, reply, trimmedTrackId, preferredCodec, onResolved]() {
         const QByteArray data =
             reply->readAll();
 
@@ -143,8 +185,27 @@ void TrackService::loadStreamInfo(
 
         emit streamInfoReceived(streams);
 
-        const TrackStreamInfo bestStream =
-            selectBestStream(streams);
+        TrackStreamInfo bestStream;
+
+        if (!preferredCodec.isEmpty()) {
+          // Сначала ищем непревьюшный вариант нужного кодека,
+          // дальше — с максимальным битрейтом.
+          for (const TrackStreamInfo &stream : streams) {
+            if (!stream.preview &&
+                stream.codec == preferredCodec) {
+              if (bestStream.downloadInfoUrl.isEmpty() ||
+                  stream.bitrateInKbps > bestStream.bitrateInKbps) {
+                bestStream = stream;
+              }
+            }
+          }
+
+          // Если нужного кодека нет — берём дефолтный лучший.
+          if (bestStream.downloadInfoUrl.isEmpty())
+            bestStream = selectBestStream(streams);
+        } else {
+          bestStream = selectBestStream(streams);
+        }
 
         if (bestStream.downloadInfoUrl.isEmpty()) {
           emit errorOccurred(
@@ -156,7 +217,12 @@ void TrackService::loadStreamInfo(
 
         resolveStream(
             trimmedTrackId,
-            bestStream);
+            bestStream,
+            [onResolved, bestStream](
+                const QString &url) {
+              if (onResolved)
+                onResolved(url, bestStream.codec);
+            });
 
         reply->deleteLater();
       });
@@ -195,7 +261,8 @@ TrackStreamInfo TrackService::selectBestStream(
 
 void TrackService::resolveStream(
     const QString &trackId,
-    const TrackStreamInfo &stream) {
+    const TrackStreamInfo &stream,
+    const std::function<void(const QString &url)> &onResolved) {
   if (stream.downloadInfoUrl.isEmpty()) {
     emit errorOccurred(
         "Download info URL is empty");
@@ -210,7 +277,7 @@ void TrackService::resolveStream(
       reply,
       &QNetworkReply::finished,
       this,
-      [this, reply, trackId]() {
+      [this, reply, trackId, onResolved]() {
         const QByteArray data =
             reply->readAll();
 
@@ -312,6 +379,9 @@ void TrackService::resolveStream(
         emit streamUrlReceived(
             trackId,
             streamUrl);
+
+        if (onResolved)
+          onResolved(streamUrl);
 
         reply->deleteLater();
       });

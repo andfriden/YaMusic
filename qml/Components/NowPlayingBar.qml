@@ -494,6 +494,54 @@ Rectangle {
                     anchors.fill: parent
                     radius: 19
 
+                    color: downloadMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
+                }
+
+                Label {
+                    id: downloadIcon
+
+                    anchors.centerIn: parent
+
+                    property int dlState:
+                        root.hasController && root.controller.downloadService
+                            ? root.controller.downloadService.state
+                            : 0
+
+                    text: downloadIcon.dlState === 1 ? "…" : "↓"
+                    color: downloadIcon.dlState === 2
+                        ? AppTheme.accent
+                        : (downloadIcon.dlState === 3 ? AppTheme.error : AppTheme.textSecondary)
+                    font.pixelSize: 16
+                }
+
+                MouseArea {
+                    id: downloadMouseArea
+
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+
+                    enabled: root.hasTrack && root.hasController
+
+                    onClicked: {
+                        if (!root.controller) {
+                            return
+                        }
+
+                        root.controller.downloadCurrentTrack()
+                    }
+                }
+            }
+
+            Item {
+                width: 38
+                height: 38
+
+                visible: root.hasTrack
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 19
+
                     color: lyricsMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
                 }
 
