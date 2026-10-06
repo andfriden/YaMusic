@@ -7,6 +7,8 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QBuffer>
+#include <QImage>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -18,16 +20,26 @@ namespace {
 constexpr auto kDownloadUserAgent =
     "YaMusic/1.0 (Qt)";
 
-// Нормализует coverUri: подставляем %% → 1000x1000 и https://.
+// Нормализует coverUri: раскодируем процентное экранирование,
+// подставляем %% → 1000x1000 и https:// (как в CoverImageProvider).
 QString normalizeCoverUriForDownload(
     const QString &uri) {
   if (uri.isEmpty())
     return {};
 
-  QString result = uri;
+  QString result =
+      QUrl::fromPercentEncoding(uri.toUtf8());
+
+  result = result.trimmed();
 
   result.replace(
       QStringLiteral("%%"),
+      QStringLiteral("1000x1000"));
+
+  // Также обрабатываем закодированную форму %% (%25%25),
+  // которая приходит из QML без предварительного декодирования.
+  result.replace(
+      QStringLiteral("%25%25"),
       QStringLiteral("1000x1000"));
 
   if (!result.contains(QStringLiteral("://")))
@@ -278,17 +290,37 @@ void DownloadService::downloadCover(
 
   connect(
       reply,
-      &QNetworkReply::finished,
+&QNetworkReply::finished,
       this,
       [this, reply, track]() {
-        const QByteArray cover =
-            reply->error() == QNetworkReply::NoError
-                ? reply->readAll()
-                : QByteArray();
+        const bool okReply =
+            reply->error() == QNetworkReply::NoError;
+
+        QByteArray cover =
+            okReply ? reply->readAll() : QByteArray();
 
         reply->deleteLater();
 
-        writeTags(track, cover);
+        // Приводим обложку к JPEG независимо от исходного формата
+        // (сервер может вернуть WebP/PNG). Это гарантирует, что
+        // тег-фрейм обложки читается всеми плеерами.
+        if (!cover.isEmpty()) {
+          QImage image;
+          image.loadFromData(cover);
+
+          if (!image.isNull()) {
+            QByteArray jpegData;
+            QBuffer buffer(&jpegData);
+            buffer.open(QIODevice::WriteOnly);
+            image.save(&buffer, "JPG", 92);
+            buffer.close();
+
+            if (!jpegData.isEmpty())
+              cover = jpegData;
+          }
+        }
+
+        writeTags(track, cover, QStringLiteral("image/jpeg"));
       });
 }
 
@@ -303,9 +335,14 @@ void DownloadService::writeTags(
 
   // Пишем в тот же путь через временный файл: сначала рядом,
   // затем move-ом в финальное имя, чтобы не оставлять битый файл.
+  // ВАЖНО: временному файлу нужен корректный суффикс (например .mp3),
+  // иначе TagWriter не определит формат по расширению и не запишет
+  // теги/обложку.
   QTemporaryFile tmpFile(
       QFileInfo(destPath).absolutePath() +
-      QStringLiteral("/yamusic-dl-XXXXXX"));
+      QStringLiteral("/yamusic-dl-XXXXXX") +
+      QStringLiteral(".") +
+      extensionForCodec(m_pendingCodec));
 
   if (!tmpFile.open()) {
     finishWithError("Не удалось создать временный файл");

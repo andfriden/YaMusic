@@ -24,6 +24,10 @@ class TrackService;
 class DownloadService : public QObject {
   Q_OBJECT
 
+  // Состояние скачивания (Idle/Downloading/Done/Error) для UI.
+  Q_PROPERTY(int state READ state NOTIFY stateChanged)
+  Q_PROPERTY(double progress READ progress NOTIFY stateChanged)
+
 public:
   enum DownloadState {
     Idle = 0,     // Не скачиваем ничего.

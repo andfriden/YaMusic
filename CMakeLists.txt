@@ -26,6 +26,7 @@ find_package(
         Qt6 6.9
         REQUIRED COMPONENTS
         Quick
+        Gui
         Network
         Multimedia
 )
@@ -564,6 +565,7 @@ target_link_libraries(
         PRIVATE
 
         Qt6::Quick
+        Qt6::Gui
         Qt6::Network
         Qt6::Multimedia
 
