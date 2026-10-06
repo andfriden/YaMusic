@@ -379,83 +379,84 @@ Item {
                 }
 
                 // Пульсирующее свечение вокруг большой кнопки play.
-                height: 56
-                width: 56
-
-                MultiEffect {
-                    anchors.fill: parent
-                    source: bigPlayButton
-                    shadowEnabled: true
-                    shadowBlur: 0.7
-                    shadowColor: root.playerAccent
-                    shadowHorizontalOffset: 0
-                    shadowVerticalOffset: 0
-                    shadowOpacity: root.playing ? glowStrengthHolder.value : 0
-
-                    Behavior on shadowOpacity {
-                        NumberAnimation { duration: 250 }
-                    }
-                }
-
-                QtObject {
-                    id: glowStrengthHolder
-                    property real value: 0.45
-                }
-
-                SequentialAnimation {
-                    id: bigPulseAnim
-                    loops: Animation.Infinite
-                    running: root.playing
-
-                    NumberAnimation {
-                        target: glowStrengthHolder
-                        property: "value"
-                        from: 0.25
-                        to: 0.75
-                        duration: 1300
-                        easing.type: Easing.InOutSine
-                    }
-                    NumberAnimation {
-                        target: glowStrengthHolder
-                        property: "value"
-                        from: 0.75
-                        to: 0.25
-                        duration: 1300
-                        easing.type: Easing.InOutSine
-                    }
-                }
-
-                Rectangle {
-                    id: bigPlayButton
+                Item {
                     width: 56
                     height: 56
 
-                    radius: width / 2
-                    color: root.playerAccent
+                    MultiEffect {
+                        anchors.fill: parent
+                        source: bigPlayButton
+                        shadowEnabled: true
+                        shadowBlur: 0.7
+                        shadowColor: root.playerAccent
+                        shadowHorizontalOffset: 0
+                        shadowVerticalOffset: 0
+                        shadowOpacity: root.playing ? glowStrengthHolder.value : 0
 
-                    Text {
-                        anchors.centerIn: parent
-
-                        text: root.playing ? "Ⅱ" : "▶"
-                        color: AppTheme.accentOn
-                        font.pixelSize: 21
+                        Behavior on shadowOpacity {
+                            NumberAnimation { duration: 250 }
+                        }
                     }
 
-                    MouseArea {
+                    QtObject {
+                        id: glowStrengthHolder
+                        property real value: 0.45
+                    }
+
+                    SequentialAnimation {
+                        id: bigPulseAnim
+                        loops: Animation.Infinite
+                        running: root.playing
+
+                        NumberAnimation {
+                            target: glowStrengthHolder
+                            property: "value"
+                            from: 0.25
+                            to: 0.75
+                            duration: 1300
+                            easing.type: Easing.InOutSine
+                        }
+                        NumberAnimation {
+                            target: glowStrengthHolder
+                            property: "value"
+                            from: 0.75
+                            to: 0.25
+                            duration: 1300
+                            easing.type: Easing.InOutSine
+                        }
+                    }
+
+                    Rectangle {
+                        id: bigPlayButton
                         anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
 
-                        enabled: root.hasTrack
+                        radius: width / 2
+                        color: root.playerAccent
 
-                        onClicked: {
-                            if (!root.hasController) {
-                                return
-                            }
+                        Text {
+                            anchors.centerIn: parent
 
-                            if (root.playing) {
-                                root.controller.pause()
-                            } else {
-                                root.controller.play()
+                            text: root.playing ? "Ⅱ" : "▶"
+                            color: AppTheme.accentOn
+                            font.pixelSize: 21
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+
+                            enabled: root.hasTrack
+
+                            onClicked: {
+                                if (!root.hasController) {
+                                    return
+                                }
+
+                                if (root.playing) {
+                                    root.controller.pause()
+                                } else {
+                                    root.controller.play()
+                                }
                             }
                         }
                     }
