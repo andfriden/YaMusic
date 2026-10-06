@@ -298,8 +298,7 @@ jobs:
       - name: Install taglib (vcpkg)
         shell: pwsh
         run: |
-          . C:\vcpkg\scripts\buildsystems\msbuild_install.ps1 2>$null
-          vcpkg install taglib:x64-windows --triplet x64-windows
+          & "${env:VCPKG_INSTALLATION_ROOT}\vcpkg.exe" install taglib:x64-windows
 
       - name: Configure
         shell: pwsh

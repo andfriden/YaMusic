@@ -1,15 +1,15 @@
 # FindTagLib.cmake — поиск библиотеки TagLib (редактирование тегов/артворка).
 #
-# Задаёт импортированный таргет TagLib::TagLib (псевдоним локального
-# TagLib::tag) и переменные TagLib_VERSION / TagLib_FOUND.
+# Задаёт импортированный таргет TagLib::TagLib и переменные
+# TagLib_VERSION / TagLib_FOUND.
 #
 # Источники (по приоритету):
-#   1. CMake-конфиг от библиотеки (distro/vcpkg/HB) — include(CMakeFindDependencyMacro)
-#      не нужен, пробуем штатный find_package без REQUIRED, чтобы не упасть.
-#   2. pkg-config (taglib.pc).
+#   1. pkg-config (taglib.pc) — доступен в большинстве дистрибутивов
+#      (Debian/Ubuntu libtag1-dev, Homebrew, и т.д.).
+#   2. Уже установленный cmake-конфиг (TagLibConfig.cmake / taglib-config.cmake).
 #   3. Прямой поиск библиотеки/заголовков по CMAKE_PREFIX_PATH.
 #
-# Довод: упаковки по-разному называют таргет (TagLib::tag, TagLib::TagLib),
+# Причина: упаковки по-разному называют таргет (TagLib::tag, TagLib::TagLib),
 # поэтому здесь мы нормализуем всё к TagLib::TagLib.
 
 find_package(PkgConfig QUIET)
@@ -17,35 +17,6 @@ if(PKG_CONFIG_FOUND)
   pkg_check_modules(PC_TAGLIB QUIET taglib)
 endif()
 
-# Стандартная опция — путь к конфигу от дистрибутива.
-find_path(
-    TagLib_CMAKE_DIR
-    NAMES taglib-config.cmake
-    HINTS
-        ${PC_TAGLIB_DIR}/lib/cmake/taglib
-        "/usr/local/opt/taglib/lib/cmake/taglib"
-        "${CMAKE_PREFIX_PATH}/lib/cmake/taglib"
-        "${CMAKE_PREFIX_PATH}/share/taglib"
-    PATH_SUFFIXES lib/cmake/taglib share/taglib
-)
-
-if(TagLib_CMAKE_DIR AND EXISTS "${TagLib_CMAKE_DIR}/taglib-config.cmake")
-    list(APPEND CMAKE_PREFIX_PATH "${TagLib_CMAKE_DIR}/../..")
-    find_package(TagLib QUIET NO_MODULE PATHS "${TagLib_CMAKE_DIR}" NO_DEFAULT_PATH)
-    if(TAGLIB_FOUND OR TagLib_FOUND)
-        set(TagLib_FOUND TRUE)
-        if(TARGET TagLib::tag AND NOT TARGET TagLib::TagLib)
-            add_library(TagLib::TagLib INTERFACE IMPORTED)
-            set_target_properties(TagLib::TagLib PROPERTIES INTERFACE_LINK_LIBRARIES TagLib::tag)
-        endif()
-        if(NOT TagLib_VERSION AND DEFINED TagLib_VERSION)
-            set(TagLib_VERSION "${TagLib_VERSION}")
-        endif()
-        return()
-    endif()
-endif()
-
-# pkg-config фолбэк.
 if(PC_TAGLIB_FOUND)
     add_library(TagLib::TagLib UNKNOWN IMPORTED)
     set_target_properties(TagLib::TagLib PROPERTIES
@@ -55,6 +26,33 @@ if(PC_TAGLIB_FOUND)
     )
     set(TagLib_VERSION "${PC_TAGLIB_VERSION}")
     set(TagLib_FOUND TRUE)
+    return()
+endif()
+
+# Стандартная опция — путь к конфигу от дистрибутива/vcpkg/Homebrew.
+find_path(
+    TagLib_CMAKE_DIR
+    NAMES TagLibConfig.cmake taglib-config.cmake
+    HINTS
+        ${PC_TAGLIB_DIR}/lib/cmake/taglib
+        "/usr/local/opt/taglib/lib/cmake/taglib"
+        "${CMAKE_PREFIX_PATH}/lib/cmake/taglib"
+        "${CMAKE_PREFIX_PATH}/share/taglib"
+    PATH_SUFFIXES lib/cmake/taglib share/taglib
+)
+
+if(TagLib_CMAKE_DIR AND EXISTS "${TagLib_CMAKE_DIR}/taglib-config.cmake")
+    include("${TagLib_CMAKE_DIR}/taglib-config.cmake")
+    if(TARGET TagLib::tag AND NOT TARGET TagLib::TagLib)
+        add_library(TagLib::TagLib INTERFACE IMPORTED)
+        set_target_properties(TagLib::TagLib PROPERTIES INTERFACE_LINK_LIBRARIES TagLib::tag)
+    endif()
+    if(TagLib_FOUND AND NOT DEFINED TagLib_VERSION)
+        set(TagLib_VERSION "${TAGLIB_VERSION}")
+    endif()
+    if(NOT TagLib_FOUND AND TAGLIB_FOUND)
+        set(TagLib_FOUND TRUE)
+    endif()
     return()
 endif()
 
@@ -73,7 +71,7 @@ if(TagLib_INCLUDE_DIR AND TagLib_LIBRARY)
     set(TagLib_FOUND TRUE)
 endif()
 
-if(TagLib_FOUND AND NOT TagLib_VERSION)
+if(TagLib_FOUND AND NOT DEFINED TagLib_VERSION)
     set(TagLib_VERSION "unknown")
 endif()
 

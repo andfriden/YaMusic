@@ -41,14 +41,14 @@ if(UNIX AND NOT APPLE)
 
 endif()
 
+# Каталог модулей CMake (включая FindTagLib.cmake) — объявляем до
+# find_package(TagLib), чтобы модуль был найден по имени.
+list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 # TagLib — запись тегов и вложенного артворка в скачанные файлы.
-# Собственный FindTagLib.cmake (см. cmake/FindTagLib.cmake).
 find_package(TagLib REQUIRED)
 
 qt_standard_project_setup(REQUIRES 6.9)
-
-# Каталог модулей CMake (включая FindTagLib.cmake).
-list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # =============================================================
 # Paths
