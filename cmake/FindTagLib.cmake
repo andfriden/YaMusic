@@ -18,15 +18,28 @@ if(PKG_CONFIG_FOUND)
 endif()
 
 if(PC_TAGLIB_FOUND)
-    add_library(TagLib::TagLib UNKNOWN IMPORTED)
-    set_target_properties(TagLib::TagLib PROPERTIES
-        IMPORTED_LOCATION "${PC_TAGLIB_LINK_LIBRARIES}"
-        INTERFACE_INCLUDE_DIRECTORIES "${PC_TAGLIB_INCLUDE_DIRS}"
-        INTERFACE_LINK_LIBRARIES "${PC_TAGLIB_LIBRARIES}"
+    # Не полагаемся на PC_TAGLIB_LIBRARIES: на Linux он может содержать
+    # список через ';' (libtag.so;libz.so — транзитивная зависимость).
+    # Ищем сам libtag в каталогах из pkg-config.
+    find_library(TagLib_LIBRARY
+        NAMES tag
+        HINTS ${PC_TAGLIB_LIBRARY_DIRS} ${PC_TAGLIB_LIBDIRS}
+        PATH_SUFFIXES lib lib64
     )
-    set(TagLib_VERSION "${PC_TAGLIB_VERSION}")
-    set(TagLib_FOUND TRUE)
-    return()
+    find_path(TagLib_INCLUDE_DIR taglib/tag.h
+        HINTS ${PC_TAGLIB_INCLUDE_DIRS} ${PC_TAGLIB_INCLUDEDIR}
+        PATH_SUFFIXES include
+    )
+    if(TagLib_LIBRARY)
+        add_library(TagLib::TagLib UNKNOWN IMPORTED)
+        set_target_properties(TagLib::TagLib PROPERTIES
+            IMPORTED_LOCATION "${TagLib_LIBRARY}"
+            INTERFACE_INCLUDE_DIRECTORIES "${TagLib_INCLUDE_DIR}"
+        )
+        set(TagLib_VERSION "${PC_TAGLIB_VERSION}")
+        set(TagLib_FOUND TRUE)
+        return()
+    endif()
 endif()
 
 # Стандартная опция — путь к конфигу от дистрибутива/vcpkg/Homebrew.
