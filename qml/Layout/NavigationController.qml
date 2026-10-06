@@ -177,6 +177,8 @@ Item {
                 return "../Pages/GenresPage.qml"
             case "stations":
                 return "../Pages/StationsPage.qml"
+            case "podcasts":
+                return "../Pages/PodcastsPage.qml"
             case "sport":
                 return "../Pages/SportPage.qml"
             default:

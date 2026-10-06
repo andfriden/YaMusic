@@ -69,14 +69,27 @@ void PersonalController::connectRecommendations() {
                 QStringLiteral("Загружено блоков рекомендаций: %1").arg(sections.size()));
           });
 
-  connect(m_personalLanding, &PersonalLanding::errorOccurred, this, [this](const QString &message) {
-    m_loadingRecommendations = false;
-    emit loadingRecommendationsChanged();
-    m_recommendationSections.clear();
-    m_recommendationPlaylists.clear();
+  connect(m_personalLanding, &PersonalLanding::podcastsReceived, this,
+          [this](const QList<Podcast> &podcasts) {
+            m_podcasts = podcasts;
+            emit podcastsChanged();
 
-    m_personalPlaylistsModel->clear();
-    m_chartModel->clear();
+            if (!podcasts.isEmpty()) {
+              emit statusChanged(
+                  QStringLiteral("Подкастов загружено: %1").arg(podcasts.size()));
+            }
+          });
+
+  connect(m_personalLanding, &PersonalLanding::errorOccurred, this, [this](const QString &message) {
+m_loadingRecommendations = false;
+  emit loadingRecommendationsChanged();
+  m_recommendationSections.clear();
+  m_recommendationPlaylists.clear();
+  m_podcasts.clear();
+  emit podcastsChanged();
+
+  m_personalPlaylistsModel->clear();
+  m_chartModel->clear();
 
     emit statusChanged(QStringLiteral("Ошибка загрузки рекомендаций: %1").arg(message));
   });
@@ -91,6 +104,8 @@ void PersonalController::loadRecommendations() {
   emit loadingRecommendationsChanged();
   m_recommendationSections.clear();
   m_recommendationPlaylists.clear();
+  m_podcasts.clear();
+  emit podcastsChanged();
 
   m_personalPlaylistsModel->clear();
   m_chartModel->clear();

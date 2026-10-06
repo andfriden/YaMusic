@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Models/PersonalPlaylist.h"
+#include "../Models/Podcast.h"
 #include "../Models/Track.h"
 #include "../Yandex/Personal/MyWaveModel.h"
 #include "../Yandex/Personal/NewPlaylistsService.h"
@@ -37,6 +38,8 @@ class PersonalController : public QObject {
 
   Q_PROPERTY(PersonalChartModel *chartModel READ chartModel CONSTANT)
 
+  Q_PROPERTY(QVariantList podcasts READ podcasts NOTIFY podcastsChanged)
+
 public:
   explicit PersonalController(YandexPersonal *yandexPersonal,
                               PersonalLanding *personalLanding,
@@ -66,6 +69,8 @@ public:
 
   PersonalChartModel *chartModel() const;
 
+  QVariantList podcasts() const;
+
   // Плейлисты из раздела «personal-playlists» в виде QVariantList
   // (uid/kind/title/coverUri), без указанного текущего.
   // Используется как fallback для «Похожие плейлисты» у личных
@@ -93,6 +98,8 @@ signals:
   void loadingRecommendationsChanged();
 
   void recommendationsLoaded();
+
+  void podcastsChanged();
 
   void myWaveTrackSelected(const Track &track);
 
@@ -147,6 +154,8 @@ private:
   QList<PersonalLandingSection> m_recommendationSections;
 
   QList<PersonalPlaylist> m_recommendationPlaylists;
+
+  QList<Podcast> m_podcasts;
 
   bool m_loadingMyWave = false;
 

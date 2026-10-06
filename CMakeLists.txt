@@ -379,6 +379,7 @@ set(
         "${YAMUSIC_QML_ROOT}/Pages/GenrePage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/SportPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/StationsPage.qml"
+        "${YAMUSIC_QML_ROOT}/Pages/PodcastsPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/LoginPage.qml"
 
         # Home

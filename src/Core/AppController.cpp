@@ -268,6 +268,9 @@ void AppController::connectPersonal() {
   connect(m_personalController, &PersonalController::recommendationsLoaded, this,
           &AppController::recommendationsLoaded);
 
+  connect(m_personalController, &PersonalController::podcastsChanged, this,
+          &AppController::podcastsChanged);
+
   connect(m_personalController, &PersonalController::personalPlaylistSelected, this,
           [this](const PersonalPlaylist &playlist) {
             m_libraryController->loadPlaylist(playlist.uid, playlist.kind);
@@ -699,6 +702,10 @@ int AppController::currentPlaylistKind() const {
 
 QVariantList AppController::similarPlaylists() const {
   return m_libraryController->similarPlaylists();
+}
+
+QVariantList AppController::podcasts() const {
+  return m_personalController->podcasts();
 }
 
 QString AppController::currentAlbumTitle() const {

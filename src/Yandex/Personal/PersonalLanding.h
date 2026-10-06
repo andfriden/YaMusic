@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../Models/PersonalPlaylist.h"
+#include "../../Models/Podcast.h"
 #include "../../Models/Track.h"
 #include <QJsonObject>
 #include <QList>
@@ -37,12 +38,14 @@ public:
 signals:
   void loaded(const QList<PersonalLandingSection> &sections);
   void personalPlaylistsReceived(const QList<PersonalPlaylist> &playlists);
+  void podcastsReceived(const QList<Podcast> &podcasts);
   void errorOccurred(const QString &message);
 
 private:
   PersonalLandingItem parseItem(const QJsonObject &object) const;
   PersonalLandingSection parseSection(const QJsonObject &object) const;
   PersonalPlaylist parsePersonalPlaylist(const PersonalLandingItem &item) const;
+  Podcast parsePodcast(const QJsonObject &object) const;
 
   YandexAuth *m_auth = nullptr;
   YandexClient *m_yandexClient = nullptr;

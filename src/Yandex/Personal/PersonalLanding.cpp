@@ -57,6 +57,7 @@ void PersonalLanding::load() {
     const QJsonArray blocks = result.value("blocks").toArray();
     QList<PersonalLandingSection> sections;
     QList<PersonalPlaylist> allPlaylists;
+    QList<Podcast> allPodcasts;
     QSet<QString> playlistIds;
 
     for (const QJsonValue &value : blocks) {
@@ -98,11 +99,26 @@ void PersonalLanding::load() {
         }
       }
 
+      // Для секций с подкастами извлекаем подкасты из items.
+      if (section.type == "podcasts") {
+        for (const PersonalLandingItem &item : section.items) {
+          if (item.type != "podcast") continue;
+          const Podcast podcast = parsePodcast(item.data);
+          if (podcast.id.isEmpty() && podcast.title.isEmpty()) continue;
+          allPodcasts.append(podcast);
+        }
+      }
+
       sections.append(section);
     }
 
     // Сначала отдаём полноценные секции.
     emit loaded(sections);
+
+    // Дополнительно сохраняем плоский список для других потребителей.
+    if (!allPodcasts.isEmpty()) {
+      emit podcastsReceived(allPodcasts);
+    }
 
     // Дополнительно сохраняем плоский список для других потребителей.
     if (!allPlaylists.isEmpty()) {
@@ -177,4 +193,23 @@ PersonalPlaylist PersonalLanding::parsePersonalPlaylist(const PersonalLandingIte
   }
 
   return playlist;
+}
+
+Podcast PersonalLanding::parsePodcast(const QJsonObject &object) const {
+  QJsonObject obj = object;
+
+  if (obj.contains("data") && obj.value("data").isObject()) {
+    obj = obj.value("data").toObject();
+  }
+
+  if (obj.contains("podcast") && obj.value("podcast").isObject()) {
+    obj = obj.value("podcast").toObject();
+  }
+
+  Podcast podcast;
+  podcast.id = ::parseId(obj);
+  podcast.title = obj.value("title").toString();
+  podcast.description = obj.value("description").toString();
+  podcast.coverUri = ::parseCoverUri(obj);
+  return podcast;
 }

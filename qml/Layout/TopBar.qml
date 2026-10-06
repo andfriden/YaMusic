@@ -100,6 +100,7 @@ Item {
                 { title: "Чарты", section: "chart" },
                 { title: "Жанры", section: "genres" },
                 { title: "Станции", section: "stations" },
+                { title: "Подкасты", section: "podcasts" },
                 { title: "Плейлисты", section: "playlists" },
                 { title: "Спорт", section: "sport" },
                 { title: "Мне нравится", section: "liked" }

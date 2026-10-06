@@ -104,6 +104,21 @@ PersonalChartModel *PersonalController::chartModel() const {
   return m_chartModel;
 }
 
+QVariantList PersonalController::podcasts() const {
+  QVariantList result;
+
+  for (const Podcast &podcast : m_podcasts) {
+    QVariantMap item;
+    item.insert("id", podcast.id);
+    item.insert("title", podcast.title);
+    item.insert("description", podcast.description);
+    item.insert("coverUri", podcast.coverUri);
+    result.append(item);
+  }
+
+  return result;
+}
+
 QVariantList PersonalController::recommendationPlaylistsData(const QString &excludeUid,
                                                              int excludeKind) const {
   QVariantList result;

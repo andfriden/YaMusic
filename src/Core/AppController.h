@@ -96,6 +96,8 @@ class AppController : public QObject {
 
   Q_PROPERTY(QVariantList similarPlaylists READ similarPlaylists NOTIFY similarPlaylistsChanged)
 
+  Q_PROPERTY(QVariantList podcasts READ podcasts NOTIFY podcastsChanged)
+
   Q_PROPERTY(QString currentAlbumTitle READ currentAlbumTitle NOTIFY currentAlbumChanged)
   Q_PROPERTY(int currentAlbumTrackCount READ currentAlbumTrackCount NOTIFY currentAlbumChanged)
   Q_PROPERTY(QString currentAlbumCoverUri READ currentAlbumCoverUri NOTIFY currentAlbumChanged)
@@ -248,6 +250,8 @@ public:
   int currentPlaylistKind() const;
   QVariantList similarPlaylists() const;
 
+  QVariantList podcasts() const;
+
   QString currentAlbumTitle() const;
   int currentAlbumTrackCount() const;
   QString currentAlbumCoverUri() const;
@@ -296,6 +300,8 @@ signals:
   void loadingArtistChanged();
 
   void recommendationsLoaded();
+
+  void podcastsChanged();
 
   void currentPlaylistChanged();
   void similarPlaylistsChanged();
