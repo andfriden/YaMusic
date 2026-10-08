@@ -6,23 +6,18 @@
 #include "../YandexClient.h"
 
 #include <QCryptographicHash>
-#include <QDateTime>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QMessageAuthenticationCode>
 #include <QNetworkReply>
 #include <QRegularExpression>
 #include <QStringList>
-#include <QUrlQuery>
 #include <QXmlStreamReader>
 
 #include <functional>
-#include <memory>
 
 namespace {
 constexpr auto DownloadInfoSalt = "XGRlBW9FXlekgbPrRHuSiA";
-constexpr auto FileInfoSecret = "kzqU4XhfCaY6B6JTHODeq5";
 } // namespace
 
 // TODO(YM-2244): вынести общую проверку trackId (trim + непустой) в YandexServiceBase.
@@ -49,202 +44,20 @@ void TrackService::loadStreamInfo(
     const QString &trackId,
     const QString &quality) {
   const QString trimmedTrackId = trackId.trimmed();
-  const QString q = AudioQualityController::normalize(quality);
 
-  // Сначала пробуем прямой путь /get-file-info (один запрос, без CDN).
-  // Если он не сработал — откатываемся на классический download-info.
-  loadStreamFileInfo(
+  // Используем классический download-info (он надёжно отдаёт URL и
+  // codec/bitrate). Прямой /get-file-info возвращает 400 для многих
+  // треков, поэтому не задействуем его для обычного стриминга.
+  requestDownloadInfo(
       trimmedTrackId,
-      q,
-      [this, trimmedTrackId](const QString &url, const QString &codec,
-                             int bitrateKbps) {
+      {},
+      [this, trimmedTrackId](
+          const QString &url,
+          const QString &codec,
+          int bitrateKbps) {
         emit streamUrlReceived(trimmedTrackId, url);
         emit streamQualityReceived(trimmedTrackId, codec, bitrateKbps);
-      },
-      [this, trimmedTrackId]() {
-        requestDownloadInfo(
-            trimmedTrackId,
-            {},
-            [this, trimmedTrackId](
-                const QString &url,
-                const QString &) {
-              emit streamUrlReceived(trimmedTrackId, url);
-            });
       });
-}
-
-QString TrackService::fileInfoSign(
-    qint64 ts,
-    const QString &trackId,
-    const QString &quality,
-    const QString &codecs,
-    const QString &transports) {
-  // Сообщение строится как в клиентах Яндекса.
-  const QString codecsCompact = codecs;
-  QByteArray compact = codecsCompact.toUtf8();
-  compact.replace(',', "");
-  QByteArray transportCompact = transports.toUtf8();
-  transportCompact.replace(',', "");
-
-  const QByteArray message =
-      QByteArray::number(ts) +
-      trackId.toUtf8() +
-      quality.toUtf8() +
-      compact +
-      transportCompact;
-
-  QMessageAuthenticationCode hmac(
-      QCryptographicHash::Sha256,
-      QByteArray(FileInfoSecret));
-  hmac.addData(message);
-
-  // Base64 без дополняющих '='.
-  return hmac.result().toBase64(QByteArray::OmitTrailingEquals);
-}
-
-void TrackService::loadStreamFileInfo(
-    const QString &trackId,
-    const QString &quality,
-    const std::function<void(const QString &url, const QString &codec, int bitrateKbps)>
-        &onResolved,
-    const std::function<void()> &onFallback) {
-  if (!ensureAuthenticated()) {
-    if (onFallback) onFallback();
-    return;
-  }
-
-  const QString trimmedTrackId = trackId.trimmed();
-  if (trimmedTrackId.isEmpty()) {
-    if (onFallback) onFallback();
-    return;
-  }
-
-  // Наборы кодеков для запроса. Для lossless пробуем по очереди
-  // несколько вариантов, остальные качества — один набор.
-  const QStringList codecSets =
-      (quality == QStringLiteral("lossless"))
-          ? QStringList{
-                QStringLiteral("flac-mp4,flac"),
-                QStringLiteral("flac"),
-                QStringLiteral("flac,aac,he-aac,mp3"),
-            }
-          : QStringList{QStringLiteral("flac,aac,he-aac,mp3")};
-
-  // Пытаемся получить URL; первый успешный вариант и используем.
-  const int totalAttempts = codecSets.size();
-  auto attempts = std::make_shared<int>(0);
-  auto succeeded = std::make_shared<bool>(false);
-
-  for (const QString &codecs : codecSets) {
-    const QString trimmedTrackId = trackId.trimmed();
-    const QString transports = "raw";
-    const qint64 ts = QDateTime::currentSecsSinceEpoch();
-    const QString sign = fileInfoSign(
-        ts, trimmedTrackId, quality, codecs, transports);
-
-    QUrlQuery query;
-    query.addQueryItem("ts", QString::number(ts));
-    query.addQueryItem("trackId", trimmedTrackId);
-    query.addQueryItem("quality", quality);
-    query.addQueryItem("codecs", codecs);
-    query.addQueryItem("transports", transports);
-    query.addQueryItem("sign", sign);
-
-    const QString path = QStringLiteral("/get-file-info?") +
-                         query.toString(QUrl::FullyEncoded);
-
-    QNetworkReply *reply = m_yandexClient->get(path);
-    if (reply == nullptr) {
-      ++(*attempts);
-      if (*attempts >= totalAttempts && !*succeeded && onFallback) {
-        onFallback();
-      }
-      continue;
-    }
-
-    connect(
-        reply,
-        &QNetworkReply::finished,
-        this,
-        [this, reply, attempts, totalAttempts, succeeded, onResolved,
-         onFallback]() {
-          const QByteArray data = reply->readAll();
-          const bool ok =
-              (reply->error() == QNetworkReply::NoError);
-
-          if (!ok) {
-            *succeeded = false;
-            emit errorOccurred(reply->errorString());
-            reply->deleteLater();
-            ++(*attempts);
-            if (*attempts >= totalAttempts && onFallback) {
-              onFallback();
-            }
-            return;
-          }
-
-          QJsonParseError parseError;
-          const QJsonDocument document =
-              QJsonDocument::fromJson(data, &parseError);
-          if (parseError.error != QJsonParseError::NoError ||
-              !document.isObject()) {
-            emit errorOccurred("Invalid get-file-info response");
-            reply->deleteLater();
-            ++(*attempts);
-            if (*attempts >= totalAttempts && onFallback) {
-              onFallback();
-            }
-            return;
-          }
-
-          const QJsonObject result =
-              document.object().value("result").toObject();
-          const QJsonObject info =
-              result.value("downloadInfo").toObject();
-          if (info.isEmpty()) {
-            emit errorOccurred("No download info in get-file-info");
-            reply->deleteLater();
-            ++(*attempts);
-            if (*attempts >= totalAttempts && onFallback) {
-              onFallback();
-            }
-            return;
-          }
-
-          QString url = info.value("url").toString();
-          if (url.isEmpty()) {
-            const QJsonArray urls = info.value("urls").toArray();
-            if (!urls.isEmpty()) {
-              url = urls.first().toString();
-            }
-          }
-
-          if (url.isEmpty()) {
-            emit errorOccurred("Empty stream url in get-file-info");
-            reply->deleteLater();
-            ++(*attempts);
-            if (*attempts >= totalAttempts && onFallback) {
-              onFallback();
-            }
-            return;
-          }
-
-          if (url.startsWith(QLatin1String("//"))) {
-            url.prepend(QLatin1String("https:"));
-          }
-
-          const QString codec = info.value("codec").toString();
-          const int bitrate =
-              info.value("bitrate").toInt();
-
-          reply->deleteLater();
-          if (*succeeded) {
-            return;  // уже нашли стрим в другой попытке
-          }
-          *succeeded = true;
-          if (onResolved) onResolved(url, codec, bitrate);
-        });
-  }
 }
 
 void TrackService::loadDownloadUrl(
@@ -259,7 +72,8 @@ void TrackService::loadDownloadUrl(
       QStringLiteral("mp3"),
       [this, trimmedTrackId](
           const QString &url,
-          const QString &codec) {
+          const QString &codec,
+          int) {
         emit downloadUrlReceived(
             trimmedTrackId,
             url,
@@ -270,11 +84,12 @@ void TrackService::loadDownloadUrl(
 // Общая двухшаговая схема получения подписанного URL стрима:
 //   1) GET /tracks/{id}/download-info
 //   2) резолв подписи (host/path/ts/s) и сборка get-mp3-URL
-// onResolved вызывается с финальным URL и выбранным кодеком.
+// onResolved вызывается с финальным URL, кодеком и битрейтом.
 void TrackService::requestDownloadInfo(
     const QString &trackId,
     const QString &preferredCodec,
-    const std::function<void(const QString &url, const QString &codec)> &onResolved) {
+    const std::function<void(const QString &url, const QString &codec, int bitrateKbps)>
+        &onResolved) {
   if (!ensureAuthenticated()) {
     emit errorOccurred(
         "Токен Яндекс Музыки не установлен");
@@ -421,7 +236,7 @@ void TrackService::requestDownloadInfo(
             [onResolved, bestStream](
                 const QString &url) {
               if (onResolved)
-                onResolved(url, bestStream.codec);
+                onResolved(url, bestStream.codec, bestStream.bitrateInKbps);
             });
 
         reply->deleteLater();

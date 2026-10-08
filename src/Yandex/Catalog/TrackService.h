@@ -90,32 +90,15 @@ private:
       const TrackStreamInfo &stream,
       const std::function<void(const QString &url)> &onResolved = {});
 
-  // Новый прямой путь получения URL трека: GET /get-file-info со
-  // HMAC-SHA256-подписью. Отдаёт сразу готовый к стримингу URL
-  // (без второго шага к CDN). onResolved(url, codec, bitrateKbps)
-  // вызывается при успехе, onFallback — если все попытки неудачны.
-  void loadStreamFileInfo(
-      const QString &trackId,
-      const QString &quality,
-      const std::function<void(const QString &url, const QString &codec, int bitrateKbps)>
-          &onResolved,
-      const std::function<void()> &onFallback);
-
-  // HMAC-SHA256 подпись для /get-file-info.
-  static QString fileInfoSign(
-      qint64 ts,
-      const QString &trackId,
-      const QString &quality,
-      const QString &codecsDelim,
-      const QString &transports);
-
   // Общая логика запроса /download-info: выбирает лучший
   // стрим по выбранному кодеку/битрейту и резолвит подписанный
-  // URL. Если preferredCodec непустой, отдаётся именно он.
+  // URL. onResolved(url, codec, bitrateKbps); preferredCodec —
+  // если непустой, берётся именно он.
   void requestDownloadInfo(
       const QString &trackId,
       const QString &preferredCodec,
-      const std::function<void(const QString &url, const QString &codec)> &onResolved);
+      const std::function<void(const QString &url, const QString &codec, int bitrateKbps)>
+          &onResolved);
 
   void parseLrc(const QString &lrcText, TrackSupplementary &out) const;
 };
