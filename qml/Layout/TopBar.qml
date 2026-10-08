@@ -264,8 +264,8 @@ Item {
     Popup {
         id: settingsPopup
 
-        width: 200
-        height: 190
+        width: 260
+        height: 280
 
         x: settingsButton.x + settingsButton.width - width
         y: settingsButton.y + settingsButton.height + 6
@@ -335,6 +335,12 @@ Item {
                 }
             }
 
+            Rectangle {
+                width: parent.width
+                height: 1
+                color: AppTheme.borderSubtle
+            }
+
             Text {
                 width: parent.width
                 text: "Качество аудио"
@@ -342,14 +348,11 @@ Item {
                 font.pixelSize: 11
                 font.bold: true
 
+                horizontalAlignment: Text.AlignHCenter
                 anchors.topMargin: 2
             }
 
-            Row {
-                width: parent.width
-                spacing: 6
-
-                Repeater {
+            Repeater {
                     model: [
                         { key: "low", title: "Низкое" },
                         { key: "normal", title: "Среднее" },
@@ -357,51 +360,71 @@ Item {
                         { key: "lossless", title: "Lossless" }
                     ]
 
-                    delegate: Rectangle {
+                    delegate: Row {
                         required property var modelData
 
-                        width: (parent.width - 18) / 4
-                        height: 26
-                        radius: 6
-
-                        color: qualityButtonMouse.containsMouse
-                            ? AppTheme.panelActive
-                            : root.controller &&
-                              root.controller.audioQualityController &&
-                              root.controller.audioQualityController.quality === modelData.key
-                                ? AppTheme.accent
-                                : AppTheme.panelSecondary
+                        width: parent.width
+                        height: 24
+                        spacing: 8
 
                         Text {
-                            anchors.centerIn: parent
+                            width: parent.width - 28
+                            height: parent.height
 
                             text: modelData.title
-                            color: root.controller &&
-                                root.controller.audioQualityController &&
-                                root.controller.audioQualityController.quality === modelData.key
-                                ? AppTheme.accentOn
-                                : AppTheme.textPrimary
-                            font.pixelSize: 11
-                            font.weight: Font.Medium
+                            color: AppTheme.textPrimary
+                            font.pixelSize: 12
+
+                            verticalAlignment: Text.AlignVCenter
                         }
 
-                        MouseArea {
-                            id: qualityButtonMouse
+                        Item {
+                            width: 20
+                            height: 20
 
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
+                            anchors.verticalCenter: parent.verticalCenter
 
-                            onClicked: {
-                                if (root.controller &&
-                                    root.controller.audioQualityController) {
-                                    root.controller.audioQualityController.setQuality(
-                                        modelData.key)
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: width / 2
+
+                                color: root.controller &&
+                                    root.controller.audioQualityController &&
+                                    root.controller.audioQualityController.quality === modelData.key
+                                    ? AppTheme.accent
+                                    : AppTheme.panelSecondary
+
+                                border.width: 1
+                                border.color: AppTheme.border
+
+                                Text {
+                                    anchors.centerIn: parent
+
+                                    text: root.controller &&
+                                        root.controller.audioQualityController &&
+                                        root.controller.audioQualityController.quality === modelData.key
+                                        ? "✓"
+                                        : ""
+                                    color: AppTheme.accentOn
+                                    font.pixelSize: 11
+                                }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+
+                                onClicked: {
+                                    if (root.controller &&
+                                        root.controller.audioQualityController) {
+                                        root.controller.audioQualityController.setQuality(
+                                            modelData.key)
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
             Rectangle {
                 width: parent.width
@@ -416,7 +439,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
 
-                    text: "Выйти"
+                    text: "Выйти из аккаунта"
                     color: logoutArea.containsMouse ? AppTheme.error : AppTheme.textPrimary
                     font.pixelSize: 13
                     font.weight: Font.Medium
