@@ -264,8 +264,8 @@ Item {
     Popup {
         id: settingsPopup
 
-        width: 180
-        height: 120
+        width: 200
+        height: 190
 
         x: settingsButton.x + settingsButton.width - width
         y: settingsButton.y + settingsButton.height + 6
@@ -328,6 +328,74 @@ Item {
                             onClicked: {
                                 if (root.controller) {
                                     root.controller.themeController.setDarkTheme(!AppTheme.dark)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Text {
+                width: parent.width
+                text: "Качество аудио"
+                color: AppTheme.textSecondary
+                font.pixelSize: 11
+                font.bold: true
+
+                anchors.topMargin: 2
+            }
+
+            Row {
+                width: parent.width
+                spacing: 6
+
+                Repeater {
+                    model: [
+                        { key: "low", title: "Низкое" },
+                        { key: "normal", title: "Среднее" },
+                        { key: "high", title: "Высокое" },
+                        { key: "lossless", title: "Lossless" }
+                    ]
+
+                    delegate: Rectangle {
+                        required property var modelData
+
+                        width: (parent.width - 18) / 4
+                        height: 26
+                        radius: 6
+
+                        color: qualityButtonMouse.containsMouse
+                            ? AppTheme.panelActive
+                            : root.controller &&
+                              root.controller.audioQualityController &&
+                              root.controller.audioQualityController.quality === modelData.key
+                                ? AppTheme.accent
+                                : AppTheme.panelSecondary
+
+                        Text {
+                            anchors.centerIn: parent
+
+                            text: modelData.title
+                            color: root.controller &&
+                                root.controller.audioQualityController &&
+                                root.controller.audioQualityController.quality === modelData.key
+                                ? AppTheme.accentOn
+                                : AppTheme.textPrimary
+                            font.pixelSize: 11
+                            font.weight: Font.Medium
+                        }
+
+                        MouseArea {
+                            id: qualityButtonMouse
+
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+
+                            onClicked: {
+                                if (root.controller &&
+                                    root.controller.audioQualityController) {
+                                    root.controller.audioQualityController.setQuality(
+                                        modelData.key)
                                 }
                             }
                         }

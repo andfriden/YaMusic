@@ -137,6 +137,7 @@ set(
         src/Core/AppController+Playback.cpp
         src/Core/AppController+Search.cpp
         src/Core/AppController+Selection.cpp
+        src/Core/AudioQualityController.cpp
 
         src/Core/AlbumController.cpp
         src/Core/ArtistController.cpp

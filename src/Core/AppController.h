@@ -13,6 +13,7 @@
 #include "AccentController.h"
 #include "AlbumController.h"
 #include "ArtistController.h"
+#include "AudioQualityController.h"
 #include "ChartController.h"
 #include "GenreController.h"
 #include "LibraryController.h"
@@ -87,6 +88,7 @@ class AppController : public QObject {
   Q_PROPERTY(LyricsController *lyricsController READ lyricsController CONSTANT)
   Q_PROPERTY(ThemeController *themeController READ themeController CONSTANT)
   Q_PROPERTY(AccentController *accentController READ accentController CONSTANT)
+  Q_PROPERTY(AudioQualityController *audioQualityController READ audioQualityController CONSTANT)
 
   Q_PROPERTY(QString currentPlaylistTitle READ currentPlaylistTitle NOTIFY currentPlaylistChanged)
   Q_PROPERTY(
@@ -135,6 +137,10 @@ class AppController : public QObject {
   Q_PROPERTY(QString playbackSourceType READ playbackSourceType NOTIFY playbackSourceChanged)
   Q_PROPERTY(int queueCount READ queueCount NOTIFY queueChanged)
   Q_PROPERTY(int queueCurrentIndex READ queueCurrentIndex NOTIFY queueChanged)
+
+  // Кодек и битрейт текущего стрима (для отображения качества).
+  Q_PROPERTY(QString currentCodec READ currentCodec NOTIFY streamQualityInfoChanged)
+  Q_PROPERTY(int currentBitrate READ currentBitrate NOTIFY streamQualityInfoChanged)
 
 public:
   explicit AppController(YandexAuth *auth, AccountService *accountService,
@@ -216,6 +222,9 @@ public:
   int queueCurrentIndex() const;
   Q_INVOKABLE QVariantMap queueTrackData(int index) const;
 
+  QString currentCodec() const;
+  int currentBitrate() const;
+
   SearchModel *searchModel() const;
   SearchArtistsModel *searchArtistsModel() const;
   SearchAlbumsModel *searchAlbumsModel() const;
@@ -238,6 +247,7 @@ public:
   LyricsController *lyricsController() const;
   ThemeController *themeController() const;
   AccentController *accentController() const;
+  AudioQualityController *audioQualityController() const;
 
   bool isSearching() const;
   bool isPlaying() const;
@@ -330,6 +340,8 @@ signals:
   void playbackSourceChanged();
   void queueChanged();
 
+  void streamQualityInfoChanged();
+
 private:
   void connectAccount();
   void connectSearch();
@@ -363,6 +375,7 @@ private:
   PlayerService *m_playerService;
   QueueService *m_queueService;
   PlayerAccentService *m_playerAccentService;
+  AudioQualityController *m_audioQualityController = nullptr;
 
   PlaybackController *m_playbackController;
   LibraryController *m_libraryController;

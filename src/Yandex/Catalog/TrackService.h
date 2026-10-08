@@ -26,6 +26,10 @@ public:
 
   void loadStreamInfo(const QString &trackId);
 
+  // Как loadStreamInfo, но с явным выбором качества:
+  // "low" / "normal" / "high" / "lossless".
+  void loadStreamInfo(const QString &trackId, const QString &quality);
+
   // Получает прямой URL для скачивания трека и его кодек.
   // В отличие от loadStreamInfo (который выбирает лучший
   // стрим для воспроизведения), здесь результат отдаётся
@@ -54,6 +58,13 @@ signals:
 
   void streamUrlReceived(const QString &trackId, const QString &url);
 
+  // Актуальный кодек и битрейт полученного стрима (для отображения
+  // качества при воспроизведении; пустые поля — если не определено).
+  void streamQualityReceived(
+      const QString &trackId,
+      const QString &codec,
+      int bitrateInKbps);
+
   // Отдаёт сигнатурный URL прямого скачивания и кодек
   // выбранного стрима (mp3/aac/flac). Используется для
   // сохранения файла с метаданными и вложенным артворком.
@@ -78,6 +89,25 @@ private:
       const QString &trackId,
       const TrackStreamInfo &stream,
       const std::function<void(const QString &url)> &onResolved = {});
+
+  // Новый прямой путь получения URL трека: GET /get-file-info со
+  // HMAC-SHA256-подписью. Отдаёт сразу готовый к стримингу URL
+  // (без второго шага к CDN). onResolved(url, codec, bitrateKbps)
+  // вызывается при успехе, onFallback — если все попытки неудачны.
+  void loadStreamFileInfo(
+      const QString &trackId,
+      const QString &quality,
+      const std::function<void(const QString &url, const QString &codec, int bitrateKbps)>
+          &onResolved,
+      const std::function<void()> &onFallback);
+
+  // HMAC-SHA256 подпись для /get-file-info.
+  static QString fileInfoSign(
+      qint64 ts,
+      const QString &trackId,
+      const QString &quality,
+      const QString &codecsDelim,
+      const QString &transports);
 
   // Общая логика запроса /download-info: выбирает лучший
   // стрим по выбранному кодеку/битрейту и резолвит подписанный

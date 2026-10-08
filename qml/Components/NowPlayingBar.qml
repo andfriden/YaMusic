@@ -167,6 +167,28 @@ Rectangle {
                         }
                     }
                 }
+
+                Label {
+                    Layout.fillWidth: true
+
+                    visible: root.hasTrack &&
+                        root.controller &&
+                        String(root.controller.currentCodec || "").length > 0
+
+                    text: {
+                        const codec = root.controller.currentCodec || ""
+                        const br = Number(root.controller.currentBitrate || 0)
+                        const codecLabel = codec.toUpperCase()
+                        return br > 0 ? codecLabel + " · " + br + " kbps" : codecLabel
+                    }
+
+                    color: AppTheme.textMuted
+                    font.pixelSize: 11
+                    font.letterSpacing: 0.5
+
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
             }
 
             Item {

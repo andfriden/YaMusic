@@ -43,8 +43,10 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
       m_genreService(new GenreService(m_auth, this)),
       m_stationService(new StationService(m_auth, this)), m_playerService(new PlayerService(this)),
       m_queueService(new QueueService(this)), m_playerAccentService(new PlayerAccentService(this)),
+      m_audioQualityController(new AudioQualityController(this)),
       m_playbackController(
-          new PlaybackController(m_trackService, m_playerService, m_queueService, this)),
+          new PlaybackController(m_trackService, m_playerService, m_queueService,
+                                 m_audioQualityController, this)),
       m_libraryController(new LibraryController(m_playlistService, m_artistService, m_likesService,
                                                 m_playbackController, this)),
       m_personalController(new PersonalController(m_yandexPersonal, m_personalLanding,
@@ -360,6 +362,9 @@ void AppController::connectPlayback() {
   connect(m_playbackController, &PlaybackController::shuffleChanged, this,
           &AppController::shuffleChanged);
 
+  connect(m_playbackController, &PlaybackController::streamQualityInfoChanged, this,
+          &AppController::streamQualityInfoChanged);
+
   connect(m_playbackController, &PlaybackController::playbackError, this,
           &AppController::statusChanged);
 
@@ -551,6 +556,14 @@ QString AppController::playbackSourceType() const {
   return m_queueService->sourceType();
 }
 
+QString AppController::currentCodec() const {
+  return m_playbackController->currentCodec();
+}
+
+int AppController::currentBitrate() const {
+  return m_playbackController->currentBitrate();
+}
+
 int AppController::queueCount() const {
   return m_queueService->count();
 }
@@ -658,6 +671,10 @@ ThemeController *AppController::themeController() const {
 
 AccentController *AppController::accentController() const {
   return m_accentController;
+}
+
+AudioQualityController *AppController::audioQualityController() const {
+  return m_audioQualityController;
 }
 
 bool AppController::isSearching() const {
