@@ -32,13 +32,20 @@ LyricsController::LyricsController(TrackService *trackService,
 }
 
 void LyricsController::loadLyrics() {
-  const QString id = m_playbackController->currentTrack().id;
+  const Track track = m_playbackController->currentTrack();
+  const QString id = track.id;
   if (id.isEmpty()) return;
   m_supplementary = {};
   m_currentLyricLine = -1;
   emit lyricsChanged();
   emit currentLyricLineChanged();
-  m_trackService->loadSupplementary(id);
+
+  QString artist;
+  if (!track.artists.isEmpty()) {
+    artist = track.artists.first().name;
+  }
+  // Сначала подписанный LRC Яндекса, при неудаче — публичная база LRCLIB.
+  m_trackService->loadSyncLyrics(id, track.title, artist);
 }
 
 QString LyricsController::lyricsText() const {

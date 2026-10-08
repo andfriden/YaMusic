@@ -3,6 +3,7 @@
 #include "../../Models/Track.h"
 #include "../YandexServiceBase.h"
 #include <QList>
+#include <QNetworkAccessManager>
 #include <QRegularExpression>
 #include <QString>
 #include <functional>
@@ -44,6 +45,13 @@ public:
   // Загружает синхронизированный текст через
   // /tracks/{id}/lyrics (LRC по downloadUrl).
   void loadTrackLyrics(const QString &trackId);
+
+  // Загружает синхронизированный текст (LRC) трека. Порядок источников:
+  //  1) подписанный запрос /tracks/{id}/lyrics?format=LRC (Яндекс);
+  //  2) публичная база LRCLIB по названию/исполнителю.
+  // Результат отдаётся сигналом supplementReceived (с таймингами в lines).
+  void loadSyncLyrics(const QString &trackId, const QString &title,
+                      const QString &artist);
 
   void loadSimilarTracks(const QString &trackId);
 
@@ -101,4 +109,21 @@ private:
           &onResolved);
 
   void parseLrc(const QString &lrcText, TrackSupplementary &out) const;
+
+  // Подписанный запрос /tracks/{id}/lyrics?format=LRC (Яндекс).
+  void requestYandexLrc(const QString &trackId,
+                        const std::function<void(const QString &lrcText)> &onOk,
+                        const std::function<void()> &onFail);
+
+  // Поиск и получение LRC из LRCLIB (публичная база) по названию/исполнителю.
+  void requestLrcLib(const QString &title, const QString &artist, int durationSec,
+                     const std::function<void(const QString &lrcText)> &onOk,
+                     const std::function<void()> &onFail);
+
+  static QString lyricsSign(qint64 ts, const QString &trackId, const QString &format);
+
+  void emitSupplement(const TrackSupplementary &supplement);
+
+  // Для публичных запросов (LRCLIB) — отдельный HTTP-клиент без авторизации.
+  QNetworkAccessManager *m_publicNetwork = nullptr;
 };
