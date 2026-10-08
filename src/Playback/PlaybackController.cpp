@@ -4,6 +4,7 @@
 #include "../MediaControls/MediaControlsFactory.h"
 #include "../Player/PlayerService.h"
 #include "../Player/StreamProxy.h"
+#include "../Yandex/Catalog/CensorService.h"
 #include "../Yandex/Catalog/TrackService.h"
 
 #include <QDir>
@@ -33,12 +34,14 @@ PlaybackController::PlaybackController(
     PlayerService *playerService,
     QueueService *queueService,
     AudioQualityController *qualityController,
+    CensorService *censorService,
     QObject *parent)
     : QObject(parent),
       m_trackService(trackService),
       m_playerService(playerService),
       m_queueService(queueService),
       m_qualityController(qualityController),
+      m_censorService(censorService),
       m_coverNetwork(new QNetworkAccessManager(this)),
       m_streamNetwork(new QNetworkAccessManager(this)) {
   Q_ASSERT(m_trackService != nullptr);
@@ -225,6 +228,22 @@ void PlaybackController::playTrack(const Track &track) {
   const QString quality =
       m_qualityController ? m_qualityController->quality()
                           : QStringLiteral("high");
+
+  // Подмена цензурной версии: если включён censorBypass и для трека есть
+  // нецензурная замена (и пользователь не выбрал «оригинал») — играем её
+  // напрямую, не запрашивая стрим Яндекса.
+  if (m_censorService && m_qualityController &&
+      m_qualityController->censorBypass() &&
+      !m_qualityController->prefersOriginal(track.id)) {
+    const QString replacementUrl = m_censorService->replacementUrl(track.id);
+    if (!replacementUrl.isEmpty()) {
+      m_currentCodec.clear();
+      m_currentBitrate = 0;
+      emit streamQualityInfoChanged();
+      playStream(track.id, replacementUrl);
+      return;
+    }
+  }
 
   m_trackService->loadStreamInfo(track.id, quality);
 }

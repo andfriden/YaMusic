@@ -30,6 +30,7 @@
 class AccountService;
 class AlbumService;
 class ArtistService;
+class CensorService;
 class ChartService;
 class GenreService;
 class LikesService;
@@ -378,6 +379,7 @@ private:
   QueueService *m_queueService;
   PlayerAccentService *m_playerAccentService;
   AudioQualityController *m_audioQualityController = nullptr;
+  CensorService *m_censorService = nullptr;
 
   PlaybackController *m_playbackController;
   LibraryController *m_libraryController;

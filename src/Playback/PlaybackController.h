@@ -14,6 +14,7 @@ class PlayerService;
 class TrackService;
 class StreamProxy;
 class AudioQualityController;
+class CensorService;
 class QNetworkAccessManager;
 class QNetworkReply;
 
@@ -37,6 +38,7 @@ public:
       PlayerService *playerService,
       QueueService *queueService,
       AudioQualityController *qualityController,
+      CensorService *censorService,
       QObject *parent = nullptr);
 
   Track currentTrack() const;
@@ -128,6 +130,7 @@ private:
   PlayerService *m_playerService = nullptr;
   QueueService *m_queueService = nullptr;
   AudioQualityController *m_qualityController = nullptr;
+  CensorService *m_censorService = nullptr;
 
   Track m_currentTrack;
   PlaybackState m_state = Idle;

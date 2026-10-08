@@ -7,6 +7,7 @@
 #include "../Yandex/Auth/YandexAuth.h"
 #include "../Yandex/Catalog/AlbumService.h"
 #include "../Yandex/Catalog/ArtistService.h"
+#include "../Yandex/Catalog/CensorService.h"
 #include "../Yandex/Catalog/ChartService.h"
 #include "../Yandex/Catalog/GenreService.h"
 #include "../Yandex/Catalog/SearchService.h"
@@ -44,9 +45,10 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
       m_stationService(new StationService(m_auth, this)), m_playerService(new PlayerService(this)),
       m_queueService(new QueueService(this)), m_playerAccentService(new PlayerAccentService(this)),
       m_audioQualityController(new AudioQualityController(this)),
+      m_censorService(new CensorService(this)),
       m_playbackController(
           new PlaybackController(m_trackService, m_playerService, m_queueService,
-                                 m_audioQualityController, this)),
+                                 m_audioQualityController, m_censorService, this)),
       m_libraryController(new LibraryController(m_playlistService, m_artistService, m_likesService,
                                                 m_playbackController, this)),
       m_personalController(new PersonalController(m_yandexPersonal, m_personalLanding,

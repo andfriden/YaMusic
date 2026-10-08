@@ -201,6 +201,7 @@ set(
         src/Yandex/Catalog/ChartModel.cpp
         src/Yandex/Catalog/ChartService.cpp
         src/Yandex/Catalog/CoverImageProvider.cpp
+        src/Yandex/Catalog/CensorService.cpp
         src/Yandex/Catalog/GenreModel.cpp
         src/Yandex/Catalog/GenreService.cpp
         src/Yandex/Catalog/SearchModel.cpp

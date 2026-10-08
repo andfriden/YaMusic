@@ -265,7 +265,7 @@ Item {
         id: settingsPopup
 
         width: 260
-        height: 280
+        height: 320
 
         x: settingsButton.x + settingsButton.width - width
         y: settingsButton.y + settingsButton.height + 6
@@ -425,6 +425,77 @@ Item {
                         }
                     }
                 }
+
+            Rectangle {
+                width: parent.width
+                height: 1
+                color: AppTheme.borderSubtle
+            }
+
+            Row {
+                width: parent.width
+                height: 26
+                spacing: 8
+
+                Text {
+                    width: parent.width - 28
+                    height: parent.height
+
+                    text: "Треки без цензуры"
+                    color: AppTheme.textPrimary
+                    font.pixelSize: 12
+
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                Item {
+                    width: 20
+                    height: 20
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 4
+
+                        color: root.controller &&
+                            root.controller.audioQualityController &&
+                            root.controller.audioQualityController.censorBypass
+                            ? AppTheme.accent
+                            : AppTheme.panelSecondary
+
+                        border.width: 1
+                        border.color: AppTheme.border
+
+                        Text {
+                            anchors.centerIn: parent
+
+                            text: root.controller &&
+                                root.controller.audioQualityController &&
+                                root.controller.audioQualityController.censorBypass
+                                ? "✓"
+                                : ""
+                            color: AppTheme.accentOn
+                            font.pixelSize: 11
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (root.controller &&
+                                root.controller.audioQualityController) {
+                                root.controller.audioQualityController.setCensorBypass(
+                                    !root.controller.audioQualityController.censorBypass)
+                            }
+                        }
+                    }
+                }
+            }
 
             Rectangle {
                 width: parent.width
