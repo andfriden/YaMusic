@@ -82,6 +82,7 @@ class AppController : public QObject {
 
   Q_PROPERTY(AlbumController *albumController READ albumController CONSTANT)
   Q_PROPERTY(ArtistController *artistController READ artistController CONSTANT)
+  Q_PROPERTY(PersonalController *personalController READ personalController CONSTANT)
   Q_PROPERTY(ChartController *chartController READ chartController CONSTANT)
   Q_PROPERTY(GenreController *genreController READ genreController CONSTANT)
   Q_PROPERTY(StationsController *stationsController READ stationsController CONSTANT)
@@ -241,6 +242,7 @@ public:
 
   AlbumController *albumController() const;
   ArtistController *artistController() const;
+  PersonalController *personalController() const;
   ChartController *chartController() const;
   GenreController *genreController() const;
   StationsController *stationsController() const;

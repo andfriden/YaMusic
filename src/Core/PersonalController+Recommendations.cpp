@@ -80,6 +80,16 @@ void PersonalController::connectRecommendations() {
             }
           });
 
+  connect(m_personalLanding, &PersonalLanding::wheelReceived, this,
+          [this](const QVariantList &items) {
+            m_wheelItems = items;
+            emit wheelItemsChanged();
+            if (!items.isEmpty()) {
+              emit statusChanged(
+                  QStringLiteral("Колесо: элементов %1").arg(items.size()));
+            }
+          });
+
   connect(m_personalLanding, &PersonalLanding::errorOccurred, this, [this](const QString &message) {
 m_loadingRecommendations = false;
   emit loadingRecommendationsChanged();
@@ -155,4 +165,14 @@ void PersonalController::selectPersonalPlaylist(const QString &uid, int kind) {
   m_myWaveQueueActive = false;
   m_waitingForMoreMyWave = false;
   emit personalPlaylistSelected(selectedPlaylist);
+}
+void PersonalController::loadWheel() {
+  m_wheelItems.clear();
+  emit wheelItemsChanged();
+  emit statusChanged("Загрузка Колеса...");
+  m_personalLanding->loadWheel();
+}
+
+QVariantList PersonalController::wheelItems() const {
+  return m_wheelItems;
 }

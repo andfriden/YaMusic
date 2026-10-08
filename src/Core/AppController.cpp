@@ -642,16 +642,20 @@ RecentListeningModel *AppController::recentListeningModel() const {
 }
 
 AlbumController *AppController::albumController() const {
-  return m_albumController;
-}
+   return m_albumController;
+ }
 
 ArtistController *AppController::artistController() const {
-  return m_artistController;
-}
+   return m_artistController;
+ }
+
+PersonalController *AppController::personalController() const {
+   return m_personalController;
+ }
 
 ChartController *AppController::chartController() const {
-  return m_chartController;
-}
+   return m_chartController;
+ }
 
 GenreController *AppController::genreController() const {
 return m_genreController;
