@@ -74,6 +74,13 @@ void AlbumService::loadAlbum(const QString &id) {
     albumDetails.album.year = albumObject.value("year").toInt();
     albumDetails.description = albumObject.value("description").toString();
     albumDetails.trackCount = albumObject.value("trackCount").toInt();
+    albumDetails.type = albumObject.value("type").toString().trimmed();
+
+    // У книг и части подкастов звука в Music API нет: он отдаётся во внешнем
+    // сервисе, а API кладёт кнопку-переход в actionButton.
+    const QJsonObject actionButton = albumObject.value("actionButton").toObject();
+    albumDetails.actionButtonText = actionButton.value("text").toString().trimmed();
+    albumDetails.actionButtonUrl = actionButton.value("url").toString().trimmed();
 
     // volumes: [[track, track, ...]]
     const QJsonArray volumes = albumObject.value("volumes").toArray();

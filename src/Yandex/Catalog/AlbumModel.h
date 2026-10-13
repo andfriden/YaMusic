@@ -22,7 +22,9 @@ public:
     AlbumIdRole,
     CoverUriRole,
     DurationMsRole,
-    LikedRole
+    LikedRole,
+    // Права на воспроизведение (у глав книг и части подкастов — false).
+    AvailableRole
   };
   Q_ENUM(Roles)
 

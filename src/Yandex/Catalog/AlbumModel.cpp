@@ -25,6 +25,8 @@ QVariant AlbumModel::data(const QModelIndex &index, int role) const {
     return track.durationMs;
   case LikedRole:
     return track.liked;
+  case AvailableRole:
+    return track.available;
   }
   return {};
 }
@@ -37,7 +39,8 @@ QHash<int, QByteArray> AlbumModel::roleNames() const {
           {AlbumIdRole, "albumId"},
           {CoverUriRole, "coverUri"},
           {DurationMsRole, "durationMs"},
-          {LikedRole, "liked"}};
+          {LikedRole, "liked"},
+          {AvailableRole, "available"}};
 }
 
 void AlbumModel::setAlbum(const AlbumDetails &album) {

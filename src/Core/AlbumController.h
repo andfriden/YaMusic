@@ -29,6 +29,15 @@ class AlbumController final : public QObject {
 
   Q_PROPERTY(int currentAlbumTrackCount READ albumTrackCount NOTIFY albumChanged)
 
+  // Есть ли в альбоме треки, доступные для воспроизведения через Music API:
+  // у книг и части подкастов Яндекс отдаёт звук только во внешнем сервисе.
+  Q_PROPERTY(bool currentAlbumPlayable READ isPlayable NOTIFY albumChanged)
+
+  // Кнопка перехода во внешний сервис (у книг — «Читать в Яндекс Книгах»).
+  Q_PROPERTY(QString currentAlbumExternalText READ externalText NOTIFY albumChanged)
+
+  Q_PROPERTY(QString currentAlbumExternalUrl READ externalUrl NOTIFY albumChanged)
+
 public:
   explicit AlbumController(AlbumService *albumService, ArtistService *artistService,
                            PlaybackController *playbackController, LikesService *likesService,
@@ -54,6 +63,12 @@ public:
 
   int albumTrackCount() const;
 
+  bool isPlayable() const;
+
+  QString externalText() const;
+
+  QString externalUrl() const;
+
   // Исполнитель текущего альбома (заполняется при загрузке «Других альбомов»).
   QString currentArtistId() const;
 
@@ -76,6 +91,9 @@ signals:
 private:
   void loadOtherAlbumsForCurrentArtist(const AlbumDetails &album);
 
+  // Сообщение для трека, который нельзя воспроизвести в Music API.
+  QString unavailableMessage() const;
+
   AlbumService *m_albumService = nullptr;
 
   ArtistService *m_artistService = nullptr;
@@ -93,4 +111,10 @@ private:
   QString m_albumId;
 
   QString m_currentArtistId;
+
+  bool m_hasPlayableTracks = false;
+
+  QString m_externalText;
+
+  QString m_externalUrl;
 };

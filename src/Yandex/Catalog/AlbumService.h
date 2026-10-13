@@ -12,6 +12,13 @@ struct AlbumDetails {
   QString description;
   int trackCount = 0;
   QList<Track> tracks;
+
+  // Тип релиза из API: "album", "single", "audiobook", "podcast", ...
+  QString type;
+
+  // Кнопка перехода во внешний сервис (у книг — «Читать в Яндекс Книгах»).
+  QString actionButtonText;
+  QString actionButtonUrl;
 };
 
 class AlbumService : public YandexServiceBase {

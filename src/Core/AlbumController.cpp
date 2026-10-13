@@ -18,6 +18,15 @@ AlbumController::AlbumController(AlbumService *albumService, ArtistService *arti
     m_loading = false;
     emit loadingChanged();
     m_albumId = album.album.id;
+    m_externalText = album.actionButtonText;
+    m_externalUrl = album.actionButtonUrl;
+    m_hasPlayableTracks = false;
+    for (const Track &track : album.tracks) {
+      if (track.available) {
+        m_hasPlayableTracks = true;
+        break;
+      }
+    }
     AlbumDetails albumWithLikes = album;
 
     if (m_likesService) {
@@ -66,6 +75,9 @@ void AlbumController::loadAlbum(const QString &id) {
   emit loadingChanged();
   m_albumId = id;
   m_currentArtistId.clear();
+  m_externalText.clear();
+  m_externalUrl.clear();
+  m_hasPlayableTracks = false;
   m_albumModel->clear();
   m_otherAlbumsModel->clear();
   emit albumChanged();
@@ -79,18 +91,50 @@ void AlbumController::selectAlbumTrack(int index) {
     return;
   }
 
+  if (!tracks.at(index).available) {
+    emit statusChanged(unavailableMessage());
+    return;
+  }
+
+  // В очередь кладём только воспроизводимые треки: иначе переход
+  // «далее» по недоступному треку снова упрётся в 403 no-rights.
+  QList<Track> playable;
+  int playIndex = 0;
+
+  for (int i = 0; i < tracks.size(); ++i) {
+    const Track &track = tracks.at(i);
+    if (!track.available) continue;
+    if (i < index) ++playIndex;
+    playable.append(track);
+  }
+
+  if (playIndex >= playable.size()) {
+    emit statusChanged(unavailableMessage());
+    return;
+  }
+
   emit trackSelected(tracks.at(index));
-  m_playbackController->playFromSource(tracks, index, m_albumModel->title(), "album");
+  m_playbackController->playFromSource(playable, playIndex, m_albumModel->title(), "album");
 }
 
 void AlbumController::playAlbum() {
   const QList<Track> tracks = m_albumModel->tracks();
 
-  if (tracks.isEmpty()) {
+  QList<Track> playable;
+  for (const Track &track : tracks) {
+    if (track.available) playable.append(track);
+  }
+
+  if (playable.isEmpty()) {
+    emit statusChanged(unavailableMessage());
     return;
   }
 
-  m_playbackController->playFromSource(tracks, 0, m_albumModel->title(), "album");
+  m_playbackController->playFromSource(playable, 0, m_albumModel->title(), "album");
+}
+
+QString AlbumController::unavailableMessage() const {
+  return QStringLiteral("Прослушивание доступно только в Яндекс Книгах");
 }
 
 AlbumModel *AlbumController::albumModel() const {
@@ -119,6 +163,18 @@ QString AlbumController::albumCoverUri() const {
 
 int AlbumController::albumTrackCount() const {
   return m_albumModel ? m_albumModel->count() : 0;
+}
+
+bool AlbumController::isPlayable() const {
+  return m_hasPlayableTracks;
+}
+
+QString AlbumController::externalText() const {
+  return m_externalText;
+}
+
+QString AlbumController::externalUrl() const {
+  return m_externalUrl;
 }
 
 QString AlbumController::currentArtistId() const {

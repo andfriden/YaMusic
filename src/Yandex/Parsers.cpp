@@ -69,6 +69,8 @@ Track parseTrack(const QJsonObject &object) {
   track.title = obj.value("title").toString();
   track.coverUri = parseCoverUri(obj);
   track.durationMs = obj.value("durationMs").toInt();
+  // Поле отсутствует у части ответов (очередь, лайки) — считаем трек доступным.
+  track.available = obj.value("available").toBool(true);
 
   const QJsonArray artists = obj.value("artists").toArray();
   for (const QJsonValue &value : artists) {
