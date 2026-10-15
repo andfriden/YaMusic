@@ -35,10 +35,14 @@ void PersonalController::loadMyWave() {
   m_waitingForMoreMyWave = false;
   m_currentMyWaveTrackId.clear();
   m_myWaveTrackStarted = false;
+  m_replaceMyWaveQueue = false;
   m_loadingMyWave = true;
   emit loadingMyWaveChanged();
   m_myWaveTrackBatches.clear();
   m_myWaveModel->clear();
+  // Новая сессия волны: недавно сыгранное больше не ограничение.
+  m_recentMyWaveTrackIds.clear();
+  m_recentMyWaveOrder.clear();
 
   QueueService *queue = m_playbackController->queueService();
   queue->clear();
@@ -96,6 +100,39 @@ void PersonalController::handleMyWaveReceived(const QList<Track> &tracks, const 
   emit loadingMyWaveChanged();
   emit loadingMoreMyWaveChanged();
 
+  // Пропуск или дизлайк пересчитали последовательность: свежая партия
+  // заменяет очередь целиком, чтобы слышно было уже новое.
+  if (m_replaceMyWaveQueue) {
+    m_replaceMyWaveQueue = false;
+    m_waitingForMoreMyWave = false;
+    m_myWaveQueueActive = true;
+
+    QueueService *queue = m_playbackController->queueService();
+    m_myWaveModel->setTracks(tracks);
+    queue->clear();
+    queue->addTracks(tracks);
+    queue->setSource("Моя волна", "myWave");
+
+    emit statusChanged(QStringLiteral("Моя волна: %1 треков").arg(m_myWaveModel->count()));
+
+    if (!queue->setCurrentIndex(0)) {
+      emit statusChanged("Не удалось заменить очередь моей волны");
+      return;
+    }
+
+    const Track firstTrack = queue->currentTrack();
+
+    if (firstTrack.id.isEmpty()) {
+      return;
+    }
+
+    m_currentMyWaveTrackId = firstTrack.id;
+    m_myWaveTrackStarted = false;
+    markMyWaveTrackPlayed(firstTrack.id);
+    m_playbackController->playTrack(firstTrack);
+    return;
+  }
+
   if (!isMoreBatch) {
     m_myWaveModel->setTracks(tracks);
 
@@ -110,9 +147,23 @@ void PersonalController::handleMyWaveReceived(const QList<Track> &tracks, const 
     return;
   }
 
+  // Пришедшее сыгранное не показываем снова, но партию без ничего
+  // нового принимаем как есть — иначе волна оборвалась бы.
+  QList<Track> batch;
+
+  for (const Track &track : tracks) {
+    if (track.id.isEmpty()) continue;
+    if (m_recentMyWaveTrackIds.contains(track.id)) continue;
+    batch.append(track);
+  }
+
+  if (batch.isEmpty()) {
+    batch = tracks;
+  }
+
   const int oldCount = m_myWaveModel->count();
-  m_myWaveModel->appendTracks(tracks);
-  appendMyWaveTracksToQueue(tracks);
+  m_myWaveModel->appendTracks(batch);
+  appendMyWaveTracksToQueue(batch);
   const int appended = m_myWaveModel->count() - oldCount;
   emit statusChanged(QStringLiteral("Моя волна: %1 треков").arg(m_myWaveModel->count()));
 
@@ -138,6 +189,7 @@ void PersonalController::handleMyWaveReceived(const QList<Track> &tracks, const 
 
   m_currentMyWaveTrackId = nextTrack.id;
   m_myWaveTrackStarted = false;
+  markMyWaveTrackPlayed(nextTrack.id);
   m_playbackController->playTrack(nextTrack);
 }
 
@@ -159,6 +211,7 @@ void PersonalController::selectMyWaveTrack(int index) {
     return;
   }
 
+  markMyWaveTrackPlayed(track.id);
   emit myWaveTrackSelected(track);
   emit statusChanged(QStringLiteral("Выбран трек: %1").arg(track.title));
   m_playbackController->playTrack(track);
@@ -202,6 +255,7 @@ void PersonalController::appendMyWaveTracksToQueue(const QList<Track> &tracks) {
   // узким местом — перевести на QSet idшников.
   for (const Track &track : tracks) {
     if (track.id.isEmpty()) continue;
+    if (queue->count() >= kMaxQueueTracks) break;
     bool exists = false;
 
     for (const Track &queuedTrack : queuedTracks) {
@@ -235,6 +289,7 @@ void PersonalController::handleMyWavePlaybackFinished() {
 
     m_currentMyWaveTrackId = nextTrack.id;
     m_myWaveTrackStarted = false;
+    markMyWaveTrackPlayed(nextTrack.id);
     m_playbackController->playTrack(nextTrack);
     return;
   }
@@ -256,6 +311,80 @@ void PersonalController::handleMyWavePlaybackFinished() {
 
 QString PersonalController::batchIdForTrack(const QString &trackId) const {
   return m_myWaveTrackBatches.value(trackId);
+}
+
+void PersonalController::reportMyWaveDislike(const QString &trackId, bool disliked) {
+  if (!m_myWaveQueueActive) {
+    return;
+  }
+
+  const QString id = trackId.trimmed();
+
+  if (id.isEmpty() || id != m_currentMyWaveTrackId) {
+    return;
+  }
+
+  sendMyWaveFeedback(disliked ? "dislike" : "undislike", id, 0);
+
+  // Дизлайк пересчитывает последовательность: оставшуюся очередь
+  // заменяем свежей партией, как и на пропуске.
+  if (disliked && !m_loadingMyWave && !m_loadingMoreMyWave) {
+    replaceMyWaveQueue(id);
+  }
+}
+
+bool PersonalController::handleMyWaveSkip() {
+  if (!m_myWaveQueueActive) {
+    return false;
+  }
+
+  // Запрос уже в пути: замену не начинаем, иначе ответ на него
+  // приняли бы за новую партию замены.
+  if (m_loadingMyWave || m_loadingMoreMyWave) {
+    return false;
+  }
+
+  const QString trackId = m_currentMyWaveTrackId;
+
+  if (trackId.isEmpty()) {
+    return false;
+  }
+
+  stopCurrentMyWaveTrack("skip");
+  replaceMyWaveQueue(trackId);
+  return true;
+}
+
+void PersonalController::replaceMyWaveQueue(const QString &fromTrackId) {
+  const QString id = fromTrackId.trimmed();
+
+  if (id.isEmpty()) {
+    return;
+  }
+
+  m_replaceMyWaveQueue = true;
+  m_waitingForMoreMyWave = true;
+  emit statusChanged("Моя волна: обновление очереди...");
+  m_yandexPersonal->loadMoreMyWave(id);
+}
+
+void PersonalController::markMyWaveTrackPlayed(const QString &trackId) {
+  const QString id = trackId.trimmed();
+
+  if (id.isEmpty()) {
+    return;
+  }
+
+  if (m_recentMyWaveTrackIds.contains(id)) {
+    m_recentMyWaveOrder.removeAll(id);
+  }
+
+  m_recentMyWaveTrackIds.insert(id);
+  m_recentMyWaveOrder.append(id);
+
+  while (m_recentMyWaveOrder.size() > kRecentTrackLimit) {
+    m_recentMyWaveTrackIds.remove(m_recentMyWaveOrder.takeFirst());
+  }
 }
 
 void PersonalController::stopCurrentMyWaveTrack(const QString &event) {

@@ -19,6 +19,13 @@ void AppController::next() {
   if (m_playbackController->queueService()->sourceType() == "station") {
     m_stationsController->reportStationSkip();
   }
+
+  // В «Моей волне» пропуск пересчитывает последовательность: очередь
+  // заменяется свежей партией, обычный переход не нужен.
+  if (m_personalController->handleMyWaveSkip()) {
+    return;
+  }
+
   if (!m_playbackController->next()) {
     emit statusChanged("Следующего трека нет");
   }

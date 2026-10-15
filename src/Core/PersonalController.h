@@ -14,6 +14,7 @@
 #include <QHash>
 #include <QList>
 #include <QObject>
+#include <QSet>
 #include <QString>
 
 class PlayerService;
@@ -88,6 +89,15 @@ public:
   // полностью дошёл до конца очереди My Wave.
   void handleMyWavePlaybackFinished();
 
+  // Фидбек ротора на дизлайк трека Моей волны (dislike/undislike):
+  // учитывается только для трека текущей очереди.
+  void reportMyWaveDislike(const QString &trackId, bool disliked);
+
+  // Пропуск трека волны кнопкой «Следующий»: фидбек skip и замена
+  // оставшейся очереди свежей партией ротора. true — вызов обработан,
+  // обычный переход к следующему треку не нужен.
+  bool handleMyWaveSkip();
+
 signals:
   void statusChanged(const QString &message);
 
@@ -130,6 +140,13 @@ private:
 
   QString batchIdForTrack(const QString &trackId) const;
 
+  // Замена очереди волны свежей партией: ротор пересчитывает
+  // последовательность, поэтому оставшееся в очереди отбрасывается.
+  void replaceMyWaveQueue(const QString &fromTrackId);
+
+  // Отмечает трек волны как сыгранный, чтобы ротор не приносил его снова.
+  void markMyWaveTrackPlayed(const QString &trackId);
+
 private:
   YandexPersonal *m_yandexPersonal = nullptr;
 
@@ -168,6 +185,20 @@ private:
   bool m_waitingForMoreMyWave = false;
 
   QHash<QString, QString> m_myWaveTrackBatches;
+
+  // Недавно сыгранное волной: id треков и порядок появления, чтобы
+  // отсекать повторы и не держать историю бесконечно.
+  QSet<QString> m_recentMyWaveTrackIds;
+
+  QList<QString> m_recentMyWaveOrder;
+
+  // Следующая партия должна заменить очередь, а не дополнить её.
+  bool m_replaceMyWaveQueue = false;
+
+  // Потолок очереди волны — она не растёт бесконечно.
+  static constexpr int kMaxQueueTracks = 100;
+
+  static constexpr int kRecentTrackLimit = 30;
 
   QString m_currentMyWaveTrackId;
 
