@@ -384,6 +384,9 @@ jobs:
 
     steps:
 
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
@@ -394,30 +397,52 @@ jobs:
         run: |
           ls -la artifacts
 
+      - name: Build release notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+
+          {
+            echo "## YaMusic ${GITHUB_REF_NAME}"
+            echo
+            echo "Бета-сборка для macOS (Intel и Apple Silicon), Linux и Windows."
+            echo
+            echo "### Установка"
+            echo
+            echo "- **Windows** — \`YaMusic-${VERSION}-windows-x64-portable.zip\` (portable, без установки)"
+            echo "- **macOS** — \`YaMusic-${VERSION}-macos-x64.dmg\` (Intel) или \`YaMusic-${VERSION}-macos-arm64.dmg\` (Apple Silicon)"
+            echo "- **Linux** — \`YaMusic-${VERSION}-linux-x86_64.AppImage\` (запуск: \`chmod +x\` и запуск) или \`YaMusic-${VERSION}-linux-x86_64.tar.gz\`"
+            echo
+          } > release-notes.md
+
+          # Раздел этой версии из CHANGELOG: от её заголовка до следующего.
+          # Пустые строки в начале и разделитель в конце отбрасываются.
+          awk -v ver="$VERSION" '
+            $0 ~ "^## \\[v?" ver "\\]" { inside = 1; next }
+            inside && /^## \[/ { exit }
+            inside { lines[++n] = $0 }
+            END {
+              start = 1
+              while (start <= n && lines[start] ~ /^[[:space:]]*$/) start++
+              end = n
+              while (end >= start && (lines[end] ~ /^[[:space:]]*$/ || lines[end] == "---")) end--
+              for (i = start; i <= end; i++) print lines[i]
+            }
+          ' CHANGELOG.md > changelog-section.md
+
+          if [ -s changelog-section.md ]; then
+            cat changelog-section.md >> release-notes.md
+          else
+            echo "::warning::В CHANGELOG.md нет раздела для ${GITHUB_REF_NAME}: описание без списка изменений"
+          fi
+
+          cat release-notes.md
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: YaMusic ${{ github.ref_name }}
-          body: |
-            ## YaMusic ${{ github.ref_name }}
-
-            Бета-сборка для macOS (Intel и Apple Silicon), Linux и Windows.
-
-            ### Установка
-
-            - **Windows** — `YaMusic-<version>-windows-x64-portable.zip` (portable, без установки)
-            - **macOS** — `YaMusic-<version>-macos-x64.dmg` (Intel) или `YaMusic-<version>-macos-arm64.dmg` (Apple Silicon)
-            - **Linux** — `YaMusic-<version>-linux-x86_64.AppImage` (запуск: `chmod +x` и запуск) или `YaMusic-<version>-linux-x86_64.tar.gz`
-
-            ### Возможности
-
-            - Новые релизы на главной
-            - Сохранённые альбомы
-            - Любимые исполнители
-            - Автопереход на похожий контент
-            - Подсветка текущего трека
-            - Тёмная тема (с сохранением)
+          body_path: release-notes.md
           draft: false
           prerelease: true
           files: artifacts/**
