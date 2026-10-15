@@ -156,6 +156,7 @@ set(
         src/Core/SearchController.cpp
         src/Core/AuthController.cpp
         src/Core/ThemeController.cpp
+        src/Core/UpdateController.cpp
 
         # Models
         src/Models/Account.cpp
@@ -239,6 +240,10 @@ set(
         src/Ynison/WebSocketClient.cpp
         src/Ynison/YnisonClient.cpp
         src/Ynison/YnisonReporter.cpp
+
+        # Update (обновление приложения)
+        src/Update/UpdateChecker.cpp
+        src/Update/UpdateInstaller.cpp
 )
 
 # =============================================================
@@ -304,6 +309,14 @@ endif()
 qt_add_executable(
         appYaMusic
         ${YAMUSIC_SOURCES}
+)
+
+# Версия приложения из project(): её читает апдейтер, чтобы сравнивать
+# с версиями релизов на GitHub.
+target_compile_definitions(
+        appYaMusic
+        PRIVATE
+        YAMUSIC_VERSION="${PROJECT_VERSION}"
 )
 
 # =============================================================
@@ -377,6 +390,7 @@ set(
         "${YAMUSIC_QML_ROOT}/Components/TrackRow.qml"
         "${YAMUSIC_QML_ROOT}/Components/PlaylistCard.qml"
         "${YAMUSIC_QML_ROOT}/Components/PlaylistPicker.qml"
+        "${YAMUSIC_QML_ROOT}/Components/UpdateDialog.qml"
 
         # Pages
         "${YAMUSIC_QML_ROOT}/Pages/HomePage.qml"

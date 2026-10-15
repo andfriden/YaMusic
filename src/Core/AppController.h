@@ -22,6 +22,7 @@
 #include "SearchController.h"
 #include "StationsController.h"
 #include "ThemeController.h"
+#include "UpdateController.h"
 #include <QObject>
 #include <QString>
 #include <QVariantList>
@@ -90,6 +91,7 @@ class AppController : public QObject {
   Q_PROPERTY(LyricsController *lyricsController READ lyricsController CONSTANT)
   Q_PROPERTY(ThemeController *themeController READ themeController CONSTANT)
   Q_PROPERTY(AccentController *accentController READ accentController CONSTANT)
+  Q_PROPERTY(UpdateController *updateController READ updateController CONSTANT)
   Q_PROPERTY(AudioQualityController *audioQualityController READ audioQualityController CONSTANT)
 
   Q_PROPERTY(QString currentPlaylistTitle READ currentPlaylistTitle NOTIFY currentPlaylistChanged)
@@ -256,6 +258,7 @@ public:
   LyricsController *lyricsController() const;
   ThemeController *themeController() const;
   AccentController *accentController() const;
+  UpdateController *updateController() const;
   AudioQualityController *audioQualityController() const;
 
   bool isSearching() const;
@@ -403,6 +406,7 @@ private:
   LyricsController *m_lyricsController = nullptr;
   ThemeController *m_themeController = nullptr;
   AccentController *m_accentController = nullptr;
+  UpdateController *m_updateController = nullptr;
   DownloadService *m_downloadService = nullptr;
 
   YnisonClient *m_ynisonClient = nullptr;

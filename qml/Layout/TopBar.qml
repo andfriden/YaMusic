@@ -16,6 +16,22 @@ Item {
 
     readonly property int barHeight: 68
 
+    // Состояние апдейтера для пункта настроек: контроллер может быть не
+    // создан, поэтому все обращения к нему идут через эту проверку.
+    readonly property var updateController:
+        root.controller !== null && root.controller !== undefined &&
+        root.controller.updateController !== undefined
+            ? root.controller.updateController
+            : null
+
+    readonly property bool autoUpdateCheck:
+        root.updateController !== null && root.updateController.autoCheckEnabled
+
+    readonly property string updateBadge:
+        root.updateController !== null && root.updateController.updateAvailable
+            ? "Доступна версия " + root.updateController.latestVersion
+            : ""
+
     implicitHeight: root.barHeight
 
     Rectangle {
@@ -265,7 +281,7 @@ Item {
         id: settingsPopup
 
         width: 260
-        height: 320
+        height: 440
 
         x: settingsButton.x + settingsButton.width - width
         y: settingsButton.y + settingsButton.height + 6
@@ -499,6 +515,119 @@ Item {
 
             Rectangle {
                 width: parent.width
+                height: 1
+                color: AppTheme.borderSubtle
+            }
+
+            Text {
+                width: parent.width
+                text: "Обновления"
+                color: AppTheme.textSecondary
+                font.pixelSize: 11
+                font.bold: true
+
+                horizontalAlignment: Text.AlignHCenter
+                anchors.topMargin: 2
+            }
+
+            Row {
+                width: parent.width
+                height: 24
+                spacing: 8
+
+                Text {
+                    width: parent.width - 28
+                    height: parent.height
+
+                    text: "Проверять при запуске"
+                    color: AppTheme.textPrimary
+                    font.pixelSize: 12
+
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                Item {
+                    width: 20
+                    height: 20
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 4
+
+                        color: root.autoUpdateCheck ? AppTheme.accent : AppTheme.panelSecondary
+
+                        border.width: 1
+                        border.color: AppTheme.border
+
+                        Text {
+                            anchors.centerIn: parent
+
+                            text: root.autoUpdateCheck ? "✓" : ""
+                            color: AppTheme.accentOn
+                            font.pixelSize: 11
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (root.updateController) {
+                                root.updateController.autoCheckEnabled = !root.autoUpdateCheck
+                            }
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 34
+                radius: 8
+
+                color: updateArea.containsMouse ? AppTheme.panelActive : AppTheme.panelSecondary
+
+                border.width: 1
+                border.color: AppTheme.borderSubtle
+
+                Text {
+                    anchors.centerIn: parent
+
+                    text: root.updateBadge.length > 0
+                        ? root.updateBadge
+                        : "Проверить обновления"
+                    color: updateArea.containsMouse ? AppTheme.accent : AppTheme.textPrimary
+                    font.pixelSize: 13
+                    font.weight: Font.Medium
+                }
+
+                MouseArea {
+                    id: updateArea
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+
+                    onClicked: {
+                        settingsPopup.close()
+
+                        if (!root.updateController) {
+                            return
+                        }
+
+                        root.updateController.checkForUpdates()
+                        updateDialog.open()
+                    }
+                }
+            }
+
+            Rectangle {
+                width: parent.width
                 height: 34
                 radius: 8
 
@@ -533,5 +662,11 @@ Item {
                 }
             }
         }
+    }
+
+    UpdateDialog {
+        id: updateDialog
+
+        controller: root.controller
     }
 }

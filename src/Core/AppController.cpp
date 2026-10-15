@@ -70,6 +70,7 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
       m_themeController(new ThemeController(this)),
       m_accentController(new AccentController(m_playerAccentService, m_playbackController, this)),
       m_downloadService(new DownloadService(m_trackService, this)),
+      m_updateController(new UpdateController(this)),
       m_ynisonClient(new YnisonClient(this)),
       m_ynisonReporter(new YnisonReporter(m_ynisonClient, m_playerService, m_queueService, this)) {
   Q_ASSERT(m_auth != nullptr);
@@ -86,6 +87,10 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
   connectStations();
   connectPlayback();
   connectPlayer();
+
+  // Тихая проверка обновлений: результат только подсвечивается в окне,
+  // ничего не открывая само.
+  m_updateController->checkOnStartup();
 
   connect(m_queueService, &QueueService::queueChanged, this, [this]() {
     emit queueChanged();
@@ -726,6 +731,10 @@ LyricsController *AppController::lyricsController() const {
 
 ThemeController *AppController::themeController() const {
   return m_themeController;
+}
+
+UpdateController *AppController::updateController() const {
+  return m_updateController;
 }
 
 AccentController *AppController::accentController() const {

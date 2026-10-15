@@ -9,6 +9,12 @@
 #include "src/Yandex/Auth/YandexAuth.h"
 #include "src/Yandex/Catalog/CoverImageProvider.h"
 
+// Версию подставляет CMake из project(); значение по умолчанию нужно,
+// если файл собирают в обход CMake.
+#ifndef YAMUSIC_VERSION
+#define YAMUSIC_VERSION "0.0.0"
+#endif
+
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
@@ -16,6 +22,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("YaMusic");
     QCoreApplication::setOrganizationDomain("yandex.ru");
     QCoreApplication::setApplicationName("YaMusic");
+    QCoreApplication::setApplicationVersion(QStringLiteral(YAMUSIC_VERSION));
 
     YandexAuth auth;
 
