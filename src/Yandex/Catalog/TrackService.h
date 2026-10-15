@@ -3,6 +3,7 @@
 #include "../../Models/Track.h"
 #include "../YandexServiceBase.h"
 #include <QList>
+#include <QNetworkAccessManager>
 #include <QRegularExpression>
 #include <QString>
 #include <functional>
@@ -26,6 +27,10 @@ public:
 
   void loadStreamInfo(const QString &trackId);
 
+  // Как loadStreamInfo, но с явным выбором качества:
+  // "low" / "normal" / "high" / "lossless".
+  void loadStreamInfo(const QString &trackId, const QString &quality);
+
   // Получает прямой URL для скачивания трека и его кодек.
   // В отличие от loadStreamInfo (который выбирает лучший
   // стрим для воспроизведения), здесь результат отдаётся
@@ -41,6 +46,13 @@ public:
   // /tracks/{id}/lyrics (LRC по downloadUrl).
   void loadTrackLyrics(const QString &trackId);
 
+  // Загружает синхронизированный текст (LRC) трека. Порядок источников:
+  //  1) подписанный запрос /tracks/{id}/lyrics?format=LRC (Яндекс);
+  //  2) публичная база LRCLIB по названию/исполнителю.
+  // Результат отдаётся сигналом supplementReceived (с таймингами в lines).
+  void loadSyncLyrics(const QString &trackId, const QString &title,
+                      const QString &artist);
+
   void loadSimilarTracks(const QString &trackId);
 
   // Отправляет факт прослушивания трека на сервер
@@ -53,6 +65,13 @@ signals:
   void streamInfoReceived(const QList<TrackStreamInfo> &streams);
 
   void streamUrlReceived(const QString &trackId, const QString &url);
+
+  // Актуальный кодек и битрейт полученного стрима (для отображения
+  // качества при воспроизведении; пустые поля — если не определено).
+  void streamQualityReceived(
+      const QString &trackId,
+      const QString &codec,
+      int bitrateInKbps);
 
   // Отдаёт сигнатурный URL прямого скачивания и кодек
   // выбранного стрима (mp3/aac/flac). Используется для
@@ -81,11 +100,30 @@ private:
 
   // Общая логика запроса /download-info: выбирает лучший
   // стрим по выбранному кодеку/битрейту и резолвит подписанный
-  // URL. Если preferredCodec непустой, отдаётся именно он.
+  // URL. onResolved(url, codec, bitrateKbps); preferredCodec —
+  // если непустой, берётся именно он.
   void requestDownloadInfo(
       const QString &trackId,
       const QString &preferredCodec,
-      const std::function<void(const QString &url, const QString &codec)> &onResolved);
+      const std::function<void(const QString &url, const QString &codec, int bitrateKbps)>
+          &onResolved);
 
   void parseLrc(const QString &lrcText, TrackSupplementary &out) const;
+
+  // Подписанный запрос /tracks/{id}/lyrics?format=LRC (Яндекс).
+  void requestYandexLrc(const QString &trackId,
+                        const std::function<void(const QString &lrcText)> &onOk,
+                        const std::function<void()> &onFail);
+
+  // Поиск и получение LRC из LRCLIB (публичная база) по названию/исполнителю.
+  void requestLrcLib(const QString &title, const QString &artist, int durationSec,
+                     const std::function<void(const QString &lrcText)> &onOk,
+                     const std::function<void()> &onFail);
+
+  static QString lyricsSign(qint64 ts, const QString &trackId, const QString &format);
+
+  void emitSupplement(const TrackSupplementary &supplement);
+
+  // Для публичных запросов (LRCLIB) — отдельный HTTP-клиент без авторизации.
+  QNetworkAccessManager *m_publicNetwork = nullptr;
 };

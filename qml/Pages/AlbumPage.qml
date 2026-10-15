@@ -41,6 +41,22 @@ Item {
             ? String(root.albumController.currentAlbumCoverUri || "")
             : ""
 
+    // Есть ли в альбоме треки, которые Яндекс отдаёт в Music API:
+    // у книг и части подкастов звук доступен только во внешнем сервисе.
+    readonly property bool hasPlayableTracks:
+        root.albumController !== null &&
+        root.albumController.currentAlbumPlayable === true
+
+    readonly property string externalText:
+        root.albumController !== null
+            ? String(root.albumController.currentAlbumExternalText || "")
+            : ""
+
+    readonly property string externalUrl:
+        root.albumController !== null
+            ? String(root.albumController.currentAlbumExternalUrl || "")
+            : ""
+
     PlaylistPicker {
         id: addToPlaylistPopup
         controller: root.controller
@@ -216,6 +232,79 @@ Item {
             }
         }
 
+        // У книг и части подкастов звука в Music API нет: API кладёт
+        // в альбом готовую ссылку-переход во внешний сервис.
+        Item {
+            width: parent.width
+            height: root.externalUrl.length > 0
+                ? root.hasPlayableTracks ? 52 : 74
+                : 0
+
+            visible: height > 0
+
+            Rectangle {
+                id: externalButton
+
+                width: Math.min(260, parent.width)
+                height: 44
+
+                anchors.top: parent.top
+
+                radius: 10
+
+                color: externalMouseArea.containsMouse
+                    ? AppTheme.accent
+                    : AppTheme.panelActive
+
+                border.width: 1
+                border.color: AppTheme.borderSubtle
+
+                Behavior on color {
+                    ColorAnimation { duration: 120 }
+                }
+
+                Label {
+                    anchors.centerIn: parent
+
+                    text: root.externalText.length > 0
+                        ? root.externalText
+                        : qsTr("Слушать в Яндекс Книгах")
+
+                    color: externalMouseArea.containsMouse
+                        ? AppTheme.accentOn
+                        : AppTheme.textPrimary
+
+                    font.pixelSize: 14
+                    font.weight: Font.Medium
+                }
+
+                MouseArea {
+                    id: externalMouseArea
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+
+                    onClicked: Qt.openUrlExternally(root.externalUrl)
+                }
+            }
+
+            Label {
+                anchors.top: externalButton.bottom
+                anchors.topMargin: 6
+
+                width: parent.width
+
+                visible: !root.hasPlayableTracks
+
+                text: qsTr("Прослушивание доступно только в Яндекс Книгах")
+
+                color: AppTheme.textMuted
+                font.pixelSize: 12
+                elide: Text.ElideRight
+            }
+        }
+
         Rectangle {
             width: parent.width
 
@@ -275,6 +364,10 @@ Item {
 
                     delegate: TrackRow {
                         width: tracksView.width - (tracksView.count > 6 ? 8 : 0)
+
+                        // Недоступные дорожки приглушаем, но клик оставляем —
+                        // он объяснит причину вместо запроса, который вернёт 403.
+                        opacity: model.available === false ? 0.45 : 1.0
 
                         controller: root.controller
                         rowIndex: model.index

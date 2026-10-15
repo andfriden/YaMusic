@@ -1,13 +1,17 @@
 #include "PersonalLanding.h"
+
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
+
 #include <QJsonArray>
-#include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkReply>
-#include <QSet>
 #include <QUrlQuery>
+#include <QVariantList>
+#include <QVariantMap>
+
+#include <algorithm>
 
 namespace {
 const QString LandingBlocks =
@@ -212,4 +216,87 @@ Podcast PersonalLanding::parsePodcast(const QJsonObject &object) const {
   podcast.description = obj.value("description").toString();
   podcast.coverUri = ::parseCoverUri(obj);
   return podcast;
+}
+void PersonalLanding::loadWheel() {
+  if (!m_auth->isAuthenticated()) {
+    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    return;
+  }
+
+  m_yandexClient->setToken(m_auth->token());
+  QNetworkReply *reply =
+      m_yandexClient->post(QStringLiteral("/wheel/new"), QJsonObject());
+
+  if (reply == nullptr) {
+    emit errorOccurred("Не удалось создать запрос Колеса");
+    return;
+  }
+
+  connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+    const QByteArray data = reply->readAll();
+    if (reply->error() != QNetworkReply::NoError) {
+      emit errorOccurred(reply->errorString());
+      reply->deleteLater();
+      return;
+    }
+
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
+    if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
+      emit errorOccurred("Ошибка JSON /wheel/new");
+      reply->deleteLater();
+      return;
+    }
+
+    const QJsonObject result = unwrapResult(document);
+    const QJsonArray items = result.value("items").toArray();
+    QVariantList out;
+
+    for (const QJsonValue &value : items) {
+      if (!value.isObject()) continue;
+      const QJsonObject item = value.toObject();
+      const QString type = item.value("type").toString();
+      const QString id = item.value("id").toString();
+      const QJsonObject data = item.value("data").toObject();
+
+      QString title;
+      QString coverUri;
+      QString station;
+
+      if (type == QLatin1String("wave")) {
+        const QJsonObject wave = data.value("wave").toObject();
+        const QJsonObject agent = data.value("agent").toObject();
+        title = wave.value("name").toString();
+        if (title.isEmpty()) title = QStringLiteral("Волна");
+        coverUri = parseCoverUri(agent.value("cover").toObject());
+        const QJsonArray seeds = wave.value("seeds").toArray();
+        if (!seeds.isEmpty()) station = seeds.first().toString();
+      } else if (type == QLatin1String("album")) {
+        const QJsonObject album = data.value("album").toObject();
+        title = album.value("title").toString();
+        coverUri = parseCoverUri(album);
+      } else if (type == QLatin1String("playlist") ||
+                 type == QLatin1String("personal-playlist")) {
+        const QJsonObject playlist = data.value("playlist").toObject();
+        title = playlist.value("title").toString();
+        coverUri = parseCoverUri(playlist);
+      } else if (type == QLatin1String("track")) {
+        const QJsonObject track = data.value("track").toObject();
+        title = track.value("title").toString();
+        coverUri = track.value("coverUri").toString();
+      }
+
+      QVariantMap map;
+      map.insert("id", id);
+      map.insert("type", type.toLower());
+      map.insert("title", title);
+      map.insert("coverUri", coverUri);
+      map.insert("station", station);
+      map.insert("description", item.value("description").toString());
+      out.append(map);
+    }
+
+    emit wheelReceived(out);
+    reply->deleteLater();
+  });
 }

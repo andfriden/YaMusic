@@ -35,10 +35,17 @@ public:
   explicit PersonalLanding(YandexAuth *auth, QObject *parent = nullptr);
   void load();
 
+  // Персональное «Колесо»: POST /wheel/new — подборки по трекам/альбомам.
+  void loadWheel();
+
 signals:
   void loaded(const QList<PersonalLandingSection> &sections);
   void personalPlaylistsReceived(const QList<PersonalPlaylist> &playlists);
   void podcastsReceived(const QList<Podcast> &podcasts);
+
+  // Плоский список элементов «Колеса»: [{id, type, title, coverUri, ...}].
+  void wheelReceived(const QVariantList &items);
+
   void errorOccurred(const QString &message);
 
 private:

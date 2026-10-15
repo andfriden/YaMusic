@@ -106,60 +106,105 @@ QList<Track> RecentListeningService::parseHistory(
   const QJsonArray historyTabs =
       result.value(QStringLiteral("historyTabs")).toArray();
 
+  // Некоторые ответы кладут треки на верхний уровень (result.historyTracks),
+  // а не в historyTabs — обрабатываем и такой случай.
+  if (historyTabs.isEmpty() &&
+      result.value(QStringLiteral("historyTracks")).isArray()) {
+    const QJsonArray topTracks =
+        result.value(QStringLiteral("historyTracks")).toArray();
+    for (const QJsonValue &historyTrackValue : topTracks) {
+      if (!historyTrackValue.isObject())
+        continue;
+      const QJsonObject historyTrack =
+          historyTrackValue.toObject();
+      if (historyTrack.value(QStringLiteral("type")).toString() !=
+          QStringLiteral("track")) {
+        continue;
+      }
+      const QJsonObject trackData =
+          historyTrack.value(QStringLiteral("data")).toObject();
+      const QJsonObject fullModel =
+          trackData.value(QStringLiteral("fullModel")).toObject();
+      if (fullModel.isEmpty())
+        continue;
+      const Track track = parseTrack(fullModel);
+      if (track.id.isEmpty())
+        continue;
+      if (seenTrackIds.contains(track.id))
+        continue;
+      seenTrackIds.insert(track.id);
+      tracks.append(track);
+      if (tracks.size() >= trackCount)
+        return tracks;
+    }
+  }
+
   for (const QJsonValue &tabValue : historyTabs) {
     if (!tabValue.isObject())
       continue;
 
     const QJsonObject tab = tabValue.toObject();
-    const QJsonArray items =
-        tab.value(QStringLiteral("items")).toArray();
 
-    for (const QJsonValue &itemValue : items) {
-      if (!itemValue.isObject())
+    // Реальная структура ответа бывает двух видов:
+    //   historyTabs[].tracks[]            — треки прямо в табе;
+    //   historyTabs[].items[].tracks[]    — треки во вложенных блоках.
+    // Обрабатываем оба варианта.
+    QJsonArray tracksContainer =
+        tab.value(QStringLiteral("tracks")).toArray();
+
+    if (tracksContainer.isEmpty()) {
+      const QJsonArray items =
+          tab.value(QStringLiteral("items")).toArray();
+      for (const QJsonValue &itemValue : items) {
+        if (!itemValue.isObject())
+          continue;
+        const QJsonArray nested =
+            itemValue.toObject()
+                .value(QStringLiteral("tracks"))
+                .toArray();
+        for (const QJsonValue &nestedValue : nested) {
+          tracksContainer.append(nestedValue);
+        }
+      }
+    }
+
+    for (const QJsonValue &historyTrackValue : tracksContainer) {
+      if (!historyTrackValue.isObject())
         continue;
 
-      const QJsonObject item = itemValue.toObject();
-      const QJsonArray historyTracks =
-          item.value(QStringLiteral("tracks")).toArray();
+      const QJsonObject historyTrack =
+          historyTrackValue.toObject();
 
-      for (const QJsonValue &historyTrackValue : historyTracks) {
-        if (!historyTrackValue.isObject())
-          continue;
-
-        const QJsonObject historyTrack =
-            historyTrackValue.toObject();
-
-        if (historyTrack.value(QStringLiteral("type")).toString() !=
-            QStringLiteral("track")) {
-          continue;
-        }
-
-        const QJsonObject trackData =
-            historyTrack.value(QStringLiteral("data")).toObject();
-
-        if (trackData.isEmpty())
-          continue;
-
-        const QJsonObject fullModel =
-            trackData.value(QStringLiteral("fullModel")).toObject();
-
-        if (fullModel.isEmpty())
-          continue;
-
-        const Track track = parseTrack(fullModel);
-
-        if (track.id.isEmpty())
-          continue;
-
-        if (seenTrackIds.contains(track.id))
-          continue;
-
-        seenTrackIds.insert(track.id);
-        tracks.append(track);
-
-        if (tracks.size() >= trackCount)
-          return tracks;
+      if (historyTrack.value(QStringLiteral("type")).toString() !=
+          QStringLiteral("track")) {
+        continue;
       }
+
+      const QJsonObject trackData =
+          historyTrack.value(QStringLiteral("data")).toObject();
+
+      if (trackData.isEmpty())
+        continue;
+
+      const QJsonObject fullModel =
+          trackData.value(QStringLiteral("fullModel")).toObject();
+
+      if (fullModel.isEmpty())
+        continue;
+
+      const Track track = parseTrack(fullModel);
+
+      if (track.id.isEmpty())
+        continue;
+
+      if (seenTrackIds.contains(track.id))
+        continue;
+
+      seenTrackIds.insert(track.id);
+      tracks.append(track);
+
+      if (tracks.size() >= trackCount)
+        return tracks;
     }
   }
 

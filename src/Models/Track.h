@@ -29,6 +29,11 @@ struct Track {
   QList<Album> albums;
   bool liked = false;
   bool disliked = false;
+
+  // Права на воспроизведение через Music API. У глав аудиокниг и выпусков
+  // подкастов сервер отдаёт available=false, а звук даёт только в Яндекс
+  // Книгах — запрос за стримом по такому треку вернёт 403 no-rights.
+  bool available = true;
 };
 
 // Одна строка синхронизированного текста.

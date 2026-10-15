@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 project(
         YaMusic
-        VERSION 0.12.1
+        VERSION 0.14.0
         LANGUAGES CXX
 )
 
@@ -137,6 +137,7 @@ set(
         src/Core/AppController+Playback.cpp
         src/Core/AppController+Search.cpp
         src/Core/AppController+Selection.cpp
+        src/Core/AudioQualityController.cpp
 
         src/Core/AlbumController.cpp
         src/Core/ArtistController.cpp
@@ -200,6 +201,7 @@ set(
         src/Yandex/Catalog/ChartModel.cpp
         src/Yandex/Catalog/ChartService.cpp
         src/Yandex/Catalog/CoverImageProvider.cpp
+        src/Yandex/Catalog/CensorService.cpp
         src/Yandex/Catalog/GenreModel.cpp
         src/Yandex/Catalog/GenreService.cpp
         src/Yandex/Catalog/SearchModel.cpp

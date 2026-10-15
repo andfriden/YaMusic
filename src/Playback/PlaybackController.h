@@ -13,6 +13,8 @@
 class PlayerService;
 class TrackService;
 class StreamProxy;
+class AudioQualityController;
+class CensorService;
 class QNetworkAccessManager;
 class QNetworkReply;
 
@@ -35,12 +37,18 @@ public:
       TrackService *trackService,
       PlayerService *playerService,
       QueueService *queueService,
+      AudioQualityController *qualityController,
+      CensorService *censorService,
       QObject *parent = nullptr);
 
   Track currentTrack() const;
   PlaybackState state() const;
   QueueService *queueService() const;
   SystemMediaControls *systemMediaControls() const;
+
+  // Кодек и битрейт текущего стрима (для отображения качества).
+  QString currentCodec() const;
+  int currentBitrate() const;
 
   void playTrack(const Track &track);
 
@@ -83,6 +91,7 @@ signals:
 
   void repeatModeChanged();
   void shuffleChanged();
+  void streamQualityInfoChanged();
 
 private:
   void setState(PlaybackState state);
@@ -120,9 +129,13 @@ private:
   TrackService *m_trackService = nullptr;
   PlayerService *m_playerService = nullptr;
   QueueService *m_queueService = nullptr;
+  AudioQualityController *m_qualityController = nullptr;
+  CensorService *m_censorService = nullptr;
 
   Track m_currentTrack;
   PlaybackState m_state = Idle;
+  QString m_currentCodec;
+  int m_currentBitrate = 0;
 
   std::unique_ptr<SystemMediaControls> m_systemMediaControls;
 

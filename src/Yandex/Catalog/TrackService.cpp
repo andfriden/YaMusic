@@ -1,6 +1,7 @@
 #include "TrackService.h"
 
 #include "../Auth/YandexAuth.h"
+#include "../../Core/AudioQualityController.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
 
@@ -8,14 +9,19 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QMessageAuthenticationCode>
+#include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QRegularExpression>
+#include <QStringList>
+#include <QUrlQuery>
 #include <QXmlStreamReader>
 
 #include <functional>
 
 namespace {
 constexpr auto DownloadInfoSalt = "XGRlBW9FXlekgbPrRHuSiA";
+constexpr auto FileInfoSecret = "kzqU4XhfCaY6B6JTHODeq5";
 } // namespace
 
 // TODO(YM-2244): вынести общую проверку trackId (trim + непустой) в YandexServiceBase.
@@ -23,7 +29,8 @@ constexpr auto DownloadInfoSalt = "XGRlBW9FXlekgbPrRHuSiA";
 TrackService::TrackService(
     YandexAuth *auth,
     QObject *parent)
-    : YandexServiceBase(auth, parent) {
+    : YandexServiceBase(auth, parent),
+      m_publicNetwork(new QNetworkAccessManager(this)) {
   connect(
       m_yandexClient,
       &YandexClient::playbackReported,
@@ -35,15 +42,26 @@ TrackService::TrackService(
 
 void TrackService::loadStreamInfo(
     const QString &trackId) {
+  loadStreamInfo(trackId, QStringLiteral("high"));
+}
+
+void TrackService::loadStreamInfo(
+    const QString &trackId,
+    const QString &quality) {
+  const QString trimmedTrackId = trackId.trimmed();
+
+  // Используем классический download-info (он надёжно отдаёт URL и
+  // codec/bitrate). Прямой /get-file-info возвращает 400 для многих
+  // треков, поэтому не задействуем его для обычного стриминга.
   requestDownloadInfo(
-      trackId,
+      trimmedTrackId,
       {},
-      [this, trackId](
+      [this, trimmedTrackId](
           const QString &url,
-          const QString &) {
-        emit streamUrlReceived(
-            trackId,
-            url);
+          const QString &codec,
+          int bitrateKbps) {
+        emit streamUrlReceived(trimmedTrackId, url);
+        emit streamQualityReceived(trimmedTrackId, codec, bitrateKbps);
       });
 }
 
@@ -59,7 +77,8 @@ void TrackService::loadDownloadUrl(
       QStringLiteral("mp3"),
       [this, trimmedTrackId](
           const QString &url,
-          const QString &codec) {
+          const QString &codec,
+          int) {
         emit downloadUrlReceived(
             trimmedTrackId,
             url,
@@ -70,11 +89,12 @@ void TrackService::loadDownloadUrl(
 // Общая двухшаговая схема получения подписанного URL стрима:
 //   1) GET /tracks/{id}/download-info
 //   2) резолв подписи (host/path/ts/s) и сборка get-mp3-URL
-// onResolved вызывается с финальным URL и выбранным кодеком.
+// onResolved вызывается с финальным URL, кодеком и битрейтом.
 void TrackService::requestDownloadInfo(
     const QString &trackId,
     const QString &preferredCodec,
-    const std::function<void(const QString &url, const QString &codec)> &onResolved) {
+    const std::function<void(const QString &url, const QString &codec, int bitrateKbps)>
+        &onResolved) {
   if (!ensureAuthenticated()) {
     emit errorOccurred(
         "Токен Яндекс Музыки не установлен");
@@ -221,7 +241,7 @@ void TrackService::requestDownloadInfo(
             [onResolved, bestStream](
                 const QString &url) {
               if (onResolved)
-                onResolved(url, bestStream.codec);
+                onResolved(url, bestStream.codec, bestStream.bitrateInKbps);
             });
 
         reply->deleteLater();
@@ -877,5 +897,148 @@ void TrackService::loadSimilarTracks(
 
         emit similarTracksReceived(
             tracks);
+      });
+}
+QString TrackService::lyricsSign(qint64 ts, const QString &trackId, const QString &format) {
+  // Подпись для /tracks/{id}/lyrics — как в клиентах Яндекса.
+  const QByteArray message =
+      QByteArray::number(ts) + trackId.toUtf8() + format.toUtf8() +
+      QByteArray(FileInfoSecret);
+  QMessageAuthenticationCode hmac(QCryptographicHash::Sha256, QByteArray(FileInfoSecret));
+  hmac.addData(message);
+  return hmac.result().toBase64(QByteArray::OmitTrailingEquals);
+}
+
+void TrackService::requestYandexLrc(
+    const QString &trackId,
+    const std::function<void(const QString &lrcText)> &onOk,
+    const std::function<void()> &onFail) {
+  if (!ensureAuthenticated()) {
+    if (onFail) onFail();
+    return;
+  }
+  const QString id = trackId.trimmed();
+  if (id.isEmpty()) {
+    if (onFail) onFail();
+    return;
+  }
+
+  const QString format = QStringLiteral("LRC");
+  const qint64 ts = QDateTime::currentSecsSinceEpoch();
+  const QString sign = lyricsSign(ts, id, format);
+
+  QUrlQuery query;
+  query.addQueryItem("format", format);
+  query.addQueryItem("timeStamp", QString::number(ts));
+  query.addQueryItem("sign", sign);
+
+  const QString path = QStringLiteral("/tracks/%1/lyrics?%2")
+                           .arg(id, query.toString(QUrl::FullyEncoded));
+  QNetworkReply *reply = m_yandexClient->get(path);
+  if (reply == nullptr) {
+    if (onFail) onFail();
+    return;
+  }
+
+  connect(reply, &QNetworkReply::finished, this,
+          [this, reply, id, onOk, onFail]() {
+            const QByteArray data = reply->readAll();
+            const bool ok = (reply->error() == QNetworkReply::NoError);
+            reply->deleteLater();
+            if (!ok || data.isEmpty()) {
+              if (onFail) onFail();
+              return;
+            }
+            QJsonParseError parseError;
+            const QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
+            if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+              if (onFail) onFail();
+              return;
+            }
+            const QJsonObject result = unwrapResult(doc);
+            const QString lrc = result.value("lyrics").toString().trimmed();
+            const QString full = result.value("fullLyrics").toString().trimmed();
+            const QString text = !lrc.isEmpty() ? lrc : full;
+            if (text.isEmpty()) {
+              if (onFail) onFail();
+              return;
+            }
+            if (onOk) onOk(text);
+          });
+}
+
+void TrackService::requestLrcLib(
+    const QString &title, const QString &artist, int durationSec,
+    const std::function<void(const QString &lrcText)> &onOk,
+    const std::function<void()> &onFail) {
+  QUrl url(QStringLiteral("https://lrclib.net/api/get"));
+  QUrlQuery query;
+  if (!artist.isEmpty()) query.addQueryItem("artist_name", artist);
+  if (!title.isEmpty()) query.addQueryItem("track_name", title);
+  if (durationSec > 0) query.addQueryItem("duration", QString::number(durationSec));
+  url.setQuery(query);
+
+  QNetworkRequest request(url);
+  request.setRawHeader("Lrclib-Client", "YaMusic/1.0 (Qt)");
+  request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
+  QNetworkReply *reply = m_publicNetwork->get(request);
+
+  connect(reply, &QNetworkReply::finished, this,
+          [this, reply, onOk, onFail]() {
+            const QByteArray data = reply->readAll();
+            const bool ok = (reply->error() == QNetworkReply::NoError);
+            reply->deleteLater();
+            if (!ok || data.isEmpty()) {
+              if (onFail) onFail();
+              return;
+            }
+            QJsonParseError parseError;
+            const QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
+            if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+              if (onFail) onFail();
+              return;
+            }
+            const QJsonObject obj = doc.object();
+            const QString synced = obj.value("syncedLyrics").toString().trimmed();
+            const QString plain = obj.value("plainLyrics").toString().trimmed();
+            const QString text = !synced.isEmpty() ? synced : plain;
+            if (text.isEmpty()) {
+              if (onFail) onFail();
+              return;
+            }
+            if (onOk) onOk(text);
+          });
+}
+
+void TrackService::emitSupplement(const TrackSupplementary &supplement) {
+  emit supplementReceived(supplement);
+}
+
+void TrackService::loadSyncLyrics(const QString &trackId, const QString &title,
+                                  const QString &artist) {
+  const QString id = trackId.trimmed();
+  if (id.isEmpty()) {
+    emit errorOccurred("Track ID is empty");
+    return;
+  }
+
+  auto makeSupplement = [this, id](const QString &lrcText) {
+    TrackSupplementary supplement;
+    supplement.trackId = id;
+    parseLrc(lrcText, supplement);
+    if (supplement.fullText.isEmpty()) {
+      supplement.fullText = lrcText.trimmed();
+    }
+    emitSupplement(supplement);
+  };
+
+  requestYandexLrc(
+      id,
+      makeSupplement,
+      [this, id, title, artist, makeSupplement]() {
+        // Яндекса нет — пробуем публичную базу LRCLIB.
+        requestLrcLib(title, artist, 0, makeSupplement, [this, id]() {
+          emit errorOccurred("Текст для трека не найден");
+        });
       });
 }

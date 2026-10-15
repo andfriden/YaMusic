@@ -1,8 +1,10 @@
 #include "PlaybackController.h"
 
+#include "../Core/AudioQualityController.h"
 #include "../MediaControls/MediaControlsFactory.h"
 #include "../Player/PlayerService.h"
 #include "../Player/StreamProxy.h"
+#include "../Yandex/Catalog/CensorService.h"
 #include "../Yandex/Catalog/TrackService.h"
 
 #include <QDir>
@@ -31,16 +33,21 @@ PlaybackController::PlaybackController(
     TrackService *trackService,
     PlayerService *playerService,
     QueueService *queueService,
+    AudioQualityController *qualityController,
+    CensorService *censorService,
     QObject *parent)
     : QObject(parent),
       m_trackService(trackService),
       m_playerService(playerService),
       m_queueService(queueService),
+      m_qualityController(qualityController),
+      m_censorService(censorService),
       m_coverNetwork(new QNetworkAccessManager(this)),
       m_streamNetwork(new QNetworkAccessManager(this)) {
   Q_ASSERT(m_trackService != nullptr);
   Q_ASSERT(m_playerService != nullptr);
   Q_ASSERT(m_queueService != nullptr);
+  Q_ASSERT(m_qualityController != nullptr);
 
   setupSystemMediaControls();
 
@@ -102,6 +109,23 @@ PlaybackController::PlaybackController(
 
   connect(
       m_trackService,
+      &TrackService::streamQualityReceived,
+      this,
+      [this](
+          const QString &trackId,
+          const QString &codec,
+          int bitrate) {
+        if (!trackId.isEmpty() &&
+            trackId != m_currentTrack.id) {
+          return;
+        }
+        m_currentCodec = codec;
+        m_currentBitrate = bitrate;
+        emit streamQualityInfoChanged();
+      });
+
+  connect(
+      m_trackService,
       &TrackService::errorOccurred,
       this,
       [this](const QString &message) {
@@ -149,6 +173,14 @@ PlaybackController::systemMediaControls() const {
   return m_systemMediaControls.get();
 }
 
+QString PlaybackController::currentCodec() const {
+  return m_currentCodec;
+}
+
+int PlaybackController::currentBitrate() const {
+  return m_currentBitrate;
+}
+
 void PlaybackController::playTrack(const Track &track) {
   if (track.id.isEmpty()) {
     setState(Error);
@@ -178,6 +210,9 @@ void PlaybackController::playTrack(const Track &track) {
   abortStreamProxy();
 
   m_currentTrack = track;
+  m_currentCodec.clear();
+  m_currentBitrate = 0;
+  emit streamQualityInfoChanged();
   m_playerService->setTrackDuration(track.durationMs);
 
   emit currentTrackChanged();
@@ -190,7 +225,27 @@ void PlaybackController::playTrack(const Track &track) {
     return;
   }
 
-  m_trackService->loadStreamInfo(track.id);
+  const QString quality =
+      m_qualityController ? m_qualityController->quality()
+                          : QStringLiteral("high");
+
+  // Подмена цензурной версии: если включён censorBypass и для трека есть
+  // нецензурная замена (и пользователь не выбрал «оригинал») — играем её
+  // напрямую, не запрашивая стрим Яндекса.
+  if (m_censorService && m_qualityController &&
+      m_qualityController->censorBypass() &&
+      !m_qualityController->prefersOriginal(track.id)) {
+    const QString replacementUrl = m_censorService->replacementUrl(track.id);
+    if (!replacementUrl.isEmpty()) {
+      m_currentCodec.clear();
+      m_currentBitrate = 0;
+      emit streamQualityInfoChanged();
+      playStream(track.id, replacementUrl);
+      return;
+    }
+  }
+
+  m_trackService->loadStreamInfo(track.id, quality);
 }
 
 void PlaybackController::playFromSource(

@@ -376,7 +376,7 @@ void YandexClient::reportPlayback(
 
   body.addQueryItem(
       "from",
-      "desktop-ya-music");
+      "web-home_playlist-of-the-day-default");
 
   body.addQueryItem(
       "from-cache",
@@ -385,6 +385,10 @@ void YandexClient::reportPlayback(
   body.addQueryItem(
       "play-id",
       playId);
+
+  body.addQueryItem(
+      "playlist-id",
+      "");
 
   const QString now =
       QDateTime::currentDateTimeUtc()

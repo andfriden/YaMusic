@@ -1,5 +1,6 @@
 #include "StreamProxy.h"
 #include <QNetworkReply>
+#include <limits>
 
 StreamProxy::StreamProxy(QObject *parent) : QIODevice(parent) {
     open(ReadOnly | Unbuffered);
@@ -127,13 +128,13 @@ qint64 StreamProxy::size() const {
     if (m_finished)
         return m_buffer.size();
 
-    // Пока грузим, возвращаем «текущий буфер + запас»: больше текущего
-    // объёма (не даём QIODevice::read() считать это концом потока), но
-    // конечное число. max() провоцирует ffmpeg на гигантский seek() и
-    // повторное чтение с начала («Invalid data found when processing
-    // input»). Конечный размер даёт стабильный прогресс.
-    const qint64 growth = m_buffer.size() / 2 + 1024;
-    return m_buffer.size() + growth;
+    // Во время активной загрузки размер неизвестен: возвращаем
+    // максимально возможное значение, чтобы FFmpeg НЕ оценивал
+    // длительность через (buffer_size / bitrate) и НЕ останавливал
+    // демаксер на границе накопленного буфера. Иначе позиция
+    // застывает на ~20 сек и seek за пределы буфера не работает.
+    // Гигантские seek() к SEEK_END отсекаем в seek() через qBound.
+    return std::numeric_limits<qint64>::max();
 }
 
 qint64 StreamProxy::bytesAvailable() const {

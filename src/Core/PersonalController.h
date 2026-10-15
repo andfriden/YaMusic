@@ -41,6 +41,8 @@ class PersonalController : public QObject {
 
   Q_PROPERTY(QVariantList podcasts READ podcasts NOTIFY podcastsChanged)
 
+  Q_PROPERTY(QVariantList wheelItems READ wheelItems NOTIFY wheelItemsChanged)
+
 public:
   explicit PersonalController(YandexPersonal *yandexPersonal,
                               PersonalLanding *personalLanding,
@@ -58,6 +60,8 @@ public:
 
   Q_INVOKABLE void loadRecommendations();
 
+  Q_INVOKABLE void loadWheel();
+
   Q_INVOKABLE void selectPersonalPlaylist(const QString &uid, int kind);
 
   Q_INVOKABLE void selectRecentListening(int index);
@@ -71,6 +75,8 @@ public:
   PersonalChartModel *chartModel() const;
 
   QVariantList podcasts() const;
+
+  QVariantList wheelItems() const;
 
   // Плейлисты из раздела «personal-playlists» в виде QVariantList
   // (uid/kind/title/coverUri), без указанного текущего.
@@ -110,6 +116,8 @@ signals:
   void recommendationsLoaded();
 
   void podcastsChanged();
+
+  void wheelItemsChanged();
 
   void myWaveTrackSelected(const Track &track);
 
@@ -173,6 +181,11 @@ private:
   QList<PersonalPlaylist> m_recommendationPlaylists;
 
   QList<Podcast> m_podcasts;
+
+  QVariantList m_wheelItems;
+
+  // настройки и прочее
+  QList<QPair<QString, int>> m_personalPlaylistQueue;
 
   bool m_loadingMyWave = false;
 

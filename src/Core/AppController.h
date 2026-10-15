@@ -13,6 +13,7 @@
 #include "AccentController.h"
 #include "AlbumController.h"
 #include "ArtistController.h"
+#include "AudioQualityController.h"
 #include "ChartController.h"
 #include "GenreController.h"
 #include "LibraryController.h"
@@ -29,6 +30,7 @@
 class AccountService;
 class AlbumService;
 class ArtistService;
+class CensorService;
 class ChartService;
 class GenreService;
 class LikesService;
@@ -81,12 +83,14 @@ class AppController : public QObject {
 
   Q_PROPERTY(AlbumController *albumController READ albumController CONSTANT)
   Q_PROPERTY(ArtistController *artistController READ artistController CONSTANT)
+  Q_PROPERTY(PersonalController *personalController READ personalController CONSTANT)
   Q_PROPERTY(ChartController *chartController READ chartController CONSTANT)
   Q_PROPERTY(GenreController *genreController READ genreController CONSTANT)
   Q_PROPERTY(StationsController *stationsController READ stationsController CONSTANT)
   Q_PROPERTY(LyricsController *lyricsController READ lyricsController CONSTANT)
   Q_PROPERTY(ThemeController *themeController READ themeController CONSTANT)
   Q_PROPERTY(AccentController *accentController READ accentController CONSTANT)
+  Q_PROPERTY(AudioQualityController *audioQualityController READ audioQualityController CONSTANT)
 
   Q_PROPERTY(QString currentPlaylistTitle READ currentPlaylistTitle NOTIFY currentPlaylistChanged)
   Q_PROPERTY(
@@ -140,6 +144,10 @@ class AppController : public QObject {
   Q_PROPERTY(QString playbackSourceType READ playbackSourceType NOTIFY playbackSourceChanged)
   Q_PROPERTY(int queueCount READ queueCount NOTIFY queueChanged)
   Q_PROPERTY(int queueCurrentIndex READ queueCurrentIndex NOTIFY queueChanged)
+
+  // Кодек и битрейт текущего стрима (для отображения качества).
+  Q_PROPERTY(QString currentCodec READ currentCodec NOTIFY streamQualityInfoChanged)
+  Q_PROPERTY(int currentBitrate READ currentBitrate NOTIFY streamQualityInfoChanged)
 
 public:
   explicit AppController(YandexAuth *auth, AccountService *accountService,
@@ -222,6 +230,9 @@ public:
   int queueCurrentIndex() const;
   Q_INVOKABLE QVariantMap queueTrackData(int index) const;
 
+  QString currentCodec() const;
+  int currentBitrate() const;
+
   SearchModel *searchModel() const;
   SearchArtistsModel *searchArtistsModel() const;
   SearchAlbumsModel *searchAlbumsModel() const;
@@ -238,12 +249,14 @@ public:
 
   AlbumController *albumController() const;
   ArtistController *artistController() const;
+  PersonalController *personalController() const;
   ChartController *chartController() const;
   GenreController *genreController() const;
   StationsController *stationsController() const;
   LyricsController *lyricsController() const;
   ThemeController *themeController() const;
   AccentController *accentController() const;
+  AudioQualityController *audioQualityController() const;
 
   bool isSearching() const;
   bool isPlaying() const;
@@ -339,6 +352,8 @@ signals:
   void playbackSourceChanged();
   void queueChanged();
 
+  void streamQualityInfoChanged();
+
 private:
   void connectAccount();
   void connectSearch();
@@ -372,6 +387,8 @@ private:
   PlayerService *m_playerService;
   QueueService *m_queueService;
   PlayerAccentService *m_playerAccentService;
+  AudioQualityController *m_audioQualityController = nullptr;
+  CensorService *m_censorService = nullptr;
 
   PlaybackController *m_playbackController;
   LibraryController *m_libraryController;
