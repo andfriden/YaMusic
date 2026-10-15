@@ -1,0 +1,37 @@
+# Стиль YaMusic: 2 пробела, 100 колонок, скобка на строке объявления,
+# указатели вправо, include-блоки не сортируются (порядок задаётся вручную:
+# свой заголовок, относительные, Qt, стандартная библиотека).
+#
+# Настройки подобраны по существующему коду: при прогоне по src расходится
+# около 12% строк — в проекте смешаны bin-pack (старые файлы) и «по одному
+# аргументу на строку» (свежие), поэтому единого стиля ни один конфиг не даёт.
+# Полный автоформат сразу не применяем, чтобы не смешивать его с правками
+# по существу; форматируем только новый и изменённый код.
+Language: Cpp
+BasedOnStyle: LLVM
+Standard: c++20
+
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+ColumnLimit: 100
+
+PointerAlignment: Right
+ReferenceAlignment: Pointer
+DerivePointerAlignment: false
+
+BreakBeforeBraces: Attach
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+
+NamespaceIndentation: None
+FixNamespaceComments: true
+
+SortIncludes: Never
+IncludeBlocks: Preserve
+
+BreakConstructorInitializers: BeforeColon
+Cpp11BracedListStyle: true
+AlignAfterOpenBracket: Align
