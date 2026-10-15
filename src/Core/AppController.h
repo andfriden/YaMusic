@@ -119,6 +119,11 @@ class AppController : public QObject {
   Q_PROPERTY(QString currentTrackCoverUri READ currentTrackCoverUri NOTIFY currentTrackChanged)
   Q_PROPERTY(bool currentTrackLiked READ currentTrackLiked NOTIFY currentTrackChanged)
 
+  // Счётчик изменений списка дизлайков: состояние дизлайка трека не лежит
+  // в моделях (у него нет отдельного раздела), поэтому QML спрашивает его
+  // у контроллера и пересчитывает привязку по этому свойству.
+  Q_PROPERTY(int dislikesRevision READ dislikesRevision NOTIFY dislikesChanged)
+
   Q_PROPERTY(qint64 position READ position NOTIFY positionChanged)
   Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
   Q_PROPERTY(PlaybackController::PlaybackState playbackState READ playbackState NOTIFY
@@ -187,6 +192,7 @@ public:
   Q_INVOKABLE void selectSimilarArtist(int index);
 
   Q_INVOKABLE void toggleLike(const QString &trackId, bool liked);
+  Q_INVOKABLE void toggleDislike(const QString &trackId, bool disliked);
   Q_INVOKABLE void toggleAlbumLike();
   Q_INVOKABLE void toggleArtistLike();
 
@@ -254,6 +260,8 @@ public:
   bool isLoadingAlbum() const;
   bool isLoadingArtist() const;
   bool currentTrackLiked() const;
+  int dislikesRevision() const;
+  Q_INVOKABLE bool isTrackDisliked(const QString &trackId) const;
 
   QString currentPlaylistTitle() const;
   QString currentPlaylistCoverUri() const;
@@ -319,6 +327,7 @@ signals:
   void currentAlbumChanged();
   void currentArtistChanged();
   void currentTrackChanged();
+  void dislikesChanged();
 
   void positionChanged();
   void durationChanged();
@@ -384,4 +393,5 @@ private:
 
   QString m_accountUid;
   bool m_playAlbumAfterLoad = false;
+  int m_dislikesRevision = 0;
 };

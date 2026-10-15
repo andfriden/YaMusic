@@ -131,6 +131,10 @@ void AppController::connectAccount() {
             m_recentListeningService->load(50, 10);
             m_libraryController->setUserId(m_accountUid);
 
+            // Список дизлайков грузим сразу при входе: он нужен не
+            // страницей, а состоянием кнопок на треках.
+            m_likesService->loadDislikedTracks(m_accountUid);
+
             m_playbackController->setUidProvider(
                 [this]() -> QString {
                   return m_accountUid;
@@ -224,6 +228,18 @@ void AppController::connectLibrary() {
           &AppController::statusChanged);
 
   connectLibrarySignals();
+
+  // Дизлайки живут только в LikesService, поэтому об изменении состояния
+  // сообщаем QML счётчиком, по которому пересчитываются привязки.
+  connect(m_likesService, &LikesService::dislikeChanged, this, [this](const QString &, bool) {
+    ++m_dislikesRevision;
+    emit dislikesChanged();
+  });
+
+  connect(m_likesService, &LikesService::dislikesLoaded, this, [this]() {
+    ++m_dislikesRevision;
+    emit dislikesChanged();
+  });
 
   connect(m_libraryController, &LibraryController::currentPlaylistChanged, this,
           &AppController::currentPlaylistChanged);
@@ -512,6 +528,43 @@ void AppController::toggleLike(const QString &trackId, bool liked) {
   if (m_playbackController->queueService()->sourceType() == "station") {
     m_stationsController->reportStationLikeChanged(id, !wasLiked);
   }
+}
+
+void AppController::toggleDislike(const QString &trackId, bool disliked) {
+  if (m_accountUid.isEmpty()) {
+    emit statusChanged("Пользователь не авторизован");
+    return;
+  }
+
+  const QString id = trackId.trimmed();
+
+  if (id.isEmpty()) {
+    emit statusChanged("ID трека не указан");
+    return;
+  }
+
+  const bool wasDisliked = disliked;
+
+  if (wasDisliked) {
+    m_likesService->removeDislike(m_accountUid, id);
+  } else {
+    m_likesService->addDislike(m_accountUid, id);
+  }
+
+  // Фидбек ротора: станция и Моя волна запоминают дизлайк.
+  if (m_playbackController->queueService()->sourceType() == "station") {
+    m_stationsController->reportStationDislike(id, !wasDisliked);
+  }
+
+  m_personalController->reportMyWaveDislike(id, !wasDisliked);
+}
+
+bool AppController::isTrackDisliked(const QString &trackId) const {
+  return m_likesService->isDisliked(trackId);
+}
+
+int AppController::dislikesRevision() const {
+  return m_dislikesRevision;
 }
 
 void AppController::toggleAlbumLike() {

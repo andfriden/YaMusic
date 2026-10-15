@@ -30,6 +30,7 @@ Item {
 
     property bool liked: false
     property bool showLike: false
+    property bool showDislike: false
     property bool showAdd: false
     property bool showRemove: false
     property bool showAlbum: true
@@ -43,6 +44,18 @@ Item {
 
     readonly property bool hasController:
         root.controller !== null && root.controller !== undefined
+
+    // Дизлайк не лежит в моделях (у него нет отдельного раздела), поэтому
+    // спрашиваем состояние у контроллера и пересчитываем привязку по
+    // счётчику изменений — иначе строка не узнала бы о смене дизлайка.
+    readonly property bool disliked: {
+        if (!root.hasController || root.trackId.length === 0) {
+            return false
+        }
+
+        root.controller.dislikesRevision
+        return root.controller.isTrackDisliked(root.trackId)
+    }
 
     width: parent ? Math.max(0, parent.width - root.scrollbarOffset) : 0
     height: root.rowHeight
@@ -335,6 +348,59 @@ Item {
                     onClicked: {
                         if (root.hasController && root.trackId.length > 0) {
                             root.controller.toggleLike(root.trackId, root.liked)
+                        }
+                    }
+                }
+            }
+
+            Item {
+                width: 34
+                height: 34
+
+                visible: root.showDislike
+
+                Label {
+                    anchors.centerIn: parent
+
+                    text: "♡"
+                    color: root.disliked
+                        ? AppTheme.accent
+                        : dislikeMouse.containsMouse ? AppTheme.textPrimary : AppTheme.textSecondary
+                    font.pixelSize: 21
+
+                    Behavior on color {
+                        ColorAnimation { duration: 120 }
+                    }
+                }
+
+                // Перечёркнутое сердце — признак дизлайка.
+                Rectangle {
+                    anchors.centerIn: parent
+
+                    width: 17
+                    height: 1.5
+                    radius: 0.75
+
+                    color: root.disliked ? AppTheme.accent : AppTheme.textMuted
+                    rotation: -45
+
+                    opacity: root.disliked ? 1 : (dislikeMouse.containsMouse ? 0.6 : 0.35)
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: 120 }
+                    }
+                }
+
+                MouseArea {
+                    id: dislikeMouse
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+
+                    onClicked: {
+                        if (root.hasController && root.trackId.length > 0) {
+                            root.controller.toggleDislike(root.trackId, root.disliked)
                         }
                     }
                 }

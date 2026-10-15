@@ -16,8 +16,14 @@ public:
   void loadLikedTracks(const QString &uid);
   void loadLikedAlbums(const QString &uid);
   void loadLikedArtists(const QString &uid);
+
+  // Список дизлайков нужен только как состояние треков: отдельного
+  // раздела для них нет, поэтому из ответа берутся одни id.
+  void loadDislikedTracks(const QString &uid);
   void addLike(const QString &uid, const QString &trackId);
   void removeLike(const QString &uid, const QString &trackId);
+  void addDislike(const QString &uid, const QString &trackId);
+  void removeDislike(const QString &uid, const QString &trackId);
   void addAlbumLike(const QString &uid, const QString &albumId);
   void removeAlbumLike(const QString &uid, const QString &albumId);
   void addArtistLike(const QString &uid, const QString &artistId);
@@ -25,6 +31,7 @@ public:
   bool isLiked(const QString &trackId) const;
   bool isAlbumLiked(const QString &albumId) const;
   bool isArtistLiked(const QString &artistId) const;
+  bool isDisliked(const QString &trackId) const;
 
 signals:
   void tracksReceived(const QList<Track> &tracks);
@@ -33,17 +40,21 @@ signals:
   void loadingChanged(bool loading);
   void errorOccurred(const QString &message);
   void likeChanged(const QString &trackId, bool liked);
+  void dislikeChanged(const QString &trackId, bool disliked);
+  void dislikesLoaded();
   void albumLikeChanged(const QString &albumId, bool liked);
   void artistLikeChanged(const QString &artistId, bool liked);
 
 private:
   void loadTracksByIds(const QStringList &trackIds);
   void changeLike(const QString &uid, const QString &trackId, bool liked);
+  void changeDislike(const QString &uid, const QString &trackId, bool disliked);
 
   bool m_loadingTracks = false;
   bool m_loadingAlbums = false;
   bool m_loadingArtists = false;
   QSet<QString> m_likedTrackIds;
+  QSet<QString> m_dislikedTrackIds;
   QSet<QString> m_likedAlbumIds;
   QSet<QString> m_likedArtistIds;
 };

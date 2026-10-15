@@ -337,6 +337,7 @@ Item {
                             durationMs: model.durationMs
                             liked: model.liked
                             showLike: true
+                            showDislike: true
 
                             onActivated: {
                                 if (root.controller === null || root.controller === undefined) {

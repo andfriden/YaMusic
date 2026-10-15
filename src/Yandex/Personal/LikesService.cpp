@@ -10,6 +10,44 @@
 #include <QUrlQuery>
 #include <memory>
 
+namespace {
+
+// Список id из ответов /likes/tracks и /dislikes/tracks: элементом может
+// быть как объект трека, так и голый id.
+QStringList collectTrackIds(const QJsonArray &tracks) {
+  QStringList trackIds;
+  QSet<QString> uniqueIds;
+
+  for (const QJsonValue &value : tracks) {
+    QString trackId;
+
+    if (value.isObject()) {
+      const QJsonObject obj = value.toObject();
+      const QJsonValue idValue = obj.value(QStringLiteral("id"));
+
+      if (idValue.isString()) {
+        trackId = idValue.toString();
+      } else if (idValue.isDouble()) {
+        trackId = QString::number(static_cast<qint64>(idValue.toDouble()));
+      }
+    } else if (value.isString()) {
+      trackId = value.toString();
+    } else if (value.isDouble()) {
+      trackId = QString::number(static_cast<qint64>(value.toDouble()));
+    }
+
+    trackId = trackId.trimmed();
+    if (trackId.isEmpty()) continue;
+    if (uniqueIds.contains(trackId)) continue;
+    uniqueIds.insert(trackId);
+    trackIds.append(trackId);
+  }
+
+  return trackIds;
+}
+
+} // namespace
+
 LikesService::LikesService(YandexAuth *auth, QObject *parent) : YandexServiceBase(auth, parent) {}
 
 void LikesService::loadLikedTracks(const QString &uid) {
@@ -74,34 +112,8 @@ void LikesService::loadLikedTracks(const QString &uid) {
     const QJsonObject root = document.object();
     const QJsonObject result = root.value(QStringLiteral("result")).toObject();
     const QJsonObject library = result.value(QStringLiteral("library")).toObject();
-    const QJsonArray tracks = library.value(QStringLiteral("tracks")).toArray();
-    QStringList trackIds;
-    QSet<QString> uniqueIds;
-
-    for (const QJsonValue &value : tracks) {
-      QString trackId;
-
-      if (value.isObject()) {
-        const QJsonObject obj = value.toObject();
-        const QJsonValue idValue = obj.value(QStringLiteral("id"));
-
-        if (idValue.isString()) {
-          trackId = idValue.toString();
-        } else if (idValue.isDouble()) {
-          trackId = QString::number(static_cast<qint64>(idValue.toDouble()));
-        }
-      } else if (value.isString()) {
-        trackId = value.toString();
-      } else if (value.isDouble()) {
-        trackId = QString::number(static_cast<qint64>(value.toDouble()));
-      }
-
-      trackId = trackId.trimmed();
-      if (trackId.isEmpty()) continue;
-      if (uniqueIds.contains(trackId)) continue;
-      uniqueIds.insert(trackId);
-      trackIds.append(trackId);
-    }
+    const QStringList trackIds =
+        collectTrackIds(library.value(QStringLiteral("tracks")).toArray());
 
     // Заменяем кэш понравившихся треков только после успешного
     // разбора ответа сервера.
@@ -284,6 +296,59 @@ void LikesService::loadLikedArtists(const QString &uid) {
   });
 }
 
+void LikesService::loadDislikedTracks(const QString &uid) {
+  if (!ensureAuthenticated()) {
+    return;
+  }
+
+  const QString userId = uid.trimmed();
+
+  if (userId.isEmpty()) {
+    return;
+  }
+
+  if (!m_yandexClient->hasToken()) {
+    return;
+  }
+
+  const QString path = QStringLiteral("/users/%1/dislikes/tracks").arg(userId);
+  QNetworkReply *reply = m_yandexClient->get(path);
+
+  if (reply == nullptr) {
+    return;
+  }
+
+  connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+    const QByteArray data = reply->readAll();
+
+    // Дизлайки — только состояние кнопок, поэтому неудачу не показываем:
+    // список просто останется пустым до следующей попытки.
+    if (reply->error() != QNetworkReply::NoError) {
+      reply->deleteLater();
+      return;
+    }
+
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
+
+    if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
+      reply->deleteLater();
+      return;
+    }
+
+    const QJsonObject result = document.object().value(QStringLiteral("result")).toObject();
+    const QJsonObject library = result.value(QStringLiteral("library")).toObject();
+    const QStringList trackIds =
+        collectTrackIds(library.value(QStringLiteral("tracks")).toArray());
+
+    m_dislikedTrackIds.clear();
+    for (const QString &trackId : trackIds)
+      m_dislikedTrackIds.insert(trackId);
+    reply->deleteLater();
+    emit dislikesLoaded();
+  });
+}
+
 void LikesService::loadTracksByIds(const QStringList &trackIds) {
   // getTracks() эмитит либо tracksReceived(), либо requestError().
   // Используем одноразовые соединения — каждый загрузчик создаёт
@@ -328,10 +393,24 @@ void LikesService::removeLike(const QString &uid, const QString &trackId) {
   changeLike(uid, trackId, false);
 }
 
+void LikesService::addDislike(const QString &uid, const QString &trackId) {
+  changeDislike(uid, trackId, true);
+}
+
+void LikesService::removeDislike(const QString &uid, const QString &trackId) {
+  changeDislike(uid, trackId, false);
+}
+
 bool LikesService::isLiked(const QString &trackId) const {
   const QString id = trackId.trimmed();
   if (id.isEmpty()) return false;
   return m_likedTrackIds.contains(id);
+}
+
+bool LikesService::isDisliked(const QString &trackId) const {
+  const QString id = trackId.trimmed();
+  if (id.isEmpty()) return false;
+  return m_dislikedTrackIds.contains(id);
 }
 
 void LikesService::changeLike(const QString &uid, const QString &trackId, bool liked) {
@@ -379,8 +458,67 @@ void LikesService::changeLike(const QString &uid, const QString &trackId, bool l
       m_likedTrackIds.insert(id);
     else
       m_likedTrackIds.remove(id);
+
+    // Лайк и дизлайк взаимоисключающие: сервер снимает дизлайк сам,
+    // повторяем это в локальном состоянии.
+    const bool hadDislike = m_dislikedTrackIds.remove(id);
     reply->deleteLater();
     emit likeChanged(id, liked);
+
+    if (hadDislike) emit dislikeChanged(id, false);
+  });
+}
+
+void LikesService::changeDislike(const QString &uid, const QString &trackId, bool disliked) {
+  if (!ensureAuthenticated()) {
+    emit errorOccurred(QStringLiteral("Токен Яндекс Музыки не установлен"));
+    return;
+  }
+
+  const QString userId = uid.trimmed();
+  const QString id = trackId.trimmed();
+
+  if (userId.isEmpty()) {
+    emit errorOccurred(QStringLiteral("UID пользователя не указан"));
+    return;
+  }
+
+  if (id.isEmpty()) {
+    emit errorOccurred(QStringLiteral("ID трека не указан"));
+    return;
+  }
+
+  if (!m_yandexClient->hasToken()) {
+    emit errorOccurred(QStringLiteral("Токен Яндекс Музыки не установлен"));
+    return;
+  }
+
+  const QString path = disliked
+                           ? QStringLiteral("/users/%1/dislikes/tracks/add-multiple").arg(userId)
+                           : QStringLiteral("/users/%1/dislikes/tracks/remove").arg(userId);
+  QUrlQuery body;
+  body.addQueryItem(QStringLiteral("track-ids"), id);
+  QNetworkReply *reply = m_yandexClient->postForm(path, body);
+  if (reply == nullptr) return;
+
+  connect(reply, &QNetworkReply::finished, this, [this, reply, id, disliked]() {
+    if (reply->error() != QNetworkReply::NoError) {
+      const QString error = reply->errorString();
+      reply->deleteLater();
+      emit errorOccurred(error);
+      return;
+    }
+
+    if (disliked)
+      m_dislikedTrackIds.insert(id);
+    else
+      m_dislikedTrackIds.remove(id);
+
+    const bool hadLike = m_likedTrackIds.remove(id);
+    reply->deleteLater();
+    emit dislikeChanged(id, disliked);
+
+    if (hadLike) emit likeChanged(id, false);
   });
 }
 

@@ -28,6 +28,7 @@ struct Track {
   QList<Artist> artists;
   QList<Album> albums;
   bool liked = false;
+  bool disliked = false;
 };
 
 // Одна строка синхронизированного текста.

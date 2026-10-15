@@ -44,6 +44,9 @@ public:
   // Изменение лайка трека станции (только фидбек ротора, лайки уже сделаны).
   void reportStationLikeChanged(const QString &trackId, bool liked);
 
+  // Дизлайк трека станции — только фидбек ротора (dislike/undislike).
+  void reportStationDislike(const QString &trackId, bool disliked);
+
   bool loading() const;
 
   QVariantList groups() const;

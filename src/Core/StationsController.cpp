@@ -339,6 +339,13 @@ void StationsController::reportStationLikeChanged(const QString &trackId, bool l
   m_stationService->sendStationFeedback(liked ? "like" : "unlike", id, 0);
 }
 
+void StationsController::reportStationDislike(const QString &trackId, bool disliked) {
+  if (!m_stationActive) return;
+  const QString id = trackId.trimmed();
+  if (id.isEmpty()) return;
+  m_stationService->sendStationFeedback(disliked ? "dislike" : "undislike", id, 0);
+}
+
 GenreStationModel *StationsController::tracksModel() const {
   return m_tracksModel;
 }

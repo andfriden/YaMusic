@@ -25,6 +25,17 @@ Rectangle {
     readonly property bool playing:
         root.hasController && root.controller.playing
 
+    // Дизлайк хранится в LikesService, а не в модели: пересчитываем
+    // привязку по счётчику изменений, иначе кнопка не обновится.
+    readonly property bool currentTrackDisliked: {
+        if (!root.hasController) {
+            return false
+        }
+
+        root.controller.dislikesRevision
+        return root.controller.isTrackDisliked(String(root.controller.currentTrackId || ""))
+    }
+
     readonly property bool hasPlayerAccent:
         root.hasTrack &&
         root.hasController &&
@@ -225,6 +236,88 @@ Rectangle {
                         }
 
                         root.controller.toggleLike(trackId, root.controller.currentTrackLiked)
+                    }
+                }
+            }
+
+            Item {
+                id: dislikeButton
+
+                Layout.preferredWidth: 36
+                Layout.preferredHeight: 36
+
+                visible: root.hasTrack
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 18
+
+                    color: dislikeMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
+                    opacity: dislikeMouseArea.containsMouse ? 1 : 0
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: 100 }
+                    }
+                }
+
+                Label {
+                    anchors.centerIn: parent
+
+                    text: "♡"
+                    color: root.currentTrackDisliked
+                        ? AppTheme.accent
+                        : AppTheme.textSecondary
+
+                    font.pixelSize: 21
+
+                    Behavior on color {
+                        ColorAnimation { duration: 120 }
+                    }
+                }
+
+                // Перечёркнутое сердце — признак дизлайка.
+                Rectangle {
+                    anchors.centerIn: parent
+
+                    width: 18
+                    height: 1.5
+                    radius: 0.75
+
+                    color: root.currentTrackDisliked ? AppTheme.accent : AppTheme.textSecondary
+                    rotation: -45
+
+                    opacity: root.currentTrackDisliked
+                        ? 1
+                        : (dislikeMouseArea.containsMouse ? 0.6 : 0.35)
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: 120 }
+                    }
+                }
+
+                MouseArea {
+                    id: dislikeMouseArea
+
+                    anchors.fill: parent
+
+                    enabled: root.hasTrack && root.hasController &&
+                        String(root.controller.currentTrackId || "").length > 0
+
+                    hoverEnabled: true
+                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+
+                    onClicked: {
+                        if (!root.controller) {
+                            return
+                        }
+
+                        const trackId = String(root.controller.currentTrackId || "")
+
+                        if (trackId.length === 0) {
+                            return
+                        }
+
+                        root.controller.toggleDislike(trackId, root.currentTrackDisliked)
                     }
                 }
             }

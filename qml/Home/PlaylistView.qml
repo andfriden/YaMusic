@@ -84,6 +84,7 @@ Item {
                     durationMs: model.durationMs
                     liked: model.liked
                     showLike: true
+                    showDislike: true
                     showAdd: true
                     showRemove: root.controller && root.controller.currentPlaylistKind > 0
 

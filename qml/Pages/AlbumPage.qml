@@ -287,6 +287,7 @@ Item {
                         durationMs: model.durationMs
                         liked: model.liked
                         showLike: true
+                        showDislike: true
                         showAdd: true
 
                         rowHeight: 64

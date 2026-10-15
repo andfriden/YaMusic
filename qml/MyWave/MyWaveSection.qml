@@ -122,6 +122,7 @@ Item {
 
                 controller: root.controller
                 rowIndex: model.index
+                trackId: model.trackId
                 title: model.title
                 artist: model.artist
                 artistId: model.artistId
@@ -130,13 +131,14 @@ Item {
                 coverUri: model.coverUri
                 durationMs: model.durationMs
 
-                // В модели "Моей волны" нет trackId — подсвечиваем
-                // по паре title+artist
+                // В модели "Моей волны" trackId есть, но подсвечиваем
+                // по паре title+artist — так надёжнее при повторах
                 currentMatch: "titleArtist"
 
                 rowHeight: root.trackHeight
                 showAdd: false
                 showLike: false
+                showDislike: true
 
                 // Альбом в компактном режиме скрываем — не хватает
                 // ширины

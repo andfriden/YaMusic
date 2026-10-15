@@ -47,7 +47,8 @@ void YandexPersonal::sendMyWaveFeedback(const QString &event, const QString &tra
     emit feedbackError("Для feedback не указан batchId");
     return;
   }
-  if (type != "trackStarted" && type != "trackFinished" && type != "skip") {
+  if (type != "trackStarted" && type != "trackFinished" && type != "skip" && type != "dislike"
+      && type != "undislike") {
     emit feedbackError("Неподдерживаемый тип feedback");
     return;
   }
