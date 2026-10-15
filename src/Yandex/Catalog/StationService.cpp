@@ -30,6 +30,37 @@ static QString imageUrlOf(const QJsonObject &icon) {
   return fullImageUrl;
 }
 
+// Разбор массива станций: и /rotor/stations/dashboard, и
+// /rotor/stations/list оборачивают станцию в объект с ключом "station",
+// но второй может отдать и саму станцию.
+static QList<Station> parseStationList(const QJsonArray &items) {
+  QList<Station> stations;
+
+  for (const QJsonValue &value : items) {
+    if (!value.isObject()) continue;
+    const QJsonObject item = value.toObject();
+    QJsonObject stationObject = item.value("station").toObject();
+    if (stationObject.isEmpty()) stationObject = item;
+    const QJsonObject id = stationObject.value("id").toObject();
+    if (id.isEmpty()) continue;
+
+    Station station;
+    station.type = stationTypeOf(id);
+    station.tag = stationTagOf(id);
+    station.name = stationObject.value("name").toString();
+    const QJsonObject icon = stationObject.value("icon").toObject();
+    station.imageUrl = imageUrlOf(icon);
+    if (station.imageUrl.isEmpty())
+      station.imageUrl = stationObject.value("fullImageUrl").toString().trimmed();
+    station.backgroundColor = icon.value("backgroundColor").toString();
+
+    if (station.type.isEmpty() || station.tag.isEmpty()) continue;
+    stations.append(station);
+  }
+
+  return stations;
+}
+
 void StationService::loadStations() {
   if (!m_auth->isAuthenticated()) {
     emit errorOccurred("Токен Яндекс Музыки не установлен");
@@ -37,6 +68,48 @@ void StationService::loadStations() {
   }
 
   m_yandexClient->setToken(m_auth->token());
+
+  // Дашборд отдаёт станции конкретного слушателя и персональную волну,
+  // которых в /rotor/stations/list нет. Если он не ответил — берём список.
+  QNetworkReply *reply = m_yandexClient->get(QStringLiteral("/rotor/stations/dashboard"));
+
+  if (reply == nullptr) {
+    loadStationsFromList();
+    return;
+  }
+
+  connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+    const QByteArray data = reply->readAll();
+    const bool failed = reply->error() != QNetworkReply::NoError;
+    reply->deleteLater();
+
+    if (failed) {
+      loadStationsFromList();
+      return;
+    }
+
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
+
+    if (parseError.error != QJsonParseError::NoError) {
+      loadStationsFromList();
+      return;
+    }
+
+    const QJsonArray dashboardStations =
+        unwrapResult(document).value("stations").toArray();
+    const QList<Station> stations = parseStationList(dashboardStations);
+
+    if (stations.isEmpty()) {
+      loadStationsFromList();
+      return;
+    }
+
+    emit stationsReceived(stations);
+  });
+}
+
+void StationService::loadStationsFromList() {
   QUrlQuery query;
   query.addQueryItem("language", "ru");
   const auto path = QStringLiteral("/rotor/stations/list?%1")
@@ -67,27 +140,7 @@ void StationService::loadStations() {
     }
     if (result.isEmpty()) return fail("Список станций пуст");
 
-    QList<Station> stations;
-
-    for (const QJsonValue &value : result) {
-      if (!value.isObject()) continue;
-      const QJsonObject item = value.toObject();
-      const QJsonObject stationObject = item.value("station").toObject();
-      if (stationObject.isEmpty()) continue;
-      const QJsonObject id = stationObject.value("id").toObject();
-      if (id.isEmpty()) continue;
-
-      Station station;
-      station.type = stationTypeOf(id);
-      station.tag = stationTagOf(id);
-      station.name = stationObject.value("name").toString();
-      const QJsonObject icon = stationObject.value("icon").toObject();
-      station.imageUrl = imageUrlOf(icon);
-      station.backgroundColor = icon.value("backgroundColor").toString();
-
-      if (station.type.isEmpty() || station.tag.isEmpty()) continue;
-      stations.append(station);
-    }
+    const QList<Station> stations = parseStationList(result);
 
     if (stations.isEmpty()) return fail("Список станций пуст");
     emit stationsReceived(stations);
