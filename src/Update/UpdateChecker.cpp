@@ -56,7 +56,7 @@ QString UpdateChecker::expectedAssetName(const QString &version) {
 #elif defined(Q_OS_WIN)
   return QStringLiteral("YaMusic-%1-windows-x64-portable.zip").arg(version);
 #else
-  return QStringLiteral("YaMusic-%1-linux-x86_64.AppImage").arg(version);
+  return QStringLiteral("YaMusic-%1-x86_64.AppImage").arg(version);
 #endif
 }
 

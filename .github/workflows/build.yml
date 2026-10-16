@@ -26,7 +26,13 @@ jobs:
 
   linux:
     name: Linux x64
-    runs-on: ubuntu-24.04
+    # Сборка только на старом LTS: glibc и libstdc++ линкуются по системе
+    # сборки, и AppImage с 24.04 требует GLIBC_2.38 / GLIBCXX_3.4.32, то есть
+    # не запускается на Ubuntu 22.04 и Debian 12 (тест каталога AppImage идёт
+    # именно на самом старом поддерживаемом LTS).
+    # ubuntu-22.04 объявлен устаревшим 17.09.2026 и снимется 17.04.2027 —
+    # до этой даты джоб перевести на container: ubuntu:22.04.
+    runs-on: ubuntu-22.04
 
     steps:
 
@@ -87,7 +93,7 @@ jobs:
           cp -a dist/. pkg/YaMusic/
           tar \
             -C pkg \
-            -czf "YaMusic-${VERSION}-linux-x86_64.tar.gz" \
+            -czf "YaMusic-${VERSION}-x86_64.tar.gz" \
             YaMusic
 
       - name: List artifacts
@@ -105,6 +111,89 @@ jobs:
         with:
           name: YaMusic-Linux-x86_64.tar.gz
           path: YaMusic-*.tar.gz
+
+
+  # =============================================================
+  # Проверка: AppImage запускается на самом старом LTS и без сети
+  #
+  # Повторяет условия теста каталога AppImage: если приложение
+  # завершается сразу после старта, релиз не имеет смысла публиковать.
+  # =============================================================
+
+  linux-compat:
+    name: AppImage start check (oldest LTS)
+    needs: [linux]
+    runs-on: ubuntu-22.04
+
+    steps:
+
+      - name: Download AppImage
+        uses: actions/download-artifact@v4
+        with:
+          name: YaMusic-Linux-x86_64.AppImage
+
+      # linuxdeploy по своему excludelist не кладёт в AppImage libGL/libOpenGL/
+      # libEGL — их даёт система; libxcb-* и libxkbcommon-x11 нужны
+      # платформенному плагину Qt (xcb), который тоже берётся с системы.
+      - name: Install runtime tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libfuse2 \
+            xvfb \
+            libgl1 \
+            libopengl0 \
+            libegl1 \
+            libx11-xcb1 \
+            libxkbcommon-x11-0 \
+            libxcb-cursor0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-randr0 \
+            libxcb-render-util0 \
+            libxcb-shape0 \
+            libxcb-sync1 \
+            libxcb-xfixes0 \
+            libxcb-xinerama0 \
+            libxcb-xkb1 \
+            libsm6 \
+            libice6 \
+            libdbus-1-3 \
+            libpulse0 \
+            libasound2 \
+            libsndfile1
+
+      - name: Start without network
+        run: |
+          chmod +x YaMusic-*.AppImage
+
+          set +e
+          # unshare -n убирает сеть (как в тесте каталога), xvfb даёт дисплей,
+          # timeout возвращает 124/137, если процесс дожил до конца окна.
+          sudo unshare -n xvfb-run -a timeout --signal=KILL 25 \
+            ./YaMusic-*.AppImage --appimage-extract-and-run > app.log 2>&1
+          code=$?
+
+          cat app.log
+
+          if [ "$code" -ne 124 ] && [ "$code" -ne 137 ]; then
+            echo "::error::AppImage завершился сразу после запуска (код $code)"
+            exit 1
+          fi
+          echo "OK: приложение не падает на старте"
+
+      - name: Diagnose missing libraries
+        if: failure()
+        run: |
+          ./YaMusic-*.AppImage --appimage-extract >/dev/null 2>&1 || true
+
+          echo "--- не найдены на этой системе ---"
+          ldd squashfs-root/usr/bin/yamusic 2>&1 | grep 'not found' || true
+
+          echo "--- максимальные требуемые версии символов ---"
+          find squashfs-root -type f -exec objdump -T {} + 2>/dev/null \
+            | grep -oP '(GLIBC_|GLIBCXX_)[0-9.]+' | sort -uV | tail -5 || true
 
 
   # =============================================================
@@ -410,7 +499,7 @@ jobs:
             echo
             echo "- **Windows** — \`YaMusic-${VERSION}-windows-x64-portable.zip\` (portable, без установки)"
             echo "- **macOS** — \`YaMusic-${VERSION}-macos-x64.dmg\` (Intel) или \`YaMusic-${VERSION}-macos-arm64.dmg\` (Apple Silicon)"
-            echo "- **Linux** — \`YaMusic-${VERSION}-linux-x86_64.AppImage\` (запуск: \`chmod +x\` и запуск) или \`YaMusic-${VERSION}-linux-x86_64.tar.gz\`"
+            echo "- **Linux** — \`YaMusic-${VERSION}-x86_64.AppImage\` (запуск: \`chmod +x\` и запуск) или \`YaMusic-${VERSION}-x86_64.tar.gz\`"
             echo
           } > release-notes.md
 

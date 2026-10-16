@@ -75,8 +75,8 @@ heartbeat прогресса и события завершения треков
 | Windows x64 | portable | `YaMusic-<version>-windows-x64-portable.zip` |
 | macOS | Intel | `YaMusic-<version>-macos-x64.dmg` |
 | macOS | Apple Silicon | `YaMusic-<version>-macos-arm64.dmg` |
-| Linux x86_64 | AppImage | `YaMusic-<version>-linux-x86_64.AppImage` |
-| Linux x86_64 | архив | `YaMusic-<version>-linux-x86_64.tar.gz` |
+| Linux x86_64 | AppImage | `YaMusic-<version>-x86_64.AppImage` |
+| Linux x86_64 | архив | `YaMusic-<version>-x86_64.tar.gz` |
 
 macOS-пакеты собираются отдельно для Intel (x64) и Apple Silicon (arm64);
 Windows — portable-версия; Linux — AppImage и архив.
@@ -131,7 +131,7 @@ cmake --build build --parallel
 
 * **Windows x64** — `YaMusic-<version>-windows-x64-portable.zip`
 * **macOS** — отдельно для Intel и Apple Silicon: `YaMusic-<version>-macos-x64.dmg`, `YaMusic-<version>-macos-arm64.dmg`
-* **Linux x86_64** — `YaMusic-<version>-linux-x86_64.AppImage` и `YaMusic-<version>-linux-x86_64.tar.gz`
+* **Linux x86_64** — `YaMusic-<version>-x86_64.AppImage` и `YaMusic-<version>-x86_64.tar.gz`
 
 AppImage собирается скриптом `scripts/build-appimage.sh` (скачивает linuxdeploy-инструменты в `.tools` и не требует FUSE):
 
