@@ -402,6 +402,9 @@ set(
         "${YAMUSIC_QML_ROOT}/Components/PlaylistPicker.qml"
         "${YAMUSIC_QML_ROOT}/Components/UpdateDialog.qml"
         "${YAMUSIC_QML_ROOT}/Components/CrashReportsDialog.qml"
+        "${YAMUSIC_QML_ROOT}/Components/MiniPlayer.qml"
+        "${YAMUSIC_QML_ROOT}/Components/PlayerWindow.qml"
+        "${YAMUSIC_QML_ROOT}/Components/SettingsWindow.qml"
 
         # Pages
         "${YAMUSIC_QML_ROOT}/Pages/HomePage.qml"

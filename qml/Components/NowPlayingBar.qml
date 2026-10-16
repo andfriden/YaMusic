@@ -11,6 +11,7 @@ Rectangle {
 
     signal expandedRequested()
     signal lyricsRequested()
+    signal miniPlayerRequested()
 
     readonly property bool hasController:
         root.controller !== null && root.controller !== undefined
@@ -885,6 +886,35 @@ Rectangle {
                     radius: 5
 
                     color: root.playerAccent
+                }
+            }
+
+            Item {
+                width: 38
+                height: 38
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 19
+
+                    color: miniMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
+                }
+
+                Label {
+                    anchors.centerIn: parent
+
+                    text: "▤"
+                    color: AppTheme.textSecondary
+                    font.pixelSize: 15
+                }
+
+                MouseArea {
+                    id: miniMouseArea
+
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+
+                    onClicked: root.miniPlayerRequested()
                 }
             }
 

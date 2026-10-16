@@ -69,6 +69,7 @@ ApplicationWindow {
             authController: authController
 
             onCrashReportsRequested: crashReportsDialog.open()
+            onSettingsRequested: settingsWindow.showSettings()
         }
 
         NowPlayingBar {
@@ -79,26 +80,16 @@ ApplicationWindow {
 
             controller: appController
 
-            onExpandedRequested: window.activeOverlay = window.overlayNowPlaying
+            onExpandedRequested: playerWindow.showPlayer()
             onLyricsRequested: {
                 appController.lyricsController.loadLyrics()
                 window.activeOverlay = window.overlayLyrics
             }
+            onMiniPlayerRequested: miniPlayer.showPlayer()
         }
     }
 
-    // Оверлеи сами растягиваются на весь экран
-    ExpandedNowPlaying {
-        anchors.fill: parent
-
-        visible: authController.authenticated &&
-            window.activeOverlay === window.overlayNowPlaying
-
-        controller: appController
-
-        onClosed: window.activeOverlay = window.overlayNone
-    }
-
+    // Тексты песен остаются оверлеем в основном окне
     LyricsView {
         anchors.fill: parent
 
@@ -108,6 +99,29 @@ ApplicationWindow {
         controller: appController
 
         onClosed: window.activeOverlay = window.overlayNone
+    }
+
+    MiniPlayer {
+        id: miniPlayer
+
+        controller: appController
+
+        onExpandedRequested: playerWindow.showPlayer()
+    }
+
+    PlayerWindow {
+        id: playerWindow
+
+        controller: appController
+    }
+
+    SettingsWindow {
+        id: settingsWindow
+
+        controller: appController
+        authController: authController
+
+        onCrashReportsRequested: crashReportsDialog.open()
     }
 
     StatusBar {
