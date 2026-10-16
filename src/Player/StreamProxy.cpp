@@ -84,6 +84,11 @@ void StreamProxy::abort() {
     m_cond.wakeAll();
 }
 
+bool StreamProxy::isPrimed() const {
+    QMutexLocker lock(&m_mutex);
+    return m_finished || m_buffer.size() >= kMinProbeBytes;
+}
+
 bool StreamProxy::atEnd() const {
     QMutexLocker lock(&m_mutex);
     return m_finished && pos() >= m_buffer.size();

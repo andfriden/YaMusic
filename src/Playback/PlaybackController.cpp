@@ -28,6 +28,33 @@ static QString coverCacheDir() {
 // мимо начала затухания, и незаметно по нагрузке.
 static constexpr int kCrossfadeCheckMs = 500;
 
+// Запас на сеть перед началом перехода: поток следующего трека
+// запрашивается заранее, чтобы к началу затухания он уже отдавал звук.
+static constexpr int kCrossfadeLeadMs = 4000;
+
+// Запрос аудио-потока: играющий трек и трек, готовящийся к переходу,
+// ходят одним и тем же путём.
+static QNetworkRequest makeStreamRequest(const QString &streamUrl) {
+  QNetworkRequest request{QUrl(streamUrl)};
+
+  request.setHeader(
+      QNetworkRequest::UserAgentHeader,
+      QStringLiteral("YaMusic/1.0 (Qt)"));
+
+  request.setAttribute(
+      QNetworkRequest::RedirectPolicyAttribute,
+      QNetworkRequest::NoLessSafeRedirectPolicy);
+
+  // Долгие аудио-стримы надёжнее по HTTP/1.1: на HTTP/2 сервер
+  // Яндекса сбрасывает соединение («Server refused a stream»),
+  // что приводит к обрыву SSL и чтению из закрытого сокета.
+  request.setAttribute(
+      QNetworkRequest::Http2AllowedAttribute,
+      false);
+
+  return request;
+}
+
 static QString coverFilePath(const QString &trackId) {
   return coverCacheDir() +
          QStringLiteral("/") +
@@ -78,7 +105,8 @@ PlaybackController::PlaybackController(
   connect(m_playerService, &PlayerService::crossfadeFinished, this, [this]() {
     m_crossfading = false;
     // Уходящий трек остановлен — его сетевой поток больше не нужен.
-    abortStreamProxy();
+    // Поток приходящего трека теперь играющий, его не трогаем.
+    retireProxy(m_fadingProxy);
   });
 
   connect(
@@ -263,9 +291,7 @@ void PlaybackController::playTrack(const Track &track) {
     return;
   }
 
-  const QString quality =
-      m_qualityController ? m_qualityController->quality()
-                          : QStringLiteral("high");
+  const QString quality = currentQuality();
 
   // Подмена цензурной версии: если включён censorBypass и для трека есть
   // нецензурная замена (и пользователь не выбрал «оригинал») — играем её
@@ -440,8 +466,18 @@ void PlaybackController::setState(
 void PlaybackController::handleStreamUrl(
     const QString &trackId,
     const QString &url) {
-  if (trackId.isEmpty() ||
+  if (trackId.isEmpty()) {
+    return;
+  }
+
+  // Поток следующего трека под предстоящий переход: он ещё не текущий.
+  if (trackId == m_crossfadeRequestTrackId &&
       trackId != m_currentTrack.id) {
+    startCrossfadeStream(trackId, url);
+    return;
+  }
+
+  if (trackId != m_currentTrack.id) {
     return;
   }
 
@@ -474,41 +510,17 @@ void PlaybackController::playStream(
 
   abortStreamProxy();
 
-  QNetworkRequest request{QUrl(streamUrl)};
+  StreamProxy *proxy = openStreamProxy(streamUrl);
 
-  request.setHeader(
-      QNetworkRequest::UserAgentHeader,
-      QStringLiteral("YaMusic/1.0 (Qt)"));
-
-  request.setAttribute(
-      QNetworkRequest::RedirectPolicyAttribute,
-      QNetworkRequest::NoLessSafeRedirectPolicy);
-
-  // Долгие аудио-стримы надёжнее по HTTP/1.1: на HTTP/2 сервер
-  // Яндекса сбрасывает соединение («Server refused a stream»),
-  // что приводит к обрыву SSL и чтению из закрытого сокета.
-  request.setAttribute(
-      QNetworkRequest::Http2AllowedAttribute,
-      false);
-
-  QNetworkReply *reply =
-      m_streamNetwork->get(request);
-
-  reply->setReadBufferSize(1024 * 1024);
-
-  startStreamProxy(trackId, reply);
-}
-
-void PlaybackController::startStreamProxy(
-    const QString &trackId,
-    QNetworkReply *reply) {
-  auto *proxy = new StreamProxy(this);
+  if (proxy == nullptr) {
+    setState(Error);
+    emit playbackError(
+        "Stream play: empty args");
+    return;
+  }
 
   m_streamProxy = proxy;
   m_pendingStreamTrackId = trackId;
-
-  if (reply)
-    proxy->setReply(reply);
 
   connect(
       proxy,
@@ -527,14 +539,39 @@ void PlaybackController::startStreamProxy(
   m_playerService->playDevice(proxy);
 }
 
+StreamProxy *PlaybackController::openStreamProxy(
+    const QString &streamUrl) {
+  if (streamUrl.trimmed().isEmpty())
+    return nullptr;
+
+  QNetworkReply *reply =
+      m_streamNetwork->get(makeStreamRequest(streamUrl));
+
+  reply->setReadBufferSize(1024 * 1024);
+
+  auto *proxy = new StreamProxy(this);
+
+  proxy->setReply(reply);
+
+  return proxy;
+}
+
+void PlaybackController::retireProxy(StreamProxy *&proxy) {
+  if (proxy == nullptr)
+    return;
+
+  proxy->abort();
+  m_staleProxies.append(proxy);
+  proxy = nullptr;
+}
+
 void PlaybackController::abortStreamProxy() {
-  if (m_streamProxy) {
-    m_streamProxy->abort();
-    m_staleProxies.append(m_streamProxy);
-    m_streamProxy = nullptr;
-  }
+  retireProxy(m_streamProxy);
+  retireProxy(m_fadingProxy);
 
   m_pendingStreamTrackId.clear();
+
+  resetCrossfadeStream();
 }
 
 void PlaybackController::releaseStaleProxies() {
@@ -603,30 +640,106 @@ void PlaybackController::checkCrossfade() {
 
   // Короткие треки не сшиваем: переход занял бы половину песни.
   if (duration <= fadeMs + 2000) return;
-  if (m_playerService->position() < duration - fadeMs) return;
+
+  const qint64 position = m_playerService->position();
 
   const Track nextTrack = m_queueService->trackAt(m_queueService->currentIndex() + 1);
 
   if (nextTrack.id.isEmpty()) return;
 
-  // Переход возможен, только если следующий трек уже лежит на диске: иначе
-  // он начнётся с тишины, пока подтягивается сеть.
+  // Трек, скачанный заранее, играет с диска: ждать нечего, переход
+  // начинается ровно в свой срок.
   const QString nextPath = m_preloader != nullptr ? m_preloader->cachedPath(nextTrack) : QString();
 
-  if (nextPath.isEmpty()) return;
+  if (!nextPath.isEmpty()) {
+    if (position < duration - fadeMs) return;
 
-  beginCrossfade(nextTrack, nextPath);
+    beginCrossfade(nextTrack, nextPath);
+    return;
+  }
+
+  // Трек без прав сервер не отдаст — качать его нечего.
+  if (!nextTrack.available) return;
+
+  // Нескачанный трек тянем потоком: запрос уходит с запасом на сеть, а
+  // затухание начинается, когда поток готов отдавать звук. Иначе переход
+  // открывался бы тишиной, пока подтягивается сеть.
+  if (m_crossfadeRequestTrackId != nextTrack.id) {
+    if (position < duration - fadeMs - kCrossfadeLeadMs) return;
+
+    requestCrossfadeStream(nextTrack);
+    return;
+  }
+
+  if (position < duration - fadeMs) return;
+  if (m_incomingProxy == nullptr || !m_incomingProxy->isPrimed()) return;
+
+  beginStreamedCrossfade(nextTrack, m_incomingProxy);
 }
 
-void PlaybackController::beginCrossfade(const Track &nextTrack, const QString &path) {
+QString PlaybackController::currentQuality() const {
+  return m_qualityController ? m_qualityController->quality()
+                             : QStringLiteral("high");
+}
+
+void PlaybackController::requestCrossfadeStream(const Track &nextTrack) {
+  resetCrossfadeStream();
+
+  if (m_trackService == nullptr) return;
+
+  m_crossfadeRequestTrackId = nextTrack.id;
+
+  // Заменённая версия играет с чужого адреса: поток берём сразу по ней,
+  // у Яндекса такой трек не спрашиваем.
+  if (wouldReplaceForCensor(nextTrack)) {
+    const QString replacementUrl = m_censorService->replacementUrl(nextTrack.id);
+
+    if (!replacementUrl.isEmpty()) {
+      startCrossfadeStream(nextTrack.id, replacementUrl);
+      return;
+    }
+  }
+
+  m_trackService->loadStreamInfo(nextTrack.id, currentQuality());
+}
+
+void PlaybackController::startCrossfadeStream(const QString &trackId, const QString &url) {
+  if (trackId != m_crossfadeRequestTrackId) return;
+  if (m_incomingProxy != nullptr) return;
+  if (url.trimmed().isEmpty()) return;
+
+  StreamProxy *proxy = openStreamProxy(url);
+
+  if (proxy == nullptr) return;
+
+  m_incomingProxy = proxy;
+
+  connect(
+      proxy,
+      &StreamProxy::networkError,
+      this,
+      [this, proxy](const QString &) {
+        // Поток не поднялся: трек заиграет обычным стримом в свой черёд.
+        // Запрос при этом не повторяем — сеть уже не ответила.
+        if (proxy != m_incomingProxy) return;
+
+        retireProxy(m_incomingProxy);
+      });
+}
+
+void PlaybackController::resetCrossfadeStream() {
+  retireProxy(m_incomingProxy);
+
+  m_crossfadeRequestTrackId.clear();
+}
+
+void PlaybackController::switchToTrack(const Track &nextTrack) {
   const QString identity = TrackCache::identityFor(nextTrack.id);
 
   // Уходящий трек доиграл свою часть — отчитываемся за него и только после
   // этого переключаемся, иначе отчёт ушёл бы на следующий трек.
   maybeReportPlayback();
   resetReportState();
-
-  m_crossfading = true;
 
   m_queueService->next();
 
@@ -640,8 +753,47 @@ void PlaybackController::beginCrossfade(const Track &nextTrack, const QString &p
 
   emit currentTrackChanged();
   emit streamQualityInfoChanged();
+}
+
+void PlaybackController::beginCrossfade(const Track &nextTrack, const QString &path) {
+  // Поток, поднятый под этот переход, больше не нужен: играем с диска.
+  resetCrossfadeStream();
+
+  switchToTrack(nextTrack);
+
+  // Поток уходящего трека читается до конца затухания: уводим его из слота
+  // играющего, чтобы его не вытеснил поток приходящего.
+  m_fadingProxy = m_streamProxy;
+  m_streamProxy = nullptr;
 
   m_playerService->playUrlFading(QUrl::fromLocalFile(path).toString());
+  m_crossfading = m_playerService->isCrossfading();
+
+  if (!m_crossfading) retireProxy(m_fadingProxy);
+
+  updatePreloadWindow();
+}
+
+void PlaybackController::beginStreamedCrossfade(const Track &nextTrack, StreamProxy *proxy) {
+  if (proxy == nullptr) return;
+
+  switchToTrack(nextTrack);
+
+  // Поток приходящего трека становится играющим, поток уходящего ещё
+  // читается, пока идёт затухание.
+  m_fadingProxy = m_streamProxy;
+  m_streamProxy = proxy;
+  m_incomingProxy = nullptr;
+  m_pendingStreamTrackId = nextTrack.id;
+  m_crossfadeRequestTrackId.clear();
+
+  m_playerService->playDeviceFading(proxy);
+  m_crossfading = m_playerService->isCrossfading();
+
+  // Затухания не вышло (трек уже доиграл): уходящий голос остановлен, его
+  // поток отпускаем сразу.
+  if (!m_crossfading) retireProxy(m_fadingProxy);
+
   updatePreloadWindow();
 }
 
@@ -657,6 +809,19 @@ bool PlaybackController::playQueueCurrentTrack() {
 }
 
 void PlaybackController::handlePlaybackFinished() {
+  // Поток следующего трека успел догрузиться, пока доигрывал текущий:
+  // доводим переход им — без нового запроса к сети и без паузы.
+  if (m_queueService->repeatMode() != QueueService::RepeatOne &&
+      m_queueService->hasNext() &&
+      m_incomingProxy != nullptr && m_incomingProxy->isPrimed()) {
+    const Track nextTrack = m_queueService->trackAt(m_queueService->currentIndex() + 1);
+
+    if (!nextTrack.id.isEmpty() && nextTrack.id == m_crossfadeRequestTrackId) {
+      beginStreamedCrossfade(nextTrack, m_incomingProxy);
+      return;
+    }
+  }
+
   maybeReportPlayback();
 
   const QueueService::RepeatMode mode =

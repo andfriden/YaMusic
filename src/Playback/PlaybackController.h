@@ -113,9 +113,31 @@ private:
   void playCachedFile(const Track &track, const QString &path);
 
   // Пора ли переходить в следующий трек перекрёстным затуханием, и сам
-  // переход: заводим следующий трек до того, как текущий доиграет.
+  // переход: заводим следующий трек до того, как текущий доиграет. Трек из
+  // кэша играет с диска, нескачанный — потоком из сети.
   void checkCrossfade();
   void beginCrossfade(const Track &nextTrack, const QString &path);
+  void beginStreamedCrossfade(const Track &nextTrack, StreamProxy *proxy);
+
+  // Общая часть перехода: отчёт за уходящий трек, смена текущего трека и
+  // его метаданных.
+  void switchToTrack(const Track &nextTrack);
+
+  // Поток следующего трека под предстоящий переход: запрос URL, прокси и
+  // сброс, если трек сменился.
+  void requestCrossfadeStream(const Track &nextTrack);
+  void startCrossfadeStream(const QString &trackId, const QString &streamUrl);
+  void resetCrossfadeStream();
+
+  // Прокси для аудио-потока: тем же путём идут и играющий трек, и
+  // подготовленный к переходу.
+  StreamProxy *openStreamProxy(const QString &streamUrl);
+
+  // Отпускает прокси: голос, который из него читал, уже получил новый
+  // источник или остановлен.
+  void retireProxy(StreamProxy *&proxy);
+
+  QString currentQuality() const;
 
   // Что держать готовым: очередь после текущего трека.
   void updatePreloadWindow();
@@ -175,13 +197,23 @@ private:
   bool m_crossfading = false;
   QString m_pendingCoverUri;
 
-  // Буферизованный сетевой поток (обход TLS-проблем FFmpeg на macOS).
+  // Буферизованные сетевые потоки (обход TLS-проблем FFmpeg на macOS).
   // Старые прокси не удаляются сразу: ffmpeg может ещё читать из них
   // в своём потоке. Гарантированно освобождаются при destroy() и
   // при старте реального воспроизведения следующего трека.
+  //
+  // Потоков одновременно может быть три: у играющего голоса, у уходящего
+  // (доигрывает затухание) и у следующего трека, который готовится к
+  // переходу.
   StreamProxy *m_streamProxy = nullptr;
+  StreamProxy *m_fadingProxy = nullptr;
+  StreamProxy *m_incomingProxy = nullptr;
   QList<StreamProxy *> m_staleProxies;
   QString m_pendingStreamTrackId;
+
+  // Для какого трека уже запрошен поток под предстоящий переход: чтобы не
+  // спрашивать URL заново на каждой проверке.
+  QString m_crossfadeRequestTrackId;
 
   // Отправка статистики прослушивания.
   std::function<QString()> m_uidProvider;

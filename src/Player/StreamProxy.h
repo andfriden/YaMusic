@@ -36,6 +36,12 @@ public:
     void setReply(QNetworkReply *reply);
     void abort();
 
+    // Готов ли поток отдавать звук: демаксеру нужен минимальный объём
+    // данных, чтобы определить формат (см. kMinProbeBytes). Переход в
+    // следующий трек начинается только по готовому потоку — иначе он
+    // открывался бы тишиной, пока подтягивается сеть.
+    bool isPrimed() const;
+
     bool isSequential() const override { return false; }
     bool atEnd() const override;
     bool seek(qint64 pos) override;
