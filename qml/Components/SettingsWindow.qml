@@ -189,6 +189,8 @@ Window {
             ]
 
             delegate: Row {
+                id: qualityRow
+
                 required property var modelData
 
                 width: parent.width
@@ -222,7 +224,7 @@ Window {
                         anchors.fill: parent
                         radius: width / 2
 
-                        color: parent.parent.isCurrent()
+                        color: qualityRow.isCurrent()
                             ? AppTheme.accent
                             : AppTheme.panelSecondary
 
@@ -232,7 +234,7 @@ Window {
                         Text {
                             anchors.centerIn: parent
 
-                            text: parent.parent.isCurrent() ? "✓" : ""
+                            text: qualityRow.isCurrent() ? "✓" : ""
                             color: AppTheme.accentOn
                             font.pixelSize: 11
                         }
