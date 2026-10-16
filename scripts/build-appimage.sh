@@ -31,7 +31,7 @@ LINUXDEPLOY_APPIMAGE_URL="https://github.com/linuxdeploy/linuxdeploy-plugin-appi
 VERSION="$(sed -nE '/^project\(/,/^\)/s/.*VERSION[[:space:]]+([0-9.]+).*/\1/p' "${ROOT_DIR}/CMakeLists.txt" | head -1)"
 VERSION="${VERSION:-0.0.0}"
 
-APPIMAGE_NAME="YaMusic-${VERSION}-linux-x86_64.AppImage"
+APPIMAGE_NAME="YaMusic-${VERSION}-x86_64.AppImage"
 
 log() { printf '\033[1;36m[appimage]\033[0m %s\n' "$*"; }
 
