@@ -1,5 +1,7 @@
 #include "StatsController.h"
 
+#include <QDate>
+#include <QDateTime>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -11,6 +13,12 @@ constexpr auto kStatsTracksKey = "stats/tracks";
 constexpr auto kStatsArtistsKey = "stats/artists";
 constexpr auto kStatsTotalPlaysKey = "stats/totalPlays";
 constexpr auto kStatsTotalTimeKey = "stats/totalTime";
+constexpr auto kStatsDaysKey = "stats/days";
+
+// Ключ дня "YYYY-MM-DD" для локальной даты.
+QString dayKey(const QDateTime &dt) {
+  return dt.date().toString(QStringLiteral("yyyy-MM-dd"));
+}
 
 } // namespace
 
@@ -65,8 +73,41 @@ void StatsController::recordPlay(const QString &trackId, const QString &title,
   m_totalPlays += 1;
   if (durationMs > 0) m_totalPlayTimeMs += static_cast<int>(durationMs);
 
+  // Секунды прослушивания за сегодняшний день — для графика «минуты по дням».
+  const QString key = dayKey(QDateTime::currentDateTime());
+  m_days.insert(key, m_days.value(key, 0).toLongLong() + durationMs / 1000);
+
   persist();
   emit statsChanged();
+}
+
+QVariantList StatsController::dailyMinutes(int days) const {
+  const int n = qBound(1, days, 366);
+  const QDate today = QDate::currentDate();
+
+  // Метка дня: "дд.мм" без ведущего нуля у дня.
+  auto labelOf = [](const QDate &d) {
+    return QStringLiteral("%1.%2")
+        .arg(d.day())
+        .arg(d.month(), 2, 10, QLatin1Char('0'));
+  };
+
+  QVariantList result;
+  result.reserve(n);
+
+  for (int i = n - 1; i >= 0; --i) {
+    const QDate day = today.addDays(-i);
+    const QString key = day.toString(QStringLiteral("yyyy-MM-dd"));
+    const qint64 seconds = m_days.value(key, 0).toLongLong();
+
+    QVariantMap entry;
+    entry.insert(QStringLiteral("day"), key);
+    entry.insert(QStringLiteral("label"), labelOf(day));
+    entry.insert(QStringLiteral("minutes"), (seconds + 59) / 60); // вверх
+    result.append(entry);
+  }
+
+  return result;
 }
 
 QVariantList StatsController::topTracks(int limit) const {
@@ -128,6 +169,7 @@ void StatsController::persist() const {
   settings.setValue(QLatin1String(kStatsArtistsKey), m_artists);
   settings.setValue(QLatin1String(kStatsTotalPlaysKey), m_totalPlays);
   settings.setValue(QLatin1String(kStatsTotalTimeKey), m_totalPlayTimeMs);
+  settings.setValue(QLatin1String(kStatsDaysKey), m_days);
 }
 
 void StatsController::load() {
@@ -136,4 +178,5 @@ void StatsController::load() {
   m_artists = settings.value(QLatin1String(kStatsArtistsKey)).toMap();
   m_totalPlays = settings.value(QLatin1String(kStatsTotalPlaysKey), 0).toInt();
   m_totalPlayTimeMs = settings.value(QLatin1String(kStatsTotalTimeKey), 0).toInt();
+  m_days = settings.value(QLatin1String(kStatsDaysKey)).toMap();
 }

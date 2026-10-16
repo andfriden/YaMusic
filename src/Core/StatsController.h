@@ -40,6 +40,10 @@ public:
   Q_INVOKABLE QVariantList topTracks(int limit = 20) const;
   Q_INVOKABLE QVariantList topArtists(int limit = 20) const;
 
+  // Минуты прослушивания по каждому из последних дней (массив QVariantMap
+  // с ключами {day, label, minutes}). day — "YYYY-MM-DD", label — "дд.мм".
+  Q_INVOKABLE QVariantList dailyMinutes(int days = 30) const;
+
   // Обнуляет всю статистику прослушиваний.
   Q_INVOKABLE void reset();
 
@@ -52,6 +56,9 @@ private:
 
   QVariantMap m_tracks;  // ключ — trackId
   QVariantMap m_artists; // ключ — artistId
+
+  // Секунды прослушивания по дням: ключ — "YYYY-MM-DD".
+  QVariantMap m_days;
 
   int m_totalPlays = 0;
   int m_totalPlayTimeMs = 0;
