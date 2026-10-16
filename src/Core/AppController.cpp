@@ -6,6 +6,7 @@
 #include "../Yandex/Account/AccountService.h"
 #include "../Yandex/Auth/YandexAuth.h"
 #include "../Yandex/Catalog/AlbumService.h"
+#include "../Yandex/Catalog/AiService.h"
 #include "../Yandex/Catalog/ArtistService.h"
 #include "../Yandex/Catalog/CensorService.h"
 #include "../Yandex/Catalog/ChartService.h"
@@ -46,6 +47,7 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
       m_queueService(new QueueService(this)), m_playerAccentService(new PlayerAccentService(this)),
       m_audioQualityController(new AudioQualityController(this)),
       m_censorService(new CensorService(this)),
+      m_aiService(new AiService(this)),
       m_playbackController(
           new PlaybackController(m_trackService, m_playerService, m_queueService,
                                  m_audioQualityController, m_censorService, this)),
@@ -103,6 +105,16 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
 
   connect(m_queueService, &QueueService::currentChanged, this,
           &AppController::queueChanged);
+
+  // Ревизии бейджей: QML пересчитывает привязки после загрузки списков.
+  connect(m_aiService, &AiService::listChanged, this, [this]() {
+    ++m_aiRevision;
+    emit aiChanged();
+  });
+  connect(m_censorService, &CensorService::listChanged, this, [this]() {
+    ++m_censorRevision;
+    emit censorChanged();
+  });
 
   connect(
       m_downloadService,
@@ -586,6 +598,22 @@ bool AppController::isTrackDisliked(const QString &trackId) const {
 
 int AppController::dislikesRevision() const {
   return m_dislikesRevision;
+}
+
+bool AppController::isAiArtist(const QString &artistId) const {
+  return m_aiService->isAiArtist(artistId);
+}
+
+bool AppController::isTrackUncensored(const QString &trackId) const {
+  return !m_censorService->replacementUrl(trackId).isEmpty();
+}
+
+int AppController::aiRevision() const {
+  return m_aiRevision;
+}
+
+int AppController::censorRevision() const {
+  return m_censorRevision;
 }
 
 void AppController::toggleAlbumLike() {

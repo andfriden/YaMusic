@@ -19,6 +19,9 @@ public:
   // Инициирует загрузку списка при первом вызове.
   QString replacementUrl(const QString &trackId);
 
+  // Список изменился (загрузился или обновился).
+  Q_SIGNAL void listChanged();
+
 private:
   void ensureLoaded();
 

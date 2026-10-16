@@ -33,6 +33,32 @@ Item {
             ? root.controller.accentController.playerAccent
             : AppTheme.accent
 
+    // Бейджи текущего трека: AI и «Без цензуры». Ревизии пересчитывают
+    // привязку после загрузки списков.
+    readonly property bool currentTrackAi: {
+        if (!root.hasController) {
+            return false
+        }
+        const id = String(root.controller.currentTrackArtistId || "")
+        if (id.length === 0) {
+            return false
+        }
+        root.controller.aiRevision
+        return root.controller.isAiArtist(id)
+    }
+
+    readonly property bool currentTrackUncensored: {
+        if (!root.hasController) {
+            return false
+        }
+        const id = String(root.controller.currentTrackId || "")
+        if (id.length === 0) {
+            return false
+        }
+        root.controller.censorRevision
+        return root.controller.isTrackUncensored(id)
+    }
+
     readonly property string playbackSourceTitle:
         root.hasController
             ? String(root.controller.playbackSourceTitle || "")
@@ -251,6 +277,25 @@ Item {
                         : ""
                     entityType: "album"
                     controller: root.controller
+                }
+
+                Row {
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    visible: root.currentTrackAi || root.currentTrackUncensored
+                    spacing: 6
+
+                    Badge {
+                        visible: root.currentTrackAi
+                        text: "AI"
+                        badgeColor: AppTheme.warning
+                    }
+
+                    Badge {
+                        visible: root.currentTrackUncensored
+                        text: "Без цензуры"
+                        badgeColor: AppTheme.info
+                    }
                 }
             }
 

@@ -32,6 +32,7 @@
 #include <QVariantMap>
 
 class AccountService;
+class AiService;
 class AlbumService;
 class ArtistService;
 class CensorService;
@@ -136,6 +137,11 @@ class AppController : public QObject {
   // в моделях (у него нет отдельного раздела), поэтому QML спрашивает его
   // у контроллера и пересчитывает привязку по этому свойству.
   Q_PROPERTY(int dislikesRevision READ dislikesRevision NOTIFY dislikesChanged)
+
+  // Счётчики изменений списков ИИ-артистов и нецензурных треков: состояния
+  // не лежат в моделях, поэтому QML пересчитывает привязки бейджей по ним.
+  Q_PROPERTY(int aiRevision READ aiRevision NOTIFY aiChanged)
+  Q_PROPERTY(int censorRevision READ censorRevision NOTIFY censorChanged)
 
   Q_PROPERTY(qint64 position READ position NOTIFY positionChanged)
   Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
@@ -289,6 +295,12 @@ public:
   int dislikesRevision() const;
   Q_INVOKABLE bool isTrackDisliked(const QString &trackId) const;
 
+  // Бейджи контента: ИИ-артист и наличие нецензурной версии.
+  int aiRevision() const;
+  int censorRevision() const;
+  Q_INVOKABLE bool isAiArtist(const QString &artistId) const;
+  Q_INVOKABLE bool isTrackUncensored(const QString &trackId) const;
+
   QString currentPlaylistTitle() const;
   QString currentPlaylistCoverUri() const;
   int currentPlaylistTrackCount() const;
@@ -355,6 +367,9 @@ signals:
   void currentTrackChanged();
   void dislikesChanged();
 
+  void aiChanged();
+  void censorChanged();
+
   void positionChanged();
   void durationChanged();
   void playbackStateChanged();
@@ -402,6 +417,7 @@ private:
   PlayerAccentService *m_playerAccentService;
   AudioQualityController *m_audioQualityController = nullptr;
   CensorService *m_censorService = nullptr;
+  AiService *m_aiService = nullptr;
 
   PlaybackController *m_playbackController;
   LibraryController *m_libraryController;
@@ -429,4 +445,6 @@ private:
   QString m_accountUid;
   bool m_playAlbumAfterLoad = false;
   int m_dislikesRevision = 0;
+  int m_aiRevision = 0;
+  int m_censorRevision = 0;
 };

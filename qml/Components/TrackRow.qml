@@ -37,6 +37,33 @@ Item {
     property bool alwaysBorder: false
     property int scrollbarOffset: 0
 
+    // Бейджи контента: показаны по artistId/trackId через контроллер,
+    // счётчики ревизий пересчитывают привязку после загрузки списков.
+    property color aiBadgeColor: AppTheme.warning
+    property color uncensoredBadgeColor: AppTheme.info
+
+    readonly property bool showAiBadge: {
+        if (!root.hasController || root.trackId.length === 0) {
+            return false
+        }
+        // Считаем по первому исполнителю — регион охвата такой же, как у бейджа
+        // в плеере; по альбомам с несколькими исполнителями список не ведём.
+        const id = String(root.artistId || "")
+        if (id.length === 0) {
+            return false
+        }
+        root.controller.aiRevision
+        return root.controller.isAiArtist(id)
+    }
+
+    readonly property bool showUncensoredBadge: {
+        if (!root.hasController || root.trackId.length === 0) {
+            return false
+        }
+        root.controller.censorRevision
+        return root.controller.isTrackUncensored(root.trackId)
+    }
+
     // Геометрия (в оригиналах отличалась от места к месту)
     property int rowHeight: 68
     property int coverSize: 52
@@ -152,18 +179,55 @@ Item {
 
             spacing: 2
 
-            Label {
+            Row {
+                id: titleRow
+
                 width: parent.width
-                height: Math.max(18, implicitHeight)
+                height: 18
+                spacing: 6
 
-                text: root.title.length > 0 ? root.title : qsTr("Без названия")
+                Label {
+                    id: titleLabel
 
-                color: AppTheme.textPrimary
-                font.pixelSize: 14
-                font.bold: true
+                    width: Math.max(0, parent.width - titleBadges.width -
+                        (titleBadges.visible ? parent.spacing : 0))
+                    height: parent.height
 
-                elide: Text.ElideRight
-                maximumLineCount: 1
+                    text: root.title.length > 0 ? root.title : qsTr("Без названия")
+
+                    color: AppTheme.textPrimary
+                    font.pixelSize: 14
+                    font.bold: true
+
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                Row {
+                    id: titleBadges
+
+                    height: parent.height
+
+                    visible: root.showAiBadge || root.showUncensoredBadge
+                    spacing: 4
+
+                    Badge {
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        visible: root.showAiBadge
+                        text: "AI"
+                        badgeColor: root.aiBadgeColor
+                    }
+
+                    Badge {
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        visible: root.showUncensoredBadge
+                        text: "Без цензуры"
+                        badgeColor: root.uncensoredBadgeColor
+                    }
+                }
             }
 
             Item {

@@ -73,5 +73,6 @@ void CensorService::ensureLoaded() {
 
     m_loaded = true;
     m_loadedAt = QDateTime::currentMSecsSinceEpoch();
+    emit listChanged();
   });
 }

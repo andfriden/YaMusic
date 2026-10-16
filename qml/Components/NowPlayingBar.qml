@@ -48,6 +48,32 @@ Rectangle {
             ? root.controller.accentController.playerAccent
             : AppTheme.accent
 
+    // Бейджи текущего трека: AI и «Без цензуры». Считаем через контроллер,
+    // ревизии пересчитывают привязку после загрузки списков.
+    readonly property bool currentTrackAi: {
+        if (!root.hasController) {
+            return false
+        }
+        const id = String(root.controller.currentTrackArtistId || "")
+        if (id.length === 0) {
+            return false
+        }
+        root.controller.aiRevision
+        return root.controller.isAiArtist(id)
+    }
+
+    readonly property bool currentTrackUncensored: {
+        if (!root.hasController) {
+            return false
+        }
+        const id = String(root.controller.currentTrackId || "")
+        if (id.length === 0) {
+            return false
+        }
+        root.controller.censorRevision
+        return root.controller.isTrackUncensored(id)
+    }
+
     height: 124
 
     color: root.hasPlayerAccent
@@ -199,6 +225,25 @@ Rectangle {
 
                     elide: Text.ElideRight
                     maximumLineCount: 1
+                }
+
+                Row {
+                    Layout.fillWidth: true
+
+                    visible: root.hasTrack && (root.currentTrackAi || root.currentTrackUncensored)
+                    spacing: 4
+
+                    Badge {
+                        visible: root.currentTrackAi
+                        text: "AI"
+                        badgeColor: AppTheme.warning
+                    }
+
+                    Badge {
+                        visible: root.currentTrackUncensored
+                        text: "Без цензуры"
+                        badgeColor: AppTheme.info
+                    }
                 }
             }
 
