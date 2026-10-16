@@ -143,6 +143,7 @@ set(
         src/Core/ArtistController.cpp
         src/Core/AccentController.cpp
         src/Core/ChartController.cpp
+        src/Core/CrashReporter.cpp
         src/Core/GenreController.cpp
         src/Core/StationsController.cpp
         src/Core/LibraryController.cpp
@@ -169,6 +170,9 @@ set(
         # Download
         src/Download/DownloadService.cpp
         src/Download/TagWriter.cpp
+
+        # Crash (отчёты о падениях)
+        src/Crash/CrashHandler.cpp
 
         # Player / playback
         src/Player/PlayerService.cpp
@@ -395,6 +399,7 @@ set(
         "${YAMUSIC_QML_ROOT}/Components/PlaylistCard.qml"
         "${YAMUSIC_QML_ROOT}/Components/PlaylistPicker.qml"
         "${YAMUSIC_QML_ROOT}/Components/UpdateDialog.qml"
+        "${YAMUSIC_QML_ROOT}/Components/CrashReportsDialog.qml"
 
         # Pages
         "${YAMUSIC_QML_ROOT}/Pages/HomePage.qml"
@@ -823,4 +828,31 @@ target_link_libraries(
 add_test(
         NAME crossfade
         COMMAND tst_crossfade
+)
+
+qt_add_executable(
+        tst_crash_report
+        tests/tst_crash_report.cpp
+        src/Crash/CrashHandler.cpp
+        src/Core/CrashReporter.cpp
+)
+
+set_target_properties(
+        tst_crash_report
+        PROPERTIES
+        MACOSX_BUNDLE FALSE
+        WIN32_EXECUTABLE FALSE
+)
+
+target_link_libraries(
+        tst_crash_report
+        PRIVATE
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Test
+)
+
+add_test(
+        NAME crash_report
+        COMMAND tst_crash_report
 )

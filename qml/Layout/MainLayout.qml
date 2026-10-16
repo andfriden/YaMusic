@@ -14,6 +14,8 @@ Item {
     readonly property string currentSection:
         navigationController.currentSection
 
+    signal crashReportsRequested()
+
     readonly property string currentPageType:
         navigationController.currentPageType
 
@@ -58,6 +60,7 @@ Item {
         }
 
         onBackRequested: navigationController.goBack()
+        onCrashReportsRequested: root.crashReportsRequested()
     }
 
     Row {

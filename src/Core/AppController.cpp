@@ -71,6 +71,7 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
       m_accentController(new AccentController(m_playerAccentService, m_playbackController, this)),
       m_downloadService(new DownloadService(m_trackService, this)),
       m_updateController(new UpdateController(this)),
+      m_crashReporter(new CrashReporter(this)),
       m_preloadController(new PreloadController(m_playbackController->trackCache(),
                                                 m_playbackController->preloader(), this)),
       m_playbackSettingsController(new PlaybackSettingsController(m_playerService, this)),
@@ -108,6 +109,11 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
       &DownloadService::statusChanged,
       this,
       &AppController::statusChanged);
+
+  // Статус отчётов уходит в общую строку состояния: у контроллера он без
+  // текста, поэтому строку берём у него самого.
+  connect(m_crashReporter, &CrashReporter::statusChanged, this,
+          [this]() { emit statusChanged(m_crashReporter->status()); });
 
   connect(m_likesService, &LikesService::likeChanged, this,
           [this](const QString &trackId, bool) {
@@ -738,6 +744,10 @@ ThemeController *AppController::themeController() const {
 
 UpdateController *AppController::updateController() const {
   return m_updateController;
+}
+
+CrashReporter *AppController::crashReporter() const {
+  return m_crashReporter;
 }
 
 PreloadController *AppController::preloadController() const {

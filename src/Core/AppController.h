@@ -15,6 +15,7 @@
 #include "ArtistController.h"
 #include "AudioQualityController.h"
 #include "ChartController.h"
+#include "CrashReporter.h"
 #include "GenreController.h"
 #include "LibraryController.h"
 #include "LyricsController.h"
@@ -94,6 +95,7 @@ class AppController : public QObject {
   Q_PROPERTY(ThemeController *themeController READ themeController CONSTANT)
   Q_PROPERTY(AccentController *accentController READ accentController CONSTANT)
   Q_PROPERTY(UpdateController *updateController READ updateController CONSTANT)
+  Q_PROPERTY(CrashReporter *crashReporter READ crashReporter CONSTANT)
   Q_PROPERTY(PreloadController *preloadController READ preloadController CONSTANT)
   Q_PROPERTY(PlaybackSettingsController *playbackSettingsController READ playbackSettingsController
                  CONSTANT)
@@ -264,6 +266,7 @@ public:
   ThemeController *themeController() const;
   AccentController *accentController() const;
   UpdateController *updateController() const;
+  CrashReporter *crashReporter() const;
   PreloadController *preloadController() const;
   PlaybackSettingsController *playbackSettingsController() const;
   AudioQualityController *audioQualityController() const;
@@ -414,6 +417,8 @@ private:
   ThemeController *m_themeController = nullptr;
   AccentController *m_accentController = nullptr;
   UpdateController *m_updateController = nullptr;
+  // Отчёты о падениях: перехват ставится в main.cpp, здесь — только окно.
+  CrashReporter *m_crashReporter = nullptr;
   PreloadController *m_preloadController = nullptr;
   PlaybackSettingsController *m_playbackSettingsController = nullptr;
   DownloadService *m_downloadService = nullptr;

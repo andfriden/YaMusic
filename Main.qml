@@ -67,6 +67,8 @@ ApplicationWindow {
 
             controller: appController
             authController: authController
+
+            onCrashReportsRequested: crashReportsDialog.open()
         }
 
         NowPlayingBar {
@@ -110,5 +112,13 @@ ApplicationWindow {
 
     StatusBar {
         id: statusBar
+    }
+
+    // Отчёты о падениях: диалог живёт в окне, а не в топбаре, — тогда он
+    // открывается после падения и до входа в аккаунт тоже.
+    CrashReportsDialog {
+        id: crashReportsDialog
+
+        controller: appController
     }
 }

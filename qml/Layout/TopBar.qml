@@ -13,6 +13,7 @@ Item {
 
     signal sectionSelected(string section)
     signal backRequested()
+    signal crashReportsRequested()
 
     readonly property int barHeight: 68
 
@@ -54,6 +55,18 @@ Item {
             ? "Готово " + root.preloadController.readyCount + " из " +
               root.preloadController.windowCount
             : ""
+
+    // Отчёты о падениях: сколько их накопилось, видно сразу.
+    readonly property var crashReporter:
+        root.controller !== null && root.controller !== undefined &&
+        root.controller.crashReporter !== undefined
+            ? root.controller.crashReporter
+            : null
+
+    readonly property string crashReportLabel:
+        root.crashReporter !== null && root.crashReporter.reportCount > 0
+            ? "Отчёты о падениях: " + root.crashReporter.reportCount
+            : "Отчёты о падениях"
 
     // Настройки воспроизведения: сейчас это перекрёстное затухание.
     readonly property var playbackSettings:
@@ -720,7 +733,7 @@ Item {
             Text {
                 width: parent.width
 
-                text: "Следующий трек заводится до конца текущего — пока он уже скачан заранее"
+                text: "Следующий трек заводится до конца текущего: поток запрашивается заранее, играет с диска или из сети"
                 color: AppTheme.textMuted
                 font.pixelSize: 10
                 wrapMode: Text.Wrap
@@ -848,6 +861,45 @@ Item {
                         if (root.preloadController) {
                             root.preloadController.clearCache()
                         }
+                    }
+                }
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 1
+                color: AppTheme.borderSubtle
+            }
+
+            // Отчёты о падениях: сколько их накопилось, видно сразу.
+            Rectangle {
+                width: parent.width
+                height: 30
+                radius: 8
+
+                color: crashArea.containsMouse ? AppTheme.panelActive : AppTheme.panelSecondary
+
+                border.width: 1
+                border.color: AppTheme.borderSubtle
+
+                Text {
+                    anchors.centerIn: parent
+
+                    text: root.crashReportLabel
+                    color: crashArea.containsMouse ? AppTheme.accent : AppTheme.textPrimary
+                    font.pixelSize: 12
+                }
+
+                MouseArea {
+                    id: crashArea
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+
+                    onClicked: {
+                        settingsPopup.close()
+                        root.crashReportsRequested()
                     }
                 }
             }

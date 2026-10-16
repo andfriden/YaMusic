@@ -5,6 +5,7 @@
 #include "src/Core/AppController.h"
 #include "src/Core/AuthController.h"
 
+#include "src/Crash/CrashHandler.h"
 #include "src/Yandex/Account/AccountService.h"
 #include "src/Yandex/Auth/YandexAuth.h"
 #include "src/Yandex/Catalog/CoverImageProvider.h"
@@ -23,6 +24,10 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain("yandex.ru");
     QCoreApplication::setApplicationName("YaMusic");
     QCoreApplication::setApplicationVersion(QStringLiteral(YAMUSIC_VERSION));
+
+    // Перехват падений ставится до первого окна: тогда в отчёт попадут и
+    // сообщения журнала от запуска, а сам отчёт доживёт до следующего старта.
+    Crash::install(QStringLiteral(YAMUSIC_VERSION));
 
     YandexAuth auth;
 
