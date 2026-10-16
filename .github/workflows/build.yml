@@ -132,10 +132,37 @@ jobs:
         with:
           name: YaMusic-Linux-x86_64.AppImage
 
+      # linuxdeploy по своему excludelist не кладёт в AppImage libGL/libOpenGL/
+      # libEGL — их даёт система; libxcb-* и libxkbcommon-x11 нужны
+      # платформенному плагину Qt (xcb), который тоже берётся с системы.
       - name: Install runtime tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y libfuse2 xvfb
+          sudo apt-get install -y \
+            libfuse2 \
+            xvfb \
+            libgl1 \
+            libopengl0 \
+            libegl1 \
+            libx11-xcb1 \
+            libxkbcommon-x11-0 \
+            libxcb-cursor0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-randr0 \
+            libxcb-render-util0 \
+            libxcb-shape0 \
+            libxcb-sync1 \
+            libxcb-xfixes0 \
+            libxcb-xinerama0 \
+            libxcb-xkb1 \
+            libsm6 \
+            libice6 \
+            libdbus-1-3 \
+            libpulse0 \
+            libasound2 \
+            libsndfile1
 
       - name: Start without network
         run: |
@@ -155,6 +182,18 @@ jobs:
             exit 1
           fi
           echo "OK: приложение не падает на старте"
+
+      - name: Diagnose missing libraries
+        if: failure()
+        run: |
+          ./YaMusic-*.AppImage --appimage-extract >/dev/null 2>&1 || true
+
+          echo "--- не найдены на этой системе ---"
+          ldd squashfs-root/usr/bin/yamusic 2>&1 | grep 'not found' || true
+
+          echo "--- максимальные требуемые версии символов ---"
+          find squashfs-root -type f -exec objdump -T {} + 2>/dev/null \
+            | grep -oP '(GLIBC_|GLIBCXX_)[0-9.]+' | sort -uV | tail -5 || true
 
 
   # =============================================================
