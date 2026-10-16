@@ -30,9 +30,8 @@ static QString imageUrlOf(const QJsonObject &icon) {
   return fullImageUrl;
 }
 
-// Разбор массива станций: и /rotor/stations/dashboard, и
-// /rotor/stations/list оборачивают станцию в объект с ключом "station",
-// но второй может отдать и саму станцию.
+// Разбор массива станций: /rotor/stations/list оборачивает станцию в
+// объект с ключом "station", но может отдать и саму станцию.
 static QList<Station> parseStationList(const QJsonArray &items) {
   QList<Station> stations;
 
@@ -69,47 +68,7 @@ void StationService::loadStations() {
 
   m_yandexClient->setToken(m_auth->token());
 
-  // Дашборд отдаёт станции конкретного слушателя и персональную волну,
-  // которых в /rotor/stations/list нет. Если он не ответил — берём список.
-  QNetworkReply *reply = m_yandexClient->get(QStringLiteral("/rotor/stations/dashboard"));
-
-  if (reply == nullptr) {
-    loadStationsFromList();
-    return;
-  }
-
-  connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-    const QByteArray data = reply->readAll();
-    const bool failed = reply->error() != QNetworkReply::NoError;
-    reply->deleteLater();
-
-    if (failed) {
-      loadStationsFromList();
-      return;
-    }
-
-    QJsonParseError parseError;
-    const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
-
-    if (parseError.error != QJsonParseError::NoError) {
-      loadStationsFromList();
-      return;
-    }
-
-    const QJsonArray dashboardStations =
-        unwrapResult(document).value("stations").toArray();
-    const QList<Station> stations = parseStationList(dashboardStations);
-
-    if (stations.isEmpty()) {
-      loadStationsFromList();
-      return;
-    }
-
-    emit stationsReceived(stations);
-  });
-}
-
-void StationService::loadStationsFromList() {
+  // Список берём у /rotor/stations/list: дашборд отдавал не все станции.
   QUrlQuery query;
   query.addQueryItem("language", "ru");
   const auto path = QStringLiteral("/rotor/stations/list?%1")

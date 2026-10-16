@@ -18,9 +18,6 @@ public:
 
   void loadStations();
 
-  // Резервный путь загрузки станций, если дашборд не ответил.
-  void loadStationsFromList();
-
   void loadStationTracks(const QString &stationType, const QString &stationId,
                          const QString &queueTrackId = {});
 
