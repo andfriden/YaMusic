@@ -4,7 +4,7 @@
 
 **Независимый desktop-клиент Яндекс Музыки**
 
-Построен на C++17 · Qt 6 · QML · macOS, Linux и Windows
+Построен на C++20 · Qt 6.9 · QML · macOS, Linux и Windows
 
 [![License](https://img.shields.io/github/license/andfriden/YaMusic)](https://github.com/andfriden/YaMusic/blob/main/LICENSE)
 [![Release](https://img.shields.io/github/v/tag/andfriden/YaMusic)](https://github.com/andfriden/YaMusic/releases)
@@ -23,6 +23,7 @@
 * Поиск, «Моя волна», персональные рекомендации и плейлисты
 * Свои плейлисты: создание, переименование, удаление, добавление и удаление треков
 * Лайки треков, альбомов и исполнителей, недавно прослушанные
+* Раздел «Статистика»: сводка прослушиваний, топы треков и исполнителей, график «Минуты по дням» за последние 30 дней
 * Чарты России и мира, жанры, новые релизы
 * Раздел «Станции»: полный список станций ротора с группировкой по типам
 * Раздел «Подкасты»: витрина подкастов из лендинга
@@ -30,15 +31,16 @@
 * Радио исполнителя: все треки артиста, затем цепочка похожих без повторов
 * Единая очередь: repeat, shuffle, автопереход на похожий контент и продолжение альбома
 * Подсветка текущего трека
-* Mini Player, Expanded Now Playing, перемотка, громкость, Dynamic Player Accent
-* Текст песен (🎤) с синхронизированной подсветкой строк, фолбэк на публичную базу LRCLIB
+* Отдельные окна: мини-плеер поверх других окон, развёрнутый плеер, настройки — с перемоткой, громкостью и Dynamic Player Accent
+* Единый набор SVG-иконок плеера вместо символьных обозначений (play/pause, next/prev, лайк, текст песни)
+* Текст песен с синхронизированной подсветкой строк, фолбэк на публичную базу LRCLIB
 * Выбор качества аудио (низкое / среднее / высокое / lossless) и показ кодека с битрейтом
 * Треки без цензуры — подмена на версии без цензуры по открытой базе FckCensorData
 * Блок «Колесо» на главной: подборки по вашим трекам и альбомам
 * Дорожки без прав на прослушивание помечаются в списке и уводят во внешний сервис вместо ошибки
-* Скачивание трека в «Загрузки» с метаданными и вложенной обложкой (↓)
+* Скачивание трека в «Загрузки» с метаданными и вложенной обложкой
 * Отчёты о падениях: перехват сигналов и `terminate`, файл отчёта на диске и отправка в трекер из окна
-* Тёмная тема Catppuccin (Latte / Macchiato), попап настроек
+* Тёмная тема Catppuccin (Latte / Macchiato), отдельное окно настроек
 * Адаптивный интерфейс: верхняя навигация, боковая и контекстная панели
 
 Полная история изменений по версиям — в [CHANGELOG.md](CHANGELOG.md).
@@ -95,22 +97,24 @@ Windows — portable-версия; Linux — AppImage и архив.
 
 ## Сборка из исходников
 
-**Зависимости:** C++17, Qt 6 (Base, Quick, Multimedia), CMake, Ninja. `CMakeLists.txt` — источник истины.
+**Зависимости:** C++20, Qt 6.9 (Quick, Gui, Network, Multimedia; на Linux ещё DBus), TagLib, CMake 3.21+, Ninja. `CMakeLists.txt` — источник истины.
 
 **Ubuntu:**
 
 ```bash
-sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-multimedia-dev
+sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-multimedia-dev libtag1-dev
 ```
 
 **Arch Linux:**
 
 ```bash
-sudo pacman -S --needed base-devel cmake ninja qt6-base qt6-declarative qt6-multimedia
+sudo pacman -S --needed base-devel cmake ninja qt6-base qt6-declarative qt6-multimedia taglib
 ```
 
-**macOS:** Xcode / Apple Clang, Qt 6, CMake, Ninja.
-**Windows:** Visual Studio 2022 (C++ workload), Qt 6, CMake, Ninja.
+**macOS:** Xcode / Apple Clang, Qt 6.9, CMake, Ninja, TagLib (Homebrew).
+**Windows:** Visual Studio 2022 (C++ workload), Qt 6.9, CMake, Ninja, TagLib (vcpkg).
+
+Нужен именно Qt 6.9 (`find_package(Qt6 6.9 REQUIRED)`): в репозиториях Ubuntu 22.04 и 24.04 его ещё нет — ставьте Qt через online installer или берите дистрибутив со свежим Qt. TagLib обязателен, без него конфигурация не пройдёт.
 
 Общие шаги для всех ОС:
 
@@ -121,7 +125,7 @@ cmake -S . -B build
 cmake --build build --parallel
 ```
 
-Запуск: `./build/appYaMusic` (Linux), `./build/appYaMusic.app/Contents/MacOS/appYaMusic` (macOS), `.\build\Debug\appYaMusic.exe` (Windows, сборка с `--config Debug`).
+Запуск: `./build/yamusic` (Linux), `./build/YaMusic.app/Contents/MacOS/YaMusic` (macOS), `.\build\Debug\YaMusic.exe` (Windows). Многоконфигурационные генераторы (Xcode, Visual Studio) добавляют подкаталог сборки — `Debug` или `Release`.
 
 Установка в отдельный каталог: `cmake --install build --prefix dist`.
 
@@ -149,7 +153,7 @@ QML → Controllers → Services / Models → (Yandex Music API, Playback)
 
 C++ отвечает за бизнес-логику, API, авторизацию, модели, состояние приложения и воспроизведение; QML — за интерфейс, страницы и навигацию.
 
-Контроллеры: `AppController`, `AccentController`, `AlbumController`, `ArtistController`, `AudioQualityController`, `ChartController`, `CrashReporter`, `GenreController`, `LibraryController`, `LyricsController`, `PersonalController`, `PlaybackController`, `SearchController`, `StationsController`, `ThemeController`.
+Контроллеры: `AppController`, `AccentController`, `AlbumController`, `ArtistController`, `AudioQualityController`, `AuthController`, `ChartController`, `CrashReporter`, `GenreController`, `LibraryController`, `LyricsController`, `PersonalController`, `PlaybackController`, `PlaybackSettingsController`, `PlayerAccentService`, `PreloadController`, `SearchController`, `StationsController`, `StatsController`, `ThemeController`, `UpdateController`.
 
 Воспроизведение построено на Qt Multimedia: `PlaybackController` связывает состояние с приложением, `PlayerService` управляет `QMediaPlayer`, `QueueService` — очередью.
 
@@ -159,8 +163,8 @@ C++ отвечает за бизнес-логику, API, авторизацию
 
 ```text
 YaMusic/
-├── src/        # Core, Crash, Models, Playback, Player, Queue, Yandex
-├── qml/        # Components, Home, Layout, MyWave, Pages, Search, Theme
+├── src/        # Core, Crash, Download, MediaControls, Models, Playback, Player, Queue, Update, Yandex, Ynison
+├── qml/        # Components, Context, Home, Layout, MyWave, Pages, Theme
 ├── data/       # genre_playlists.csv
 ├── CMakeLists.txt
 └── main.cpp
@@ -178,7 +182,7 @@ YaMusic/
 | v0.4 | Умная очередь, repeat, shuffle |
 | v0.5 | Плейлисты, библиотека |
 | v0.6 | Лайки |
-| v0.7 | Mini Player, Expanded Now Playing, перемотка, громкость |
+| v0.7 | Expanded Now Playing, перемотка, громкость (мини-плеер появился только в v0.14.3) |
 | v0.8 | Чарты, жанры, новые релизы, переключение тем ✅ |
 | v0.9 | Текст песен (Lyrics) ✅ |
 | v0.10 | Системные медиа-кнопки: MPRIS (Linux), SMTC (Windows), MPRemoteCommandCenter (macOS) ✅ |
@@ -188,8 +192,9 @@ YaMusic/
 | v0.14 | Качество звука (низкое…lossless) и показ кодека с битрейтом, тексты с фолбэком на LRCLIB, треки без цензуры, «Колесо» на главной, гард недоступных дорожек ✅ |
 | v0.14.1 | Дизлайки треков, правила очереди «Моей волны», автообновление с установкой на macOS ✅ |
 | v0.14.2 | Бейджи контента «AI» (база Slopless) и «Без цензуры» (FckCensorData) у треков ✅ |
+| v0.14.3 | Мини-плеер в отдельном окне, раздел «Статистика», отдельные окна плеера и настроек, SVG-иконки плеера, AppImage на старом LTS ✅ |
 
-Выпущены версии до **v0.14.2** включительно. Раздел «Аудиокниги» живёт в ветке
+Выпущены версии до **v0.14.3** включительно. Раздел «Аудиокниги» живёт в ветке
 `feat/audiobooks`. Подробный план и легенда приоритетов — в [ROADMAP.md](ROADMAP.md).
 
 ---
