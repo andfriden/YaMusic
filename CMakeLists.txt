@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 project(
         YaMusic
-        VERSION 0.14.1
+        VERSION 0.14.2
         LANGUAGES CXX
 )
 
@@ -204,6 +204,7 @@ set(
         # Yandex Catalog
         src/Yandex/Catalog/AlbumModel.cpp
         src/Yandex/Catalog/AlbumService.cpp
+        src/Yandex/Catalog/AiService.cpp
         src/Yandex/Catalog/ArtistAlbumsModel.cpp
         src/Yandex/Catalog/ArtistModel.cpp
         src/Yandex/Catalog/ArtistService.cpp
@@ -396,6 +397,7 @@ set(
         "${YAMUSIC_QML_ROOT}/Components/LyricsView.qml"
         "${YAMUSIC_QML_ROOT}/Components/ChartTrackRow.qml"
         "${YAMUSIC_QML_ROOT}/Components/TrackRow.qml"
+        "${YAMUSIC_QML_ROOT}/Components/Badge.qml"
         "${YAMUSIC_QML_ROOT}/Components/PlaylistCard.qml"
         "${YAMUSIC_QML_ROOT}/Components/PlaylistPicker.qml"
         "${YAMUSIC_QML_ROOT}/Components/UpdateDialog.qml"
