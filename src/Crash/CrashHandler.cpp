@@ -138,8 +138,10 @@ QString signalName(int signal) {
     return QStringLiteral("SIGSEGV (ошибка сегментации)");
   case SIGABRT:
     return QStringLiteral("SIGABRT (аварийное завершение)");
+#ifndef Q_OS_WIN
   case SIGBUS:
     return QStringLiteral("SIGBUS (ошибка доступа к памяти)");
+#endif
   case SIGILL:
     return QStringLiteral("SIGILL (недопустимая инструкция)");
   case SIGFPE:
@@ -357,7 +359,7 @@ void install(const QString &version) {
   // На Windows сигналы POSIX-модели не ловят нарушение доступа: падение
   // приходит необработанным исключением, и стек снимается здесь.
   SetUnhandledExceptionFilter([](EXCEPTION_POINTERS *) -> LONG {
-    persistReport(QStringLiteral("необработанное исключение"), {}, true);
+    persistReport(QStringLiteral("необработанное исключение"), {});
 
     return EXCEPTION_EXECUTE_HANDLER;
   });
