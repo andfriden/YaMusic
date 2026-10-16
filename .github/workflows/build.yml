@@ -493,7 +493,7 @@ jobs:
           {
             echo "## YaMusic ${GITHUB_REF_NAME}"
             echo
-            echo "Бета-сборка для macOS (Intel и Apple Silicon), Linux и Windows."
+            echo "Сборка для macOS (Intel и Apple Silicon), Linux и Windows."
             echo
             echo "### Установка"
             echo
@@ -533,5 +533,5 @@ jobs:
           name: YaMusic ${{ github.ref_name }}
           body_path: release-notes.md
           draft: false
-          prerelease: true
+          prerelease: false
           files: artifacts/**
