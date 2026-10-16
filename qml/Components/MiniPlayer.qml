@@ -46,12 +46,27 @@ Window {
             ? root.controller.accentController.playerAccent
             : AppTheme.accent
 
+    readonly property string currentTrackId:
+        root.hasController ? String(root.controller.currentTrackId || "") : ""
+
+    readonly property bool currentTrackLiked:
+        root.hasController && root.controller.currentTrackLiked
+
+    // Дизлайк хранится в LikesService, а не в модели: пересчитываем
+    // привязку по счётчику изменений, иначе кнопка не обновится.
+    readonly property bool currentTrackDisliked: {
+        if (!root.hasController) {
+            return false
+        }
+        root.controller.dislikesRevision
+        return root.controller.isTrackDisliked(root.currentTrackId)
+    }
+
     // Расширенный плеер по клику на обложку.
     signal expandedRequested()
 
     function showPlayer() {
         root.visible = true
-        root.requestActivate()
     }
 
     function hidePlayer() {
@@ -72,7 +87,42 @@ Window {
             ? Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.25)
             : AppTheme.border
 
-        // Диск-обложка: вращается при воспроизведении.
+        // Перетаскивание окна за фон и заголовок. Объявлен первым, чтобы
+        // лежать под кнопками и обложкой и не перехватывать их клики.
+        MouseArea {
+            id: dragArea
+
+            anchors.fill: parent
+            cursorShape: Qt.ArrowCursor
+
+            property var dragOffset: null
+
+            onPressed: function(mouse) {
+                dragOffset = Qt.point(mouse.x, mouse.y)
+            }
+
+            onMouseXChanged: {
+                if (dragOffset) {
+                    root.setX(root.x + mouseX - dragOffset.x)
+                }
+            }
+
+            onMouseYChanged: {
+                if (dragOffset) {
+                    root.setY(root.y + mouseY - dragOffset.y)
+                }
+            }
+
+            onReleased: {
+                dragOffset = null
+            }
+        }
+
+        // Диск-обложка: круглый артворк, как на карточке артиста. Используем
+        // провайдер "yandex/circle", который сам вырезает круг из обложки
+        // (тот же приём, что на странице/карточке артиста). Круглое
+        // изображение вращаем вокруг центра — ноль спрашиваний про клип,
+        // углов квадрата и шейдеров.
         Rectangle {
             id: discSlot
 
@@ -83,106 +133,85 @@ Window {
             width: 84
             height: 84
             radius: width / 2
+            clip: true
 
-            // Тёмный винил под обложкой.
+            // Тёмная подложка-винил под круглым артворком.
             Rectangle {
                 anchors.fill: parent
                 radius: width / 2
                 color: "#161616"
             }
 
-            // Канавки винила.
-            Repeater {
-                model: 4
-
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: parent.width * (0.82 - index * 0.11)
-                    height: parent.height * (0.82 - index * 0.11)
-                    radius: width / 2
-                    color: "transparent"
-                    border.width: 1
-                    border.color: Qt.rgba(1, 1, 1, 0.08)
-                }
-            }
-
-            Item {
-                id: spinningArtwork
+            Image {
+                id: cover
 
                 anchors.fill: parent
 
-                readonly property bool shouldSpin:
-                    root.hasTrack && root.playing
+                source: root.hasTrack && root.controller.currentTrackCoverUri
+                    ? "image://yandex/circle/" + root.controller.currentTrackCoverUri
+                    : ""
+
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                cache: true
+                smooth: true
 
                 transform: Rotation {
-                    id: discRotation
-                    origin.x: spinningArtwork.width / 2
-                    origin.y: spinningArtwork.height / 2
-                    angle: 0
+                    origin.x: cover.width / 2
+                    origin.y: cover.height / 2
+                    angle: spinHolder.angle
                 }
 
-                SequentialAnimation {
-                    id: spinAnim
-                    loops: Animation.Infinite
-                    running: spinningArtwork.shouldSpin
-                    paused: !root.playing
-
-                    NumberAnimation {
-                        target: discRotation
-                        property: "angle"
-                        from: 0
-                        to: 360
-                        duration: 6000
-                        easing.type: Easing.Linear
-                    }
-                }
-
-                // Центральная часть — обложка трека в круге.
+                // Пока артворк не загрузился — плэйсхолдер круга.
                 Rectangle {
                     anchors.centerIn: parent
-                    width: parent.width * 0.6
-                    height: parent.height * 0.6
+                    width: parent.width
+                    height: parent.height
                     radius: width / 2
-                    clip: true
+                    visible: cover.status !== Image.Ready
+                    color: AppTheme.artworkPlaceholder
 
-                    Image {
-                        id: cover
-
-                        anchors.fill: parent
-
-                        source: root.hasTrack && root.controller.currentTrackCoverUri
-                            ? "image://yandex/" + root.controller.currentTrackCoverUri
-                            : ""
-
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        cache: true
-
-                        Rectangle {
-                            anchors.fill: parent
-                            visible: cover.status !== Image.Ready
-                            color: AppTheme.artworkPlaceholder
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: "♪"
-                                color: AppTheme.textMuted
-                                font.pixelSize: 20
-                            }
-                        }
-                    }
-
-                    // Центр (отверстие) диска.
-                    Rectangle {
+                    Text {
                         anchors.centerIn: parent
-                        width: 10
-                        height: 10
-                        radius: 5
-                        color: "#0a0a0a"
-                        border.width: 1
-                        border.color: Qt.rgba(1, 1, 1, 0.2)
+                        text: "♪"
+                        color: AppTheme.textMuted
+                        font.pixelSize: 20
                     }
                 }
+            }
+
+            // Плавное вращение угла картинки.
+            QtObject {
+                id: spinHolder
+                property real angle: 0
+            }
+
+            SequentialAnimation {
+                id: spinAnim
+                loops: Animation.Infinite
+                running: root.hasTrack && root.playing
+
+                NumberAnimation {
+                    target: spinHolder
+                    property: "angle"
+                    from: 0
+                    to: 360
+                    duration: 6000
+                    easing.type: Easing.Linear
+                }
+            }
+
+            // Центр (отверстие) пластинки.
+            Rectangle {
+                id: discHole
+
+                anchors.centerIn: parent
+                width: 10
+                height: 10
+                radius: 5
+                color: "#0a0a0a"
+                border.width: 1
+                border.color: Qt.rgba(1, 1, 1, 0.3)
             }
 
             MouseArea {
@@ -226,6 +255,108 @@ Window {
             Row {
                 width: parent.width
                 spacing: 6
+
+                Item {
+                    width: 34
+                    height: 34
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 17
+                        color: likeArea.containsMouse ? Qt.rgba(
+                            root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.14)
+                            : "transparent"
+                    }
+
+                    Text {
+                        anchors.centerIn: parent
+
+                        text: root.currentTrackLiked ? "♥" : "♡"
+                        color: root.currentTrackLiked
+                            ? AppTheme.accent
+                            : AppTheme.textSecondary
+                        font.pixelSize: 18
+
+                        Behavior on color {
+                            ColorAnimation { duration: 120 }
+                        }
+                    }
+
+                    MouseArea {
+                        id: likeArea
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        enabled: root.hasTrack && root.controller &&
+                            root.currentTrackId.length > 0
+
+                        onClicked: {
+                            if (!root.controller) {
+                                return
+                            }
+                            root.controller.toggleLike(root.currentTrackId,
+                                root.currentTrackLiked)
+                        }
+                    }
+                }
+
+                Item {
+                    width: 34
+                    height: 34
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 17
+                        color: dislikeArea.containsMouse ? Qt.rgba(
+                            root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.14)
+                            : "transparent"
+                    }
+
+                    Text {
+                        anchors.centerIn: parent
+
+                        text: "♡"
+                        color: root.currentTrackDisliked
+                            ? AppTheme.accent
+                            : AppTheme.textSecondary
+                        font.pixelSize: 18
+
+                        Behavior on color {
+                            ColorAnimation { duration: 120 }
+                        }
+                    }
+
+                    // Перечёркнутое сердце — признак дизлайка.
+                    Rectangle {
+                        anchors.centerIn: parent
+
+                        width: 16
+                        height: 1.5
+                        radius: 0.75
+
+                        color: root.currentTrackDisliked
+                            ? AppTheme.accent
+                            : AppTheme.textSecondary
+                        rotation: -45
+
+                        visible: root.currentTrackDisliked
+                    }
+
+                    MouseArea {
+                        id: dislikeArea
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        enabled: root.hasTrack && root.controller &&
+                            root.currentTrackId.length > 0
+
+                        onClicked: {
+                            if (!root.controller) {
+                                return
+                            }
+                            root.controller.toggleDislike(root.currentTrackId,
+                                root.currentTrackDisliked)
+                        }
+                    }
+                }
 
                 Item {
                     width: 34
@@ -350,36 +481,6 @@ Window {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 onClicked: root.hidePlayer()
-            }
-        }
-
-        // Перетаскивание окна за любую область.
-        MouseArea {
-            id: dragArea
-
-            anchors.fill: parent
-            cursorShape: Qt.ArrowCursor
-
-            property var dragOffset: null
-
-            onPressed: function(mouse) {
-                dragOffset = Qt.point(mouse.x, mouse.y)
-            }
-
-            onMouseXChanged: {
-                if (dragOffset) {
-                    root.setX(root.x + mouseX - dragOffset.x)
-                }
-            }
-
-            onMouseYChanged: {
-                if (dragOffset) {
-                    root.setY(root.y + mouseY - dragOffset.y)
-                }
-            }
-
-            onReleased: {
-                dragOffset = null
             }
         }
     }
