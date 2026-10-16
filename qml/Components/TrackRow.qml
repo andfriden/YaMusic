@@ -173,61 +173,27 @@ Item {
 
             anchors.left: coverContainer.right
             anchors.leftMargin: 12
-            anchors.right: durationLabel.left
+            anchors.right: badgesRow.visible ? badgesRow.left : durationLabel.left
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
 
             spacing: 2
 
-            Row {
-                id: titleRow
+            Label {
+                id: titleLabel
 
                 width: parent.width
                 height: 18
-                spacing: 6
 
-                Label {
-                    id: titleLabel
+                text: root.title.length > 0 ? root.title : qsTr("Без названия")
 
-                    width: Math.max(0, parent.width - titleBadges.width -
-                        (titleBadges.visible ? parent.spacing : 0))
-                    height: parent.height
+                color: AppTheme.textPrimary
+                font.pixelSize: 14
+                font.bold: true
 
-                    text: root.title.length > 0 ? root.title : qsTr("Без названия")
-
-                    color: AppTheme.textPrimary
-                    font.pixelSize: 14
-                    font.bold: true
-
-                    verticalAlignment: Text.AlignVCenter
-                    elide: Text.ElideRight
-                    maximumLineCount: 1
-                }
-
-                Row {
-                    id: titleBadges
-
-                    height: parent.height
-
-                    visible: root.showAiBadge || root.showUncensoredBadge
-                    spacing: 4
-
-                    Badge {
-                        anchors.verticalCenter: parent.verticalCenter
-
-                        visible: root.showAiBadge
-                        text: "AI"
-                        badgeColor: root.aiBadgeColor
-                    }
-
-                    Badge {
-                        anchors.verticalCenter: parent.verticalCenter
-
-                        visible: root.showUncensoredBadge
-                        text: "Без цензуры"
-                        badgeColor: root.uncensoredBadgeColor
-                    }
-                }
+                verticalAlignment: Text.AlignVCenter
+                elide: Text.ElideRight
+                maximumLineCount: 1
             }
 
             Item {
@@ -311,6 +277,31 @@ Item {
                         }
                     }
                 }
+            }
+        }
+
+        // Бейджи контента стоят в правой группе — вместе с длительностью и
+        // кнопками, по вертикальному центру карточки.
+        Row {
+            id: badgesRow
+
+            anchors.right: durationLabel.left
+            anchors.rightMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+
+            visible: root.showAiBadge || root.showUncensoredBadge
+            spacing: 4
+
+            Badge {
+                visible: root.showAiBadge
+                text: "AI"
+                badgeColor: root.aiBadgeColor
+            }
+
+            Badge {
+                visible: root.showUncensoredBadge
+                text: "Без цензуры"
+                badgeColor: root.uncensoredBadgeColor
             }
         }
 
