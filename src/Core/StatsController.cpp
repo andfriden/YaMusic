@@ -45,7 +45,7 @@ void StatsController::recordPlay(const QString &trackId, const QString &title,
   track.insert(QStringLiteral("title"), title);
   track.insert(QStringLiteral("artist"), artist);
   if (!artistId.isEmpty()) track.insert(QStringLiteral("artistId"), artistId);
-  if (!coverUri.isEmpty()) track.insert(QStringLiteral("coverUri"), coverUri);
+  track.insert(QStringLiteral("coverUri"), coverUri);
   track.insert(QStringLiteral("durationMs"), static_cast<qlonglong>(durationMs));
   track.insert(QStringLiteral("plays"),
                track.value(QStringLiteral("plays"), 0).toInt() + 1);
@@ -56,7 +56,7 @@ void StatsController::recordPlay(const QString &trackId, const QString &title,
     QVariantMap artistEntry = m_artists.value(artistId).toMap();
     artistEntry.insert(QStringLiteral("id"), artistId);
     artistEntry.insert(QStringLiteral("name"), artist);
-    if (!coverUri.isEmpty()) artistEntry.insert(QStringLiteral("coverUri"), coverUri);
+    artistEntry.insert(QStringLiteral("coverUri"), coverUri);
     artistEntry.insert(QStringLiteral("plays"),
                        artistEntry.value(QStringLiteral("plays"), 0).toInt() + 1);
     m_artists.insert(artistId, artistEntry);

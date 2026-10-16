@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Layouts
 import YaMusic 1.0
 
 Item {
@@ -223,21 +224,25 @@ Item {
                 }
             }
 
-            Column {
+            Row {
                 width: parent.width
-                spacing: 12
+                spacing: 16
 
-                Label {
-                    width: parent.width
+                Column {
+                    width: parent.width / 2 - parent.spacing / 2
+                    spacing: 12
 
-                    text: "Топ треков"
-                    color: AppTheme.textPrimary
-                    font.pixelSize: 20
-                    font.bold: true
-                }
+                    Label {
+                        width: parent.width
 
-                Rectangle {
-                    width: parent.width
+                        text: "Топ треков"
+                        color: AppTheme.textPrimary
+                        font.pixelSize: 20
+                        font.bold: true
+                    }
+
+                    Rectangle {
+                        width: parent.width
 
                     height: root.stats && root.stats.topTracks(20).length > 0
                         ? Math.min(root.stats.topTracks(20).length * 56 + 20, 10 * 56 + 20)
@@ -260,12 +265,18 @@ Item {
                         interactive: topTracksView.count > 8
                         boundsBehavior: Flickable.StopAtBounds
 
-                        model: root.stats ? root.stats.topTracks(20) : []
+                        model: {
+                            root.stats
+                            AppTheme.dark
+                            return root.stats ? root.stats.topTracks(20) : []
+                        }
 
                         delegate: Item {
+                            required property int index
                             required property string id
                             required property string title
                             required property string artist
+                            required property string coverUri
                             required property int plays
 
                             width: topTracksView.width
@@ -274,45 +285,84 @@ Item {
                             Rectangle {
                                 anchors.fill: parent
                                 radius: 8
-                                color: index % 2 === 0 ? AppTheme.panelSecondary : "transparent"
+                                color: rowArea.containsMouse
+                                    ? AppTheme.panelActive
+                                    : "transparent"
+
+                                Behavior on color {
+                                    ColorAnimation { duration: 120 }
+                                }
                             }
 
-                            Row {
+                            RowLayout {
                                 anchors.fill: parent
-                                anchors.margins: 8
-                                spacing: 10
+                                anchors.leftMargin: 9
+                                anchors.rightMargin: 9
+
+                                spacing: 11
 
                                 Label {
-                                    width: 26
-                                    height: parent.height
+                                    Layout.preferredWidth: 20
+                                    Layout.alignment: Qt.AlignVCenter
 
                                     text: index + 1
-                                    color: AppTheme.textMuted
-                                    font.pixelSize: 14
-                                    font.bold: true
+                                    color: index < 3 ? AppTheme.accent : AppTheme.textMuted
+                                    font.pixelSize: 12
+                                    font.bold: index < 3
+                                                                        horizontalAlignment: Text.AlignRight
                                     verticalAlignment: Text.AlignVCenter
                                 }
 
-                                Column {
-                                    width: parent.width - playsLabel.width - 36
-                                    height: parent.height
+                                Rectangle {
+                                    Layout.preferredWidth: 36
+                                    Layout.preferredHeight: 36
+                                    Layout.alignment: Qt.AlignVCenter
 
-                                    anchors.verticalCenter: parent.verticalCenter
+                                    radius: 18
+                                    color: AppTheme.artworkPlaceholder
+                                    clip: true
 
-                                    spacing: 2
+                                    Image {
+                                        id: rowCover
+                                        anchors.fill: parent
+                                        source: coverUri.length > 0
+                                            ? "image://yandex/circle/" + coverUri
+                                            : ""
+                                        sourceSize: Qt.size(72, 72)
+                                        fillMode: Image.PreserveAspectCrop
+                                        asynchronous: true
+                                        cache: true
+                                        smooth: true
+                                        visible: status === Image.Ready
+                                    }
+
+                                    Icon {
+                                        anchors.centerIn: parent
+                                        glyph: "note"
+                                        color: AppTheme.textMuted
+                                        size: 16
+                                        strokeWidth: 1.6
+                                        visible: rowCover.status !== Image.Ready
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    Layout.alignment: Qt.AlignVCenter
+
+                                    spacing: 3
 
                                     Label {
-                                        width: parent.width
+                                        Layout.fillWidth: true
                                         text: title
                                         color: AppTheme.textPrimary
                                         font.pixelSize: 13
-                                        font.bold: true
                                         elide: Text.ElideRight
                                         maximumLineCount: 1
                                     }
 
                                     Label {
-                                        width: parent.width
+                                        Layout.fillWidth: true
                                         text: artist
                                         color: AppTheme.textSecondary
                                         font.pixelSize: 11
@@ -322,15 +372,20 @@ Item {
                                 }
 
                                 Label {
-                                    id: playsLabel
-
-                                    height: parent.height
+                                    Layout.alignment: Qt.AlignVCenter
 
                                     text: plays >= 100 ? "100+" : plays + "×"
                                     color: AppTheme.textMuted
-                                    font.pixelSize: 12
-                                    verticalAlignment: Text.AlignVCenter
+                                    font.pixelSize: 11
+                                                                        verticalAlignment: Text.AlignVCenter
                                 }
+                            }
+
+                            MouseArea {
+                                id: rowArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
                             }
                         }
                     }
@@ -349,19 +404,19 @@ Item {
             }
 
             Column {
-                width: parent.width
-                spacing: 12
+                    width: parent.width / 2 - parent.spacing / 2
+                    spacing: 12
 
-                Label {
-                    width: parent.width
+                    Label {
+                        width: parent.width
 
-                    text: "Топ исполнителей"
-                    color: AppTheme.textPrimary
-                    font.pixelSize: 20
-                    font.bold: true
-                }
+                        text: "Топ исполнителей"
+                        color: AppTheme.textPrimary
+                        font.pixelSize: 20
+                        font.bold: true
+                    }
 
-                Rectangle {
+                    Rectangle {
                     width: parent.width
 
                     height: root.stats && root.stats.topArtists(20).length > 0
@@ -385,11 +440,17 @@ Item {
                         interactive: topArtistsView.count > 8
                         boundsBehavior: Flickable.StopAtBounds
 
-                        model: root.stats ? root.stats.topArtists(20) : []
+                        model: {
+                            root.stats
+                            AppTheme.dark
+                            return root.stats ? root.stats.topArtists(20) : []
+                        }
 
                         delegate: Item {
+                            required property int index
                             required property string id
                             required property string name
+                            required property string coverUri
                             required property int plays
 
                             width: topArtistsView.width
@@ -398,47 +459,93 @@ Item {
                             Rectangle {
                                 anchors.fill: parent
                                 radius: 8
-                                color: index % 2 === 0 ? AppTheme.panelSecondary : "transparent"
+                                color: artistRowArea.containsMouse
+                                    ? AppTheme.panelActive
+                                    : "transparent"
+
+                                Behavior on color {
+                                    ColorAnimation { duration: 120 }
+                                }
                             }
 
-                            Row {
+                            RowLayout {
                                 anchors.fill: parent
-                                anchors.margins: 8
-                                spacing: 10
+                                anchors.leftMargin: 9
+                                anchors.rightMargin: 9
+
+                                spacing: 11
 
                                 Label {
-                                    width: 26
-                                    height: parent.height
+                                    Layout.preferredWidth: 20
+                                    Layout.alignment: Qt.AlignVCenter
 
                                     text: index + 1
-                                    color: AppTheme.textMuted
-                                    font.pixelSize: 14
-                                    font.bold: true
+                                    color: index < 3 ? AppTheme.accent : AppTheme.textMuted
+                                    font.pixelSize: 12
+                                    font.bold: index < 3
+                                                                        horizontalAlignment: Text.AlignRight
                                     verticalAlignment: Text.AlignVCenter
                                 }
 
+                                Rectangle {
+                                    Layout.preferredWidth: 36
+                                    Layout.preferredHeight: 36
+                                    Layout.alignment: Qt.AlignVCenter
+
+                                    radius: 18
+                                    color: AppTheme.artworkPlaceholder
+                                    clip: true
+
+                                    Image {
+                                        id: artistAvatar
+                                        anchors.fill: parent
+                                        source: coverUri.length > 0
+                                            ? "image://yandex/circle/" + coverUri
+                                            : ""
+                                        sourceSize: Qt.size(72, 72)
+                                        fillMode: Image.PreserveAspectCrop
+                                        asynchronous: true
+                                        cache: true
+                                        smooth: true
+                                        visible: status === Image.Ready
+                                    }
+
+                                    Icon {
+                                        anchors.centerIn: parent
+                                        glyph: "artist"
+                                        color: AppTheme.textMuted
+                                        size: 16
+                                        strokeWidth: 1.6
+                                        visible: artistAvatar.status !== Image.Ready
+                                    }
+                                }
+
                                 Label {
-                                    width: parent.width - playsLabel2.width - 36
-                                    height: parent.height
+                                    Layout.fillWidth: true
+                                    Layout.alignment: Qt.AlignVCenter
 
                                     text: name
                                     color: AppTheme.textPrimary
                                     font.pixelSize: 13
-                                    font.bold: true
                                     elide: Text.ElideRight
-                                    verticalAlignment: Text.AlignVCenter
+                                    maximumLineCount: 1
                                 }
 
                                 Label {
-                                    id: playsLabel2
-
-                                    height: parent.height
+                                    Layout.alignment: Qt.AlignVCenter
 
                                     text: plays >= 100 ? "100+" : plays + "×"
                                     color: AppTheme.textMuted
-                                    font.pixelSize: 12
-                                    verticalAlignment: Text.AlignVCenter
+                                    font.pixelSize: 11
+                                                                        verticalAlignment: Text.AlignVCenter
                                 }
+                            }
+
+                            MouseArea {
+                                id: artistRowArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
                             }
                         }
                     }
@@ -454,6 +561,7 @@ Item {
                             root.stats.topArtists(20).length === 0
                     }
                 }
+            }
             }
 
             Item {
