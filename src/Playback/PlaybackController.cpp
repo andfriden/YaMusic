@@ -4,8 +4,10 @@
 #include "../MediaControls/MediaControlsFactory.h"
 #include "../Player/PlayerService.h"
 #include "../Player/StreamProxy.h"
+#include "../Player/TrackCache.h"
 #include "../Yandex/Catalog/CensorService.h"
 #include "../Yandex/Catalog/TrackService.h"
+#include "Preloader.h"
 
 #include <QDir>
 #include <QFile>
@@ -50,6 +52,17 @@ PlaybackController::PlaybackController(
   Q_ASSERT(m_qualityController != nullptr);
 
   setupSystemMediaControls();
+
+  // Кэш и предзагрузка: треки после играющего качаются заранее, чтобы
+  // следующий стартовал с диска, не дожидаясь сети.
+  m_trackCache = std::make_unique<TrackCache>();
+  m_preloader = new Playback::Preloader(m_trackCache.get(), m_trackService, this);
+
+  connect(m_queueService, &QueueService::queueChanged, this,
+          [this]() { updatePreloadWindow(); });
+
+  connect(m_queueService, &QueueService::currentChanged, this,
+          [this]() { updatePreloadWindow(); });
 
   connect(
       m_playerService,
@@ -173,6 +186,14 @@ PlaybackController::systemMediaControls() const {
   return m_systemMediaControls.get();
 }
 
+TrackCache *PlaybackController::trackCache() const {
+  return m_trackCache.get();
+}
+
+Playback::Preloader *PlaybackController::preloader() const {
+  return m_preloader;
+}
+
 QString PlaybackController::currentCodec() const {
   return m_currentCodec;
 }
@@ -232,20 +253,32 @@ void PlaybackController::playTrack(const Track &track) {
   // Подмена цензурной версии: если включён censorBypass и для трека есть
   // нецензурная замена (и пользователь не выбрал «оригинал») — играем её
   // напрямую, не запрашивая стрим Яндекса.
-  if (m_censorService && m_qualityController &&
-      m_qualityController->censorBypass() &&
-      !m_qualityController->prefersOriginal(track.id)) {
+  if (wouldReplaceForCensor(track)) {
     const QString replacementUrl = m_censorService->replacementUrl(track.id);
+
     if (!replacementUrl.isEmpty()) {
       m_currentCodec.clear();
       m_currentBitrate = 0;
       emit streamQualityInfoChanged();
       playStream(track.id, replacementUrl);
+      updatePreloadWindow();
       return;
     }
   }
 
+  // Трек, который успел скачаться заранее, играет с диска: старт без
+  // ожидания сети. Проверяем после подмены версии, иначе играла бы
+  // цензурная копия.
+  const QString cachedPath = m_preloader != nullptr ? m_preloader->cachedPath(track) : QString();
+
+  if (!cachedPath.isEmpty()) {
+    playCachedFile(track, cachedPath);
+    updatePreloadWindow();
+    return;
+  }
+
   m_trackService->loadStreamInfo(track.id, quality);
+  updatePreloadWindow();
 }
 
 void PlaybackController::playFromSource(
@@ -492,6 +525,50 @@ void PlaybackController::releaseStaleProxies() {
     proxy->deleteLater();
 
   m_staleProxies.clear();
+}
+
+void PlaybackController::playCachedFile(const Track &track, const QString &path) {
+  const QString identity = TrackCache::identityFor(track.id);
+
+  // Отметка «играли»: по времени файла кэш решает, что вытеснять.
+  m_trackCache->touch(identity);
+  // Кодек и битрейт лежат рядом с файлом: через сеть о них уже не спросить.
+  m_trackCache->loadMeta(identity, &m_currentCodec, &m_currentBitrate);
+  emit streamQualityInfoChanged();
+
+  m_playerService->setTrackDuration(track.durationMs);
+  m_playerService->playUrl(QUrl::fromLocalFile(path).toString());
+}
+
+void PlaybackController::updatePreloadWindow() {
+  if (m_preloader == nullptr) return;
+
+  const QList<Track> queueTracks = m_queueService->tracks();
+  const int currentIndex = m_queueService->currentIndex();
+  QList<Track> upcoming;
+
+  for (int i = currentIndex + 1; i < queueTracks.size(); ++i) {
+    const Track &track = queueTracks.at(i);
+
+    if (track.id.isEmpty()) continue;
+    // Треки без прав сервер не отдаст — качать их нечего.
+    if (!track.available) continue;
+    // Заменённая версия играет с чужого адреса, из кэша не заиграет.
+    if (wouldReplaceForCensor(track)) continue;
+
+    upcoming.append(track);
+  }
+
+  m_preloader->setUpcoming(upcoming);
+}
+
+bool PlaybackController::wouldReplaceForCensor(const Track &track) const {
+  if (m_censorService == nullptr || m_qualityController == nullptr) return false;
+  if (track.id.isEmpty()) return false;
+  if (!m_qualityController->censorBypass()) return false;
+  if (m_qualityController->prefersOriginal(track.id)) return false;
+
+  return !m_censorService->replacementUrl(track.id).isEmpty();
 }
 
 bool PlaybackController::playQueueCurrentTrack() {

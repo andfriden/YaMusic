@@ -12,11 +12,16 @@
 
 class PlayerService;
 class TrackService;
+class TrackCache;
 class StreamProxy;
 class AudioQualityController;
 class CensorService;
 class QNetworkAccessManager;
 class QNetworkReply;
+
+namespace Playback {
+class Preloader;
+}
 
 class PlaybackController : public QObject {
   Q_OBJECT
@@ -45,6 +50,11 @@ public:
   PlaybackState state() const;
   QueueService *queueService() const;
   SystemMediaControls *systemMediaControls() const;
+
+  // Кэш скачанных стримов и предзагрузка: настройками и интерфейсом
+  // управляет PreloadController.
+  TrackCache *trackCache() const;
+  Playback::Preloader *preloader() const;
 
   // Кодек и битрейт текущего стрима (для отображения качества).
   QString currentCodec() const;
@@ -98,6 +108,15 @@ private:
 
   void handlePlaybackFinished();
 
+  // Воспроизведение трека из кэша: без обращения к сети.
+  void playCachedFile(const Track &track, const QString &path);
+
+  // Что держать готовым: очередь после текущего трека.
+  void updatePreloadWindow();
+
+  // Заменён ли бы этот трек на версию без цензуры: такие в кэш не годятся.
+  bool wouldReplaceForCensor(const Track &track) const;
+
   void handleStreamUrl(
       const QString &trackId,
       const QString &url);
@@ -141,6 +160,9 @@ private:
 
   QNetworkAccessManager *m_coverNetwork = nullptr;
   QNetworkAccessManager *m_streamNetwork = nullptr;
+
+  std::unique_ptr<TrackCache> m_trackCache;
+  Playback::Preloader *m_preloader = nullptr;
   QString m_pendingCoverUri;
 
   // Буферизованный сетевой поток (обход TLS-проблем FFmpeg на macOS).

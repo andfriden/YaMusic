@@ -32,6 +32,29 @@ Item {
             ? "Доступна версия " + root.updateController.latestVersion
             : ""
 
+    // Состояние предзагрузки: сколько треков уже готово и сколько места
+    // занял кэш.
+    readonly property var preloadController:
+        root.controller !== null && root.controller !== undefined &&
+        root.controller.preloadController !== undefined
+            ? root.controller.preloadController
+            : null
+
+    readonly property bool preloadEnabled:
+        root.preloadController !== null && root.preloadController.enabled
+
+    readonly property string cacheUsage:
+        root.preloadController !== null
+            ? root.preloadController.usedMb.toFixed(0) + " МБ из " +
+              root.preloadController.limitMb + " МБ"
+            : ""
+
+    readonly property string preloadReady:
+        root.preloadController !== null && root.preloadController.windowCount > 0
+            ? "Готово " + root.preloadController.readyCount + " из " +
+              root.preloadController.windowCount
+            : ""
+
     implicitHeight: root.barHeight
 
     Rectangle {
@@ -281,7 +304,7 @@ Item {
         id: settingsPopup
 
         width: 260
-        height: 440
+        height: 600
 
         x: settingsButton.x + settingsButton.width - width
         y: settingsButton.y + settingsButton.height + 6
@@ -622,6 +645,131 @@ Item {
 
                         root.updateController.checkForUpdates()
                         updateDialog.open()
+                    }
+                }
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 1
+                color: AppTheme.borderSubtle
+            }
+
+            Text {
+                width: parent.width
+                text: "Предзагрузка"
+                color: AppTheme.textSecondary
+                font.pixelSize: 11
+                font.bold: true
+
+                horizontalAlignment: Text.AlignHCenter
+                anchors.topMargin: 2
+            }
+
+            Row {
+                width: parent.width
+                height: 24
+                spacing: 8
+
+                Text {
+                    width: parent.width - 28
+                    height: parent.height
+
+                    text: "Скачивать треки заранее"
+                    color: AppTheme.textPrimary
+                    font.pixelSize: 12
+
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                Item {
+                    width: 20
+                    height: 20
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 4
+
+                        color: root.preloadEnabled ? AppTheme.accent : AppTheme.panelSecondary
+
+                        border.width: 1
+                        border.color: AppTheme.border
+
+                        Text {
+                            anchors.centerIn: parent
+
+                            text: root.preloadEnabled ? "✓" : ""
+                            color: AppTheme.accentOn
+                            font.pixelSize: 11
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (root.preloadController) {
+                                root.preloadController.enabled = !root.preloadEnabled
+                            }
+                        }
+                    }
+                }
+            }
+
+            Text {
+                width: parent.width
+
+                // Состояние окна и занятое место: пустая строка, когда
+                // предзагрузка выключена или очередь кончилась.
+                text: root.preloadEnabled
+                    ? [root.preloadReady, root.cacheUsage].filter(function(part) {
+                        return part.length > 0
+                    }).join(" · ")
+                    : "Кэш скачанных треков не пополняется"
+
+                color: AppTheme.textMuted
+                font.pixelSize: 11
+                wrapMode: Text.Wrap
+                elide: Text.ElideRight
+                maximumLineCount: 2
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 30
+                radius: 8
+
+                visible: root.preloadController !== null && root.preloadController.usedMb > 0
+
+                color: clearCacheArea.containsMouse ? AppTheme.panelActive : AppTheme.panelSecondary
+
+                border.width: 1
+                border.color: AppTheme.borderSubtle
+
+                Text {
+                    anchors.centerIn: parent
+
+                    text: "Очистить кэш"
+                    color: clearCacheArea.containsMouse ? AppTheme.accent : AppTheme.textPrimary
+                    font.pixelSize: 12
+                }
+
+                MouseArea {
+                    id: clearCacheArea
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+
+                    onClicked: {
+                        if (root.preloadController) {
+                            root.preloadController.clearCache()
+                        }
                     }
                 }
             }

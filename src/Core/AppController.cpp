@@ -71,6 +71,8 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
       m_accentController(new AccentController(m_playerAccentService, m_playbackController, this)),
       m_downloadService(new DownloadService(m_trackService, this)),
       m_updateController(new UpdateController(this)),
+      m_preloadController(new PreloadController(m_playbackController->trackCache(),
+                                                m_playbackController->preloader(), this)),
       m_ynisonClient(new YnisonClient(this)),
       m_ynisonReporter(new YnisonReporter(m_ynisonClient, m_playerService, m_queueService, this)) {
   Q_ASSERT(m_auth != nullptr);
@@ -735,6 +737,10 @@ ThemeController *AppController::themeController() const {
 
 UpdateController *AppController::updateController() const {
   return m_updateController;
+}
+
+PreloadController *AppController::preloadController() const {
+  return m_preloadController;
 }
 
 AccentController *AppController::accentController() const {

@@ -156,6 +156,7 @@ set(
         src/Core/SearchController.cpp
         src/Core/AuthController.cpp
         src/Core/ThemeController.cpp
+        src/Core/PreloadController.cpp
         src/Core/UpdateController.cpp
 
         # Models
@@ -171,7 +172,9 @@ set(
         # Player / playback
         src/Player/PlayerService.cpp
         src/Player/StreamProxy.cpp
+        src/Player/TrackCache.cpp
         src/Playback/PlaybackController.cpp
+        src/Playback/Preloader.cpp
 
         # Queue
         src/Queue/QueueService.cpp
@@ -757,3 +760,42 @@ else()
           "${deploy_script}"
   )
 endif()
+
+# =============================================================
+# Tests
+#
+# Запуск: ctest --test-dir build
+# =============================================================
+
+enable_testing()
+
+find_package(
+        Qt6 6.9
+        REQUIRED COMPONENTS
+        Test
+)
+
+qt_add_executable(
+        tst_track_cache
+        tests/tst_track_cache.cpp
+        src/Player/TrackCache.cpp
+)
+
+set_target_properties(
+        tst_track_cache
+        PROPERTIES
+        MACOSX_BUNDLE FALSE
+        WIN32_EXECUTABLE FALSE
+)
+
+target_link_libraries(
+        tst_track_cache
+        PRIVATE
+        Qt6::Core
+        Qt6::Test
+)
+
+add_test(
+        NAME track_cache
+        COMMAND tst_track_cache
+)
