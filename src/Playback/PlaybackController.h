@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QPointer>
 #include <QString>
+#include <QTimer>
 #include <functional>
 #include <memory>
 
@@ -111,6 +112,11 @@ private:
   // Воспроизведение трека из кэша: без обращения к сети.
   void playCachedFile(const Track &track, const QString &path);
 
+  // Пора ли переходить в следующий трек перекрёстным затуханием, и сам
+  // переход: заводим следующий трек до того, как текущий доиграет.
+  void checkCrossfade();
+  void beginCrossfade(const Track &nextTrack, const QString &path);
+
   // Что держать готовым: очередь после текущего трека.
   void updatePreloadWindow();
 
@@ -163,6 +169,10 @@ private:
 
   std::unique_ptr<TrackCache> m_trackCache;
   Playback::Preloader *m_preloader = nullptr;
+
+  // Проверка «пора переходить» и признак идущего перехода.
+  QTimer m_crossfadeTimer;
+  bool m_crossfading = false;
   QString m_pendingCoverUri;
 
   // Буферизованный сетевой поток (обход TLS-проблем FFmpeg на macOS).

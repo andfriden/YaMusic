@@ -55,6 +55,16 @@ Item {
               root.preloadController.windowCount
             : ""
 
+    // Настройки воспроизведения: сейчас это перекрёстное затухание.
+    readonly property var playbackSettings:
+        root.controller !== null && root.controller !== undefined &&
+        root.controller.playbackSettingsController !== undefined
+            ? root.controller.playbackSettingsController
+            : null
+
+    readonly property int crossfadeSeconds:
+        root.playbackSettings !== null ? root.playbackSettings.crossfadeSeconds : 0
+
     implicitHeight: root.barHeight
 
     Rectangle {
@@ -304,7 +314,7 @@ Item {
         id: settingsPopup
 
         width: 260
-        height: 600
+        height: 720
 
         x: settingsButton.x + settingsButton.width - width
         y: settingsButton.y + settingsButton.height + 6
@@ -647,6 +657,74 @@ Item {
                         updateDialog.open()
                     }
                 }
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 1
+                color: AppTheme.borderSubtle
+            }
+
+            Text {
+                width: parent.width
+                text: "Перекрёстное затухание"
+                color: AppTheme.textSecondary
+                font.pixelSize: 11
+                font.bold: true
+
+                horizontalAlignment: Text.AlignHCenter
+                anchors.topMargin: 2
+            }
+
+            Row {
+                width: parent.width
+                height: 26
+                spacing: 8
+
+                Text {
+                    width: parent.width - 84
+                    height: parent.height
+
+                    text: root.crossfadeSeconds > 0
+                        ? root.crossfadeSeconds + " с"
+                        : "Выключено"
+                    color: AppTheme.textPrimary
+                    font.pixelSize: 12
+
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                Slider {
+                    width: 72
+                    height: parent.height
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    from: 0
+                    to: 12
+                    stepSize: 1
+                    value: root.crossfadeSeconds
+
+                    // Значение пишется при каждом изменении: настроек мало, а
+                    // идущее затухание подстраивается на ходу.
+                    onMoved: {
+                        if (root.playbackSettings) {
+                            root.playbackSettings.crossfadeSeconds = Math.round(value)
+                        }
+                    }
+                }
+            }
+
+            Text {
+                width: parent.width
+
+                text: "Следующий трек заводится до конца текущего — пока он уже скачан заранее"
+                color: AppTheme.textMuted
+                font.pixelSize: 10
+                wrapMode: Text.Wrap
+                maximumLineCount: 2
             }
 
             Rectangle {

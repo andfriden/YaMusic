@@ -19,6 +19,7 @@
 #include "LibraryController.h"
 #include "LyricsController.h"
 #include "PersonalController.h"
+#include "PlaybackSettingsController.h"
 #include "PreloadController.h"
 #include "SearchController.h"
 #include "StationsController.h"
@@ -94,6 +95,8 @@ class AppController : public QObject {
   Q_PROPERTY(AccentController *accentController READ accentController CONSTANT)
   Q_PROPERTY(UpdateController *updateController READ updateController CONSTANT)
   Q_PROPERTY(PreloadController *preloadController READ preloadController CONSTANT)
+  Q_PROPERTY(PlaybackSettingsController *playbackSettingsController READ playbackSettingsController
+                 CONSTANT)
   Q_PROPERTY(AudioQualityController *audioQualityController READ audioQualityController CONSTANT)
 
   Q_PROPERTY(QString currentPlaylistTitle READ currentPlaylistTitle NOTIFY currentPlaylistChanged)
@@ -262,6 +265,7 @@ public:
   AccentController *accentController() const;
   UpdateController *updateController() const;
   PreloadController *preloadController() const;
+  PlaybackSettingsController *playbackSettingsController() const;
   AudioQualityController *audioQualityController() const;
 
   bool isSearching() const;
@@ -411,6 +415,7 @@ private:
   AccentController *m_accentController = nullptr;
   UpdateController *m_updateController = nullptr;
   PreloadController *m_preloadController = nullptr;
+  PlaybackSettingsController *m_playbackSettingsController = nullptr;
   DownloadService *m_downloadService = nullptr;
 
   YnisonClient *m_ynisonClient = nullptr;

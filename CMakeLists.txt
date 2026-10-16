@@ -156,6 +156,7 @@ set(
         src/Core/SearchController.cpp
         src/Core/AuthController.cpp
         src/Core/ThemeController.cpp
+        src/Core/PlaybackSettingsController.cpp
         src/Core/PreloadController.cpp
         src/Core/UpdateController.cpp
 
@@ -798,4 +799,28 @@ target_link_libraries(
 add_test(
         NAME track_cache
         COMMAND tst_track_cache
+)
+
+qt_add_executable(
+        tst_crossfade
+        tests/tst_crossfade.cpp
+)
+
+set_target_properties(
+        tst_crossfade
+        PROPERTIES
+        MACOSX_BUNDLE FALSE
+        WIN32_EXECUTABLE FALSE
+)
+
+target_link_libraries(
+        tst_crossfade
+        PRIVATE
+        Qt6::Core
+        Qt6::Test
+)
+
+add_test(
+        NAME crossfade
+        COMMAND tst_crossfade
 )

@@ -24,6 +24,10 @@ static QString coverCacheDir() {
          QStringLiteral("/covers");
 }
 
+// Шаг проверки перехода: полсекунды достаточно, чтобы не промахнуться
+// мимо начала затухания, и незаметно по нагрузке.
+static constexpr int kCrossfadeCheckMs = 500;
+
 static QString coverFilePath(const QString &trackId) {
   return coverCacheDir() +
          QStringLiteral("/") +
@@ -63,6 +67,19 @@ PlaybackController::PlaybackController(
 
   connect(m_queueService, &QueueService::currentChanged, this,
           [this]() { updatePreloadWindow(); });
+
+  // Проверка «пора переходить»: раз в полсекунды, пока что-то играет.
+  // Следующий трек надо завести заранее, до конца текущего, поэтому
+  // следим по таймеру, а не по сигналу завершения.
+  m_crossfadeTimer.setInterval(kCrossfadeCheckMs);
+  connect(&m_crossfadeTimer, &QTimer::timeout, this, &PlaybackController::checkCrossfade);
+  m_crossfadeTimer.start();
+
+  connect(m_playerService, &PlayerService::crossfadeFinished, this, [this]() {
+    m_crossfading = false;
+    // Уходящий трек остановлен — его сетевой поток больше не нужен.
+    abortStreamProxy();
+  });
 
   connect(
       m_playerService,
@@ -569,6 +586,63 @@ bool PlaybackController::wouldReplaceForCensor(const Track &track) const {
   if (m_qualityController->prefersOriginal(track.id)) return false;
 
   return !m_censorService->replacementUrl(track.id).isEmpty();
+}
+
+void PlaybackController::checkCrossfade() {
+  if (m_crossfading) return;
+  if (m_state != Playing) return;
+
+  const int fadeMs = m_playerService->crossfadeMs();
+
+  if (fadeMs <= 0) return;
+  // Повтор одного трека перехода не предполагает.
+  if (m_queueService->repeatMode() == QueueService::RepeatOne) return;
+  if (!m_queueService->hasNext()) return;
+
+  const qint64 duration = m_playerService->duration();
+
+  // Короткие треки не сшиваем: переход занял бы половину песни.
+  if (duration <= fadeMs + 2000) return;
+  if (m_playerService->position() < duration - fadeMs) return;
+
+  const Track nextTrack = m_queueService->trackAt(m_queueService->currentIndex() + 1);
+
+  if (nextTrack.id.isEmpty()) return;
+
+  // Переход возможен, только если следующий трек уже лежит на диске: иначе
+  // он начнётся с тишины, пока подтягивается сеть.
+  const QString nextPath = m_preloader != nullptr ? m_preloader->cachedPath(nextTrack) : QString();
+
+  if (nextPath.isEmpty()) return;
+
+  beginCrossfade(nextTrack, nextPath);
+}
+
+void PlaybackController::beginCrossfade(const Track &nextTrack, const QString &path) {
+  const QString identity = TrackCache::identityFor(nextTrack.id);
+
+  // Уходящий трек доиграл свою часть — отчитываемся за него и только после
+  // этого переключаемся, иначе отчёт ушёл бы на следующий трек.
+  maybeReportPlayback();
+  resetReportState();
+
+  m_crossfading = true;
+
+  m_queueService->next();
+
+  m_currentTrack = nextTrack;
+  m_currentCodec.clear();
+  m_currentBitrate = 0;
+
+  m_trackCache->touch(identity);
+  m_trackCache->loadMeta(identity, &m_currentCodec, &m_currentBitrate);
+  m_playerService->setTrackDuration(nextTrack.durationMs);
+
+  emit currentTrackChanged();
+  emit streamQualityInfoChanged();
+
+  m_playerService->playUrlFading(QUrl::fromLocalFile(path).toString());
+  updatePreloadWindow();
 }
 
 bool PlaybackController::playQueueCurrentTrack() {
