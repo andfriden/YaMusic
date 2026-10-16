@@ -14,12 +14,11 @@ Window {
 
     property var controller
 
-    width: 380
-    height: 116
+    width: 400
+    height: 134
 
     // Поверх других окон, без рамки и без кнопки в таск-баре.
-    flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint |
-        Qt.Tool | Qt.WindowDoesNotAcceptFocus
+    flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
     visible: false
     modality: Qt.NonModal
@@ -65,8 +64,16 @@ Window {
     // Расширенный плеер по клику на обложку.
     signal expandedRequested()
 
+    // Переход в большое окно плеера по отдельной кнопке.
+    signal expandRequested()
+
+    // Закрытие мини-плеера по «×»: возврат в основное окно.
+    signal closeRequested()
+
     function showPlayer() {
-        root.visible = true
+        root.show()
+        root.raise()
+        root.requestActivate()
     }
 
     function hidePlayer() {
@@ -79,13 +86,13 @@ Window {
         radius: 16
 
         color: root.hasPlayerAccent
-            ? Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.12)
-            : AppTheme.panel
+            ? Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.18)
+            : AppTheme.macchiatoBase
 
         border.width: 1
         border.color: root.hasPlayerAccent
-            ? Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.25)
-            : AppTheme.border
+            ? Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.35)
+            : AppTheme.macchiatoSurface1
 
         // Перетаскивание окна за фон и заголовок. Объявлен первым, чтобы
         // лежать под кнопками и обложкой и не перехватывать их клики.
@@ -169,12 +176,12 @@ Window {
                     height: parent.height
                     radius: width / 2
                     visible: cover.status !== Image.Ready
-                    color: AppTheme.artworkPlaceholder
+                    color: AppTheme.macchiatoSurface0
 
                     Icon {
                         anchors.centerIn: parent
                         glyph: "note"
-                        color: AppTheme.textMuted
+                        color: AppTheme.macchiatoOverlay1
                         size: 24
                         strokeWidth: 1.7
                     }
@@ -236,7 +243,7 @@ Window {
                 width: parent.width
 
                 text: root.hasTrack ? root.controller.currentTrackTitle : "Нет трека"
-                color: AppTheme.textPrimary
+                color: AppTheme.macchiatoText
                 font.pixelSize: 14
                 font.weight: Font.DemiBold
                 elide: Text.ElideRight
@@ -247,7 +254,7 @@ Window {
                 width: parent.width
 
                 text: root.hasTrack ? root.controller.currentTrackArtist : ""
-                color: AppTheme.textSecondary
+                color: AppTheme.macchiatoSubtext1
                 font.pixelSize: 12
                 elide: Text.ElideRight
                 maximumLineCount: 1
@@ -275,7 +282,7 @@ Window {
                         glyph: root.currentTrackLiked ? "heartFilled" : "heart"
                         color: root.currentTrackLiked
                             ? AppTheme.accent
-                            : AppTheme.textSecondary
+                            : AppTheme.macchiatoSubtext1
                         size: 20
                         strokeWidth: 1.7
 
@@ -319,7 +326,7 @@ Window {
                         glyph: "heartOff"
                         color: root.currentTrackDisliked
                             ? AppTheme.accent
-                            : AppTheme.textSecondary
+                            : AppTheme.macchiatoSubtext1
                         size: 20
                         strokeWidth: 1.7
 
@@ -360,7 +367,7 @@ Window {
                     Icon {
                         anchors.centerIn: parent
                         glyph: "chevronLeft"
-                        color: AppTheme.textPrimary
+                        color: AppTheme.macchiatoText
                         size: 22
                         strokeWidth: 2
                     }
@@ -426,7 +433,7 @@ Window {
                     Icon {
                         anchors.centerIn: parent
                         glyph: "chevronRight"
-                        color: AppTheme.textPrimary
+                        color: AppTheme.macchiatoText
                         size: 22
                         strokeWidth: 2
                     }
@@ -445,7 +452,59 @@ Window {
             }
         }
 
-        // Кнопка закрытия мини-плеера.
+        // Прогресс-бар воспроизведения.
+        Rectangle {
+            id: progressTrack
+
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.leftMargin: 12
+            anchors.rightMargin: 12
+            anchors.bottomMargin: 8
+
+            height: 3
+            radius: 1.5
+
+            color: AppTheme.macchiatoSurface0
+
+            Rectangle {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+
+                width: {
+                    if (!root.hasController || Number(root.controller.duration) <= 0) {
+                        return 0
+                    }
+                    const ratio = Math.max(0, Math.min(1,
+                        Number(root.controller.position) / Number(root.controller.duration)))
+                    return parent.width * ratio
+                }
+                height: parent.height
+                radius: parent.radius
+
+                color: root.playerAccent
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+
+                onClicked: function(mouse) {
+                    if (!root.hasController) {
+                        return
+                    }
+                    const duration = Number(root.controller.duration)
+                    if (duration <= 0) {
+                        return
+                    }
+                    const ratio = Math.max(0, Math.min(1, mouse.x / width))
+                    root.controller.seek(Math.round(duration * ratio))
+                }
+            }
+        }
+
+        // Кнопка в правом верхнем углу: переход в большое окно.
         Item {
             anchors.top: parent.top
             anchors.right: parent.right
@@ -457,17 +516,17 @@ Window {
 
             Icon {
                 anchors.centerIn: parent
-                glyph: "close"
-                color: closeArea.containsMouse ? AppTheme.textPrimary : AppTheme.textMuted
+                glyph: "expand"
+                color: expandArea.containsMouse ? AppTheme.macchiatoText : AppTheme.macchiatoOverlay1
                 size: 16
                 strokeWidth: 1.8
             }
 
             MouseArea {
-                id: closeArea
+                id: expandArea
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: root.hidePlayer()
+                onClicked: root.expandRequested()
             }
         }
     }

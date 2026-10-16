@@ -85,7 +85,10 @@ ApplicationWindow {
                 appController.lyricsController.loadLyrics()
                 window.activeOverlay = window.overlayLyrics
             }
-            onMiniPlayerRequested: miniPlayer.showPlayer()
+            onMiniPlayerRequested: {
+                window.hide()
+                miniPlayer.showPlayer()
+            }
         }
     }
 
@@ -101,12 +104,25 @@ ApplicationWindow {
         onClosed: window.activeOverlay = window.overlayNone
     }
 
+    // Мини-плеер как отдельное окно поверх других окон.
     MiniPlayer {
         id: miniPlayer
 
         controller: appController
 
-        onExpandedRequested: playerWindow.showPlayer()
+        onExpandedRequested: {
+            miniPlayer.hidePlayer()
+            window.show()
+        }
+        onExpandRequested: {
+            miniPlayer.hidePlayer()
+            window.show()
+        }
+        onCloseRequested: {
+            miniPlayer.hidePlayer()
+            window.show()
+            playerWindow.hidePlayer()
+        }
     }
 
     PlayerWindow {
