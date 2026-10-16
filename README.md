@@ -37,6 +37,7 @@
 * Блок «Колесо» на главной: подборки по вашим трекам и альбомам
 * Дорожки без прав на прослушивание помечаются в списке и уводят во внешний сервис вместо ошибки
 * Скачивание трека в «Загрузки» с метаданными и вложенной обложкой (↓)
+* Отчёты о падениях: перехват сигналов и `terminate`, файл отчёта на диске и отправка в трекер из окна
 * Тёмная тема Catppuccin (Latte / Macchiato), попап настроек
 * Адаптивный интерфейс: верхняя навигация, боковая и контекстная панели
 
@@ -148,7 +149,7 @@ QML → Controllers → Services / Models → (Yandex Music API, Playback)
 
 C++ отвечает за бизнес-логику, API, авторизацию, модели, состояние приложения и воспроизведение; QML — за интерфейс, страницы и навигацию.
 
-Контроллеры: `AppController`, `AccentController`, `AlbumController`, `ArtistController`, `AudioQualityController`, `ChartController`, `GenreController`, `LibraryController`, `LyricsController`, `PersonalController`, `PlaybackController`, `SearchController`, `StationsController`, `ThemeController`.
+Контроллеры: `AppController`, `AccentController`, `AlbumController`, `ArtistController`, `AudioQualityController`, `ChartController`, `CrashReporter`, `GenreController`, `LibraryController`, `LyricsController`, `PersonalController`, `PlaybackController`, `SearchController`, `StationsController`, `ThemeController`.
 
 Воспроизведение построено на Qt Multimedia: `PlaybackController` связывает состояние с приложением, `PlayerService` управляет `QMediaPlayer`, `QueueService` — очередью.
 
@@ -158,7 +159,7 @@ C++ отвечает за бизнес-логику, API, авторизацию
 
 ```text
 YaMusic/
-├── src/        # Core, Models, Playback, Player, Queue, Yandex
+├── src/        # Core, Crash, Models, Playback, Player, Queue, Yandex
 ├── qml/        # Components, Home, Layout, MyWave, Pages, Search, Theme
 ├── data/       # genre_playlists.csv
 ├── CMakeLists.txt
