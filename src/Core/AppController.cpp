@@ -82,6 +82,8 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
   Q_ASSERT(m_auth != nullptr);
   Q_ASSERT(m_accountService != nullptr);
 
+  m_statsController = new StatsController(this);
+
   connectAccount();
   connectSearch();
   connectLibrary();
@@ -382,9 +384,19 @@ void AppController::connectPlayback() {
             m_trackService->loadSimilarTracks(track.id);
 
             QString artistName;
+            QString artistId;
 
             if (!track.artists.isEmpty()) {
               artistName = track.artists.first().name;
+              artistId = track.artists.first().id;
+            }
+
+            // Статистика прослушиваний: каждый начатый трек — одно
+            // прослушивание с длительностью дорожки.
+            if (m_statsController) {
+              m_statsController->recordPlay(
+                  track.id, track.title, artistName, artistId, track.coverUri,
+                  track.durationMs);
             }
 
             const QString message =
@@ -792,6 +804,10 @@ AccentController *AppController::accentController() const {
 
 AudioQualityController *AppController::audioQualityController() const {
   return m_audioQualityController;
+}
+
+StatsController *AppController::statsController() const {
+  return m_statsController;
 }
 
 bool AppController::isSearching() const {

@@ -160,6 +160,7 @@ set(
         src/Core/PlaybackSettingsController.cpp
         src/Core/PreloadController.cpp
         src/Core/UpdateController.cpp
+        src/Core/StatsController.cpp
 
         # Models
         src/Models/Account.cpp
@@ -423,6 +424,7 @@ set(
         "${YAMUSIC_QML_ROOT}/Pages/StationsPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/PodcastsPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/LoginPage.qml"
+        "${YAMUSIC_QML_ROOT}/Pages/StatisticsPage.qml"
 
         # Home
         "${YAMUSIC_QML_ROOT}/Home/PersonalPlaylistsSection.qml"

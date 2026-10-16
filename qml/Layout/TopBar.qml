@@ -200,7 +200,8 @@ Item {
                 { title: "Подкасты", section: "podcasts" },
                 { title: "Плейлисты", section: "playlists" },
                 { title: "Спорт", section: "sport" },
-                { title: "Мне нравится", section: "liked" }
+                { title: "Мне нравится", section: "liked" },
+                { title: "Статистика", section: "stats" }
             ]
 
             delegate: Item {

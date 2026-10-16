@@ -181,6 +181,8 @@ Item {
                 return "../Pages/PodcastsPage.qml"
             case "sport":
                 return "../Pages/SportPage.qml"
+            case "stats":
+                return "../Pages/StatisticsPage.qml"
             default:
                 return "../Pages/HomePage.qml"
         }
@@ -216,6 +218,7 @@ Item {
             case "genres":
             case "sport":
             case "liked":
+            case "stats":
             default:
                 return "home"
         }
