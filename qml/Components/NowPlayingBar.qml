@@ -268,14 +268,15 @@ Rectangle {
                     }
                 }
 
-                Label {
+                Icon {
                     anchors.centerIn: parent
 
-                    text: root.controller && root.controller.currentTrackLiked ? "♥" : "♡"
+                    glyph: root.controller && root.controller.currentTrackLiked ? "heartFilled" : "heart"
                     color: root.controller && root.controller.currentTrackLiked
                         ? AppTheme.accent
                         : AppTheme.textSecondary
-                    font.pixelSize: 21
+                    size: 22
+                    strokeWidth: 1.7
 
                     Behavior on color {
                         ColorAnimation { duration: 120 }
@@ -328,38 +329,18 @@ Rectangle {
                     }
                 }
 
-                Label {
+                Icon {
                     anchors.centerIn: parent
 
-                    text: "♡"
+                    glyph: "heartOff"
                     color: root.currentTrackDisliked
                         ? AppTheme.accent
                         : AppTheme.textSecondary
-
-                    font.pixelSize: 21
+                    size: 22
+                    strokeWidth: 1.7
 
                     Behavior on color {
                         ColorAnimation { duration: 120 }
-                    }
-                }
-
-                // Перечёркнутое сердце — признак дизлайка.
-                Rectangle {
-                    anchors.centerIn: parent
-
-                    width: 18
-                    height: 1.5
-                    radius: 0.75
-
-                    color: root.currentTrackDisliked ? AppTheme.accent : AppTheme.textSecondary
-                    rotation: -45
-
-                    opacity: root.currentTrackDisliked
-                        ? 1
-                        : (dislikeMouseArea.containsMouse ? 0.6 : 0.35)
-
-                    Behavior on opacity {
-                        NumberAnimation { duration: 120 }
                     }
                 }
 
@@ -419,14 +400,15 @@ Rectangle {
                         color: shuffleMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
                     }
 
-                    Label {
+                    Icon {
                         anchors.centerIn: parent
 
-                        text: "⤨"
+                        glyph: "shuffle"
                         color: root.controller && root.controller.shuffleEnabled
                             ? root.playerAccent
                             : AppTheme.textSecondary
-                        font.pixelSize: 20
+                        size: 20
+                        strokeWidth: 1.7
                     }
 
                     MouseArea {
@@ -454,13 +436,13 @@ Rectangle {
                         color: previousMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
                     }
 
-                    Label {
+                    Icon {
                         anchors.centerIn: parent
 
-                        text: "‹"
+                        glyph: "chevronLeft"
                         color: AppTheme.textPrimary
-                        font.pixelSize: 32
-                        font.weight: Font.Light
+                        size: 28
+                        strokeWidth: 1.9
                     }
 
                     MouseArea {
@@ -537,13 +519,12 @@ Rectangle {
                         color: root.playerAccent
                     }
 
-                    Label {
+                    Icon {
                         anchors.centerIn: parent
 
-                        text: root.loading ? "…" : root.playing ? "Ⅱ" : "▶"
+                        glyph: root.loading ? "note" : (root.playing ? "pause" : "play")
                         color: AppTheme.accentOn
-                        font.pixelSize: root.playing ? 20 : 19
-                        font.weight: Font.DemiBold
+                        size: root.playing ? 22 : 21
                     }
 
                     MouseArea {
@@ -577,13 +558,13 @@ Rectangle {
                         color: nextMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
                     }
 
-                    Label {
+                    Icon {
                         anchors.centerIn: parent
 
-                        text: "›"
+                        glyph: "chevronRight"
                         color: AppTheme.textPrimary
-                        font.pixelSize: 32
-                        font.weight: Font.Light
+                        size: 28
+                        strokeWidth: 1.9
                     }
 
                     MouseArea {
@@ -611,14 +592,15 @@ Rectangle {
                         color: repeatMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
                     }
 
-                    Label {
+                    Icon {
                         anchors.centerIn: parent
 
-                        text: root.controller && root.controller.repeatMode === 1 ? "↻1" : "↻"
+                        glyph: root.controller && root.controller.repeatMode === 1 ? "repeatOne" : "repeat"
                         color: root.controller && root.controller.repeatMode !== 0
                             ? root.playerAccent
                             : AppTheme.textSecondary
-                        font.pixelSize: 18
+                        size: 19
+                        strokeWidth: 1.7
                     }
 
                     MouseArea {
@@ -783,12 +765,13 @@ Rectangle {
                     color: lyricsMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
                 }
 
-                Label {
+                Icon {
                     anchors.centerIn: parent
 
-                    text: "🎤"
+                    glyph: "lyrics"
                     color: AppTheme.textSecondary
-                    font.pixelSize: 15
+                    size: 19
+                    strokeWidth: 1.7
                 }
 
                 MouseArea {
@@ -900,12 +883,13 @@ Rectangle {
                     color: miniMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
                 }
 
-                Label {
+                Icon {
                     anchors.centerIn: parent
 
-                    text: "▤"
+                    glyph: "mini"
                     color: AppTheme.textSecondary
-                    font.pixelSize: 15
+                    size: 18
+                    strokeWidth: 1.7
                 }
 
                 MouseArea {
@@ -929,12 +913,13 @@ Rectangle {
                     color: expandMouseArea.containsMouse ? AppTheme.panelHover : "transparent"
                 }
 
-                Label {
+                Icon {
                     anchors.centerIn: parent
 
-                    text: "☰"
+                    glyph: "expand"
                     color: AppTheme.textSecondary
-                    font.pixelSize: 16
+                    size: 18
+                    strokeWidth: 1.7
                 }
 
                 MouseArea {

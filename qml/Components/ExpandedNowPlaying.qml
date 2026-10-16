@@ -144,13 +144,13 @@ Item {
                 }
             }
 
-            Text {
+            Icon {
                 anchors.centerIn: parent
-                anchors.verticalCenterOffset: -3
 
-                text: "⌄"
+                glyph: "chevronDown"
                 color: AppTheme.accentOn
-                font.pixelSize: 24
+                size: 24
+                strokeWidth: 2
             }
 
             MouseArea {
@@ -216,12 +216,13 @@ Item {
                     radius: 12
                     color: AppTheme.artworkPlaceholder
 
-                    Text {
+                    Icon {
                         anchors.centerIn: parent
 
-                        text: "♪"
+                        glyph: "note"
                         color: AppTheme.textMuted
-                        font.pixelSize: 52
+                        size: 48
+                        strokeWidth: 1.6
                     }
                 }
             }
@@ -400,7 +401,7 @@ Item {
                     width: 40
                     height: 40
 
-                    text: "↶"
+                    glyph: "repeat"
 
                     onClicked: {
                         if (root.hasController) {
@@ -413,8 +414,9 @@ Item {
                     width: 44
                     height: 44
 
-                    text: "‹"
-                    fontSize: 26
+                    glyph: "chevronLeft"
+                    iconSize: 26
+                    iconWidth: 2
 
                     onClicked: {
                         if (root.hasController) {
@@ -478,12 +480,12 @@ Item {
                         radius: width / 2
                         color: root.playerAccent
 
-                        Text {
+                        Icon {
                             anchors.centerIn: parent
 
-                            text: root.playing ? "Ⅱ" : "▶"
+                            glyph: root.playing ? "pause" : "play"
                             color: AppTheme.accentOn
-                            font.pixelSize: 21
+                            size: 24
                         }
 
                         MouseArea {
@@ -511,8 +513,9 @@ Item {
                     width: 44
                     height: 44
 
-                    text: "›"
-                    fontSize: 26
+                    glyph: "chevronRight"
+                    iconSize: 26
+                    iconWidth: 2
 
                     onClicked: {
                         if (root.hasController) {
@@ -525,7 +528,7 @@ Item {
                     width: 40
                     height: 40
 
-                    text: "↻"
+                    glyph: "shuffle"
 
                     onClicked: {
                         if (root.hasController) {
@@ -679,12 +682,13 @@ Item {
                         radius: 6
                         color: AppTheme.artworkPlaceholder
 
-                        Text {
+                        Icon {
                             anchors.centerIn: parent
 
-                            text: "♪"
+                            glyph: "note"
                             color: AppTheme.textMuted
-                            font.pixelSize: 18
+                            size: 18
+                            strokeWidth: 1.7
                         }
                     }
                 }
@@ -981,6 +985,10 @@ Item {
     component ControlButton: Rectangle {
         property string text: ""
         property int fontSize: 21
+        property string glyph: ""
+        property real iconSize: 22
+        property real iconWidth: 1.8
+        property color iconColor: AppTheme.textPrimary
 
         signal clicked()
 
@@ -994,8 +1002,21 @@ Item {
             ColorAnimation { duration: 140; easing.type: Easing.OutCubic }
         }
 
+        Icon {
+            anchors.centerIn: parent
+
+            visible: parent.glyph.length > 0
+
+            glyph: parent.glyph
+            color: parent.iconColor
+            size: parent.iconSize
+            strokeWidth: parent.iconWidth
+        }
+
         Text {
             anchors.centerIn: parent
+
+            visible: parent.glyph.length === 0
 
             text: parent.text
             color: AppTheme.textPrimary
@@ -1065,12 +1086,13 @@ Item {
                     radius: 6
                     color: AppTheme.artworkPlaceholder
 
-                    Text {
+                    Icon {
                         anchors.centerIn: parent
 
-                        text: "♪"
+                        glyph: "note"
                         color: AppTheme.textMuted
-                        font.pixelSize: 18
+                        size: 18
+                        strokeWidth: 1.7
                     }
                 }
             }

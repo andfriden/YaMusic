@@ -171,11 +171,12 @@ Window {
                     visible: cover.status !== Image.Ready
                     color: AppTheme.artworkPlaceholder
 
-                    Text {
+                    Icon {
                         anchors.centerIn: parent
-                        text: "♪"
+                        glyph: "note"
                         color: AppTheme.textMuted
-                        font.pixelSize: 20
+                        size: 24
+                        strokeWidth: 1.7
                     }
                 }
             }
@@ -268,14 +269,15 @@ Window {
                             : "transparent"
                     }
 
-                    Text {
+                    Icon {
                         anchors.centerIn: parent
 
-                        text: root.currentTrackLiked ? "♥" : "♡"
+                        glyph: root.currentTrackLiked ? "heartFilled" : "heart"
                         color: root.currentTrackLiked
                             ? AppTheme.accent
                             : AppTheme.textSecondary
-                        font.pixelSize: 18
+                        size: 20
+                        strokeWidth: 1.7
 
                         Behavior on color {
                             ColorAnimation { duration: 120 }
@@ -311,34 +313,19 @@ Window {
                             : "transparent"
                     }
 
-                    Text {
+                    Icon {
                         anchors.centerIn: parent
 
-                        text: "♡"
+                        glyph: "heartOff"
                         color: root.currentTrackDisliked
                             ? AppTheme.accent
                             : AppTheme.textSecondary
-                        font.pixelSize: 18
+                        size: 20
+                        strokeWidth: 1.7
 
                         Behavior on color {
                             ColorAnimation { duration: 120 }
                         }
-                    }
-
-                    // Перечёркнутое сердце — признак дизлайка.
-                    Rectangle {
-                        anchors.centerIn: parent
-
-                        width: 16
-                        height: 1.5
-                        radius: 0.75
-
-                        color: root.currentTrackDisliked
-                            ? AppTheme.accent
-                            : AppTheme.textSecondary
-                        rotation: -45
-
-                        visible: root.currentTrackDisliked
                     }
 
                     MouseArea {
@@ -370,12 +357,12 @@ Window {
                             : "transparent"
                     }
 
-                    Text {
+                    Icon {
                         anchors.centerIn: parent
-                        text: "‹"
+                        glyph: "chevronLeft"
                         color: AppTheme.textPrimary
-                        font.pixelSize: 24
-                        font.weight: Font.Light
+                        size: 22
+                        strokeWidth: 2
                     }
 
                     MouseArea {
@@ -401,12 +388,11 @@ Window {
                         color: root.playerAccent
                     }
 
-                    Text {
+                    Icon {
                         anchors.centerIn: parent
-                        text: root.playing ? "Ⅱ" : "▶"
+                        glyph: root.playing ? "pause" : "play"
                         color: AppTheme.accentOn
-                        font.pixelSize: 15
-                        font.weight: Font.DemiBold
+                        size: 16
                     }
 
                     MouseArea {
@@ -437,12 +423,12 @@ Window {
                             : "transparent"
                     }
 
-                    Text {
+                    Icon {
                         anchors.centerIn: parent
-                        text: "›"
+                        glyph: "chevronRight"
                         color: AppTheme.textPrimary
-                        font.pixelSize: 24
-                        font.weight: Font.Light
+                        size: 22
+                        strokeWidth: 2
                     }
 
                     MouseArea {
@@ -469,11 +455,12 @@ Window {
             width: 24
             height: 24
 
-            Text {
+            Icon {
                 anchors.centerIn: parent
-                text: "×"
+                glyph: "close"
                 color: closeArea.containsMouse ? AppTheme.textPrimary : AppTheme.textMuted
-                font.pixelSize: 18
+                size: 16
+                strokeWidth: 1.8
             }
 
             MouseArea {
