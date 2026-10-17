@@ -11,3 +11,7 @@ void AppController::loadMoreMyWave() {
 void AppController::loadRecommendations() {
   m_personalController->loadRecommendations();
 }
+
+void AppController::loadWheel() {
+  m_personalController->loadWheel();
+}

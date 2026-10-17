@@ -182,6 +182,7 @@ public:
   Q_INVOKABLE void loadMyWave();
   Q_INVOKABLE void loadMoreMyWave();
   Q_INVOKABLE void loadRecommendations();
+  Q_INVOKABLE void loadWheel();
 
   Q_INVOKABLE void loadLibrary();
   Q_INVOKABLE void selectLibraryPlaylist(int index);

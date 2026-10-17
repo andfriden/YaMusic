@@ -273,7 +273,12 @@ Item {
                                 cursorShape: Qt.PointingHandCursor
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
 
-                                onClicked: {
+                                onClicked: (mouse) => {
+                                    if (mouse.button === Qt.RightButton) {
+                                        playlistCard.cardMenu.open()
+                                        return
+                                    }
+
                                     if (root.controller === null || root.controller === undefined) {
                                         return
                                     }
@@ -299,10 +304,6 @@ Item {
                                 }
 
                                 onPressAndHold: {
-                                    playlistCard.cardMenu.open()
-                                }
-
-                                onRightClicked: {
                                     playlistCard.cardMenu.open()
                                 }
                             }
@@ -363,7 +364,7 @@ Item {
 
                                 title: "Новое название"
                                 standardButtons: Dialog.Ok | Dialog.Cancel
-                                anchors.centerIn: parent
+                                width: 320
 
                                 contentItem: Column {
                                     spacing: 12
@@ -394,7 +395,7 @@ Item {
 
                                 title: "Удалить плейлист?"
                                 standardButtons: Dialog.Yes | Dialog.No
-                                anchors.centerIn: parent
+                                width: 320
 
                                 onAccepted: {
                                     const uid = String(playlistCard.modelData.uid || "")
