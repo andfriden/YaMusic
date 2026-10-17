@@ -1,0 +1,73 @@
+name: Баг-репорт
+description: Падение, ошибка авторизации, проблема с воспроизведением
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Спасибо за отчёт!
+
+        ⚠️ **Не вставляйте ссылку OAuth-редиректа, логи и скриншоты с токенами** — это полный доступ к вашему аккаунту. Перед публикацией замените токены на `<redacted>`.
+
+  - type: input
+    id: version
+    attributes:
+      label: Версия YaMusic
+      description: Из окна «Настройки» или из имени файла пакета
+      placeholder: v0.14.3
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: ОС
+      options:
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Windows x64
+        - Linux (AppImage)
+        - Linux (tar.gz / сборка из исходников)
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Как воспроизвести
+      description: По шагам, начиная от запуска приложения
+      placeholder: |
+        1. Открыть «Поиск», ввести ...
+        2. Запустить трек ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Ожидаемое и фактическое поведение
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Логи и отчёт о падении
+      description: Вывод из терминала при запуске и файл отчёта из окна CrashReporter (токены заменить на `<redacted>`)
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Проверки
+      options:
+        - label: Воспроизводится на последней версии
+          required: true
+        - label: Поискал(а) похожие issues и не нашёл(ла) дубль
+          required: true
+        - label: В тексте нет токенов и ссылок авторизации
+          required: true
