@@ -28,6 +28,7 @@ void AppController::selectPersonalPlaylist(const QString &uid, int kind) {
     return;
   }
 
+  m_personalController->deactivateMyWave();
   emit playlistPageRequested();
   m_libraryController->loadPlaylist(playlistUid, kind);
 
@@ -41,6 +42,7 @@ void AppController::selectPersonalPlaylist(const QString &uid, int kind) {
 }
 
 void AppController::selectPlaylistTrack(int index) {
+  m_personalController->deactivateMyWave();
   m_libraryController->selectPlaylistTrack(index);
 }
 
@@ -49,10 +51,12 @@ void AppController::selectRecentListening(int index) {
 }
 
 void AppController::selectAlbumTrack(int index) {
+  m_personalController->deactivateMyWave();
   m_albumController->selectAlbumTrack(index);
 }
 
 void AppController::selectArtistTrack(int index) {
+  m_personalController->deactivateMyWave();
   m_artistController->selectTrack(index);
 }
 
@@ -61,6 +65,8 @@ void AppController::selectSimilarArtist(int index) {
 }
 
 void AppController::selectSimilarTrack(int index) {
+  m_personalController->deactivateMyWave();
+
   const Track track = m_similarTracksModel->trackAt(index);
 
   if (track.id.isEmpty()) {
