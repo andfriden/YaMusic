@@ -76,7 +76,6 @@ Item {
 
         onBackRequested: navigationController.goBack()
         onCrashReportsRequested: root.crashReportsRequested()
-        onSettingsRequested: navigationController.selectSection("settings")
     }
 
     Row {

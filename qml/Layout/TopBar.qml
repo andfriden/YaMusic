@@ -13,7 +13,6 @@ Item {
 
     signal backRequested()
     signal crashReportsRequested()
-    signal settingsRequested()
 
     readonly property int barHeight: 68
 
@@ -124,58 +123,6 @@ Item {
                 cursorShape: Qt.PointingHandCursor
 
                 onClicked: root.backRequested()
-            }
-        }
-
-        // Распорка: прижимает настройки к правому краю
-        Item {
-            Layout.fillWidth: true
-        }
-
-        Item {
-            id: settingsButton
-
-            Layout.preferredWidth: 38
-            Layout.preferredHeight: 38
-
-            Rectangle {
-                anchors.fill: parent
-                radius: 10
-
-                color: settingsMouseArea.containsMouse ? AppTheme.panelHover : AppTheme.panelSubtle
-
-                border.width: 1
-                border.color: settingsMouseArea.containsMouse ? AppTheme.border : AppTheme.borderSubtle
-
-                Behavior on color {
-                    ColorAnimation { duration: 120 }
-                }
-
-                Behavior on border.color {
-                    ColorAnimation { duration: 120 }
-                }
-            }
-
-            Text {
-                anchors.centerIn: parent
-
-                text: "⚙"
-                color: settingsMouseArea.containsMouse ? AppTheme.textPrimary : AppTheme.textSecondary
-                font.pixelSize: 16
-
-                Behavior on color {
-                    ColorAnimation { duration: 120 }
-                }
-            }
-
-            MouseArea {
-                id: settingsMouseArea
-
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-
-onClicked: root.settingsRequested()
             }
         }
     }
