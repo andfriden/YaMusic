@@ -100,6 +100,15 @@ void PersonalController::handleMyWaveReceived(const QList<Track> &tracks, const 
   emit loadingMyWaveChanged();
   emit loadingMoreMyWaveChanged();
 
+  /*
+   * Пока запрос был в пути, пользователь ушёл в плейлист, альбом или
+   * станцию — сессия закрыта. Устаревший ответ не должен перезаписывать
+   * очередь и подменять чужой источник.
+   */
+  if (!m_myWaveQueueActive) {
+    return;
+  }
+
   // Пропуск или дизлайк пересчитали последовательность: свежая партия
   // заменяет очередь целиком, чтобы слышно было уже новое.
   if (m_replaceMyWaveQueue) {
@@ -343,6 +352,13 @@ void PersonalController::deactivateMyWave() {
 
 bool PersonalController::handleMyWaveSkip() {
   if (!m_myWaveQueueActive) {
+    return false;
+  }
+
+  // «Далее» принадлежит волне только пока играет её очередь.
+  QueueService *queue = m_playbackController->queueService();
+
+  if (queue == nullptr || queue->sourceType() != QStringLiteral("myWave")) {
     return false;
   }
 

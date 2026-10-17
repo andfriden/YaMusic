@@ -56,13 +56,25 @@ void PersonalController::connectPlayback() {
           &PlaybackController::currentTrackChanged,
           this,
           [this]() {
-            if (!m_myWaveQueueActive)
-              return;
-
             QueueService *queue =
                 m_playbackController->queueService();
 
             if (queue == nullptr)
+              return;
+
+            /*
+             * Заиграл другой источник (плейлист, альбом, станция):
+             * сессия «Моей волны» закрывается, иначе она перехватит
+             * «далее» и фидбек ротора чужого трека.
+             */
+            if (queue->sourceType() != QStringLiteral("myWave")) {
+              if (m_myWaveQueueActive)
+                deactivateMyWave();
+
+              return;
+            }
+
+            if (!m_myWaveQueueActive)
               return;
 
             const Track currentTrack =
