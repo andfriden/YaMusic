@@ -11,7 +11,7 @@ Item {
 
     // Имя глифа: play, pause, next, prev, shuffle, repeat, repeatOne,
     // chevronLeft, chevronRight, chevronDown, heart, heartFilled, heartOff,
-    // lyrics, queue, expand, mini, close, note.
+    // lyrics, queue, expand, mini, close, note, sport.
     property string glyph: ""
     property color color: AppTheme.textPrimary
     property real size: 20
@@ -57,7 +57,8 @@ artist: ["M12 14.2a3.1 3.1 0 0 0 3.1-3.1V6.6a3.1 3.1 0 0 0-6.2 0v4.5a3.1 3.1 0 0
         search: ["M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14z M20.5 20.5 16 16"],
         playlist: ["M4 7h13 M4 11h13 M4 15h8 M17.5 15.5l4-2-4-2z"],
         stats: ["M4 20V4 M4 20h16", "M8.5 16v-4.5 M13 16V8.5 M17.5 16v-6"],
-        settings: ["M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z M18.4 12a6.4 6.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a6.3 6.3 0 0 0-1.7-1L14 3.5h-4l-.2 2.5a6.3 6.3 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a6.4 6.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a6.3 6.3 0 0 0 1.7 1L10 20.5h4l.2-2.5a6.3 6.3 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z"]
+        settings: ["M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z M18.4 12a6.4 6.4 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a6.3 6.3 0 0 0-1.7-1L14 3.5h-4l-.2 2.5a6.3 6.3 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a6.4 6.4 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a6.3 6.3 0 0 0 1.7 1L10 20.5h4l.2-2.5a6.3 6.3 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z"],
+        sport: ["M8 12h8 M5 8.5v7 M8 10v4 M16 10v4 M19 8.5v7"]
     })
 
     Shape {

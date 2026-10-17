@@ -60,7 +60,7 @@ Item {
                 { title: "Станции", section: "stations", glyph: "station" },
                 { title: "Подкасты", section: "podcasts", glyph: "podcast" },
                 { title: "Плейлисты", section: "playlists", glyph: "playlist" },
-                { title: "Спорт", section: "sport", glyph: "heartFilled" },
+                { title: "Спорт", section: "sport", glyph: "sport" },
                 { title: "Мне нравится", section: "liked", glyph: "heartFilled" },
                 { title: "Статистика", section: "stats", glyph: "stats" },
                 { title: "Настройки", section: "settings", glyph: "settings" }
