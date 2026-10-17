@@ -62,7 +62,8 @@ Item {
                 { title: "Плейлисты", section: "playlists", glyph: "playlist" },
                 { title: "Спорт", section: "sport", glyph: "heartFilled" },
                 { title: "Мне нравится", section: "liked", glyph: "heartFilled" },
-                { title: "Статистика", section: "stats", glyph: "stats" }
+                { title: "Статистика", section: "stats", glyph: "stats" },
+                { title: "Настройки", section: "settings", glyph: "settings" }
             ]
 
             delegate: Item {

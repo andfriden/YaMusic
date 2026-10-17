@@ -69,7 +69,6 @@ ApplicationWindow {
             authController: authController
 
             onCrashReportsRequested: crashReportsDialog.open()
-            onSettingsRequested: settingsWindow.showSettings()
         }
 
         NowPlayingBar {
@@ -129,15 +128,6 @@ ApplicationWindow {
         id: playerWindow
 
         controller: appController
-    }
-
-    SettingsWindow {
-        id: settingsWindow
-
-        controller: appController
-        authController: authController
-
-        onCrashReportsRequested: crashReportsDialog.open()
     }
 
     StatusBar {

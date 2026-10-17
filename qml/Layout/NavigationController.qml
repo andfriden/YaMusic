@@ -183,6 +183,8 @@ Item {
                 return "../Pages/SportPage.qml"
             case "stats":
                 return "../Pages/StatisticsPage.qml"
+            case "settings":
+                return "../Pages/SettingsPage.qml"
             default:
                 return "../Pages/HomePage.qml"
         }
@@ -219,6 +221,7 @@ Item {
             case "sport":
             case "liked":
             case "stats":
+            case "settings":
             default:
                 return "home"
         }

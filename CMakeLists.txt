@@ -407,10 +407,10 @@ set(
         "${YAMUSIC_QML_ROOT}/Components/CrashReportsDialog.qml"
         "${YAMUSIC_QML_ROOT}/Components/MiniPlayer.qml"
         "${YAMUSIC_QML_ROOT}/Components/PlayerWindow.qml"
-        "${YAMUSIC_QML_ROOT}/Components/SettingsWindow.qml"
 
         # Pages
         "${YAMUSIC_QML_ROOT}/Pages/HomePage.qml"
+        "${YAMUSIC_QML_ROOT}/Pages/SettingsPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/SearchPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/MyWavePage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/LibraryPage.qml"
