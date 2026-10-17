@@ -9,6 +9,7 @@ Item {
     property var authController
 
     readonly property int topBarHeight: 68
+    readonly property int sidebarWidth: 220
     readonly property int contextPanelWidth: 280
 
     readonly property string currentSection:
@@ -42,11 +43,28 @@ Item {
         color: AppTheme.backgroundPrimary
     }
 
+    // ---- Боковой сайдбар (как в mashiro) ----
+    Sidebar {
+        id: sidebar
+
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.bottom: parent.bottom
+
+        width: root.sidebarWidth
+
+        currentSection: root.currentSection
+
+        onSectionSelected: function(section) {
+            navigationController.selectSection(section)
+        }
+    }
+
     TopBar {
         id: topBar
 
         anchors.top: parent.top
-        anchors.left: parent.left
+        anchors.left: sidebar.right
         anchors.right: parent.right
 
         height: root.topBarHeight
@@ -56,10 +74,6 @@ Item {
         currentSection: root.currentSection
         canGoBack: root.canGoBack
 
-        onSectionSelected: function(section) {
-            navigationController.selectSection(section)
-        }
-
         onBackRequested: navigationController.goBack()
         onCrashReportsRequested: root.crashReportsRequested()
         onSettingsRequested: root.settingsRequested()
@@ -67,7 +81,7 @@ Item {
 
     Row {
         anchors.top: topBar.bottom
-        anchors.left: parent.left
+        anchors.left: sidebar.right
         anchors.right: parent.right
         anchors.bottom: parent.bottom
 

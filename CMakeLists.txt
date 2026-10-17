@@ -391,6 +391,7 @@ set(
 
         # Components
         "${YAMUSIC_QML_ROOT}/Components/SearchBar.qml"
+        "${YAMUSIC_QML_ROOT}/Components/Sidebar.qml"
         "${YAMUSIC_QML_ROOT}/Components/StatusBar.qml"
         "${YAMUSIC_QML_ROOT}/Components/NowPlayingBar.qml"
         "${YAMUSIC_QML_ROOT}/Components/EntityLink.qml"
