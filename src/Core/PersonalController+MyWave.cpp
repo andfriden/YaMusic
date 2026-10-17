@@ -333,6 +333,14 @@ void PersonalController::reportMyWaveDislike(const QString &trackId, bool dislik
   }
 }
 
+void PersonalController::deactivateMyWave() {
+  m_myWaveQueueActive = false;
+  m_waitingForMoreMyWave = false;
+  m_replaceMyWaveQueue = false;
+  m_currentMyWaveTrackId.clear();
+  m_myWaveTrackStarted = false;
+}
+
 bool PersonalController::handleMyWaveSkip() {
   if (!m_myWaveQueueActive) {
     return false;

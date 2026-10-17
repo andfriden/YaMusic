@@ -66,6 +66,10 @@ public:
 
   Q_INVOKABLE void selectRecentListening(int index);
 
+  // Деактивирует сессию «Моей волны»: при выходе в обычный плейлист,
+  // альбом или артиста волна не должна перехватывать навигацию и «далее».
+  void deactivateMyWave();
+
   MyWaveModel *myWaveModel() const;
 
   PersonalPlaylistsModel *personalPlaylistsModel() const;
