@@ -148,6 +148,10 @@ public:
 
   Q_INVOKABLE void renameCurrentPlaylist(const QString &newTitle);
 
+  Q_INVOKABLE void deletePlaylist(const QString &uid, int kind);
+
+  Q_INVOKABLE void renamePlaylist(const QString &uid, int kind, const QString &newTitle);
+
   Q_INVOKABLE void removeTrackFromPlaylist(int index);
 
   Q_INVOKABLE void addTrackToPlaylist(int kind, const QString &trackId, const QString &albumId,

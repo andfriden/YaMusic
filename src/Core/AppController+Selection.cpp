@@ -97,6 +97,14 @@ void AppController::renameCurrentPlaylist(const QString &newTitle) {
   m_libraryController->renameCurrentPlaylist(newTitle);
 }
 
+void AppController::deletePlaylist(const QString &uid, int kind) {
+  m_libraryController->deletePlaylist(uid, kind);
+}
+
+void AppController::renamePlaylist(const QString &uid, int kind, const QString &newTitle) {
+  m_libraryController->renamePlaylist(uid, kind, newTitle);
+}
+
 void AppController::removeTrackFromPlaylist(int index) {
   m_libraryController->removeTrackFromPlaylist(index);
 }

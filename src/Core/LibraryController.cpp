@@ -516,6 +516,28 @@ void LibraryController::renameCurrentPlaylist(const QString &newTitle) {
   m_playlistService->renamePlaylist(m_userId, kind, newTitle);
 }
 
+void LibraryController::deletePlaylist(const QString &uid, int kind) {
+  const QString userId = uid.trimmed();
+
+  if (userId.isEmpty() || kind <= 0) {
+    emit statusChanged("Некорректный плейлист");
+    return;
+  }
+
+  m_playlistService->deletePlaylist(userId, kind);
+}
+
+void LibraryController::renamePlaylist(const QString &uid, int kind, const QString &newTitle) {
+  const QString userId = uid.trimmed();
+
+  if (userId.isEmpty() || kind <= 0) {
+    emit statusChanged("Некорректный плейлист");
+    return;
+  }
+
+  m_playlistService->renamePlaylist(userId, kind, newTitle);
+}
+
 void LibraryController::removeTrackFromPlaylist(int index) {
   if (m_userId.isEmpty()) {
     emit statusChanged("Не удалось удалить трек");
