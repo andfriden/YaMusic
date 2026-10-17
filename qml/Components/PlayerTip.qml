@@ -35,7 +35,8 @@ Popup {
     y: root.below ? parent.height + 8 : -height - 8
 
     background: Rectangle {
-        radius: 6
+        // Капсула: радиус равен половине высоты, а не «коробка» со скруглением.
+        radius: height / 2
         color: AppTheme.macchiatoSurface0
         border.width: 1
         border.color: AppTheme.macchiatoSurface2
@@ -45,9 +46,10 @@ Popup {
         text: root.text
         color: AppTheme.macchiatoText
         font.pixelSize: 12
+        font.weight: Font.Medium
 
-        leftPadding: 9
-        rightPadding: 9
+        leftPadding: 13
+        rightPadding: 13
         topPadding: 6
         bottomPadding: 6
     }
