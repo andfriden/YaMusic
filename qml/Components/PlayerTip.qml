@@ -37,9 +37,14 @@ Popup {
     background: Rectangle {
         // Капсула: радиус равен половине высоты, а не «коробка» со скруглением.
         radius: height / 2
-        color: AppTheme.accent
+        color: Qt.rgba(
+            AppTheme.accent.r,
+            AppTheme.accent.g,
+            AppTheme.accent.b,
+            0.82
+        )
         border.width: 1
-        border.color: Qt.rgba(1, 1, 1, 0.28)
+        border.color: Qt.rgba(1, 1, 1, 0.22)
     }
 
     contentItem: Text {
@@ -49,10 +54,10 @@ Popup {
         font.pixelSize: 10
         font.weight: Font.Medium
 
-        leftPadding: 7
-        rightPadding: 7
-        topPadding: 3
-        bottomPadding: 3
+        leftPadding: 5
+        rightPadding: 5
+        topPadding: 2
+        bottomPadding: 2
     }
 
     Timer {
