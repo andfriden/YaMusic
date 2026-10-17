@@ -175,6 +175,18 @@ Item {
             navigationController.selectSection("library")
         }
 
+        function onWaveRequested() {
+            navigationController.selectSection("wave")
+        }
+
+        function onLikedRequested() {
+            navigationController.selectSection("liked")
+        }
+
+        function onLibraryRequested() {
+            navigationController.selectSection("library")
+        }
+
         function onGenreRequested(genreId, title, image, color, subGenres) {
             navigationController.openGenrePage(genreId, title, image, color)
         }

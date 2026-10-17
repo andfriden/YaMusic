@@ -271,6 +271,7 @@ Item {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
+                                acceptedButtons: Qt.LeftButton | Qt.RightButton
 
                                 onClicked: {
                                     if (root.controller === null || root.controller === undefined) {
@@ -294,6 +295,113 @@ Item {
                                         }
 
                                         root.controller.selectPersonalPlaylist(uid, kind)
+                                    }
+                                }
+
+                                onPressAndHold: {
+                                    playlistCard.cardMenu.open()
+                                }
+
+                                onRightClicked: {
+                                    playlistCard.cardMenu.open()
+                                }
+                            }
+
+                            Menu {
+                                id: cardMenu
+
+                                width: 220
+
+                                MenuItem {
+                                    text: "Слушать"
+
+                                    onClicked: {
+                                        const kind = Number(playlistCard.modelData.kind || 0)
+                                        const uid = String(playlistCard.modelData.uid || "")
+
+                                        if (kind > 0 && uid.length > 0 && root.controller) {
+                                            root.controller.selectPersonalPlaylist(uid, kind)
+                                        }
+                                    }
+                                }
+
+                                MenuItem {
+                                    text: "Открыть"
+
+                                    onClicked: {
+                                        const kind = Number(playlistCard.modelData.kind || 0)
+                                        const uid = String(playlistCard.modelData.uid || "")
+
+                                        if (kind > 0 && uid.length > 0 && root.controller) {
+                                            root.controller.selectPersonalPlaylist(uid, kind)
+                                        }
+                                    }
+                                }
+
+                                MenuItem {
+                                    text: "Переименовать"
+
+                                    onClicked: {
+                                        playlistCard.renameDialog.newName = String(playlistCard.modelData.title || "")
+                                        playlistCard.renameDialog.open()
+                                    }
+                                }
+
+                                MenuItem {
+                                    text: "Удалить"
+
+                                    onClicked: {
+                                        playlistCard.deleteDialog.open()
+                                    }
+                                }
+                            }
+
+                            Dialog {
+                                id: renameDialog
+
+                                property string newName: ""
+
+                                title: "Новое название"
+                                standardButtons: Dialog.Ok | Dialog.Cancel
+                                anchors.centerIn: parent
+
+                                contentItem: Column {
+                                    spacing: 12
+
+                                    TextField {
+                                        width: 280
+
+                                        text: renameDialog.newName
+                                        selectByMouse: true
+
+                                        onAccepted: renameDialog.accept()
+                                        Component.onCompleted: forceActiveFocus()
+                                    }
+                                }
+
+                                onAccepted: {
+                                    const uid = String(playlistCard.modelData.uid || "")
+                                    const kind = Number(playlistCard.modelData.kind || 0)
+
+                                    if (root.controller && uid.length > 0 && kind > 0) {
+                                        root.controller.renamePlaylist(uid, kind, renameDialog.newName.trim())
+                                    }
+                                }
+                            }
+
+                            Dialog {
+                                id: deleteDialog
+
+                                title: "Удалить плейлист?"
+                                standardButtons: Dialog.Yes | Dialog.No
+                                anchors.centerIn: parent
+
+                                onAccepted: {
+                                    const uid = String(playlistCard.modelData.uid || "")
+                                    const kind = Number(playlistCard.modelData.kind || 0)
+
+                                    if (root.controller && uid.length > 0 && kind > 0) {
+                                        root.controller.deletePlaylist(uid, kind)
                                     }
                                 }
                             }

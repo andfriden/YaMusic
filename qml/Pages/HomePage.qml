@@ -12,6 +12,38 @@ Item {
     implicitHeight: content.implicitHeight
     height: implicitHeight
 
+    signal waveRequested()
+    signal likedRequested()
+    signal libraryRequested()
+
+    readonly property var personalController:
+        root.controller !== null && root.controller !== undefined &&
+        root.controller.personalController !== undefined
+            ? root.controller.personalController
+            : null
+
+    readonly property var stationsController:
+        root.controller !== null && root.controller !== undefined &&
+        root.controller.stationsController !== undefined
+            ? root.controller.stationsController
+            : null
+
+    readonly property var wheelItems:
+        root.personalController !== null && root.personalController.wheelItems
+            ? root.personalController.wheelItems
+            : []
+
+    // «Новое для тебя»: альбомы, подборки, артисты из Колеса.
+    readonly property var picks:
+        root.wheelItems.filter((item) => item.type !== "wave")
+
+    // «Волны по настроению»: элементы Колеса типа "wave".
+    readonly property var waves:
+        root.wheelItems.filter((item) => item.type === "wave")
+
+    readonly property int cardWidth: 150
+    readonly property int cardSpacing: 18
+
     Component.onCompleted: {
         if (root.controller !== null && root.controller !== undefined) {
             root.controller.loadMyWave()
@@ -20,15 +52,99 @@ Item {
         }
     }
 
+    function greeting() {
+        const hour = new Date().getHours()
+        if (hour < 6) return "Доброй ночи"
+        if (hour < 12) return "Доброе утро"
+        if (hour < 18) return "Добрый день"
+        return "Добрый вечер"
+    }
+
+    function startWheelWave(item) {
+        if (root.stationsController === null) {
+            return
+        }
+
+        // Сид станции вида "type:tag" — разбираем на составные части.
+        const station = String(item.station || "")
+        const separator = station.indexOf(":")
+        const type = separator > 0 ? station.substring(0, separator) : ""
+        const tag = separator > 0 ? station.substring(separator + 1) : station
+
+        if (type.length > 0 && tag.length > 0) {
+            root.stationsController.selectStation(type, tag, item.title || "Волна")
+            return
+        }
+
+        // Нет сида — просто открываем страницу волны.
+        root.waveRequested()
+    }
+
+    function openPick(item) {
+        if (root.controller === null) {
+            return
+        }
+
+        if (item.type === "album") {
+            root.controller.loadAlbum(item.id)
+        } else if (item.type === "artist") {
+            root.controller.loadArtist(item.id)
+        }
+    }
+
+    function playPick(item) {
+        if (root.controller === null) {
+            return
+        }
+
+        if (item.type === "album") {
+            root.controller.playAlbum(item.id)
+            return
+        }
+
+        // Для артиста и подборок запускаем волну по сиду.
+        startWheelWave(item)
+    }
+
     Column {
         id: content
 
         width: parent.width
-        spacing: 24
+        spacing: 26
 
-        SearchBar {
-            width: content.width
-            controller: root.controller
+        // ---- Приветствие ----
+        Label {
+            text: root.greeting()
+            color: AppTheme.textPrimary
+            font.pixelSize: 28
+            font.bold: true
+        }
+
+        // ---- Кнопки-действия ----
+        Row {
+            spacing: 10
+
+            ActionButton {
+                text: "Моя волна"
+                glyph: "play"
+                emphasized: true
+
+                onClicked: root.waveRequested()
+            }
+
+            ActionButton {
+                text: "Мне нравится"
+                glyph: "heartFilled"
+
+                onClicked: root.likedRequested()
+            }
+
+            ActionButton {
+                text: "Поиск в библиотеке"
+                glyph: "search"
+
+                onClicked: root.libraryRequested()
+            }
         }
 
         MyWaveSection {
@@ -37,82 +153,41 @@ Item {
             controller: root.controller
         }
 
-        Column {
+        // ---- Новое для тебя ----
+        SectionCardGrid {
             width: content.width
-            visible: root.controller &&
-                root.controller.personalController &&
-                root.controller.personalController.wheelItems &&
-                root.controller.personalController.wheelItems.length > 0
+            visible: root.picks.length > 0
+            title: "Новое для тебя"
+            model: root.picks
+            cardWidth: root.cardWidth
+            cardSpacing: root.cardSpacing
+            roundArtwork: false
 
-            spacing: 10
-
-            Label {
-                width: parent.width
-
-                text: "Колесо"
-                color: AppTheme.textPrimary
-                font.pixelSize: 20
-                font.bold: true
+            onCardClicked: function(index, item) {
+                root.openPick(item)
             }
 
-            ListView {
-                width: parent.width
-                height: 140
-                orientation: ListView.Horizontal
-                spacing: 12
-                clip: true
+            onPlayRequested: function(index, item) {
+                root.playPick(item)
+            }
+        }
 
-                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
+        // ---- Волны по настроению ----
+        SectionCardGrid {
+            width: content.width
+            visible: root.waves.length > 0
+            title: "Волны по настроению"
+            model: root.waves
+            cardWidth: root.cardWidth
+            cardSpacing: root.cardSpacing
+            roundArtwork: true
 
-                model: root.controller.personalController.wheelItems
+            onCardClicked: function(index, item) {
+                root.startWheelWave(item)
+            }
 
-                delegate: Rectangle {
-                    required property var modelData
-
-                    width: 140
-                    height: 140
-                    radius: 12
-                    clip: true
-
-                    color: AppTheme.panelSecondary
-
-                    Image {
-                        anchors.fill: parent
-
-                        source: modelData.coverUri && modelData.coverUri.length > 0
-                            ? "image://yandex/" + modelData.coverUri
-                            : ""
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        cache: true
-                    }
-
-                    Rectangle {
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.bottom: parent.bottom
-                        height: 44
-
-                        gradient: Gradient {
-                            GradientStop { position: 0.0; color: "transparent" }
-                            GradientStop { position: 1.0; color: "#CC000000" }
-                        }
-                    }
-
-                    Label {
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.bottom: parent.bottom
-                        anchors.margins: 8
-
-                        text: modelData.title || ""
-                        color: "white"
-                        font.pixelSize: 12
-                        font.bold: true
-                        elide: Text.ElideRight
-                        maximumLineCount: 1
-                    }
-                }
+            onPlayRequested: function(index, item) {
+                root.startWheelWave(item)
             }
         }
 
@@ -125,6 +200,251 @@ Item {
         RecentListeningSection {
             width: content.width
             controller: root.controller
+        }
+    }
+
+    component ActionButton: Rectangle {
+        id: actionButton
+
+        property string text
+        property string glyph
+        property bool emphasized: false
+
+        signal clicked()
+
+        height: 44
+        radius: 12
+
+        color: actionMouseArea.containsMouse
+            ? AppTheme.panelHover
+            : (actionButton.emphasized ? AppTheme.accent : AppTheme.panel)
+
+        Behavior on color {
+            ColorAnimation { duration: 100 }
+        }
+
+        Row {
+            anchors.centerIn: parent
+            spacing: 8
+
+            Icon {
+                anchors.verticalCenter: parent.verticalCenter
+                glyph: actionButton.glyph
+                color: actionButton.emphasized
+                    ? AppTheme.accentOn
+                    : AppTheme.textSecondary
+                size: 15
+            }
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+
+                text: actionButton.text
+                color: actionButton.emphasized
+                    ? AppTheme.accentOn
+                    : AppTheme.textPrimary
+                font.pixelSize: 14
+                font.weight: Font.Medium
+            }
+        }
+
+        MouseArea {
+            id: actionMouseArea
+
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+
+            onClicked: actionButton.clicked()
+        }
+    }
+
+    component SectionCardGrid: Item {
+        id: gridSection
+
+        property string title
+        property var model
+        property int cardWidth: 150
+        property int cardSpacing: 18
+        property bool roundArtwork: false
+
+        signal cardClicked(int index, var item)
+        signal playRequested(int index, var item)
+
+        readonly property int columns: Math.max(
+            1, Math.floor(gridSection.width / (gridSection.cardWidth + gridSection.cardSpacing)))
+
+        readonly property int rowCount: Math.ceil(
+            (gridSection.model ? gridSection.model.length : 0) / gridSection.columns)
+
+        readonly property int cardHeight: gridSection.cardWidth + 38
+
+        implicitHeight:
+            listHeader.implicitHeight +
+            gridSection.rowCount * (gridSection.cardHeight + 22)
+
+        Column {
+            spacing: 8
+
+            Label {
+                id: listHeader
+
+                text: gridSection.title
+                color: AppTheme.textPrimary
+                font.pixelSize: 20
+                font.weight: Font.DemiBold
+            }
+
+            Rectangle {
+                width: 40
+                height: 3
+                radius: 1.5
+
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: AppTheme.accent }
+                    GradientStop { position: 1.0; color: AppTheme.mauveAccent }
+                }
+            }
+        }
+
+        Grid {
+            anchors.top: listHeader.bottom
+            anchors.topMargin: 14
+
+            columns: gridSection.columns
+            spacing: gridSection.cardSpacing
+
+            Repeater {
+                model: gridSection.model
+
+                delegate: Item {
+                    property var item: modelData
+
+                    width: gridSection.cardWidth
+                    height: gridSection.cardHeight
+
+                    Rectangle {
+                        id: artwork
+
+                        width: gridSection.cardWidth
+                        height: gridSection.cardWidth
+
+                        radius: gridSection.roundArtwork ? gridSection.cardWidth / 2 : 12
+                        color: AppTheme.panelSubtle
+                        clip: !gridSection.roundArtwork
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: parent.radius
+
+                            scale: cardMouse.containsMouse ? 1.02 : 1.0
+
+                            Behavior on scale {
+                                NumberAnimation { duration: 140; easing.type: Easing.OutCubic }
+                            }
+
+                            Image {
+                                id: coverImage
+
+                                anchors.fill: parent
+
+                                source: modelData.coverUri && String(modelData.coverUri).length > 0
+                                    ? "image://yandex/" + String(modelData.coverUri)
+                                    : ""
+
+                                sourceSize: Qt.size(artwork.width * 2, artwork.height * 2)
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
+                                cache: true
+                                smooth: true
+
+                                visible: status === Image.Ready
+                            }
+
+                            Label {
+                                anchors.centerIn: parent
+
+                                text: "♪"
+                                color: AppTheme.textSecondary
+                                font.pixelSize: 30
+
+                                visible: !gridSection.roundArtwork &&
+                                    coverImage.status !== Image.Ready
+                            }
+
+                            MouseArea {
+                                id: cardMouse
+
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+
+                                onClicked: gridSection.cardClicked(model.index, modelData)
+                            }
+
+                            // Плашка воспроизведения по наведению
+                            Rectangle {
+                                id: playBadge
+
+                                z: 2
+
+                                anchors.right: parent.right
+                                anchors.bottom: parent.bottom
+                                anchors.margins: 8
+
+                                width: 40
+                                height: 40
+                                radius: 20
+
+                                color: AppTheme.accent
+
+                                opacity: cardMouse.containsMouse ? 1.0 : 0.0
+                                scale: cardMouse.containsMouse ? 1.0 : 0.6
+
+                                Behavior on opacity {
+                                    NumberAnimation { duration: 120 }
+                                }
+
+                                Behavior on scale {
+                                    NumberAnimation { duration: 120; easing.type: Easing.OutBack }
+                                }
+
+                                Icon {
+                                    anchors.centerIn: parent
+                                    glyph: "play"
+                                    color: AppTheme.accentOn
+                                    size: 18
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+
+                                    onClicked: gridSection.playRequested(model.index, modelData)
+                                }
+                            }
+                        }
+                    }
+
+                    Label {
+                        anchors.top: artwork.bottom
+                        anchors.topMargin: 8
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+
+                        height: 18
+
+                        text: String(modelData.title || "")
+                        color: AppTheme.textPrimary
+                        font.pixelSize: 13
+                        font.weight: Font.Medium
+
+                        elide: Text.ElideRight
+                        maximumLineCount: 1
+                        clip: true
+                    }
+                }
+            }
         }
     }
 }
