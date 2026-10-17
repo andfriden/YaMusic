@@ -32,7 +32,7 @@ Popup {
     x: root.alignRight
         ? parent.width - width
         : Math.round((parent.width - width) / 2)
-    y: root.below ? parent.height + 8 : -height - 8
+    y: root.below ? parent.height + 6 : -height - 6
 
     background: Rectangle {
         // Капсула: радиус равен половине высоты, а не «коробка» со скруглением.
@@ -45,13 +45,13 @@ Popup {
     contentItem: Text {
         text: root.text
         color: AppTheme.macchiatoText
-        font.pixelSize: 12
+        font.pixelSize: 11
         font.weight: Font.Medium
 
-        leftPadding: 13
-        rightPadding: 13
-        topPadding: 6
-        bottomPadding: 6
+        leftPadding: 10
+        rightPadding: 10
+        topPadding: 4
+        bottomPadding: 4
     }
 
     Timer {
