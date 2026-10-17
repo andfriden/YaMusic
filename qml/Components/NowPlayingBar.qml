@@ -288,6 +288,8 @@ Rectangle {
 
                     anchors.fill: parent
 
+                    hoverEnabled: true
+
                     enabled: root.hasTrack && root.hasController &&
                         String(root.controller.currentTrackId || "").length > 0
 
@@ -306,6 +308,13 @@ Rectangle {
 
                         root.controller.toggleLike(trackId, root.controller.currentTrackLiked)
                     }
+                }
+
+                PlayerTip {
+                    text: root.controller && root.controller.currentTrackLiked
+                        ? qsTr("Убрать из «Мне нравится»")
+                        : qsTr("Мне нравится")
+                    target: likeMouseArea
                 }
             }
 
@@ -369,6 +378,13 @@ Rectangle {
                         root.controller.toggleDislike(trackId, root.currentTrackDisliked)
                     }
                 }
+
+                PlayerTip {
+                    text: root.currentTrackDisliked
+                        ? qsTr("Убрать дизлайк")
+                        : qsTr("Не нравится")
+                    target: dislikeMouseArea
+                }
             }
         }
 
@@ -415,6 +431,7 @@ Rectangle {
                         id: shuffleMouseArea
 
                         anchors.fill: parent
+                        hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
 
                         onClicked: {
@@ -422,6 +439,11 @@ Rectangle {
                                 root.controller.toggleShuffle()
                             }
                         }
+                    }
+
+                    PlayerTip {
+                        text: qsTr("Перемешать")
+                        target: shuffleMouseArea
                     }
                 }
 
@@ -449,6 +471,7 @@ Rectangle {
                         id: previousMouseArea
 
                         anchors.fill: parent
+                        hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
 
                         onClicked: {
@@ -456,6 +479,11 @@ Rectangle {
                                 root.controller.previous()
                             }
                         }
+                    }
+
+                    PlayerTip {
+                        text: qsTr("Предыдущий трек")
+                        target: previousMouseArea
                     }
                 }
 
@@ -531,6 +559,7 @@ Rectangle {
                         id: playMouseArea
 
                         anchors.fill: parent
+                        hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
 
                         onClicked: {
@@ -544,6 +573,13 @@ Rectangle {
                                 root.controller.play()
                             }
                         }
+                    }
+
+                    PlayerTip {
+                        text: root.loading
+                            ? qsTr("Загрузка")
+                            : (root.playing ? qsTr("Пауза") : qsTr("Воспроизвести"))
+                        target: playMouseArea
                     }
                 }
 
@@ -571,6 +607,7 @@ Rectangle {
                         id: nextMouseArea
 
                         anchors.fill: parent
+                        hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
 
                         onClicked: {
@@ -578,6 +615,11 @@ Rectangle {
                                 root.controller.next()
                             }
                         }
+                    }
+
+                    PlayerTip {
+                        text: qsTr("Следующий трек")
+                        target: nextMouseArea
                     }
                 }
 
@@ -607,6 +649,7 @@ Rectangle {
                         id: repeatMouseArea
 
                         anchors.fill: parent
+                        hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
 
                         onClicked: {
@@ -614,6 +657,21 @@ Rectangle {
                                 root.controller.cycleRepeat()
                             }
                         }
+                    }
+
+                    PlayerTip {
+                        text: {
+                            const mode = root.controller ? root.controller.repeatMode : 0
+
+                            if (mode === 1) {
+                                return qsTr("Повтор трека")
+                            }
+                            if (mode === 2) {
+                                return qsTr("Повтор списка")
+                            }
+                            return qsTr("Повтор выключен")
+                        }
+                        target: repeatMouseArea
                     }
                 }
             }
@@ -738,6 +796,7 @@ Rectangle {
                     id: downloadMouseArea
 
                     anchors.fill: parent
+                    hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
 
                     enabled: root.hasTrack && root.hasController
@@ -749,6 +808,24 @@ Rectangle {
 
                         root.controller.downloadCurrentTrack()
                     }
+                }
+
+                PlayerTip {
+                    text: {
+                        const state = downloadIcon.dlState
+
+                        if (state === 1) {
+                            return qsTr("Скачивание…")
+                        }
+                        if (state === 2) {
+                            return qsTr("Скачано")
+                        }
+                        if (state === 3) {
+                            return qsTr("Повторить скачивание")
+                        }
+                        return qsTr("Скачать трек")
+                    }
+                    target: downloadMouseArea
                 }
             }
 
@@ -778,9 +855,15 @@ Rectangle {
                     id: lyricsMouseArea
 
                     anchors.fill: parent
+                    hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
 
                     onClicked: root.lyricsRequested()
+                }
+
+                PlayerTip {
+                    text: qsTr("Текст песни")
+                    target: lyricsMouseArea
                 }
             }
 
@@ -807,6 +890,7 @@ Rectangle {
                     id: volumeMouseArea
 
                     anchors.fill: parent
+                    hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
 
                     onClicked: {
@@ -820,6 +904,13 @@ Rectangle {
                             root.controller.setVolume(1)
                         }
                     }
+                }
+
+                PlayerTip {
+                    text: root.controller && root.controller.volume > 0
+                        ? qsTr("Выключить звук")
+                        : qsTr("Включить звук")
+                    target: volumeMouseArea
                 }
             }
 
@@ -896,9 +987,15 @@ Rectangle {
                     id: miniMouseArea
 
                     anchors.fill: parent
+                    hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
 
                     onClicked: root.miniPlayerRequested()
+                }
+
+                PlayerTip {
+                    text: qsTr("Мини-плеер")
+                    target: miniMouseArea
                 }
             }
 
@@ -926,9 +1023,16 @@ Rectangle {
                     id: expandMouseArea
 
                     anchors.fill: parent
+                    hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
 
                     onClicked: root.expandedRequested()
+                }
+
+                PlayerTip {
+                    text: qsTr("Развернуть плеер")
+                    target: expandMouseArea
+                    alignRight: true
                 }
             }
         }

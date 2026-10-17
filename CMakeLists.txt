@@ -401,6 +401,7 @@ set(
         "${YAMUSIC_QML_ROOT}/Components/TrackRow.qml"
         "${YAMUSIC_QML_ROOT}/Components/Badge.qml"
         "${YAMUSIC_QML_ROOT}/Components/Icon.qml"
+        "${YAMUSIC_QML_ROOT}/Components/PlayerTip.qml"
         "${YAMUSIC_QML_ROOT}/Components/PlaylistCard.qml"
         "${YAMUSIC_QML_ROOT}/Components/PlaylistPicker.qml"
         "${YAMUSIC_QML_ROOT}/Components/UpdateDialog.qml"

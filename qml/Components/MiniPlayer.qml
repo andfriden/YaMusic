@@ -294,6 +294,7 @@ Window {
                     MouseArea {
                         id: likeArea
                         anchors.fill: parent
+                        hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         enabled: root.hasTrack && root.controller &&
                             root.currentTrackId.length > 0
@@ -305,6 +306,13 @@ Window {
                             root.controller.toggleLike(root.currentTrackId,
                                 root.currentTrackLiked)
                         }
+                    }
+
+                    PlayerTip {
+                        text: root.currentTrackLiked
+                            ? qsTr("Убрать из «Мне нравится»")
+                            : qsTr("Мне нравится")
+                        target: likeArea
                     }
                 }
 
@@ -338,6 +346,7 @@ Window {
                     MouseArea {
                         id: dislikeArea
                         anchors.fill: parent
+                        hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         enabled: root.hasTrack && root.controller &&
                             root.currentTrackId.length > 0
@@ -349,6 +358,13 @@ Window {
                             root.controller.toggleDislike(root.currentTrackId,
                                 root.currentTrackDisliked)
                         }
+                    }
+
+                    PlayerTip {
+                        text: root.currentTrackDisliked
+                            ? qsTr("Убрать дизлайк")
+                            : qsTr("Не нравится")
+                        target: dislikeArea
                     }
                 }
 
@@ -375,12 +391,18 @@ Window {
                     MouseArea {
                         id: prevArea
                         anchors.fill: parent
+                        hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (root.controller) {
                                 root.controller.previous()
                             }
                         }
+                    }
+
+                    PlayerTip {
+                        text: qsTr("Предыдущий трек")
+                        target: prevArea
                     }
                 }
 
@@ -403,7 +425,9 @@ Window {
                     }
 
                     MouseArea {
+                        id: playArea
                         anchors.fill: parent
+                        hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (!root.controller) {
@@ -415,6 +439,13 @@ Window {
                                 root.controller.play()
                             }
                         }
+                    }
+
+                    PlayerTip {
+                        text: root.playing
+                            ? qsTr("Пауза")
+                            : qsTr("Воспроизвести")
+                        target: playArea
                     }
                 }
 
@@ -441,12 +472,18 @@ Window {
                     MouseArea {
                         id: nextArea
                         anchors.fill: parent
+                        hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (root.controller) {
                                 root.controller.next()
                             }
                         }
+                    }
+
+                    PlayerTip {
+                        text: qsTr("Следующий трек")
+                        target: nextArea
                     }
                 }
             }
@@ -525,8 +562,16 @@ Window {
             MouseArea {
                 id: expandArea
                 anchors.fill: parent
+                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: root.expandRequested()
+            }
+
+            PlayerTip {
+                text: qsTr("Открыть в окне плеера")
+                target: expandArea
+                alignRight: true
+                below: true
             }
         }
     }
