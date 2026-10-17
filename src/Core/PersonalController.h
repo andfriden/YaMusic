@@ -66,6 +66,10 @@ public:
 
   Q_INVOKABLE void selectRecentListening(int index);
 
+  // Деактивирует сессию «Моей волны»: при выходе в обычный плейлист,
+  // альбом или артиста волна не должна перехватывать навигацию и «далее».
+  void deactivateMyWave();
+
   MyWaveModel *myWaveModel() const;
 
   PersonalPlaylistsModel *personalPlaylistsModel() const;
@@ -84,6 +88,10 @@ public:
   // подборок (Премьера, Дежавю, Тайник, Плейлист дня).
   QVariantList recommendationPlaylistsData(const QString &excludeUid = {},
                                            int excludeKind = 0) const;
+
+  // Альбомы секции «new-releases» лендинга в виде QVariantList
+  // (albumId/title/coverUri/year) — для страницы «Новые релизы».
+  Q_INVOKABLE QVariantList newReleasesAlbums() const;
 
   bool isLoadingMyWave() const;
 

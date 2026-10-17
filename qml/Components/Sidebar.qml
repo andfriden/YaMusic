@@ -55,7 +55,7 @@ Item {
             model: [
                 { title: "Главная", section: "home", glyph: "note" },
                 { title: "Моя волна", section: "wave", glyph: "wave" },
-                { title: "Чарты", section: "chart", glyph: "chart" },
+                { title: "Новые релизы", section: "releases", glyph: "chart" },
                 { title: "Жанры", section: "genres", glyph: "genre" },
                 { title: "Станции", section: "stations", glyph: "station" },
                 { title: "Подкасты", section: "podcasts", glyph: "podcast" },
