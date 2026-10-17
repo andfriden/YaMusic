@@ -162,6 +162,12 @@ Item {
 
                 onClicked: root.closed()
             }
+
+            PlayerTip {
+                text: qsTr("Свернуть")
+                target: closeMouseArea
+                below: true
+            }
         }
     }
 
@@ -403,6 +409,18 @@ Item {
 
                     glyph: "repeat"
 
+                    tip: {
+                        const mode = root.hasController ? root.controller.repeatMode : 0
+
+                        if (mode === 1) {
+                            return qsTr("Повтор трека")
+                        }
+                        if (mode === 2) {
+                            return qsTr("Повтор списка")
+                        }
+                        return qsTr("Повтор выключен")
+                    }
+
                     onClicked: {
                         if (root.hasController) {
                             root.controller.cycleRepeat()
@@ -417,6 +435,8 @@ Item {
                     glyph: "chevronLeft"
                     iconSize: 26
                     iconWidth: 2
+
+                    tip: qsTr("Предыдущий трек")
 
                     onClicked: {
                         if (root.hasController) {
@@ -489,7 +509,10 @@ Item {
                         }
 
                         MouseArea {
+                            id: bigPlayMouseArea
+
                             anchors.fill: parent
+                            hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
 
                             enabled: root.hasTrack
@@ -506,6 +529,11 @@ Item {
                                 }
                             }
                         }
+
+                        PlayerTip {
+                            text: root.playing ? qsTr("Пауза") : qsTr("Воспроизвести")
+                            target: bigPlayMouseArea
+                        }
                     }
                 }
 
@@ -516,6 +544,8 @@ Item {
                     glyph: "chevronRight"
                     iconSize: 26
                     iconWidth: 2
+
+                    tip: qsTr("Следующий трек")
 
                     onClicked: {
                         if (root.hasController) {
@@ -529,6 +559,8 @@ Item {
                     height: 40
 
                     glyph: "shuffle"
+
+                    tip: qsTr("Перемешать")
 
                     onClicked: {
                         if (root.hasController) {
@@ -983,7 +1015,10 @@ Item {
     }
 
     component ControlButton: Rectangle {
+        id: controlButton
+
         property string text: ""
+        property string tip: ""
         property int fontSize: 21
         property string glyph: ""
         property real iconSize: 22
@@ -1031,6 +1066,11 @@ Item {
             cursorShape: Qt.PointingHandCursor
 
             onClicked: parent.clicked()
+        }
+
+        PlayerTip {
+            text: controlButton.tip
+            target: mouseArea
         }
     }
 
