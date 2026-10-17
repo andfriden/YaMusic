@@ -341,25 +341,20 @@ void PersonalController::deactivateMyWave() {
   m_myWaveTrackStarted = false;
 }
 
-bool PersonalController::handleMyWaveSkip() {
+bool PersonalController::skipMyWaveTrack() {
   if (!m_myWaveQueueActive) {
     return false;
   }
 
-  // Запрос уже в пути: замену не начинаем, иначе ответ на него
-  // приняли бы за новую партию замены.
+  // Запрос уже в пути: очередь сейчас пересобирается, лишний фидбек
+  // исказил бы ответ ротора.
   if (m_loadingMyWave || m_loadingMoreMyWave) {
     return false;
   }
 
-  const QString trackId = m_currentMyWaveTrackId;
-
-  if (trackId.isEmpty()) {
-    return false;
-  }
-
+  // Только фидбек: очередь остаётся прежней, следующий трек берётся
+  // из уже загруженной партии (обычный переход PlaybackController).
   stopCurrentMyWaveTrack("skip");
-  replaceMyWaveQueue(trackId);
   return true;
 }
 
