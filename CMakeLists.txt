@@ -6,6 +6,13 @@ project(
         LANGUAGES CXX
 )
 
+# Пути в file(GET_RUNTIME_DEPENDENCIES) нормализуются до подстановки в
+# POST_EXCLUDE_REGEXES — иначе на Windows исключения по System32 не
+# срабатывают из-за обратных слешей.
+if(POLICY CMP0207)
+    cmake_policy(SET CMP0207 NEW)
+endif()
+
 if(APPLE)
     enable_language(OBJCXX)
 endif()
@@ -664,6 +671,7 @@ if(WIN32)
             PRE_EXCLUDE_REGEXES
             "api-ms-"
             "ext-ms-"
+            ".*[Qq][Tt]6.*\\.dll"
             POST_EXCLUDE_REGEXES
             ".*[Ss]ystem32[/\\\\].*"
             ".*[Ww][Ii][Nn][Dd][Oo][Ww][Ss][/\\\\][Ss][Yy][Ss][Ww][Oo][Ww]64[/\\\\].*"
