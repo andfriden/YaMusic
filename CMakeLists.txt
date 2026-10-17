@@ -409,6 +409,8 @@ set(
         "${YAMUSIC_QML_ROOT}/Components/PlayerWindow.qml"
 
         # Pages
+        "${YAMUSIC_QML_ROOT}/Pages/ReleasesPage.qml"
+        "${YAMUSIC_QML_ROOT}/Pages/StationPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/HomePage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/SettingsPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/SearchPage.qml"

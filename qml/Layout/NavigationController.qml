@@ -14,6 +14,9 @@ Item {
     property string currentGenreImage: ""
     property string currentGenreColor: ""
 
+    property string currentStationType: ""
+    property string currentStationTag: ""
+
     property var navigationStack: []
 
     signal pageLoadRequested(string source, var properties)
@@ -72,7 +75,32 @@ Item {
             root.currentGenreTitle = extra.title || ""
             root.currentGenreImage = extra.image || ""
             root.currentGenreColor = extra.color || ""
+            root.currentStationType = extra.stationType || ""
+            root.currentStationTag = extra.stationTag || ""
         }
+
+        root.requestPageLoad()
+    }
+
+    function openStationPage(stationType, stationTag, title) {
+        const type = String(stationType || "").trim()
+        const tag = String(stationTag || "").trim()
+
+        if (type.length === 0 || tag.length === 0) {
+            return
+        }
+
+        root.navigationStack = root.navigationStack.concat([{
+            type: root.currentPageType,
+            section: root.currentSection,
+            id: root.currentDetailId
+        }])
+
+        root.currentPageType = "station"
+        root.currentDetailId = type + ":" + tag
+        root.currentStationType = type
+        root.currentStationTag = tag
+        root.currentGenreTitle = title || "Станция"
 
         root.requestPageLoad()
     }
@@ -135,6 +163,13 @@ Item {
                 genreImage: root.currentGenreImage,
                 genreColor: root.currentGenreColor
             }
+        } else if (root.currentPageType === "station") {
+            properties = {
+                controller: root.controller,
+                stationType: root.currentStationType,
+                stationTag: root.currentStationTag,
+                stationTitle: root.currentGenreTitle
+            }
         }
 
         root.pageLoadRequested(root.pageSourceForCurrentPage(), properties)
@@ -150,6 +185,8 @@ Item {
                 return "../Pages/PlaylistPage.qml"
             case "genre":
                 return "../Pages/GenrePage.qml"
+            case "station":
+                return "../Pages/StationPage.qml"
             case "section":
             default:
                 return root.pageSourceForSection(root.currentSection)
@@ -172,7 +209,8 @@ Item {
             case "recent":
                 return "../Pages/RecentPage.qml"
             case "chart":
-                return "../Pages/ChartPage.qml"
+            case "releases":
+                return "../Pages/ReleasesPage.qml"
             case "genres":
                 return "../Pages/GenresPage.qml"
             case "stations":
@@ -217,6 +255,7 @@ Item {
             case "playlists":
             case "recent":
             case "chart":
+            case "releases":
             case "genres":
             case "sport":
             case "liked":

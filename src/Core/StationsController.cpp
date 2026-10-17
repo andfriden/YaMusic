@@ -349,3 +349,44 @@ void StationsController::reportStationDislike(const QString &trackId, bool disli
 GenreStationModel *StationsController::tracksModel() const {
   return m_tracksModel;
 }
+
+void StationsController::selectStationTrack(int index) {
+  if (!m_stationActive) {
+    return;
+  }
+
+  QueueService *queue = m_playbackController->queueService();
+
+  if (!isStationSource()) {
+    return;
+  }
+
+  const QList<Track> tracks = m_tracksModel->tracks();
+
+  if (index < 0 || index >= tracks.size()) {
+    emit statusChanged("Некорректный индекс трека станции");
+    return;
+  }
+
+  const Track track = tracks.at(index);
+  if (track.id.isEmpty()) {
+    return;
+  }
+
+  // Индексы модели и очереди совпадают: appendTrackBatch добавляет
+  // треки в queue и модель в одном порядке. Переходим на выбранный
+  // трек в существующей очереди станции, не сбрасывая её —
+  // тогда «далее» идёт по трекам станции, а не мимо.
+  if (!queue->setCurrentIndex(index)) {
+    emit statusChanged("Не удалось выбрать трек станции");
+    return;
+  }
+
+  m_stationPlaying = true;
+  m_currentStationTrackId = track.id;
+  m_stationTrackStarted = false;
+  m_stationNeedsResume = false;
+
+  emit statusChanged(QStringLiteral("Выбран трек станции: %1").arg(track.title));
+  m_playbackController->playTrack(track);
+}

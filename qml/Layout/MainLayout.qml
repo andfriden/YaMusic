@@ -201,6 +201,10 @@ Item {
             navigationController.selectSection("library")
         }
 
+        function onStationPageRequested(stationType, stationTag, title) {
+            navigationController.openStationPage(stationType, stationTag, title)
+        }
+
         function onGenreRequested(genreId, title, image, color, subGenres) {
             navigationController.openGenrePage(genreId, title, image, color)
         }

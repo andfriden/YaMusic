@@ -33,6 +33,8 @@ public:
 
   Q_INVOKABLE void selectStation(const QString &type, const QString &tag, const QString &title);
 
+  Q_INVOKABLE void selectStationTrack(int index);
+
   // Вызывается из AppController при playlistExhausted источника "station".
   void handleStationPlaylistExhausted();
 
