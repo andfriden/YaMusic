@@ -27,8 +27,8 @@ Popup {
     closePolicy: Popup.NoAutoClose
     visible: false
 
-    // Тёмная подсказка читается и на светлой, и на тёмной теме — и
-    // совпадает с мини-плеером, который всегда в палитре Macchiato.
+    // Голубая капсула из темы: хорошо выделяется на тёмном плеере и не
+    // сливается со светлым фоном основного окна.
     x: root.alignRight
         ? parent.width - width
         : Math.round((parent.width - width) / 2)
@@ -37,21 +37,22 @@ Popup {
     background: Rectangle {
         // Капсула: радиус равен половине высоты, а не «коробка» со скруглением.
         radius: height / 2
-        color: AppTheme.macchiatoSurface0
+        color: AppTheme.accent
         border.width: 1
-        border.color: AppTheme.macchiatoSurface2
+        border.color: Qt.rgba(1, 1, 1, 0.28)
     }
 
     contentItem: Text {
         text: root.text
-        color: AppTheme.macchiatoText
-        font.pixelSize: 11
+        // На светлом голубом (тёмная тема) нужен контрастный тёмный текст.
+        color: AppTheme.dark ? AppTheme.macchiatoCrust : AppTheme.accentOn
+        font.pixelSize: 10
         font.weight: Font.Medium
 
-        leftPadding: 10
-        rightPadding: 10
-        topPadding: 4
-        bottomPadding: 4
+        leftPadding: 7
+        rightPadding: 7
+        topPadding: 3
+        bottomPadding: 3
     }
 
     Timer {
