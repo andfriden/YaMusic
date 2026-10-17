@@ -176,3 +176,23 @@ void PersonalController::loadWheel() {
 QVariantList PersonalController::wheelItems() const {
   return m_wheelItems;
 }
+
+QVariantList PersonalController::newReleasesAlbums() const {
+  QVariantList out;
+
+  for (const PersonalLandingSection &section : m_recommendationSections) {
+    if (section.type != "new-releases") continue;
+
+    for (const Album &album : section.albums) {
+      QVariantMap object;
+      object.insert("albumId", album.id);
+      object.insert("title", album.title);
+      object.insert("coverUri", album.coverUri);
+      object.insert("year", album.year);
+      out.append(object);
+    }
+    break;
+  }
+
+  return out;
+}

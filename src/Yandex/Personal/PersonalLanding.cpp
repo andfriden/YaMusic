@@ -262,28 +262,43 @@ void PersonalLanding::loadWheel() {
       QString title;
       QString coverUri;
       QString station;
+      QString color;
+      QString description;
 
-      if (type == QLatin1String("wave")) {
+      if (type.compare(QLatin1String("wave"), Qt::CaseInsensitive) == 0) {
         const QJsonObject wave = data.value("wave").toObject();
         const QJsonObject agent = data.value("agent").toObject();
         title = wave.value("name").toString();
         if (title.isEmpty()) title = QStringLiteral("Волна");
-        coverUri = parseCoverUri(agent.value("cover").toObject());
+        const QJsonObject agentCover = agent.value("cover").toObject();
+        // URI обложки лежит прямо в agent.cover.uri (без префикса http).
+        coverUri = agentCover.value("uri").toString();
+        // Цвет фона круга волны — как в mashiro: agent.cover.color.
+        color = agentCover.value("color").toString();
+        // Подпись: сначала своя у волны, затем общая у элемента.
+        description = wave.value("description").toString();
+        if (description.isEmpty()) {
+          description = item.value("description").toString();
+        }
         const QJsonArray seeds = wave.value("seeds").toArray();
         if (!seeds.isEmpty()) station = seeds.first().toString();
-      } else if (type == QLatin1String("album")) {
+      } else if (type.compare(QLatin1String("album"), Qt::CaseInsensitive) == 0) {
         const QJsonObject album = data.value("album").toObject();
         title = album.value("title").toString();
         coverUri = parseCoverUri(album);
-      } else if (type == QLatin1String("playlist") ||
-                 type == QLatin1String("personal-playlist")) {
+        color = album.value("cover").toObject().value("color").toString();
+        description = item.value("description").toString();
+      } else if (type.compare(QLatin1String("playlist"), Qt::CaseInsensitive) == 0 ||
+                 type.compare(QLatin1String("personal-playlist"), Qt::CaseInsensitive) == 0) {
         const QJsonObject playlist = data.value("playlist").toObject();
         title = playlist.value("title").toString();
         coverUri = parseCoverUri(playlist);
-      } else if (type == QLatin1String("track")) {
+        description = item.value("description").toString();
+      } else if (type.compare(QLatin1String("track"), Qt::CaseInsensitive) == 0) {
         const QJsonObject track = data.value("track").toObject();
         title = track.value("title").toString();
         coverUri = track.value("coverUri").toString();
+        description = item.value("description").toString();
       }
 
       QVariantMap map;
@@ -292,7 +307,8 @@ void PersonalLanding::loadWheel() {
       map.insert("title", title);
       map.insert("coverUri", coverUri);
       map.insert("station", station);
-      map.insert("description", item.value("description").toString());
+      map.insert("color", color);
+      map.insert("description", description);
       out.append(map);
     }
 

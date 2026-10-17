@@ -15,6 +15,7 @@ Item {
     signal waveRequested()
     signal likedRequested()
     signal libraryRequested()
+    signal stationPageRequested(string stationType, string stationTag, string title)
 
     readonly property var personalController:
         root.controller !== null && root.controller !== undefined &&
@@ -183,7 +184,15 @@ Item {
             roundArtwork: true
 
             onCardClicked: function(index, item) {
-                root.startWheelWave(item)
+                // Клик по кругу открывает страницу станции.
+                const station = String(item.station || "")
+                const separator = station.indexOf(":")
+                const type = separator > 0 ? station.substring(0, separator) : ""
+                const tag = separator > 0 ? station.substring(separator + 1) : station
+
+                if (type.length > 0 && tag.length > 0) {
+                    root.stationPageRequested(type, tag, item.title || "Волна")
+                }
             }
 
             onPlayRequested: function(index, item) {
@@ -277,17 +286,19 @@ Item {
         readonly property int rowCount: Math.ceil(
             (gridSection.model ? gridSection.model.length : 0) / gridSection.columns)
 
-        readonly property int cardHeight: gridSection.cardWidth + 38
+        readonly property int cardHeight: gridSection.cardWidth + 52
 
         implicitHeight:
             listHeader.implicitHeight +
             gridSection.rowCount * (gridSection.cardHeight + 22)
 
         Column {
-            spacing: 8
+            spacing: 14
 
             Label {
                 id: listHeader
+
+                width: gridSection.width
 
                 text: gridSection.title
                 color: AppTheme.textPrimary
@@ -305,143 +316,171 @@ Item {
                     GradientStop { position: 1.0; color: AppTheme.mauveAccent }
                 }
             }
-        }
 
-        Grid {
-            anchors.top: listHeader.bottom
-            anchors.topMargin: 14
+            Grid {
+                width: gridSection.width
 
-            columns: gridSection.columns
-            spacing: gridSection.cardSpacing
+                columns: gridSection.columns
+                spacing: gridSection.cardSpacing
 
-            Repeater {
-                model: gridSection.model
+                Repeater {
+                    model: gridSection.model
 
-                delegate: Item {
-                    property var item: modelData
-
-                    width: gridSection.cardWidth
-                    height: gridSection.cardHeight
-
-                    Rectangle {
-                        id: artwork
+                    delegate: Item {
+                        property var item: modelData
 
                         width: gridSection.cardWidth
-                        height: gridSection.cardWidth
-
-                        radius: gridSection.roundArtwork ? gridSection.cardWidth / 2 : 12
-                        color: AppTheme.panelSubtle
-                        clip: !gridSection.roundArtwork
+                        height: gridSection.cardHeight
 
                         Rectangle {
-                            anchors.fill: parent
-                            radius: parent.radius
+                            id: artwork
 
-                            scale: cardMouse.containsMouse ? 1.02 : 1.0
+                            width: gridSection.cardWidth
+                            height: gridSection.cardWidth
 
-                            Behavior on scale {
-                                NumberAnimation { duration: 140; easing.type: Easing.OutCubic }
-                            }
+                            radius: gridSection.roundArtwork ? gridSection.cardWidth / 2 : 12
+                            color: modelData.color && String(modelData.color).length > 0
+                                ? modelData.color
+                                : (gridSection.roundArtwork ? AppTheme.panelSecondary : AppTheme.panelSubtle)
+                            clip: true
 
-                            Image {
-                                id: coverImage
-
-                                anchors.fill: parent
-
-                                source: modelData.coverUri && String(modelData.coverUri).length > 0
-                                    ? "image://yandex/" + String(modelData.coverUri)
-                                    : ""
-
-                                sourceSize: Qt.size(artwork.width * 2, artwork.height * 2)
-                                fillMode: Image.PreserveAspectCrop
-                                asynchronous: true
-                                cache: true
-                                smooth: true
-
-                                visible: status === Image.Ready
-                            }
-
-                            Label {
-                                anchors.centerIn: parent
-
-                                text: "♪"
-                                color: AppTheme.textSecondary
-                                font.pixelSize: 30
-
-                                visible: !gridSection.roundArtwork &&
-                                    coverImage.status !== Image.Ready
-                            }
-
-                            MouseArea {
-                                id: cardMouse
-
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-
-                                onClicked: gridSection.cardClicked(model.index, modelData)
-                            }
-
-                            // Плашка воспроизведения по наведению
                             Rectangle {
-                                id: playBadge
+                                anchors.fill: parent
+                                radius: parent.radius
+                                clip: true
 
-                                z: 2
+                                // Заливка фона цветом волны, чтобы под обложкой
+                                // не просвечивал белый/нейтральный фон.
+                                color: modelData.color && String(modelData.color).length > 0
+                                    ? modelData.color
+                                    : "transparent"
 
-                                anchors.right: parent.right
-                                anchors.bottom: parent.bottom
-                                anchors.margins: 8
-
-                                width: 40
-                                height: 40
-                                radius: 20
-
-                                color: AppTheme.accent
-
-                                opacity: cardMouse.containsMouse ? 1.0 : 0.0
-                                scale: cardMouse.containsMouse ? 1.0 : 0.6
-
-                                Behavior on opacity {
-                                    NumberAnimation { duration: 120 }
-                                }
+                                scale: cardMouse.containsMouse ? 1.02 : 1.0
 
                                 Behavior on scale {
-                                    NumberAnimation { duration: 120; easing.type: Easing.OutBack }
+                                    NumberAnimation { duration: 140; easing.type: Easing.OutCubic }
                                 }
 
-                                Icon {
+                                Image {
+                                    id: coverImage
+
+                                    anchors.fill: parent
+
+                                    source: modelData.coverUri && String(modelData.coverUri).length > 0
+                                        ? "image://yandex/" + (gridSection.roundArtwork ? "circle/" : "") + String(modelData.coverUri)
+                                        : ""
+
+                                    sourceSize: Qt.size(artwork.width * 2, artwork.height * 2)
+                                    fillMode: Image.PreserveAspectCrop
+                                    asynchronous: true
+                                    cache: true
+                                    smooth: true
+
+                                    visible: status === Image.Ready
+                                }
+
+                                Label {
                                     anchors.centerIn: parent
-                                    glyph: "play"
-                                    color: AppTheme.accentOn
-                                    size: 18
+
+                                    text: gridSection.roundArtwork ? "〰" : "♪"
+                                    color: AppTheme.textSecondary
+                                    font.pixelSize: gridSection.roundArtwork ? 26 : 30
+
+                                    visible: coverImage.status !== Image.Ready
                                 }
 
                                 MouseArea {
+                                    id: cardMouse
+
                                     anchors.fill: parent
+                                    hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
 
-                                    onClicked: gridSection.playRequested(model.index, modelData)
+                                    onClicked: gridSection.cardClicked(model.index, modelData)
+                                }
+
+                                // Плашка воспроизведения по наведению
+                                Rectangle {
+                                    id: playBadge
+
+                                    z: 2
+
+                                    anchors.right: parent.right
+                                    anchors.bottom: parent.bottom
+                                    anchors.margins: 8
+
+                                    width: 40
+                                    height: 40
+                                    radius: 20
+
+                                    color: AppTheme.accent
+
+                                    opacity: cardMouse.containsMouse ? 1.0 : 0.0
+                                    scale: cardMouse.containsMouse ? 1.0 : 0.6
+
+                                    Behavior on opacity {
+                                        NumberAnimation { duration: 120 }
+                                    }
+
+                                    Behavior on scale {
+                                        NumberAnimation { duration: 120; easing.type: Easing.OutBack }
+                                    }
+
+                                    Icon {
+                                        anchors.centerIn: parent
+                                        glyph: "play"
+                                        color: AppTheme.accentOn
+                                        size: 18
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+
+                                        onClicked: gridSection.playRequested(model.index, modelData)
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    Label {
-                        anchors.top: artwork.bottom
-                        anchors.topMargin: 8
-                        anchors.left: parent.left
-                        anchors.right: parent.right
+                        Label {
+                            id: titleLabel
 
-                        height: 18
+                            anchors.top: artwork.bottom
+                            anchors.topMargin: 8
+                            anchors.left: parent.left
+                            anchors.right: parent.right
 
-                        text: String(modelData.title || "")
-                        color: AppTheme.textPrimary
-                        font.pixelSize: 13
-                        font.weight: Font.Medium
+                            height: 18
 
-                        elide: Text.ElideRight
-                        maximumLineCount: 1
-                        clip: true
+                            text: String(modelData.title || "")
+                            color: AppTheme.textPrimary
+                            font.pixelSize: 13
+                            font.weight: Font.Medium
+
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
+                            clip: true
+                        }
+
+                        Label {
+                            anchors.top: titleLabel.bottom
+                            anchors.topMargin: 2
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+
+                            height: 16
+
+                            text: String(modelData.description || "")
+                            color: AppTheme.textMuted
+                            font.pixelSize: 11
+
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
+                            clip: true
+
+                            visible: String(modelData.description || "").length > 0
+                        }
                     }
                 }
             }
