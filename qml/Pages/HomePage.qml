@@ -56,12 +56,23 @@ Item {
         }
     }
 
+    readonly property string accountName:
+        root.controller !== null && root.controller !== undefined
+            ? String(root.controller.accountName || "")
+            : ""
+
     function greeting() {
         const hour = new Date().getHours()
-        if (hour < 6) return "Доброй ночи"
-        if (hour < 12) return "Доброе утро"
-        if (hour < 18) return "Добрый день"
-        return "Добрый вечер"
+        let text = ""
+
+        if (hour < 6) text = "Доброй ночи"
+        else if (hour < 12) text = "Доброе утро"
+        else if (hour < 18) text = "Добрый день"
+        else text = "Добрый вечер"
+
+        const name = root.accountName.trim()
+
+        return name.length > 0 ? text + ", " + name : text
     }
 
     function startWheelWave(item) {

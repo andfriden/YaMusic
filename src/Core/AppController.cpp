@@ -159,6 +159,19 @@ void AppController::connectAccount() {
   connect(m_accountService, &AccountService::accountReceived, this,
           [this](const Account &account) {
             m_accountUid = QString::number(account.uid);
+
+            const QString displayName = account.displayName.trimmed();
+            const QString firstName = account.firstName.trimmed();
+            const QString name = !displayName.isEmpty()
+                                     ? displayName
+                                     : (!firstName.isEmpty() ? firstName
+                                                             : account.login.trimmed());
+
+            if (m_accountName != name) {
+              m_accountName = name;
+              emit accountChanged();
+            }
+
             m_recentListeningService->setUserId(m_accountUid);
             m_recentListeningService->load(50, 10);
             m_libraryController->setUserId(m_accountUid);
@@ -891,6 +904,10 @@ bool AppController::currentAlbumLiked() const {
 
 QString AppController::currentArtistName() const {
   return m_artistController->artistName();
+}
+
+QString AppController::accountName() const {
+  return m_accountName;
 }
 
 QString AppController::currentArtistCoverUri() const {

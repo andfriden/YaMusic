@@ -120,11 +120,13 @@ class AppController : public QObject {
   Q_PROPERTY(QString currentAlbumCoverUri READ currentAlbumCoverUri NOTIFY currentAlbumChanged)
   Q_PROPERTY(bool currentAlbumLiked READ currentAlbumLiked NOTIFY currentAlbumChanged)
 
-  Q_PROPERTY(QString currentArtistName READ currentArtistName NOTIFY currentArtistChanged)
-  Q_PROPERTY(QString currentArtistCoverUri READ currentArtistCoverUri NOTIFY currentArtistChanged)
+  Q_PROPERTY(QString currentArtistName READ currentArtistName NOTIFY currentArtistChanged)  Q_PROPERTY(QString currentArtistCoverUri READ currentArtistCoverUri NOTIFY currentArtistChanged)
   Q_PROPERTY(QString currentArtistGenres READ currentArtistGenres NOTIFY currentArtistChanged)
   Q_PROPERTY(int currentArtistTrackCount READ currentArtistTrackCount NOTIFY currentArtistChanged)
   Q_PROPERTY(bool currentArtistLiked READ currentArtistLiked NOTIFY currentArtistChanged)
+
+  // Имя из профиля для приветствия: displayName, иначе firstName, иначе логин.
+  Q_PROPERTY(QString accountName READ accountName NOTIFY accountChanged)
 
   Q_PROPERTY(QString currentTrackId READ currentTrackId NOTIFY currentTrackChanged)
   Q_PROPERTY(QString currentTrackTitle READ currentTrackTitle NOTIFY currentTrackChanged)
@@ -332,6 +334,8 @@ public:
   int currentArtistTrackCount() const;
   bool currentArtistLiked() const;
 
+  QString accountName() const;
+
   QString currentTrackId() const;
   QString currentTrackTitle() const;
   QString currentTrackArtist() const;
@@ -378,6 +382,8 @@ signals:
   void currentArtistChanged();
   void currentTrackChanged();
   void dislikesChanged();
+
+  void accountChanged();
 
   void aiChanged();
   void censorChanged();
@@ -456,6 +462,7 @@ private:
   YnisonReporter *m_ynisonReporter = nullptr;
 
   QString m_accountUid;
+  QString m_accountName;
   bool m_playAlbumAfterLoad = false;
   int m_dislikesRevision = 0;
   int m_aiRevision = 0;
