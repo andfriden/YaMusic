@@ -149,7 +149,6 @@ set(
         src/Core/AlbumController.cpp
         src/Core/ArtistController.cpp
         src/Core/AccentController.cpp
-        src/Core/ChartController.cpp
         src/Core/CrashReporter.cpp
         src/Core/GenreController.cpp
         src/Core/StationsController.cpp
@@ -216,8 +215,6 @@ set(
         src/Yandex/Catalog/ArtistAlbumsModel.cpp
         src/Yandex/Catalog/ArtistModel.cpp
         src/Yandex/Catalog/ArtistService.cpp
-        src/Yandex/Catalog/ChartModel.cpp
-        src/Yandex/Catalog/ChartService.cpp
         src/Yandex/Catalog/CoverImageProvider.cpp
         src/Yandex/Catalog/CensorService.cpp
         src/Yandex/Catalog/GenreModel.cpp
@@ -404,7 +401,6 @@ set(
         "${YAMUSIC_QML_ROOT}/Components/EntityLink.qml"
         "${YAMUSIC_QML_ROOT}/Components/ExpandedNowPlaying.qml"
         "${YAMUSIC_QML_ROOT}/Components/LyricsView.qml"
-        "${YAMUSIC_QML_ROOT}/Components/ChartTrackRow.qml"
         "${YAMUSIC_QML_ROOT}/Components/TrackRow.qml"
         "${YAMUSIC_QML_ROOT}/Components/TrackContextMenu.qml"
         "${YAMUSIC_QML_ROOT}/Components/Badge.qml"
@@ -428,8 +424,6 @@ set(
         "${YAMUSIC_QML_ROOT}/Pages/AlbumPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/ArtistPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/PlaylistPage.qml"
-        "${YAMUSIC_QML_ROOT}/Pages/RecentPage.qml"
-        "${YAMUSIC_QML_ROOT}/Pages/ChartPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/PlaylistsPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/GenresPage.qml"
         "${YAMUSIC_QML_ROOT}/Pages/GenrePage.qml"
@@ -442,7 +436,6 @@ set(
         # Home
         "${YAMUSIC_QML_ROOT}/Home/PersonalPlaylistsSection.qml"
         "${YAMUSIC_QML_ROOT}/Home/PlaylistView.qml"
-        "${YAMUSIC_QML_ROOT}/Home/RecentListeningSection.qml"
 
         # My Wave
         "${YAMUSIC_QML_ROOT}/MyWave/MyWaveSection.qml"

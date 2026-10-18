@@ -1,4 +1,3 @@
-#include "../Yandex/Catalog/ChartService.h"
 #include "AppController.h"
 
 void AppController::loadArtist(const QString &id) {
@@ -37,12 +36,4 @@ void AppController::playAlbum(const QString &id) {
   m_playAlbumAfterLoad = true;
   emit albumPageRequested(albumId);
   m_albumController->loadAlbum(albumId);
-}
-
-void AppController::loadChart(const QString &chartType) {
-  m_chartController->loadChart(chartType);
-}
-
-void AppController::loadCharts() {
-  m_chartController->loadCharts();
 }

@@ -168,10 +168,6 @@ Item {
 
         ignoreUnknownSignals: true
 
-        function onChartRequested() {
-            navigationController.selectSection("chart")
-        }
-
         function onGenresRequested() {
             navigationController.selectSection("genres")
         }

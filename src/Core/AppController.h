@@ -14,7 +14,6 @@
 #include "AlbumController.h"
 #include "ArtistController.h"
 #include "AudioQualityController.h"
-#include "ChartController.h"
 #include "CrashReporter.h"
 #include "GenreController.h"
 #include "LibraryController.h"
@@ -37,7 +36,6 @@ class AiService;
 class AlbumService;
 class ArtistService;
 class CensorService;
-class ChartService;
 class GenreService;
 class LikesService;
 class PersonalLanding;
@@ -90,7 +88,6 @@ class AppController : public QObject {
   Q_PROPERTY(AlbumController *albumController READ albumController CONSTANT)
   Q_PROPERTY(ArtistController *artistController READ artistController CONSTANT)
   Q_PROPERTY(PersonalController *personalController READ personalController CONSTANT)
-  Q_PROPERTY(ChartController *chartController READ chartController CONSTANT)
   Q_PROPERTY(GenreController *genreController READ genreController CONSTANT)
   Q_PROPERTY(StationsController *stationsController READ stationsController CONSTANT)
   Q_PROPERTY(LyricsController *lyricsController READ lyricsController CONSTANT)
@@ -177,8 +174,6 @@ public:
   Q_INVOKABLE void loadArtist(const QString &id);
   Q_INVOKABLE void loadAlbum(const QString &id);
   Q_INVOKABLE void playAlbum(const QString &id);
-  Q_INVOKABLE void loadChart(const QString &chartType);
-  Q_INVOKABLE void loadCharts();
   Q_INVOKABLE void loadGenres();
 
   Q_INVOKABLE void loadMyWave();
@@ -278,7 +273,6 @@ public:
   AlbumController *albumController() const;
   ArtistController *artistController() const;
   PersonalController *personalController() const;
-  ChartController *chartController() const;
   GenreController *genreController() const;
   StationsController *stationsController() const;
   LyricsController *lyricsController() const;
@@ -408,7 +402,6 @@ private:
   void connectAlbum();
   void connectPersonal();
   void connectArtist();
-  void connectChart();
   void connectGenre();
   void connectStations();
   void connectPlayback();
@@ -427,7 +420,6 @@ private:
   AlbumService *m_albumService;
   AlbumService *m_artistRadioAlbumService;
   ArtistService *m_artistService;
-  ChartService *m_chartService;
   GenreService *m_genreService;
   StationService *m_stationService;
   PlayerService *m_playerService;
@@ -444,7 +436,6 @@ private:
   SimilarTracksModel *m_similarTracksModel;
   AlbumController *m_albumController;
   ArtistController *m_artistController;
-  ChartController *m_chartController;
   GenreController *m_genreController;
   StationsController *m_stationsController;
   LyricsController *m_lyricsController = nullptr;

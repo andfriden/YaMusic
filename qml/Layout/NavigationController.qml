@@ -206,9 +206,6 @@ Item {
                 return "../Pages/LibraryPage.qml"
             case "playlists":
                 return "../Pages/PlaylistsPage.qml"
-            case "recent":
-                return "../Pages/RecentPage.qml"
-            case "chart":
             case "releases":
                 return "../Pages/ReleasesPage.qml"
             case "genres":
@@ -253,8 +250,6 @@ Item {
             case "home":
             case "search":
             case "playlists":
-            case "recent":
-            case "chart":
             case "releases":
             case "genres":
             case "sport":

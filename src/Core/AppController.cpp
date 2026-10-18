@@ -9,7 +9,6 @@
 #include "../Yandex/Catalog/AiService.h"
 #include "../Yandex/Catalog/ArtistService.h"
 #include "../Yandex/Catalog/CensorService.h"
-#include "../Yandex/Catalog/ChartService.h"
 #include "../Yandex/Catalog/GenreService.h"
 #include "../Yandex/Catalog/SearchService.h"
 #include "../Yandex/Catalog/StationService.h"
@@ -41,7 +40,6 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
       m_albumService(new AlbumService(m_auth, this)),
       m_artistRadioAlbumService(new AlbumService(m_auth, this)),
       m_artistService(new ArtistService(m_auth, this)),
-      m_chartService(new ChartService(m_auth, this)),
       m_genreService(new GenreService(m_auth, this)),
       m_stationService(new StationService(m_auth, this)), m_playerService(new PlayerService(this)),
       m_queueService(new QueueService(this)), m_playerAccentService(new PlayerAccentService(this)),
@@ -62,7 +60,6 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
                                             m_likesService, this)),
       m_artistController(new ArtistController(m_artistService, m_artistRadioAlbumService,
                                               m_playbackController, this)),
-      m_chartController(new ChartController(m_chartService, m_playbackController, this)),
       m_genreController(new GenreController(m_genreService, m_playlistService, m_stationService,
                                             m_playbackController, this)),
       m_stationsController(new StationsController(m_stationService, m_playbackController,
@@ -90,7 +87,6 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
   connectAlbum();
   connectPersonal();
   connectArtist();
-  connectChart();
   connectGenre();
   connectStations();
   connectPlayback();
@@ -366,11 +362,6 @@ void AppController::connectArtist() {
           [this](const QString &artistId) {
             loadArtist(artistId);
           });
-}
-
-void AppController::connectChart() {
-  connect(m_chartController, &ChartController::statusChanged, this,
-          &AppController::statusChanged);
 }
 
 void AppController::connectGenre() {
@@ -773,10 +764,6 @@ ArtistController *AppController::artistController() const {
 
 PersonalController *AppController::personalController() const {
    return m_personalController;
- }
-
-ChartController *AppController::chartController() const {
-   return m_chartController;
  }
 
 GenreController *AppController::genreController() const {
