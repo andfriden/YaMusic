@@ -93,7 +93,7 @@ jobs:
           cp -a dist/. pkg/YaMusic/
           tar \
             -C pkg \
-            -czf "YaMusic-${VERSION}-x86_64.tar.gz" \
+            -czf "YaMusic-${VERSION}-linux-x86_64.tar.gz" \
             YaMusic
 
       - name: List artifacts
@@ -499,7 +499,7 @@ jobs:
             echo
             echo "- **Windows** — \`YaMusic-${VERSION}-windows-x64-portable.zip\` (portable, без установки)"
             echo "- **macOS** — \`YaMusic-${VERSION}-macos-x64.dmg\` (Intel) или \`YaMusic-${VERSION}-macos-arm64.dmg\` (Apple Silicon)"
-            echo "- **Linux** — \`YaMusic-${VERSION}-x86_64.AppImage\` (запуск: \`chmod +x\` и запуск) или \`YaMusic-${VERSION}-x86_64.tar.gz\`"
+            echo "- **Linux** — \`YaMusic-${VERSION}-x86_64.AppImage\` (запуск: \`chmod +x\` и запуск) или \`YaMusic-${VERSION}-linux-x86_64.tar.gz\`"
             echo
           } > release-notes.md
 
