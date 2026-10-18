@@ -243,19 +243,48 @@ Item {
 
                 spacing: 4
 
-                Text {
+                Item {
                     width: parent.width
+                    height: titleText.height
 
-                    text: root.hasTrack
-                        ? String(root.controller.currentTrackTitle || "")
-                        : ""
+                    Text {
+                        id: titleText
 
-                    color: AppTheme.textPrimary
-                    font.pixelSize: 22
-                    font.weight: Font.DemiBold
+                        width: parent.width
 
-                    horizontalAlignment: Text.AlignHCenter
-                    elide: Text.ElideRight
+                        text: root.hasTrack
+                            ? String(root.controller.currentTrackTitle || "")
+                            : ""
+
+                        color: titleMouseArea.containsMouse && titleMouseArea.enabled
+                            ? AppTheme.accent
+                            : AppTheme.textPrimary
+                        font.pixelSize: 22
+                        font.weight: Font.DemiBold
+
+                        horizontalAlignment: Text.AlignHCenter
+                        elide: Text.ElideRight
+                    }
+
+                    MouseArea {
+                        id: titleMouseArea
+
+                        anchors.fill: parent
+
+                        hoverEnabled: true
+                        enabled: root.hasTrack && root.controller &&
+                            String(root.controller.currentTrackAlbumId || "").length > 0
+
+                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+
+                        onClicked: {
+                            if (!root.controller) {
+                                return
+                            }
+
+                            root.controller.loadAlbum(root.controller.currentTrackAlbumId)
+                        }
+                    }
                 }
 
                 EntityLink {

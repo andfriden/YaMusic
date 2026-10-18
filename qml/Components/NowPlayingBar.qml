@@ -163,18 +163,42 @@ Rectangle {
                 spacing: 3
 
                 Label {
+                    id: titleLabel
+
                     Layout.fillWidth: true
 
                     text: root.hasTrack
                         ? root.controller.currentTrackTitle
                         : "Нет воспроизводимого трека"
 
-                    color: AppTheme.textPrimary
+                    color: titleMouseArea.containsMouse && titleMouseArea.enabled
+                        ? AppTheme.accent
+                        : AppTheme.textPrimary
                     font.pixelSize: 14
                     font.weight: Font.DemiBold
 
                     elide: Text.ElideRight
                     maximumLineCount: 1
+
+                    MouseArea {
+                        id: titleMouseArea
+
+                        anchors.fill: parent
+
+                        hoverEnabled: true
+                        enabled: root.hasTrack && root.controller &&
+                            String(root.controller.currentTrackAlbumId || "").length > 0
+
+                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+
+                        onClicked: {
+                            if (!root.controller) {
+                                return
+                            }
+
+                            root.controller.loadAlbum(root.controller.currentTrackAlbumId)
+                        }
+                    }
                 }
 
                 Label {

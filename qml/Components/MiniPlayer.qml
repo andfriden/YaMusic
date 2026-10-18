@@ -239,25 +239,83 @@ Window {
 
             spacing: 4
 
-            Text {
+            Item {
                 width: parent.width
+                height: titleText.height
 
-                text: root.hasTrack ? root.controller.currentTrackTitle : "Нет трека"
-                color: AppTheme.macchiatoText
-                font.pixelSize: 14
-                font.weight: Font.DemiBold
-                elide: Text.ElideRight
-                maximumLineCount: 1
+                Text {
+                    id: titleText
+
+                    width: parent.width
+
+                    text: root.hasTrack ? root.controller.currentTrackTitle : "Нет трека"
+                    color: titleMouseArea.containsMouse && titleMouseArea.enabled
+                        ? AppTheme.accent
+                        : AppTheme.macchiatoText
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                MouseArea {
+                    id: titleMouseArea
+
+                    anchors.fill: parent
+
+                    hoverEnabled: true
+                    enabled: root.hasTrack && root.controller &&
+                        String(root.controller.currentTrackAlbumId || "").length > 0
+
+                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+
+                    onClicked: {
+                        if (!root.controller) {
+                            return
+                        }
+
+                        root.controller.loadAlbum(root.controller.currentTrackAlbumId)
+                    }
+                }
             }
 
-            Text {
+            Item {
                 width: parent.width
+                height: artistText.height
 
-                text: root.hasTrack ? root.controller.currentTrackArtist : ""
-                color: AppTheme.macchiatoSubtext1
-                font.pixelSize: 12
-                elide: Text.ElideRight
-                maximumLineCount: 1
+                Text {
+                    id: artistText
+
+                    width: parent.width
+
+                    text: root.hasTrack ? root.controller.currentTrackArtist : ""
+                    color: artistMouseArea.containsMouse && artistMouseArea.enabled
+                        ? AppTheme.accent
+                        : AppTheme.macchiatoSubtext1
+                    font.pixelSize: 12
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                MouseArea {
+                    id: artistMouseArea
+
+                    anchors.fill: parent
+
+                    hoverEnabled: true
+                    enabled: root.hasTrack && root.controller &&
+                        String(root.controller.currentTrackArtistId || "").length > 0
+
+                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+
+                    onClicked: {
+                        if (!root.controller) {
+                            return
+                        }
+
+                        root.controller.loadArtist(root.controller.currentTrackArtistId)
+                    }
+                }
             }
 
             Row {
