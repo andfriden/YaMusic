@@ -56,6 +56,21 @@ find_path(
 
 if(TagLib_CMAKE_DIR AND EXISTS "${TagLib_CMAKE_DIR}/taglib-config.cmake")
     include("${TagLib_CMAKE_DIR}/taglib-config.cmake")
+
+    # Windows: vcpkg отдаёт DLL отдельно от import-библиотеки. Запоминаем bin,
+    # чтобы CMake при установке мог положить tag.dll (и его zlib — z.dll)
+    # рядом с exe: windeployqt сторонние DLL не копирует.
+    if(WIN32 AND TARGET TagLib::tag)
+        get_target_property(_taglib_location TagLib::tag IMPORTED_LOCATION_RELEASE)
+        if(NOT _taglib_location)
+            get_target_property(_taglib_location TagLib::tag IMPORTED_LOCATION)
+        endif()
+        if(_taglib_location)
+            get_filename_component(TagLib_RUNTIME_DIR "${_taglib_location}" DIRECTORY)
+        endif()
+        unset(_taglib_location)
+    endif()
+
     if(TARGET TagLib::tag AND NOT TARGET TagLib::TagLib)
         add_library(TagLib::TagLib INTERFACE IMPORTED)
         set_target_properties(TagLib::TagLib PROPERTIES INTERFACE_LINK_LIBRARIES TagLib::tag)

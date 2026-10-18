@@ -6,6 +6,13 @@ project(
         LANGUAGES CXX
 )
 
+# Пути в file(GET_RUNTIME_DEPENDENCIES) нормализуются до подстановки в
+# POST_EXCLUDE_REGEXES — иначе на Windows исключения по System32 не
+# срабатывают из-за обратных слешей.
+if(POLICY CMP0207)
+    cmake_policy(SET CMP0207 NEW)
+endif()
+
 if(APPLE)
     enable_language(OBJCXX)
 endif()
@@ -644,18 +651,57 @@ set(
         bin
 )
 
-install(
-        TARGETS
-        appYaMusic
+if(WIN32)
 
-        BUNDLE
-        DESTINATION
-        .
+    # windeployqt копирует только Qt: сторонние DLL (tag.dll из TagLib и его
+    # zlib — z.dll) в portable-сборку не попадают, и приложение на чистой
+    # машине не стартует. Ставим их вместе с exe, разрешая зависимости по
+    # каталогу сборки (там CMake уже разложил DLL) и по bin из vcpkg.
+    set(
+            YAMUSIC_RUNTIME_DEPENDENCY_DIRS
+            "$<TARGET_FILE_DIR:appYaMusic>"
+    )
 
-        RUNTIME
-        DESTINATION
-        "${YAMUSIC_RUNTIME_DESTINATION}"
-)
+    if(TagLib_RUNTIME_DIR)
+        list(APPEND YAMUSIC_RUNTIME_DEPENDENCY_DIRS "${TagLib_RUNTIME_DIR}")
+    endif()
+
+    install(
+            TARGETS
+            appYaMusic
+
+            RUNTIME_DEPENDENCIES
+            DIRECTORIES
+            ${YAMUSIC_RUNTIME_DEPENDENCY_DIRS}
+            PRE_EXCLUDE_REGEXES
+            "api-ms-"
+            "ext-ms-"
+            ".*[Qq][Tt]6.*\\.dll"
+            POST_EXCLUDE_REGEXES
+            ".*[Ss]ystem32[/\\\\].*"
+            ".*[Ww][Ii][Nn][Dd][Oo][Ww][Ss][/\\\\][Ss][Yy][Ss][Ww][Oo][Ww]64[/\\\\].*"
+
+            RUNTIME
+            DESTINATION
+            "${YAMUSIC_RUNTIME_DESTINATION}"
+    )
+
+else()
+
+    install(
+            TARGETS
+            appYaMusic
+
+            BUNDLE
+            DESTINATION
+            .
+
+            RUNTIME
+            DESTINATION
+            "${YAMUSIC_RUNTIME_DESTINATION}"
+    )
+
+endif()
 
 # =============================================================
 # Linux desktop entry and icon
