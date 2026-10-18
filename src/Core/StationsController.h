@@ -33,6 +33,10 @@ public:
 
   Q_INVOKABLE void selectStation(const QString &type, const QString &tag, const QString &title);
 
+  // «Волна по треку»: сессия ротора с сидом track:<id>. Тот же цикл
+  // фидбека и добора, что у станции, но источник подписывается иначе.
+  Q_INVOKABLE void startTrackWave(const QString &trackId, const QString &title);
+
   Q_INVOKABLE void selectStationTrack(int index);
 
   // Вызывается из AppController при playlistExhausted источника "station".
@@ -69,6 +73,9 @@ signals:
 private:
   void rebuildGroups(const QList<Station> &stations);
 
+  // Подпись источника очереди: «Станция: …» или «Волна по «…»».
+  QString sourceLabel() const;
+
   void appendTrackBatch(const QList<Track> &tracks);
 
   void tryAdvanceStation();
@@ -97,6 +104,12 @@ private:
   bool m_stationPlaying = false;
   bool m_stationNeedsResume = false;
   QString m_stationTitle;
+
+  // Запущена ли «волна по треку» и какой трек был сидом: сид не должен
+  // попасть в первую партию ротора.
+  bool m_trackWave = false;
+  QString m_trackWaveSeedId;
+
   QString m_currentStationTrackId;
   bool m_stationTrackStarted = false;
   QSet<QString> m_queuedTrackIds;

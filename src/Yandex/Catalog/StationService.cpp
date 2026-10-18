@@ -264,23 +264,44 @@ void StationService::startStationSession(const QString &stationType, const QStri
     emit errorOccurred("Некорректная станция для сессии");
     return;
   }
+
+  startSession(QStringLiteral("%1:%2").arg(type, tag), true);
+}
+
+void StationService::startTrackWaveSession(const QString &trackId) {
+  const QString id = trackId.trimmed();
+  if (id.isEmpty()) {
+    emit errorOccurred("Некорректный трек для волны");
+    return;
+  }
+
+  // Настройки персональной волны к трек-сиду не относятся, поэтому
+  // settings2 не отправляем — как это делает сам Яндекс в вебе.
+  startSession(QStringLiteral("track:%1").arg(id), false);
+}
+
+void StationService::startSession(const QString &seed, bool withSettings) {
   if (!m_auth->isAuthenticated()) {
     emit errorOccurred("Токен Яндекс Музыки не установлен");
     return;
   }
 
   m_yandexClient->setToken(m_auth->token());
-  QJsonObject settings2;
-  settings2.insert("language", "russian");
-  settings2.insert("diversity", "high");
-  settings2.insert("mood", 0.5);
-  settings2.insert("energy", 0.25);
 
   QJsonObject body;
   body.insert("includeTracksInResponse", true);
-  body.insert("interactive", true);
-  body.insert("seeds", QJsonArray{QStringLiteral("%1:%2").arg(type, tag)});
-  body.insert("settings2", settings2);
+  body.insert("seeds", QJsonArray{seed});
+
+  if (withSettings) {
+    QJsonObject settings2;
+    settings2.insert("language", "russian");
+    settings2.insert("diversity", "high");
+    settings2.insert("mood", 0.5);
+    settings2.insert("energy", 0.25);
+
+    body.insert("interactive", true);
+    body.insert("settings2", settings2);
+  }
 
   QNetworkReply *reply = m_yandexClient->post(QStringLiteral("/rotor/session/new"), body);
   if (reply == nullptr) {

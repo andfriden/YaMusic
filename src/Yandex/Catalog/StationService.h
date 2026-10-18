@@ -27,6 +27,10 @@ public:
   // Сессионный ротор: POST /rotor/session/new и /rotor/session/<id>/tracks.
   void startStationSession(const QString &stationType, const QString &stationTag);
 
+  // «Волна по треку»: та же сессия ротора, но с сидом track:<trackId>
+  // и без настроек персональной волны (settings2).
+  void startTrackWaveSession(const QString &trackId);
+
   // queueTokens — накопленная очередь вида "<trackId>:<albumId>" всех сыгранных
   // треков. Ротор не возвращает их повторно, если передать очередь целиком.
   void loadMoreStationSession(const QStringList &queueTokens);
@@ -49,6 +53,8 @@ signals:
   void errorOccurred(const QString &message);
 
 private:
+  void startSession(const QString &seed, bool withSettings);
+
   Track parseTrack(const QJsonObject &object) const;
 
   static QList<Track> parseSessionSequence(const QJsonArray &sequence,

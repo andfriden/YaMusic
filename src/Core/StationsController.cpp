@@ -209,9 +209,37 @@ void StationsController::selectStation(const QString &type, const QString &tag,
   m_stationActive = false;
   m_stationLoading = true;
   m_stationTitle = title;
+  m_trackWave = false;
+  m_trackWaveSeedId.clear();
   emit stationLoadingChanged();
   emit statusChanged(QStringLiteral("Запуск станции: %1").arg(title));
   m_stationService->startStationSession(stationType, stationTag);
+}
+
+void StationsController::startTrackWave(const QString &trackId, const QString &title) {
+  const QString id = trackId.trimmed();
+
+  if (id.isEmpty()) {
+    emit statusChanged("Некорректный трек для волны");
+    return;
+  }
+
+  m_stationActive = false;
+  m_stationLoading = true;
+  m_trackWave = true;
+  m_trackWaveSeedId = id;
+  m_stationTitle = title.trimmed();
+  emit stationLoadingChanged();
+  emit statusChanged(QStringLiteral("Запуск волны по треку: %1").arg(m_stationTitle));
+  m_stationService->startTrackWaveSession(id);
+}
+
+QString StationsController::sourceLabel() const {
+  if (m_trackWave) {
+    return QStringLiteral("Волна по «%1»").arg(m_stationTitle);
+  }
+
+  return QStringLiteral("Станция: %1").arg(m_stationTitle);
 }
 
 void StationsController::appendTrackBatch(const QList<Track> &tracks) {
@@ -220,6 +248,7 @@ void StationsController::appendTrackBatch(const QList<Track> &tracks) {
 
   for (const Track &track : tracks) {
     if (track.id.isEmpty()) continue;
+    if (m_trackWave && track.id == m_trackWaveSeedId) continue;
     if (m_queuedTrackIds.contains(track.id)) continue;
     m_queuedTrackIds.insert(track.id);
 
@@ -239,7 +268,7 @@ void StationsController::appendTrackBatch(const QList<Track> &tracks) {
   for (const Track &track : toAdd) {
     queue->addTrack(track);
   }
-  queue->setSource(QStringLiteral("Станция: %1").arg(m_stationTitle), "station");
+  queue->setSource(sourceLabel(), "station");
   m_tracksModel->appendTracks(toAdd);
   tryAdvanceStation();
 }
@@ -263,7 +292,9 @@ void StationsController::tryAdvanceStation() {
       return;
     }
     m_playbackController->playTrack(first);
-    emit statusChanged(QStringLiteral("Играет станция: %1").arg(m_stationTitle));
+    emit statusChanged(m_trackWave
+                           ? QStringLiteral("Играет волна по «%1»").arg(m_stationTitle)
+                           : QStringLiteral("Играет станция: %1").arg(m_stationTitle));
     return;
   }
 
@@ -387,6 +418,7 @@ void StationsController::selectStationTrack(int index) {
   m_stationTrackStarted = false;
   m_stationNeedsResume = false;
 
-  emit statusChanged(QStringLiteral("Выбран трек станции: %1").arg(track.title));
+  emit statusChanged(m_trackWave ? QStringLiteral("Выбран трек волны: %1").arg(track.title)
+                                 : QStringLiteral("Выбран трек станции: %1").arg(track.title));
   m_playbackController->playTrack(track);
 }
