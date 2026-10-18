@@ -104,7 +104,7 @@ jobs:
       - name: Upload AppImage
         uses: actions/upload-artifact@v4
         with:
-          name: YaMusic-Linux-x86_64.AppImage
+          name: YaMusic-x86_64.AppImage
           path: YaMusic-*.AppImage
       - name: Upload tar.gz
         uses: actions/upload-artifact@v4
@@ -130,7 +130,7 @@ jobs:
       - name: Download AppImage
         uses: actions/download-artifact@v4
         with:
-          name: YaMusic-Linux-x86_64.AppImage
+          name: YaMusic-x86_64.AppImage
 
       # linuxdeploy по своему excludelist не кладёт в AppImage libGL/libOpenGL/
       # libEGL — их даёт система; libxcb-* и libxkbcommon-x11 нужны
