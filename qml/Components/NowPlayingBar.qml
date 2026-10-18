@@ -114,6 +114,40 @@ Rectangle {
         }
     }
 
+    PlaylistPicker {
+        id: addToPlaylistPopup
+
+        controller: root.controller
+    }
+
+    TrackContextMenu {
+        id: trackMenu
+
+        controller: root.controller
+
+        trackId: root.hasTrack ? String(root.controller.currentTrackId || "") : ""
+        trackTitle: root.hasTrack ? String(root.controller.currentTrackTitle || "") : ""
+        artist: root.hasTrack ? String(root.controller.currentTrackArtist || "") : ""
+        artistId: root.hasTrack ? String(root.controller.currentTrackArtistId || "") : ""
+        album: root.hasTrack ? String(root.controller.currentTrackAlbumTitle || "") : ""
+        albumId: root.hasTrack ? String(root.controller.currentTrackAlbumId || "") : ""
+        coverUri: root.hasTrack ? String(root.controller.currentTrackCoverUri || "") : ""
+        durationMs: root.hasTrack ? Number(root.controller.duration || 0) : 0
+        liked: root.hasTrack && root.controller.currentTrackLiked
+        disliked: root.currentTrackDisliked
+        showAdd: true
+
+        onAddToPlaylistRequested: {
+            if (!root.hasController) {
+                return
+            }
+
+            addToPlaylistPopup.trackId = trackMenu.trackId
+            addToPlaylistPopup.albumId = trackMenu.albumId
+            addToPlaylistPopup.open()
+        }
+    }
+
     RowLayout {
         anchors.fill: parent
         anchors.leftMargin: 18
@@ -132,6 +166,14 @@ Rectangle {
             Layout.maximumWidth: 430
 
             spacing: 12
+
+            TapHandler {
+                acceptedButtons: Qt.RightButton
+
+                enabled: root.hasTrack
+
+                onTapped: trackMenu.popup()
+            }
 
             Image {
                 id: cover

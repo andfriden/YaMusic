@@ -22,6 +22,53 @@ Item {
     readonly property bool playing:
         root.hasController && root.controller.playing
 
+    readonly property bool currentTrackLiked:
+        root.hasTrack && root.controller.currentTrackLiked
+
+    // Дизлайк хранится в LikesService: пересчитываем по счётчику изменений.
+    readonly property bool currentTrackDisliked: {
+        if (!root.hasController) {
+            return false
+        }
+
+        root.controller.dislikesRevision
+        return root.controller.isTrackDisliked(String(root.controller.currentTrackId || ""))
+    }
+
+    PlaylistPicker {
+        id: addToPlaylistPopup
+
+        controller: root.controller
+    }
+
+    TrackContextMenu {
+        id: trackMenu
+
+        controller: root.controller
+
+        trackId: root.hasTrack ? String(root.controller.currentTrackId || "") : ""
+        trackTitle: root.hasTrack ? String(root.controller.currentTrackTitle || "") : ""
+        artist: root.hasTrack ? String(root.controller.currentTrackArtist || "") : ""
+        artistId: root.hasTrack ? String(root.controller.currentTrackArtistId || "") : ""
+        album: root.hasTrack ? String(root.controller.currentTrackAlbumTitle || "") : ""
+        albumId: root.hasTrack ? String(root.controller.currentTrackAlbumId || "") : ""
+        coverUri: root.hasTrack ? String(root.controller.currentTrackCoverUri || "") : ""
+        durationMs: root.hasTrack ? Number(root.controller.duration || 0) : 0
+        liked: root.currentTrackLiked
+        disliked: root.currentTrackDisliked
+        showAdd: true
+
+        onAddToPlaylistRequested: {
+            if (!root.hasController) {
+                return
+            }
+
+            addToPlaylistPopup.trackId = trackMenu.trackId
+            addToPlaylistPopup.albumId = trackMenu.albumId
+            addToPlaylistPopup.open()
+        }
+    }
+
     readonly property bool hasPlayerAccent:
         root.hasController &&
         root.controller.accentController.playerAccent !== undefined &&
@@ -242,6 +289,14 @@ Item {
                 anchors.topMargin: 18
 
                 spacing: 4
+
+                TapHandler {
+                    acceptedButtons: Qt.RightButton
+
+                    enabled: root.hasTrack
+
+                    onTapped: trackMenu.popup()
+                }
 
                 Item {
                     width: parent.width
