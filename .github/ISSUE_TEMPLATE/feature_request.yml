@@ -1,0 +1,39 @@
+name: Идея или доработка
+description: Новый раздел, улучшение интерфейса, интеграция
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Идеи по развитию проекта. Пожалуйста, не дублируйте пункты из [ROADMAP.md](https://github.com/andfriden/YaMusic/blob/main/ROADMAP.md) — там уже расписаны ближайшие версии.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Какую задачу это решает
+      description: Что сейчас неудобно или невозможно
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Предлагаемое решение
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Рассмотренные альтернативы
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: Версия YaMusic
+      placeholder: v0.14.3
+    validations:
+      required: false
