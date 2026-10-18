@@ -20,13 +20,17 @@ void AppController::next() {
     m_stationsController->reportStationSkip();
   }
 
-  // В «Моей волне» пропуск пересчитывает последовательность: очередь
-  // заменяется свежей партией, обычный переход не нужен.
-  if (m_personalController->handleMyWaveSkip()) {
-    return;
-  }
+  // В «Моей волне» пропуск только сообщает ротору о skip: играет
+  // следующий трек уже загруженной партии, список не пересобирается.
+  const bool myWaveActive = m_personalController->skipMyWaveTrack();
 
   if (!m_playbackController->next()) {
+    // Очередь волны закончилась — добираем следующую партию.
+    if (myWaveActive) {
+      m_personalController->handleMyWavePlaybackFinished();
+      return;
+    }
+
     emit statusChanged("Следующего трека нет");
   }
 }
