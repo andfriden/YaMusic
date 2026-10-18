@@ -383,6 +383,9 @@ Item {
                         showDislike: true
                         showAdd: true
 
+                        // Мы уже в этом альбоме — название трека не ссылка.
+                        titleLinkToAlbum: false
+
                         rowHeight: 64
                         coverSize: 48
                         cornerRadius: 8

@@ -34,6 +34,11 @@ Item {
     property bool showAdd: false
     property bool showRemove: false
     property bool showAlbum: true
+
+    // Название трека ведёт в его альбом. На странице самого альбома
+    // ссылка выключена: там она открывала бы ту же страницу заново.
+    property bool titleLinkToAlbum: true
+
     property bool alwaysBorder: false
     property int scrollbarOffset: 0
 
@@ -171,6 +176,10 @@ Item {
         Column {
             id: trackInfo
 
+            // Выше фоновой MouseArea строки: иначе клики по названию,
+            // исполнителю и альбому перехватывает запуск трека.
+            z: 1
+
             anchors.left: coverContainer.right
             anchors.leftMargin: 12
             anchors.right: badgesRow.visible ? badgesRow.left : durationLabel.left
@@ -179,21 +188,47 @@ Item {
 
             spacing: 2
 
-            Label {
-                id: titleLabel
+            Item {
+                id: titleArea
 
-                width: parent.width
-                height: 18
+                width: Math.min(titleLabel.implicitWidth, trackInfo.width)
+                height: titleLabel.height
 
-                text: root.title.length > 0 ? root.title : qsTr("Без названия")
+                Label {
+                    id: titleLabel
 
-                color: AppTheme.textPrimary
-                font.pixelSize: 14
-                font.bold: true
+                    width: parent.width
 
-                verticalAlignment: Text.AlignVCenter
-                elide: Text.ElideRight
-                maximumLineCount: 1
+                    text: root.title.length > 0 ? root.title : qsTr("Без названия")
+
+                    color: titleMouseArea.containsMouse && titleMouseArea.enabled
+                        ? AppTheme.accent
+                        : AppTheme.textPrimary
+                    font.pixelSize: 14
+                    font.bold: true
+
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                MouseArea {
+                    id: titleMouseArea
+
+                    anchors.fill: parent
+
+                    hoverEnabled: true
+                    enabled: root.titleLinkToAlbum &&
+                        root.albumId.length > 0 && root.hasController
+                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                    z: 10
+
+                    onClicked: {
+                        if (root.hasController && root.albumId.length > 0) {
+                            root.controller.loadAlbum(root.albumId)
+                        }
+                    }
+                }
             }
 
             Item {
@@ -323,6 +358,10 @@ Item {
 
         Row {
             id: rightButtons
+
+            // Выше фоновой MouseArea строки, иначе кнопки «×», «+»,
+            // лайк и дизлайк не получают клики.
+            z: 1
 
             anchors.right: parent.right
             anchors.rightMargin: 8
