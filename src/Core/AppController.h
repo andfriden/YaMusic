@@ -242,6 +242,12 @@ public:
   // в «Загрузки» с тегами и вложенным артворком.
   Q_INVOKABLE void downloadCurrentTrack();
 
+  // То же для произвольного трека из списка: в QML у строки есть только
+  // роли модели, поэтому метаданные приходят явно.
+  Q_INVOKABLE void downloadTrack(const QString &trackId, const QString &title,
+                                 const QString &artist, const QString &album,
+                                 const QString &coverUri, int durationMs);
+
   DownloadService *downloadService() const;
 
   QString playbackSourceTitle() const;

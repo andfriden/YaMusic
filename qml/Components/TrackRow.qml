@@ -96,6 +96,25 @@ Item {
     signal addRequested(string trackId, string albumId)
     signal removeRequested(int index)
 
+    TrackContextMenu {
+        id: contextMenu
+
+        controller: root.controller
+        trackId: root.trackId
+        trackTitle: root.title
+        artist: root.artist
+        artistId: root.artistId
+        album: root.album
+        albumId: root.albumId
+        coverUri: root.coverUri
+        durationMs: root.durationMs
+        liked: root.liked
+        disliked: root.disliked
+        showAdd: root.showAdd
+
+        onAddToPlaylistRequested: root.addRequested(root.trackId, root.albumId)
+    }
+
     Rectangle {
         anchors.fill: parent
         radius: root.cornerRadius
@@ -518,7 +537,7 @@ Item {
 
             onPressed: function(mouse) {
                 if (mouse.button === Qt.RightButton && root.hasController) {
-                    root.controller.copyTrack(root.title, root.artist)
+                    contextMenu.popup()
                 }
             }
         }

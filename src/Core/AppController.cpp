@@ -1007,6 +1007,37 @@ void AppController::downloadCurrentTrack() {
   m_downloadService->downloadCurrentTrack(track);
 }
 
+void AppController::downloadTrack(const QString &trackId, const QString &title,
+                                  const QString &artist, const QString &album,
+                                  const QString &coverUri, int durationMs) {
+  const QString id = trackId.trimmed();
+
+  if (id.isEmpty()) {
+    emit statusChanged("Нет трека для скачивания");
+    return;
+  }
+
+  Track track;
+  track.id = id;
+  track.title = title;
+  track.coverUri = coverUri;
+  track.durationMs = durationMs;
+
+  if (!artist.trimmed().isEmpty()) {
+    Artist trackArtist;
+    trackArtist.name = artist.trimmed();
+    track.artists.append(trackArtist);
+  }
+
+  if (!album.trimmed().isEmpty()) {
+    Album trackAlbum;
+    trackAlbum.title = album.trimmed();
+    track.albums.append(trackAlbum);
+  }
+
+  m_downloadService->downloadCurrentTrack(track);
+}
+
 DownloadService *AppController::downloadService() const {
   return m_downloadService;
 }

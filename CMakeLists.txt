@@ -399,6 +399,7 @@ set(
         "${YAMUSIC_QML_ROOT}/Components/LyricsView.qml"
         "${YAMUSIC_QML_ROOT}/Components/ChartTrackRow.qml"
         "${YAMUSIC_QML_ROOT}/Components/TrackRow.qml"
+        "${YAMUSIC_QML_ROOT}/Components/TrackContextMenu.qml"
         "${YAMUSIC_QML_ROOT}/Components/Badge.qml"
         "${YAMUSIC_QML_ROOT}/Components/Icon.qml"
         "${YAMUSIC_QML_ROOT}/Components/PlayerTip.qml"
