@@ -192,6 +192,10 @@ Item {
             navigationController.selectSection("wave")
         }
 
+        function onReleasesRequested() {
+            navigationController.selectSection("releases")
+        }
+
         function onLikedRequested() {
             navigationController.selectSection("liked")
         }

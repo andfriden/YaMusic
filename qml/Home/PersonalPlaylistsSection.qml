@@ -37,11 +37,11 @@ Item {
                 required property var playlists
                 required property var albums
 
+                // На главной остаётся только подборка «Собираем для вас»:
+                // новые плейлисты и релизы открываются кнопками-разделами.
                 readonly property bool allowedOnHome:
                     !root.homeMode ||
-                    sectionItem.type === "personal-playlists" ||
-                    sectionItem.type === "new-playlists" ||
-                    sectionItem.type === "new-releases"
+                    sectionItem.type === "personal-playlists"
 
                 readonly property bool isAlbumsSection:
                     sectionItem.type === "new-releases"

@@ -15,6 +15,8 @@ Item {
     signal waveRequested()
     signal likedRequested()
     signal libraryRequested()
+    signal releasesRequested()
+    signal playlistsRequested()
     signal stationPageRequested(string stationType, string stationTag, string title)
 
     readonly property var personalController:
@@ -47,7 +49,8 @@ Item {
 
     Component.onCompleted: {
         if (root.controller !== null && root.controller !== undefined) {
-            root.controller.loadMyWave()
+            // «Мою волну» не трогаем: она загружается своей страницей,
+            // иначе возврат на главную сбрасывал бы очередь плеера.
             root.controller.loadRecommendations()
             root.controller.loadWheel()
         }
@@ -122,7 +125,8 @@ Item {
         }
 
         // ---- Кнопки-действия ----
-        Row {
+        Flow {
+            width: content.width
             spacing: 10
 
             ActionButton {
@@ -131,6 +135,20 @@ Item {
                 emphasized: true
 
                 onClicked: root.waveRequested()
+            }
+
+            ActionButton {
+                text: "Новые релизы"
+                glyph: "chart"
+
+                onClicked: root.releasesRequested()
+            }
+
+            ActionButton {
+                text: "Новые плейлисты"
+                glyph: "playlist"
+
+                onClicked: root.playlistsRequested()
             }
 
             ActionButton {
@@ -146,12 +164,6 @@ Item {
 
                 onClicked: root.libraryRequested()
             }
-        }
-
-        MyWaveSection {
-            width: content.width
-            compactMode: true
-            controller: root.controller
         }
 
         // ---- Новое для тебя ----
@@ -205,11 +217,6 @@ Item {
             controller: root.controller
             homeMode: true
         }
-
-        RecentListeningSection {
-            width: content.width
-            controller: root.controller
-        }
     }
 
     component ActionButton: Rectangle {
@@ -222,6 +229,7 @@ Item {
         signal clicked()
 
         height: 44
+        width: actionRow.implicitWidth + 32
         radius: 12
 
         color: actionMouseArea.containsMouse
@@ -233,6 +241,8 @@ Item {
         }
 
         Row {
+            id: actionRow
+
             anchors.centerIn: parent
             spacing: 8
 
