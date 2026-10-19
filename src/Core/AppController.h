@@ -144,6 +144,10 @@ class AppController : public QObject {
   Q_PROPERTY(int aiRevision READ aiRevision NOTIFY aiChanged)
   Q_PROPERTY(int censorRevision READ censorRevision NOTIFY censorChanged)
 
+  // Скрывать из списков треки с бейджем AI (исполнитель из базы Slopless).
+  Q_PROPERTY(bool hideAiTracks READ hideAiTracks WRITE setHideAiTracks NOTIFY
+                 hideAiTracksChanged)
+
   Q_PROPERTY(qint64 position READ position NOTIFY positionChanged)
   Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
   Q_PROPERTY(PlaybackController::PlaybackState playbackState READ playbackState NOTIFY
@@ -309,6 +313,9 @@ public:
   Q_INVOKABLE bool isAiArtist(const QString &artistId) const;
   Q_INVOKABLE bool isTrackUncensored(const QString &trackId) const;
 
+  bool hideAiTracks() const;
+  void setHideAiTracks(bool enabled);
+
   QString currentPlaylistTitle() const;
   QString currentPlaylistCoverUri() const;
   int currentPlaylistTrackCount() const;
@@ -381,6 +388,7 @@ signals:
 
   void aiChanged();
   void censorChanged();
+  void hideAiTracksChanged();
 
   void positionChanged();
   void durationChanged();
@@ -458,4 +466,5 @@ private:
   int m_dislikesRevision = 0;
   int m_aiRevision = 0;
   int m_censorRevision = 0;
+  bool m_hideAiTracks = false;
 };

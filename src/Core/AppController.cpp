@@ -12,6 +12,7 @@
 #include "../Yandex/Catalog/GenreService.h"
 #include "../Yandex/Catalog/SearchService.h"
 #include "../Yandex/Catalog/StationService.h"
+#include "../Yandex/Catalog/TrackListModelBase.h"
 #include "../Yandex/Catalog/TrackService.h"
 #include "../Download/DownloadService.h"
 #include "../Yandex/Personal/LikesService.h"
@@ -26,6 +27,7 @@
 
 #include <QClipboard>
 #include <QGuiApplication>
+#include <QSettings>
 
 AppController::AppController(YandexAuth *auth, AccountService *accountService, QObject *parent)
     : QObject(parent), m_auth(auth), m_accountService(accountService),
@@ -79,6 +81,19 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
   Q_ASSERT(m_auth != nullptr);
   Q_ASSERT(m_accountService != nullptr);
 
+  // Скрытие AI-треков: настройка хранится между запусками, а общий
+  // фильтр моделей пересобирает все списки сразу.
+  QSettings settings;
+  m_hideAiTracks = settings.value(QStringLiteral("content/hideAiTracks"), false).toBool();
+
+  TrackListModelBase::setTrackFilter([this](const Track &track) {
+    if (!m_hideAiTracks || track.artists.isEmpty()) {
+      return true;
+    }
+
+    return !m_aiService->isAiArtist(track.artists.first().id);
+  });
+
   m_statsController = new StatsController(this);
 
   connectAccount();
@@ -107,6 +122,8 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
   // Ревизии бейджей: QML пересчитывает привязки после загрузки списков.
   connect(m_aiService, &AiService::listChanged, this, [this]() {
     ++m_aiRevision;
+    // Список ИИ-артистов пришёл — пересобираем отфильтрованные списки.
+    TrackListModelBase::refreshTrackFilters();
     emit aiChanged();
   });
   connect(m_censorService, &CensorService::listChanged, this, [this]() {
@@ -618,6 +635,23 @@ int AppController::dislikesRevision() const {
 
 bool AppController::isAiArtist(const QString &artistId) const {
   return m_aiService->isAiArtist(artistId);
+}
+
+bool AppController::hideAiTracks() const {
+  return m_hideAiTracks;
+}
+
+void AppController::setHideAiTracks(bool enabled) {
+  if (m_hideAiTracks == enabled) return;
+
+  m_hideAiTracks = enabled;
+
+  QSettings settings;
+  settings.setValue(QStringLiteral("content/hideAiTracks"), enabled);
+
+  TrackListModelBase::refreshTrackFilters();
+
+  emit hideAiTracksChanged();
 }
 
 bool AppController::isTrackUncensored(const QString &trackId) const {

@@ -556,7 +556,16 @@ void LibraryController::removeTrackFromPlaylist(int index) {
     return;
   }
 
-  m_playlistService->removeTrackFromPlaylist(m_userId, kind, index, m_playlistModel->revision());
+  // Список может быть отфильтрован (скрытые AI-треки), а сервер ждёт
+  // индекс в исходном плейлисте.
+  const int sourceIndex = m_playlistModel->sourceIndex(index);
+
+  if (sourceIndex < 0) {
+    return;
+  }
+
+  m_playlistService->removeTrackFromPlaylist(m_userId, kind, sourceIndex,
+                                             m_playlistModel->revision());
 }
 
 void LibraryController::addTrackToPlaylist(int kind, const QString &trackId, const QString &albumId,

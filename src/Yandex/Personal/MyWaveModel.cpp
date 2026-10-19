@@ -96,7 +96,7 @@ void MyWaveModel::appendTracks(
 
     bool exists = false;
 
-    for (const Track &existing : m_tracks) {
+    for (const Track &existing : m_sourceTracks) {
       if (existing.id == track.id) {
         exists = true;
         break;
@@ -108,35 +108,15 @@ void MyWaveModel::appendTracks(
     }
   }
 
-  if (newTracks.isEmpty()) {
-    return;
-  }
-
-  const int first =
-      m_tracks.size();
-
-  const int last =
-      first + newTracks.size() - 1;
-
-  beginInsertRows(
-      QModelIndex(),
-      first,
-      last);
-
-  m_tracks.append(newTracks);
-
-  endInsertRows();
-
-  // Используем countChanged() из TrackListModelBase.
-  emit countChanged();
+  appendTracksFiltered(newTracks);
 }
 
 // TODO(#180): ограничить историю волны последними 200 треками
 Track MyWaveModel::lastTrack() const {
 
-  if (m_tracks.isEmpty()) {
+  if (m_sourceTracks.isEmpty()) {
     return {};
   }
 
-  return m_tracks.last();
+  return m_sourceTracks.last();
 }

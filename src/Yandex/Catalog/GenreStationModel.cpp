@@ -49,21 +49,12 @@ QHash<int, QByteArray> GenreStationModel::roleNames() const {
 }
 
 void GenreStationModel::appendTracks(const QList<Track> &tracks) {
-  if (tracks.isEmpty()) {
-    return;
-  }
-
-  const int firstNew = m_tracks.size();
-  const int lastNew = firstNew + tracks.size() - 1;
-  beginInsertRows(QModelIndex(), firstNew, lastNew);
-  m_tracks.append(tracks);
-  endInsertRows();
-  emit countChanged();
+  appendTracksFiltered(tracks);
 }
 
 QString GenreStationModel::lastTrackId() const {
-  if (m_tracks.isEmpty()) {
+  if (m_sourceTracks.isEmpty()) {
     return {};
   }
-  return m_tracks.last().id;
+  return m_sourceTracks.last().id;
 }
