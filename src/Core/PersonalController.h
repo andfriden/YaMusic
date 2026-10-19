@@ -5,7 +5,6 @@
 #include "../Models/Track.h"
 #include "../Yandex/Personal/MyWaveModel.h"
 #include "../Yandex/Personal/NewPlaylistsService.h"
-#include "../Yandex/Personal/PersonalChartModel.h"
 #include "../Yandex/Personal/PersonalLanding.h"
 #include "../Yandex/Personal/PersonalPlaylistsModel.h"
 #include "../Yandex/Personal/RecentListeningModel.h"
@@ -36,8 +35,6 @@ class PersonalController : public QObject {
   Q_PROPERTY(PersonalPlaylistsModel *personalPlaylistsModel READ personalPlaylistsModel CONSTANT)
 
   Q_PROPERTY(RecentListeningModel *recentListeningModel READ recentListeningModel CONSTANT)
-
-  Q_PROPERTY(PersonalChartModel *chartModel READ chartModel CONSTANT)
 
   Q_PROPERTY(QVariantList podcasts READ podcasts NOTIFY podcastsChanged)
 
@@ -75,8 +72,6 @@ public:
   PersonalPlaylistsModel *personalPlaylistsModel() const;
 
   RecentListeningModel *recentListeningModel() const;
-
-  PersonalChartModel *chartModel() const;
 
   QVariantList podcasts() const;
 
@@ -181,8 +176,6 @@ private:
   PersonalPlaylistsModel *m_personalPlaylistsModel = nullptr;
 
   RecentListeningModel *m_recentListeningModel = nullptr;
-
-  PersonalChartModel *m_chartModel = nullptr;
 
   QList<PersonalLandingSection> m_recommendationSections;
 

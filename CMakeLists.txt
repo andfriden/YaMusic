@@ -241,7 +241,6 @@ set(
         src/Yandex/Personal/LikesService.cpp
         src/Yandex/Personal/MyWaveModel.cpp
         src/Yandex/Personal/NewPlaylistsService.cpp
-        src/Yandex/Personal/PersonalChartModel.cpp
         src/Yandex/Personal/PersonalLanding.cpp
         src/Yandex/Personal/PersonalPlaylistsModel.cpp
         src/Yandex/Personal/PlaylistModel.cpp

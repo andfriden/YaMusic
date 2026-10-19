@@ -15,7 +15,7 @@
 
 namespace {
 const QString LandingBlocks =
-    "personalplaylists,promotions,new-releases,new-playlists,mixes,chart,playlists,podcasts";
+    "personalplaylists,promotions,new-releases,new-playlists,mixes,playlists,podcasts";
 
 const QStringList PlaylistSectionTypes = {"personal-playlists", "new-playlists", "playlists",
                                           "editorial-playlists"};

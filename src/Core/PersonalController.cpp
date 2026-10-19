@@ -12,8 +12,7 @@ PersonalController::PersonalController(YandexPersonal *yandexPersonal,
       m_playbackController(playbackController), m_playerService(playerService),
       m_myWaveModel(new MyWaveModel(this)),
       m_personalPlaylistsModel(new PersonalPlaylistsModel(this)),
-      m_recentListeningModel(new RecentListeningModel(this)),
-      m_chartModel(new PersonalChartModel(this)) {
+      m_recentListeningModel(new RecentListeningModel(this)) {
   Q_ASSERT(m_yandexPersonal != nullptr);
   Q_ASSERT(m_personalLanding != nullptr);
   Q_ASSERT(m_newPlaylistsService != nullptr);
@@ -98,10 +97,6 @@ PersonalPlaylistsModel *PersonalController::personalPlaylistsModel() const {
 
 RecentListeningModel *PersonalController::recentListeningModel() const {
   return m_recentListeningModel;
-}
-
-PersonalChartModel *PersonalController::chartModel() const {
-  return m_chartModel;
 }
 
 QVariantList PersonalController::podcasts() const {
