@@ -244,7 +244,7 @@ Item {
     function contextTypeForSection(section) {
         switch (section) {
             case "wave":
-                return "mywave"
+                return ""
             case "library":
                 return "library"
             case "home":

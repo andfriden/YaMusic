@@ -440,7 +440,6 @@ set(
         "${YAMUSIC_QML_ROOT}/MyWave/MyWaveSection.qml"
 
         # Context
-        "${YAMUSIC_QML_ROOT}/Context/ContextPanelMyWave.qml"
         "${YAMUSIC_QML_ROOT}/Context/ContextPanelArtist.qml"
         "${YAMUSIC_QML_ROOT}/Context/ContextPanelAlbum.qml"
         "${YAMUSIC_QML_ROOT}/Context/ContextPanelLibrary.qml"
