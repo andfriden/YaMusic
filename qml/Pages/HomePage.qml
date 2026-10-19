@@ -14,7 +14,7 @@ Item {
 
     signal waveRequested()
     signal likedRequested()
-    signal libraryRequested()
+    signal searchRequested()
     signal releasesRequested()
     signal playlistsRequested()
     signal stationPageRequested(string stationType, string stationTag, string title)
@@ -170,10 +170,10 @@ Item {
             }
 
             ActionButton {
-                text: "Поиск в библиотеке"
+                text: "Поиск"
                 glyph: "search"
 
-                onClicked: root.libraryRequested()
+                onClicked: root.searchRequested()
             }
         }
 

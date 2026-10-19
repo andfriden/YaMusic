@@ -54,6 +54,7 @@ Item {
         Repeater {
             model: [
                 { title: "Главная", section: "home", glyph: "note" },
+                { title: "Поиск", section: "search", glyph: "search" },
                 { title: "Моя волна", section: "wave", glyph: "wave" },
                 { title: "Новые релизы", section: "releases", glyph: "chart" },
                 { title: "Жанры", section: "genres", glyph: "genre" },

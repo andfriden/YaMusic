@@ -196,8 +196,8 @@ Item {
             navigationController.selectSection("liked")
         }
 
-        function onLibraryRequested() {
-            navigationController.selectSection("library")
+        function onSearchRequested() {
+            navigationController.selectSection("search")
         }
 
         function onStationPageRequested(stationType, stationTag, title) {
