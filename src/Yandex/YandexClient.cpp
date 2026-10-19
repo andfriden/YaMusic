@@ -158,9 +158,12 @@ void YandexClient::search(
     const QString &query,
     int page) {
   if (m_searchReply) {
-    m_searchReply->abort();
-    m_searchReply->deleteLater();
+    // Указатель сбрасываем до abort(): abort() синхронно присылает
+    // finished, и обработчик не должен читать уже закрытый ответ.
+    QNetworkReply *previous = m_searchReply;
     m_searchReply.clear();
+    previous->abort();
+    previous->deleteLater();
   }
 
   QUrlQuery queryParameters;
@@ -239,12 +242,153 @@ void YandexClient::search(
       });
 }
 
+void YandexClient::searchSuggest(
+    const QString &part) {
+  if (m_suggestReply) {
+    QNetworkReply *previous = m_suggestReply;
+    m_suggestReply.clear();
+    previous->abort();
+    previous->deleteLater();
+  }
+
+  const QString trimmed = part.trimmed();
+
+  if (trimmed.isEmpty()) {
+    emit searchSuggestionsReceived({}, {});
+    return;
+  }
+
+  QUrlQuery queryParameters;
+
+  queryParameters.addQueryItem(
+      "part",
+      trimmed);
+
+  const QString path =
+      "/search/suggest?" +
+      queryParameters.toString(
+          QUrl::FullyEncoded);
+
+  QNetworkReply *reply =
+      get(path);
+
+  m_suggestReply = reply;
+
+  connect(
+      reply,
+      &QNetworkReply::finished,
+      this,
+      [this, reply, trimmed]() {
+        if (reply != m_suggestReply) {
+          reply->deleteLater();
+          return;
+        }
+
+        m_suggestReply.clear();
+
+        const QByteArray data =
+            reply->readAll();
+
+        // Подсказки необязательны: при ошибке просто не показываем их.
+        if (reply->error() !=
+            QNetworkReply::NoError) {
+          reply->deleteLater();
+          emit searchSuggestionsReceived({}, {});
+          return;
+        }
+
+        QJsonParseError parseError;
+
+        const QJsonDocument document =
+            QJsonDocument::fromJson(
+                data,
+                &parseError);
+
+        if (parseError.error !=
+                QJsonParseError::NoError ||
+            !document.isObject()) {
+          reply->deleteLater();
+          emit searchSuggestionsReceived({}, {});
+          return;
+        }
+
+        const QJsonObject object =
+            document.object();
+
+        QString best =
+            object.value("best")
+                .toObject()
+                .value("text")
+                .toString()
+                .trimmed();
+
+        QStringList suggestions;
+
+        auto appendUnique = [&suggestions, &trimmed](const QString &text) {
+          const QString value = text.trimmed();
+
+          if (value.isEmpty()) return;
+
+          for (const QString &existing : suggestions) {
+            if (existing.compare(value, Qt::CaseInsensitive) == 0) {
+              return;
+            }
+          }
+
+          if (value.compare(trimmed, Qt::CaseInsensitive) == 0) {
+            return;
+          }
+
+          suggestions.append(value);
+        };
+
+        appendUnique(best);
+
+        const QJsonArray array =
+            object.value("suggestions").toArray();
+
+        for (const QJsonValue &value : array) {
+          const QString text = value.isString()
+              ? value.toString()
+              : value.toObject().value("text").toString();
+
+          appendUnique(text);
+        }
+
+        while (suggestions.size() > 10) {
+          suggestions.removeLast();
+        }
+
+        if (!best.isEmpty()) {
+          bool present = false;
+
+          for (const QString &existing : suggestions) {
+            if (existing.compare(best, Qt::CaseInsensitive) == 0) {
+              present = true;
+              break;
+            }
+          }
+
+          if (!present) {
+            best.clear();
+          }
+        }
+
+        emit searchSuggestionsReceived(
+            suggestions,
+            best);
+
+        reply->deleteLater();
+      });
+}
+
 void YandexClient::getTracks(
     const QStringList &trackIds) {
   if (m_tracksReply) {
-    m_tracksReply->abort();
-    m_tracksReply->deleteLater();
+    QNetworkReply *previous = m_tracksReply;
     m_tracksReply.clear();
+    previous->abort();
+    previous->deleteLater();
   }
 
   QStringList normalizedIds;

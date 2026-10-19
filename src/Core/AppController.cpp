@@ -768,6 +768,10 @@ SearchPlaylistsModel *AppController::searchPlaylistsModel() const {
   return m_searchController->playlistsModel();
 }
 
+SearchController *AppController::searchController() const {
+  return m_searchController;
+}
+
 SimilarTracksModel *AppController::similarTracksModel() const {
   return m_similarTracksModel;
 }

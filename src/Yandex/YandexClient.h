@@ -33,6 +33,7 @@ public:
 
   void getAccountStatus();
   void search(const QString &query, int page = 0);
+  void searchSuggest(const QString &part);
   void getTracks(const QStringList &trackIds);
 
   // Отправляет факт прослушивания трека на сервер
@@ -55,6 +56,7 @@ signals:
   void requestError(const QString &message);
   void accountReceived(const Account &account);
   void searchReceived(const SearchResults &results);
+  void searchSuggestionsReceived(const QStringList &suggestions, const QString &best);
   void tracksReceived(const QList<Track> &tracks);
 
   // true — сервер принял факт прослушивания.
@@ -64,5 +66,6 @@ private:
   QNetworkAccessManager m_networkManager;
   QString m_token;
   QPointer<QNetworkReply> m_searchReply;
+  QPointer<QNetworkReply> m_suggestReply;
   QPointer<QNetworkReply> m_tracksReply;
 };

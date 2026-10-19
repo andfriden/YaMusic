@@ -2,6 +2,7 @@
 #include "../Playback/PlaybackController.h"
 #include "../Queue/QueueService.h"
 #include "../Yandex/Catalog/SearchService.h"
+#include <QSettings>
 
 SearchController::SearchController(SearchService *searchService,
                                    PlaybackController *playbackController, QObject *parent)
@@ -10,6 +11,13 @@ SearchController::SearchController(SearchService *searchService,
       m_albumsModel(new SearchAlbumsModel(this)), m_playlistsModel(new SearchPlaylistsModel(this)) {
   Q_ASSERT(m_searchService != nullptr);
   Q_ASSERT(m_playbackController != nullptr);
+
+  QSettings settings;
+  m_history = settings.value(QStringLiteral("search/history")).toStringList();
+
+  while (m_history.size() > 10) {
+    m_history.removeLast();
+  }
 
   connect(m_searchService, &SearchService::searchStarted, this, [this]() {
     if (m_searching) {
@@ -25,6 +33,30 @@ SearchController::SearchController(SearchService *searchService,
       m_searchService, &SearchService::searchReceived, this, [this](const SearchResults &results) {
         m_searching = false;
         emit searchingChanged();
+
+        const bool empty = results.total == 0 && results.artists.isEmpty() &&
+                           results.albums.isEmpty() && results.playlists.isEmpty();
+
+        if (results.page <= 0) {
+          m_lastResultEmpty = empty;
+
+          // Опечатка: по введённому запросу ничего не нашлось, но сервер
+          // знает более точный вариант — повторяем поиск с ним.
+          if (empty && m_allowCorrection) {
+            const QString best = normalizeQuery(m_bestSuggestion);
+
+            if (!best.isEmpty() &&
+                best.compare(m_currentQuery, Qt::CaseInsensitive) != 0) {
+              m_correction = best;
+              emit correctionChanged();
+              emit statusChanged(QStringLiteral("Показаны результаты для «%1»").arg(best));
+              runSearch(best, false, false);
+              return;
+            }
+          }
+        }
+
+        m_allowCorrection = false;
 
         // Пагинация: страница 0 заменяет результаты,
         // последующие — дописывают к текущим.
@@ -54,6 +86,27 @@ SearchController::SearchController(SearchService *searchService,
         emit statusChanged(QStringLiteral("Найдено результатов: %1").arg(results.total));
       });
 
+  connect(m_searchService, &SearchService::suggestionsReceived, this,
+          [this](const QStringList &suggestions, const QString &best) {
+            m_bestSuggestion = normalizeQuery(best);
+
+            if (m_suggestions != suggestions) {
+              m_suggestions = suggestions;
+              emit suggestionsChanged();
+            }
+
+            // Результатов по введённому запросу нет, а подсказка пришла
+            // позже ответа поиска — исправляем запрос сейчас.
+            if (m_lastResultEmpty && m_correction.isEmpty() &&
+                !m_bestSuggestion.isEmpty() &&
+                m_bestSuggestion.compare(m_currentQuery, Qt::CaseInsensitive) != 0) {
+              m_correction = m_bestSuggestion;
+              emit correctionChanged();
+              emit statusChanged(QStringLiteral("Показаны результаты для «%1»").arg(m_correction));
+              runSearch(m_correction, false, false);
+            }
+          });
+
   connect(m_searchService, &SearchService::errorOccurred, this, [this](const QString &message) {
     m_searching = false;
     emit searchingChanged();
@@ -79,15 +132,33 @@ SearchController::SearchController(SearchService *searchService,
 }
 
 void SearchController::search(const QString &query) {
-  const QString trimmedQuery = query.trimmed();
+  const QString normalized = normalizeQuery(query);
 
-  if (trimmedQuery.isEmpty()) {
+  if (normalized.isEmpty()) {
     m_model->clear();
     m_artistsModel->clear();
     m_albumsModel->clear();
     m_playlistsModel->clear();
     m_currentPage = 0;
     m_currentQuery.clear();
+    m_typedQuery.clear();
+    m_lastResultEmpty = false;
+    m_allowCorrection = false;
+
+    if (!m_query.isEmpty()) {
+      m_query.clear();
+      emit queryChanged();
+    }
+
+    if (!m_correction.isEmpty()) {
+      m_correction.clear();
+      emit correctionChanged();
+    }
+
+    if (!m_suggestions.isEmpty()) {
+      m_suggestions.clear();
+      emit suggestionsChanged();
+    }
 
     if (m_canLoadMore) {
       m_canLoadMore = false;
@@ -103,8 +174,98 @@ void SearchController::search(const QString &query) {
     return;
   }
 
-  m_currentQuery = trimmedQuery;
-  m_searchService->search(trimmedQuery, 0);
+  m_typedQuery = normalized;
+
+  if (!m_correction.isEmpty()) {
+    m_correction.clear();
+    emit correctionChanged();
+  }
+
+  if (!m_suggestions.isEmpty()) {
+    m_suggestions.clear();
+    emit suggestionsChanged();
+  }
+
+  runSearch(normalized, true, true);
+}
+
+void SearchController::requestSuggestions(const QString &query) {
+  const QString normalized = normalizeQuery(query);
+
+  if (normalized.size() < 2) {
+    m_bestSuggestion.clear();
+
+    if (!m_suggestions.isEmpty()) {
+      m_suggestions.clear();
+      emit suggestionsChanged();
+    }
+
+    return;
+  }
+
+  // Ответ на предыдущий запрос уже отменён клиентом, поэтому best
+  // сбрасываем: он должен относиться именно к текущему вводу.
+  m_bestSuggestion.clear();
+  m_searchService->suggest(normalized);
+}
+
+void SearchController::runSearch(const QString &query, bool remember, bool allowCorrection) {
+  m_currentQuery = query;
+  m_allowCorrection = allowCorrection;
+  m_lastResultEmpty = false;
+
+  if (m_query != query) {
+    m_query = query;
+    emit queryChanged();
+  }
+
+  if (remember) {
+    addToHistory(query);
+  }
+
+  m_searchService->search(query, 0);
+}
+
+void SearchController::addToHistory(const QString &query) {
+  const QString normalized = normalizeQuery(query);
+
+  if (normalized.isEmpty()) {
+    return;
+  }
+
+  for (int i = m_history.size() - 1; i >= 0; --i) {
+    if (m_history.at(i).compare(normalized, Qt::CaseInsensitive) == 0) {
+      m_history.removeAt(i);
+    }
+  }
+
+  m_history.prepend(normalized);
+
+  while (m_history.size() > 10) {
+    m_history.removeLast();
+  }
+
+  saveHistory();
+  emit historyChanged();
+}
+
+void SearchController::saveHistory() const {
+  QSettings settings;
+  settings.setValue(QStringLiteral("search/history"), m_history);
+}
+
+void SearchController::clearHistory() {
+  if (m_history.isEmpty()) {
+    return;
+  }
+
+  m_history.clear();
+  saveHistory();
+  emit historyChanged();
+}
+
+QString SearchController::normalizeQuery(const QString &query) {
+  return query.simplified();
 }
 
 void SearchController::loadMoreSearchResults() {
@@ -195,4 +356,20 @@ SearchPlaylistsModel *SearchController::playlistsModel() const {
 
 bool SearchController::isSearching() const {
   return m_searching;
+}
+
+QStringList SearchController::suggestions() const {
+  return m_suggestions;
+}
+
+QStringList SearchController::history() const {
+  return m_history;
+}
+
+QString SearchController::query() const {
+  return m_query;
+}
+
+QString SearchController::correction() const {
+  return m_correction;
 }

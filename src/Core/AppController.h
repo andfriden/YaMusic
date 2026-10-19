@@ -74,6 +74,7 @@ class AppController : public QObject {
   Q_PROPERTY(SearchArtistsModel *searchArtistsModel READ searchArtistsModel CONSTANT)
   Q_PROPERTY(SearchAlbumsModel *searchAlbumsModel READ searchAlbumsModel CONSTANT)
   Q_PROPERTY(SearchPlaylistsModel *searchPlaylistsModel READ searchPlaylistsModel CONSTANT)
+  Q_PROPERTY(SearchController *searchController READ searchController CONSTANT)
 
   Q_PROPERTY(SimilarTracksModel *similarTracksModel READ similarTracksModel CONSTANT)
   Q_PROPERTY(MyWaveModel *myWaveModel READ myWaveModel CONSTANT)
@@ -264,6 +265,7 @@ public:
   SearchArtistsModel *searchArtistsModel() const;
   SearchAlbumsModel *searchAlbumsModel() const;
   SearchPlaylistsModel *searchPlaylistsModel() const;
+  SearchController *searchController() const;
   SimilarTracksModel *similarTracksModel() const;
   MyWaveModel *myWaveModel() const;
   PersonalPlaylistsModel *personalPlaylistsModel() const;

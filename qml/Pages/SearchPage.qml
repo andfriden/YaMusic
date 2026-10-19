@@ -1,11 +1,91 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Layouts
 import YaMusic 1.0
 
 Item {
     id: root
 
     property var controller
+
+    readonly property var searchController:
+        root.controller !== null && root.controller !== undefined &&
+        root.controller.searchController !== undefined
+            ? root.controller.searchController
+            : null
+
+    readonly property var history:
+        root.searchController !== null && root.searchController.history !== undefined
+            ? root.searchController.history
+            : []
+
+    readonly property string correction:
+        root.searchController !== null && root.searchController.correction !== undefined
+            ? String(root.searchController.correction)
+            : ""
+
+    readonly property bool hasQuery:
+        root.searchController !== null &&
+        String(root.searchController.query || "").length > 0
+
+    // Живой поиск: подсказки чуть раньше, результаты — после паузы в наборе.
+    function scheduleSearch(text) {
+        const query = String(text || "").trim()
+
+        if (query.length === 0) {
+            suggestTimer.stop()
+            liveSearchTimer.stop()
+
+            if (root.searchController !== null) {
+                root.searchController.requestSuggestions("")
+                root.searchController.search("")
+            }
+
+            return
+        }
+
+        suggestTimer.restart()
+
+        if (query.length >= 2) {
+            liveSearchTimer.restart()
+        } else {
+            liveSearchTimer.stop()
+        }
+    }
+
+    Timer {
+        id: suggestTimer
+
+        interval: 220
+        repeat: false
+
+        onTriggered: {
+            if (root.searchController !== null) {
+                root.searchController.requestSuggestions(searchBar.text)
+            }
+        }
+    }
+
+    Timer {
+        id: liveSearchTimer
+
+        interval: 350
+        repeat: false
+
+        onTriggered: {
+            const query = searchBar.text.trim()
+
+            if (query.length < 2) {
+                return
+            }
+
+            if (root.searchController !== null) {
+                root.searchController.search(query)
+            }
+        }
+    }
+
+    Component.onCompleted: searchBar.focusSearch()
 
     width: parent ? parent.width : 0
     height: parent ? parent.height : 700
@@ -22,18 +102,154 @@ Item {
         controller: root.controller
     }
 
-    Column {
+    ColumnLayout {
         anchors.fill: parent
         spacing: 16
 
         SearchBar {
-            width: parent.width
+            id: searchBar
+
+            Layout.fillWidth: true
+            Layout.preferredHeight: 42
+
             controller: root.controller
+
+            onQueryEdited: function(text) {
+                root.scheduleSearch(text)
+            }
+            onSearchSubmitted: {
+                suggestTimer.stop()
+                liveSearchTimer.stop()
+            }
+        }
+
+        Label {
+            Layout.fillWidth: true
+            visible: root.correction.length > 0
+            text: "Показаны результаты для «" + root.correction + "»"
+            color: AppTheme.textSecondary
+            font.pixelSize: 12
+            elide: Text.ElideRight
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: !root.hasQuery
+            spacing: 10
+
+            Label {
+                Layout.fillWidth: true
+                visible: root.history.length > 0
+                text: "Недавние запросы"
+                color: AppTheme.textPrimary
+                font.pixelSize: 18
+                font.weight: Font.DemiBold
+            }
+
+            Flow {
+                Layout.fillWidth: true
+                spacing: 8
+                visible: root.history.length > 0
+
+                Repeater {
+                    model: root.history
+
+                    delegate: Rectangle {
+                        id: historyChip
+
+                        required property string modelData
+
+                        width: historyChipLabel.implicitWidth + 24
+                        height: 32
+                        radius: 16
+
+                        color: historyMouse.containsMouse
+                            ? AppTheme.panelActive
+                            : AppTheme.panelSecondary
+
+                        border.width: 1
+                        border.color: AppTheme.borderSubtle
+
+                        Text {
+                            id: historyChipLabel
+
+                            anchors.centerIn: parent
+                            text: historyChip.modelData
+                            color: AppTheme.textPrimary
+                            font.pixelSize: 13
+                        }
+
+                        MouseArea {
+                            id: historyMouse
+
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+
+                            onClicked: {
+                                searchBar.setText(historyChip.modelData)
+                                searchBar.performSearch()
+                            }
+                        }
+                    }
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                visible: root.history.length > 0
+
+                Item { Layout.fillWidth: true }
+
+                Rectangle {
+                    width: clearHistoryLabel.implicitWidth + 20
+                    height: 30
+                    radius: 8
+
+                    color: clearHistoryMouse.containsMouse
+                        ? AppTheme.panelHover
+                        : "transparent"
+
+                    Text {
+                        id: clearHistoryLabel
+
+                        anchors.centerIn: parent
+                        text: "Очистить историю"
+                        color: AppTheme.textSecondary
+                        font.pixelSize: 12
+                    }
+
+                    MouseArea {
+                        id: clearHistoryMouse
+
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (root.searchController !== null) {
+                                root.searchController.clearHistory()
+                            }
+                        }
+                    }
+                }
+            }
+
+            Label {
+                Layout.fillWidth: true
+                visible: root.history.length === 0
+                text: "Введите запрос — результаты появятся по мере ввода"
+                color: AppTheme.textMuted
+                font.pixelSize: 13
+            }
+
+            Item { Layout.fillHeight: true }
         }
 
         Rectangle {
-            width: parent.width
-            height: parent.height - 80
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: root.hasQuery
             color: AppTheme.backgroundPrimary
 
             Column {
