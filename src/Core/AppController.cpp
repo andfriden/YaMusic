@@ -189,9 +189,10 @@ void AppController::connectAccount() {
             m_recentListeningService->load(50, 10);
             m_libraryController->setUserId(m_accountUid);
 
-            // Список дизлайков грузим сразу при входе: он нужен не
+            // Списки дизлайков и лайков грузим сразу при входе: они нужны не
             // страницей, а состоянием кнопок на треках.
             m_likesService->loadDislikedTracks(m_accountUid);
+            m_likesService->loadLikedTracks(m_accountUid);
 
             m_playbackController->setUidProvider(
                 [this]() -> QString {

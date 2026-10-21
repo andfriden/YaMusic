@@ -72,6 +72,17 @@ Track parseTrack(const QJsonObject &object) {
   // Поле отсутствует у части ответов (очередь, лайки) — считаем трек доступным.
   track.available = obj.value("available").toBool(true);
 
+  // Состояние лайка трека: в некоторых ответах API (плейлисты, станции)
+  // есть явное булево поле; иначе оно приходит строкой likeStatus
+  // ("LIKE"/"DISLIKE"/"NEUTRAL").
+  if (obj.contains(QStringLiteral("liked")) && !obj.value(QStringLiteral("liked")).isNull()) {
+    track.liked = obj.value(QStringLiteral("liked")).toBool();
+  } else {
+    const QString likeStatus = obj.value(QStringLiteral("likeStatus")).toString();
+    track.liked = (likeStatus == QLatin1String("LIKE"));
+    track.disliked = (likeStatus == QLatin1String("DISLIKE"));
+  }
+
   const QJsonArray artists = obj.value("artists").toArray();
   for (const QJsonValue &value : artists) {
     if (!value.isObject()) continue;
