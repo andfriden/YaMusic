@@ -38,6 +38,15 @@ public:
 
         MPRemoteCommandCenter *c = center;
 
+        // Команды нужно включить явно: иначе система не показывает
+        // плеер в Now Playing и не отдаёт ему медиа-клавиши.
+        c.togglePlayPauseCommand.enabled = YES;
+        c.playCommand.enabled = YES;
+        c.pauseCommand.enabled = YES;
+        c.nextTrackCommand.enabled = YES;
+        c.previousTrackCommand.enabled = YES;
+        c.changePlaybackPositionCommand.enabled = YES;
+
         toggleTarget = [c.togglePlayPauseCommand
             addTargetWithHandler:^(MPRemoteCommandEvent *) {
                 dispatch_async(dispatch_get_main_queue(), ^{
@@ -166,6 +175,12 @@ public:
             break;
         }
 
+        if (@available(macOS 10.12.2, *))
+        {
+            info[MPNowPlayingInfoPropertyMediaType] =
+                @(MPNowPlayingInfoMediaTypeAudio);
+        }
+
 if (!artworkImage.isNull())
         {
             CGImageRef cgImage = artworkImage.toCGImage();
@@ -188,7 +203,32 @@ if (!artworkImage.isNull())
             }
         }
 
-        [[MPNowPlayingInfoCenter defaultCenter] setNowPlayingInfo:info];
+        MPNowPlayingInfoCenter *center =
+            [MPNowPlayingInfoCenter defaultCenter];
+
+        [center setNowPlayingInfo:info];
+
+        /*
+         * С macOS 10.12.2 именно playbackState сообщает системе,
+         * что приложение управляет воспроизведением. Без него
+         * медиа-клавиши и Control Center команды не доходят.
+         */
+        if (@available(macOS 10.12.2, *))
+        {
+            switch (status)
+            {
+            case SystemMediaControls::PlaybackStatus::Playing:
+                center.playbackState = MPNowPlayingPlaybackStatePlaying;
+                break;
+            case SystemMediaControls::PlaybackStatus::Paused:
+                center.playbackState = MPNowPlayingPlaybackStatePaused;
+                break;
+            case SystemMediaControls::PlaybackStatus::Stopped:
+                center.playbackState = MPNowPlayingPlaybackStateStopped;
+                break;
+            }
+        }
+
         [info release];
     }
 
@@ -227,6 +267,12 @@ void MediaControlsMacOS::platformSetEnabled(bool enabled)
 
     if (!enabled)
     {
+        if (@available(macOS 10.12.2, *))
+        {
+            [MPNowPlayingInfoCenter defaultCenter].playbackState =
+                MPNowPlayingPlaybackStateStopped;
+        }
+
         [[MPNowPlayingInfoCenter defaultCenter]
             setNowPlayingInfo:nil];
     }
