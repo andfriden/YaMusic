@@ -205,6 +205,47 @@ jobs:
               -Force
           }
 
+      - name: Copy MSVC runtime (app-local)
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          # Без app-local CRT пакет не запускается на машине без
+          # «Visual C++ 2015-2022 Redistributable»: YaMusic.exe и Qt6Core.dll
+          # импортируют MSVCP140.dll / VCRUNTIME140.dll.
+          if (!$env:VCToolsRedistDir) {
+            throw "VCToolsRedistDir is not set; the MSVC step must run first."
+          }
+
+          $crtDir = Get-ChildItem `
+            -LiteralPath (Join-Path $env:VCToolsRedistDir "x64") `
+            -Directory `
+            -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like "Microsoft.VC*.CRT" } |
+            Select-Object -First 1
+
+          if (!$crtDir) {
+            throw "MSVC CRT redist directory not found under: $env:VCToolsRedistDir\x64"
+          }
+
+          $crtDlls = @(
+            Get-ChildItem -LiteralPath $crtDir.FullName -Filter "*.dll" -File
+          )
+
+          if ($crtDlls.Count -eq 0) {
+            throw "No CRT DLLs found in: $($crtDir.FullName)"
+          }
+
+          foreach ($dll in $crtDlls) {
+            Copy-Item `
+              -LiteralPath $dll.FullName `
+              -Destination "dist/bin" `
+              -Force
+          }
+
+          Get-ChildItem -LiteralPath "dist/bin" -Filter "*.dll" -File |
+            Where-Object { $_.Name -match '^(msvcp|vcruntime|concrt|vccorlib)' } |
+            Select-Object Name, Length
+
       - name: Trim Qt translations
         run: |
           $ErrorActionPreference = "Stop"
@@ -241,7 +282,10 @@ jobs:
             "dist/bin/Qt6Qml.dll",
             "dist/bin/Qt6Quick.dll",
             "dist/bin/Qt6Network.dll",
-            "dist/bin/Qt6Multimedia.dll"
+            "dist/bin/Qt6Multimedia.dll",
+            "dist/bin/MSVCP140.dll",
+            "dist/bin/VCRUNTIME140.dll",
+            "dist/bin/VCRUNTIME140_1.dll"
           )
 
           foreach ($file in $requiredFiles) {
