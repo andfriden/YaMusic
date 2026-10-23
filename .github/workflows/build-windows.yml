@@ -241,8 +241,7 @@ jobs:
             "dist/bin/Qt6Qml.dll",
             "dist/bin/Qt6Quick.dll",
             "dist/bin/Qt6Network.dll",
-            "dist/bin/Qt6Multimedia.dll",
-            "dist/bin/platforms/qwindows.dll"
+            "dist/bin/Qt6Multimedia.dll"
           )
 
           foreach ($file in $requiredFiles) {
@@ -255,8 +254,26 @@ jobs:
             }
           }
 
+          # Плагин платформы Qt кладёт либо рядом с exe, либо в <prefix>/plugins.
+          $qwindows = Get-ChildItem `
+            -LiteralPath "dist" `
+            -Filter "qwindows.dll" `
+            -File `
+            -Recurse |
+            Select-Object -First 1
+
+          if (!$qwindows) {
+            throw "Qt platform plugin qwindows.dll was not deployed."
+          }
+
+          Write-Host "Platform plugin: $($qwindows.FullName)"
+
+          Get-ChildItem -LiteralPath "dist" -Directory |
+            Select-Object FullName
+
           Get-ChildItem -LiteralPath "dist" -Recurse -File |
-            Select-Object FullName, Length
+            Measure-Object -Property Length -Sum |
+            Select-Object Count, Sum
 
       - name: Build NSIS installer
         run: |
