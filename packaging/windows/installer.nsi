@@ -1,11 +1,12 @@
 ; NSIS-скрипт установщика YaMusic для Windows x64.
 ;
-; Собирается в GitHub Actions (см. .github/workflows/build.yml) командой:
-;   makensis /DVERSION=<version> /DINSTALL_DIR=<dist> packaging/windows/installer.nsi
+; Собирается в GitHub Actions (см. .github/workflows/build-windows.yml) командой:
+;   makensis /DVERSION=<version> /DINSTALL_DIR=<dist> /DOUTFILE=<exe> packaging/windows/installer.nsi
 ;
 ; Входные данные:
 ;   VERSION    — версия приложения (например 0.10.2)
 ;   INSTALL_DIR — каталог, куда cmake --install положил приложение (dist)
+;   OUTFILE    — путь к собираемому установщику (по умолчанию рядом со скриптом)
 
 Unicode true
 
@@ -17,8 +18,12 @@ Unicode true
   !error "INSTALL_DIR must be defined (path to installed dist)"
 !endif
 
+!ifndef OUTFILE
+  !define OUTFILE "YaMusic-${VERSION}-windows-x64.exe"
+!endif
+
 Name "YaMusic ${VERSION}"
-OutFile "YaMusic-${VERSION}-windows-x64.exe"
+OutFile "${OUTFILE}"
 InstallDir "$PROGRAMFILES64\YaMusic"
 
 RequestExecutionLevel admin
