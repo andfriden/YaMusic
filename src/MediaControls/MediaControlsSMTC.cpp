@@ -24,6 +24,10 @@ void MediaControlsSMTC::platformSetDuration(qint64) {}
 #include <winrt/Windows.Media.h>
 #include <winrt/Windows.Storage.Streams.h>
 
+// GetForWindow для Win32-приложений: GetForCurrentView() рассчитан на UWP
+// и в обычном desktop-окне не работает.
+#include <systemmediatransportcontrolsinterop.h>
+
 #include <QDebug>
 
 using namespace winrt;
@@ -33,10 +37,37 @@ using namespace Windows::Media::SystemMediaTransportControls;
 
 class MediaControlsSMTC::Impl {
 public:
-  Impl() { m_controls = SystemMediaTransportControls::GetForCurrentView(); }
+  // SMTC создаётся для конкретного окна приложения. Окно появляется
+  // после конструктора PlaybackController, поэтому создание ленивое:
+  // первая попытка может не найти HWND, следующие — найдут.
+  bool ensureControls() {
+    if (m_controls) return true;
+
+    const HWND hwnd = findAppWindow();
+    if (hwnd == nullptr) return false;
+
+    try {
+      auto interop =
+          winrt::get_activation_factory<SystemMediaTransportControls,
+                                        ISystemMediaTransportControlsInterop>();
+
+      SystemMediaTransportControls controls{nullptr};
+      winrt::check_hresult(interop->GetForWindow(
+          hwnd, winrt::guid_of<SystemMediaTransportControls>(),
+          winrt::put_abi(controls)));
+
+      m_controls = controls;
+    } catch (const winrt::hresult_error &error) {
+      qWarning("SMTC: cannot create controls (0x%08X)",
+               static_cast<unsigned>(error.code()));
+      return false;
+    }
+
+    return m_controls != nullptr;
+  }
 
   void connectCommands(MediaControlsSMTC *owner) {
-    if (m_tokenSet) return;
+    if (m_tokenSet || !ensureControls()) return;
     m_controls.IsPlayEnabled(true);
     m_controls.IsPauseEnabled(true);
     m_controls.IsNextEnabled(true);
@@ -77,7 +108,7 @@ public:
   }
 
   void disconnectCommands() {
-    if (!m_tokenSet) return;
+    if (!m_tokenSet || !m_controls) return;
     m_controls.ButtonPressed(m_buttonToken);
     m_controls.PlaybackPositionChangeRequested(m_positionToken);
     m_controls.IsEnabled(false);
@@ -87,6 +118,8 @@ public:
   void updateInfo(const SystemMediaControls::Metadata &md,
                   SystemMediaControls::PlaybackStatus status, qint64 positionMs,
                   qint64 durationMs) {
+    if (!ensureControls()) return;
+
     auto updater = m_controls.Updater();
 
     updater.MediaProperties().MusicProperties().Title(winrt::to_hstring(md.title.toStdWString()));
@@ -117,6 +150,25 @@ public:
   }
 
 private:
+  // Окно приложения — первое видимое top-level окно потока GUI.
+  static HWND findAppWindow() {
+    HWND window = nullptr;
+
+    EnumThreadWindows(
+        GetCurrentThreadId(),
+        [](HWND candidate, LPARAM param) -> BOOL {
+          if (GetWindow(candidate, GW_OWNER) == nullptr &&
+              IsWindowVisible(candidate)) {
+            *reinterpret_cast<HWND *>(param) = candidate;
+            return FALSE;
+          }
+          return TRUE;
+        },
+        reinterpret_cast<LPARAM>(&window));
+
+    return window;
+  }
+
   SystemMediaTransportControls m_controls = nullptr;
   event_token m_buttonToken;
   event_token m_positionToken;
