@@ -60,7 +60,8 @@ Section "YaMusic" SecMain
   File /r "${INSTALL_DIR}\*.*"
 
   ; exe лежит в bin рядом с qt.conf, поэтому ярлыки указывают туда.
-  !ifnot /FileExists "${INSTALL_DIR}\bin\YaMusic.exe"
+  !if /FileExists "${INSTALL_DIR}\bin\YaMusic.exe"
+  !else
     !error "YaMusic.exe not found in ${INSTALL_DIR}\bin"
   !endif
 
