@@ -59,14 +59,20 @@ Section "YaMusic" SecMain
   SetOutPath "$INSTDIR"
   File /r "${INSTALL_DIR}\*.*"
 
+  ; exe лежит в bin рядом с qt.conf, поэтому ярлыки указывают туда.
+  !ifnot /FileExists "${INSTALL_DIR}\bin\YaMusic.exe"
+    !error "YaMusic.exe not found in ${INSTALL_DIR}\bin"
+  !endif
+
+  WriteUninstaller "$INSTDIR\Uninstall.exe"
+
   ; Desktop and Start menu shortcuts
-  CreateShortcut "$DESKTOP\YaMusic.lnk" "$INSTDIR\YaMusic.exe"
+  CreateShortcut "$DESKTOP\YaMusic.lnk" "$INSTDIR\bin\YaMusic.exe"
   CreateDirectory "$SMPROGRAMS\YaMusic"
-  CreateShortcut "$SMPROGRAMS\YaMusic\YaMusic.lnk" "$INSTDIR\YaMusic.exe"
+  CreateShortcut "$SMPROGRAMS\YaMusic\YaMusic.lnk" "$INSTDIR\bin\YaMusic.exe"
   CreateShortcut "$SMPROGRAMS\YaMusic\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
 
   ; Uninstaller registry
-  WriteUninstaller "$INSTDIR\Uninstall.exe"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\YaMusic" \
     "DisplayName" "YaMusic ${VERSION}"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\YaMusic" \
