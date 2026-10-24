@@ -1,6 +1,6 @@
 ; NSIS-скрипт установщика YaMusic для Windows x64.
 ;
-; Собирается в GitHub Actions (см. .github/workflows/build-windows.yml) командой:
+; Собирается в GitHub Actions (см. .github/workflows/build.yml, джоб windows) командой:
 ;   makensis /DVERSION=<version> /DINSTALL_DIR=<dist> /DOUTFILE=<exe> packaging/windows/installer.nsi
 ;
 ; Входные данные:
