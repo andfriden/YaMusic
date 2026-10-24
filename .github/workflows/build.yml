@@ -368,10 +368,6 @@ jobs:
     name: Windows x64 Release
     runs-on: windows-2022
 
-    # contents: write нужен для публикации установщика в плавающий релиз.
-    permissions:
-      contents: write
-
     defaults:
       run:
         shell: pwsh
@@ -720,35 +716,6 @@ jobs:
           path: ${{ env.SETUP_NAME }}
           if-no-files-found: error
           retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
-
-      # Artifact всегда скачивается zip-архивом, поэтому для быстрого доступа
-      # к самому .exe публикуем его плавающим ассетом prerelease-релиза.
-      - name: Publish latest installer (plain exe)
-        if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v') }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $ErrorActionPreference = "Stop"
-
-          $tag = "windows-latest"
-
-          gh release view $tag *> $null
-          if ($LASTEXITCODE -ne 0) {
-            gh release create $tag `
-              --target $env:GITHUB_SHA `
-              --prerelease `
-              --title "Windows latest build" `
-              --notes "Плавающая prerelease-сборка: установщик последнего коммита."
-            if ($LASTEXITCODE -ne 0) {
-              throw "Failed to create release $tag."
-            }
-          }
-
-          gh release upload $tag $env:SETUP_NAME --clobber
-          if ($LASTEXITCODE -ne 0) {
-            throw "Failed to upload installer to release $tag."
-          }
-
 
   # =============================================================
   # Release (only on tags)
