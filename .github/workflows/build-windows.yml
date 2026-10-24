@@ -371,6 +371,34 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      # Artifact всегда скачивается zip-архивом, поэтому для быстрого доступа
+      # к самому .exe публикуем его плавающим ассетом prerelease-релиза.
+      - name: Publish latest installer (plain exe)
+        if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $tag = "windows-latest"
+
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag `
+              --target $env:GITHUB_SHA `
+              --prerelease `
+              --title "Windows latest build" `
+              --notes "Плавающая prerelease-сборка: установщик последнего коммита."
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to create release $tag."
+            }
+          }
+
+          gh release upload $tag $env:SETUP_NAME --clobber
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to upload installer to release $tag."
+          }
+
       # Релиз создаёт workflow "Build YaMusic" после сборки Linux и macOS.
       # Здесь только дожидаемся его появления, чтобы установщик лёг в тот же
       # релиз и не возникало гонки за создание.
