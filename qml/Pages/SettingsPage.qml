@@ -11,6 +11,9 @@ Item {
 
     signal crashReportsRequested()
 
+    // Страница занимает всю высоту области просмотра, а не свою контентную.
+    readonly property bool fillHeight: true
+
     width: parent ? parent.width : 0
     height: parent ? parent.height : 700
     implicitWidth: width

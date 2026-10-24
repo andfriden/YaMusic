@@ -93,7 +93,7 @@ Item {
             height: parent.height
             clip: true
 
-            ScrollView {
+            Flickable {
                 id: contentScrollView
 
                 anchors.fill: parent
@@ -102,24 +102,36 @@ Item {
                 anchors.rightMargin: 28
 
                 clip: true
+                boundsBehavior: Flickable.StopAtBounds
 
                 ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
-                contentWidth: availableWidth
+                contentWidth: width
                 contentHeight: Math.max(
                     pageLoader.height + bottomContentSpacer.height,
-                    availableHeight
+                    height
                 )
 
                 Loader {
                     id: pageLoader
 
-                    width: contentScrollView.availableWidth
-                    height: item ? item.implicitHeight : 0
+                    width: contentScrollView.width
 
+                    // Страницы, которым нужна вся высота области просмотра,
+                    // берут её отсюда: считать её из item.implicitHeight нельзя —
+                    // страница сама тянется за родителем и получается цикл,
+                    // из-за которого высота схлопывается в ноль.
+                    height: item && item.fillHeight !== true
+                        ? item.implicitHeight
+                        : contentScrollView.height
+
+                    // Ширина именно биндингом: при разворачивании окна
+                    // страница должна переехать вместе с ней.
                     onLoaded: {
                         if (item) {
-                            item.width = pageLoader.width
+                            item.width = Qt.binding(function() {
+                                return pageLoader.width
+                            })
                         }
                     }
                 }
@@ -127,7 +139,7 @@ Item {
                 Item {
                     id: bottomContentSpacer
 
-                    width: contentScrollView.availableWidth
+                    width: contentScrollView.width
                     height: 40
                     y: pageLoader.height
                 }

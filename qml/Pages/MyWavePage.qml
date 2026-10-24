@@ -7,6 +7,9 @@ Item {
 
     property var controller
 
+    // Страница занимает всю высоту области просмотра, а не свою контентную.
+    readonly property bool fillHeight: true
+
     anchors.fill: parent
 
     implicitWidth: width
