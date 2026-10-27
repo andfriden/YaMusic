@@ -968,6 +968,8 @@ Item {
                 model: root.hasController ? root.controller.similarTracksModel : null
 
                 delegate: TrackListItem {
+                    artists: model.artists
+
                     onActivated: {
                         if (root.hasController) {
                             root.controller.selectSimilarTrack(sourceIndex)
@@ -1168,6 +1170,23 @@ Item {
         required property string coverUri
         required property int durationMs
 
+        // Все исполнители трека: [{"id", "name"}]. Если список не задан,
+        // ссылки строятся из одного artist/artistId.
+        property var artists: []
+
+        readonly property var linkArtists: {
+            if (item.artists && item.artists.length > 0) {
+                return item.artists
+            }
+            if (item.artist.length > 0) {
+                return [{
+                    id: item.artistId,
+                    name: item.artist
+                }]
+            }
+            return []
+        }
+
         signal activated()
 
         width: parent ? parent.width : 0
@@ -1240,11 +1259,14 @@ Item {
                     elide: Text.ElideRight
                 }
 
-                EntityLink {
-                    text: item.artist || ""
-                    entityId: item.artistId || ""
-                    entityType: "artist"
+                ArtistLinks {
+                    width: parent.width
+                    clip: true
+
+                    artists: item.linkArtists
                     controller: root.controller
+                    pixelSize: Qt.application.font.pixelSize
+                    baseColor: AppTheme.textSecondary
                 }
             }
 

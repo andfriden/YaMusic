@@ -28,6 +28,8 @@ QVariant SimilarTracksModel::data(const QModelIndex &index, int role) const {
     return track.coverUri;
   case DurationMsRole:
     return track.durationMs;
+  case ArtistsRole:
+    return artistsToVariantList(track.artists);
   default:
     return {};
   }
@@ -36,7 +38,7 @@ QVariant SimilarTracksModel::data(const QModelIndex &index, int role) const {
 QHash<int, QByteArray> SimilarTracksModel::roleNames() const {
   return {{SourceIndexRole, "sourceIndex"}, {TrackIdRole, "trackId"},   {TitleRole, "title"},
           {ArtistRole, "artist"},           {ArtistIdRole, "artistId"}, {CoverUriRole, "coverUri"},
-          {DurationMsRole, "durationMs"}};
+          {DurationMsRole, "durationMs"},   {ArtistsRole, "artists"}};
 }
 
 void SimilarTracksModel::setSimilarTracks(const QList<Track> &tracks) {
