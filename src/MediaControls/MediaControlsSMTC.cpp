@@ -37,6 +37,8 @@ using namespace Windows::Media::SystemMediaTransportControls;
 
 class MediaControlsSMTC::Impl {
 public:
+  explicit Impl(MediaControlsSMTC *owner) : m_owner(owner) {}
+
   // SMTC создаётся для конкретного окна приложения. Окно появляется
   // после конструктора PlaybackController, поэтому создание ленивое:
   // первая попытка может не найти HWND, следующие — найдут.
@@ -66,8 +68,13 @@ public:
     return m_controls != nullptr;
   }
 
-  void connectCommands(MediaControlsSMTC *owner) {
+  // Идемпотентно: подключает обработчики, когда окно уже создано.
+  // На старте окна может ещё не быть, поэтому вызывается не только из
+  // platformSetEnabled, но и при каждом обновлении метаданных/статуса.
+  void connectCommands() {
     if (m_tokenSet || !ensureControls()) return;
+
+    MediaControlsSMTC *owner = m_owner;
     m_controls.IsPlayEnabled(true);
     m_controls.IsPauseEnabled(true);
     m_controls.IsNextEnabled(true);
@@ -119,6 +126,10 @@ public:
                   SystemMediaControls::PlaybackStatus status, qint64 positionMs,
                   qint64 durationMs) {
     if (!ensureControls()) return;
+
+    // Подключаем кнопки, как только окно появилось (на старте его могло
+    // не быть в platformSetEnabled). Повторные вызовы безопасны.
+    connectCommands();
 
     auto updater = m_controls.Updater();
 
@@ -173,10 +184,11 @@ private:
   event_token m_buttonToken;
   event_token m_positionToken;
   bool m_tokenSet = false;
+  MediaControlsSMTC *m_owner = nullptr;
 };
 
 MediaControlsSMTC::MediaControlsSMTC(QObject *parent)
-    : SystemMediaControls(parent), d(new Impl()) {}
+    : SystemMediaControls(parent), d(new Impl(this)) {}
 
 MediaControlsSMTC::~MediaControlsSMTC() {
   setEnabled(false);
@@ -185,7 +197,7 @@ MediaControlsSMTC::~MediaControlsSMTC() {
 
 void MediaControlsSMTC::platformSetEnabled(bool enabled) {
   if (enabled)
-    d->connectCommands(this);
+    d->connectCommands();
   else
     d->disconnectCommands();
 }

@@ -303,11 +303,30 @@ if(WIN32)
         NAMES "winrt/Windows.Media.SystemMediaTransportControls.h"
         HINTS
             "$ENV{WindowsSdkDir}Include/$ENV{WindowsSDKVersion}cppwinrt"
-        PATHS
-            "C:/Program Files/Windows Kits/10/Include"
-        PATH_SUFFIXES
-            "cppwinrt"
     )
+
+    # Fallback: заголовки лежат в Include/<версия>/cppwinrt. Берём самую
+    # новую версию SDK, чтобы не зависеть от WindowsSdkDir/WindowsSDKVersion
+    # (в обычной VS/Qt Creator-сборке они не всегда выставлены).
+    if(NOT CPPWINRT_INCLUDE_DIR)
+        set(_yamusic_cppwinrt_patterns)
+        if(DEFINED ENV{WindowsSdkDir} AND NOT "$ENV{WindowsSdkDir}" STREQUAL "")
+            list(APPEND _yamusic_cppwinrt_patterns
+                "$ENV{WindowsSdkDir}Include/*/cppwinrt")
+        endif()
+        list(APPEND _yamusic_cppwinrt_patterns
+            "C:/Program Files (x86)/Windows Kits/10/Include/*/cppwinrt"
+            "C:/Program Files/Windows Kits/10/Include/*/cppwinrt")
+        file(GLOB _yamusic_cppwinrt_dirs ${_yamusic_cppwinrt_patterns})
+        list(SORT _yamusic_cppwinrt_dirs)
+        list(REVERSE _yamusic_cppwinrt_dirs)
+        foreach(_candidate IN LISTS _yamusic_cppwinrt_dirs)
+            if(EXISTS "${_candidate}/winrt/Windows.Media.SystemMediaTransportControls.h")
+                set(CPPWINRT_INCLUDE_DIR "${_candidate}")
+                break()
+            endif()
+        endforeach()
+    endif()
 
     if(NOT CPPWINRT_INCLUDE_DIR)
         message(STATUS "C++/WinRT headers not found — SMTC support will be stubbed out")
