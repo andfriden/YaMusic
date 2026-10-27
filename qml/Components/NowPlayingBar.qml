@@ -55,12 +55,12 @@ Rectangle {
         if (!root.hasController) {
             return false
         }
-        const id = String(root.controller.currentTrackArtistId || "")
-        if (id.length === 0) {
-            return false
-        }
+
+        // Пересчитываем при смене трека и после загрузки базы Slopless.
+        root.controller.currentTrackId
         root.controller.aiRevision
-        return root.controller.isAiArtist(id)
+
+        return root.controller.currentTrackIsAi()
     }
 
     readonly property bool currentTrackUncensored: {

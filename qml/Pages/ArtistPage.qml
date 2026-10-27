@@ -40,6 +40,20 @@ Item {
             ? String(root.artistController.artistId || "")
             : ""
 
+    readonly property bool artistIsAi: {
+        if (root.controller === null || root.controller === undefined) {
+            return false
+        }
+        if (root.artistId.length === 0) {
+            return false
+        }
+
+        // Пересчитываем после загрузки базы Slopless.
+        root.controller.aiRevision
+
+        return root.controller.isAiArtist(root.artistId)
+    }
+
     readonly property string artistName:
         root.artistController !== null
             ? String(root.artistController.artistName || "")
@@ -182,6 +196,9 @@ Item {
 
                         Label {
                             width: parent.width - artistLikeButton.width - parent.spacing
+                                - (artistAiBadge.visible
+                                    ? artistAiBadge.implicitWidth + parent.spacing
+                                    : 0)
 
                             text: root.artistName.length > 0 ? root.artistName : qsTr("Исполнитель")
 
@@ -191,6 +208,16 @@ Item {
 
                             elide: Text.ElideRight
                             maximumLineCount: 1
+                        }
+
+                        Badge {
+                            id: artistAiBadge
+
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            visible: root.artistIsAi
+                            text: "AI"
+                            badgeColor: AppTheme.warning
                         }
 
                         Item {

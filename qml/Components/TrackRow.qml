@@ -54,14 +54,22 @@ Item {
         if (!root.hasController || root.trackId.length === 0) {
             return false
         }
-        // Считаем по первому исполнителю — регион охвата такой же, как у бейджа
-        // в плеере; по альбомам с несколькими исполнителями список не ведём.
-        const id = String(root.artistId || "")
-        if (id.length === 0) {
+
+        // ИИ-трек, если хотя бы один его исполнитель есть в базе Slopless.
+        root.controller.aiRevision
+
+        if (root.artists && root.artists.length > 0) {
+            for (let i = 0; i < root.artists.length; ++i) {
+                const id = String(root.artists[i].id || "")
+                if (id.length > 0 && root.controller.isAiArtist(id)) {
+                    return true
+                }
+            }
             return false
         }
-        root.controller.aiRevision
-        return root.controller.isAiArtist(id)
+
+        const id = String(root.artistId || "")
+        return id.length > 0 && root.controller.isAiArtist(id)
     }
 
     readonly property bool showUncensoredBadge: {

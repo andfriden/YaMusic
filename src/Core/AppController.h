@@ -151,6 +151,12 @@ class AppController : public QObject {
   // Скрывать из списков треки с бейджем AI (исполнитель из базы Slopless).
   Q_PROPERTY(bool hideAiTracks READ hideAiTracks WRITE setHideAiTracks NOTIFY
                  hideAiTracksChanged)
+  // Автоматически ставить дизлайк трекам ИИ-артистов.
+  Q_PROPERTY(bool autoDislikeAiTracks READ autoDislikeAiTracks WRITE
+                 setAutoDislikeAiTracks NOTIFY autoDislikeAiTracksChanged)
+  // Автоматически пропускать треки ИИ-артистов.
+  Q_PROPERTY(bool skipAiTracks READ skipAiTracks WRITE setSkipAiTracks NOTIFY
+                 skipAiTracksChanged)
 
   Q_PROPERTY(qint64 position READ position NOTIFY positionChanged)
   Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
@@ -316,10 +322,16 @@ public:
   int aiRevision() const;
   int censorRevision() const;
   Q_INVOKABLE bool isAiArtist(const QString &artistId) const;
+  Q_INVOKABLE bool currentTrackIsAi() const;
   Q_INVOKABLE bool isTrackUncensored(const QString &trackId) const;
 
   bool hideAiTracks() const;
   void setHideAiTracks(bool enabled);
+
+  bool autoDislikeAiTracks() const;
+  void setAutoDislikeAiTracks(bool enabled);
+  bool skipAiTracks() const;
+  void setSkipAiTracks(bool enabled);
 
   QString currentPlaylistTitle() const;
   QString currentPlaylistCoverUri() const;
@@ -395,6 +407,8 @@ signals:
   void aiChanged();
   void censorChanged();
   void hideAiTracksChanged();
+  void autoDislikeAiTracksChanged();
+  void skipAiTracksChanged();
 
   void positionChanged();
   void durationChanged();
@@ -420,6 +434,11 @@ private:
   void connectStations();
   void connectPlayback();
   void connectPlayer();
+
+  // Трек относится к ИИ, если хотя бы один его исполнитель есть в базе.
+  bool isAiTrack(const Track &track) const;
+  // Автодизлайк/пропуск для текущего трека (если включены).
+  void handleAiTrackPolicy();
 
   YandexAuth *m_auth;
   AccountService *m_accountService;
@@ -473,4 +492,7 @@ private:
   int m_aiRevision = 0;
   int m_censorRevision = 0;
   bool m_hideAiTracks = false;
+  bool m_autoDislikeAiTracks = false;
+  bool m_skipAiTracks = false;
+  int m_aiSkipStreak = 0;
 };

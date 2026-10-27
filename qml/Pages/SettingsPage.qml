@@ -397,6 +397,138 @@ Item {
                 color: AppTheme.borderSubtle
             }
 
+            Row {
+                width: parent.width
+                height: 26
+                spacing: 8
+
+                Text {
+                    width: parent.width - 28
+                    height: parent.height
+
+                    text: "Автодизлайк AI-треков"
+                    color: AppTheme.textPrimary
+                    font.pixelSize: 12
+
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                Item {
+                    width: 20
+                    height: 20
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 4
+
+                        color: root.controller && root.controller.autoDislikeAiTracks
+                            ? AppTheme.accent
+                            : AppTheme.panelSecondary
+
+                        border.width: 1
+                        border.color: AppTheme.border
+
+                        Text {
+                            anchors.centerIn: parent
+
+                            text: root.controller && root.controller.autoDislikeAiTracks
+                                ? "✓"
+                                : ""
+                            color: AppTheme.accentOn
+                            font.pixelSize: 11
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (root.controller) {
+                                root.controller.autoDislikeAiTracks =
+                                    !root.controller.autoDislikeAiTracks
+                            }
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 1
+                color: AppTheme.borderSubtle
+            }
+
+            Row {
+                width: parent.width
+                height: 26
+                spacing: 8
+
+                Text {
+                    width: parent.width - 28
+                    height: parent.height
+
+                    text: "Пропускать AI-треки"
+                    color: AppTheme.textPrimary
+                    font.pixelSize: 12
+
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                Item {
+                    width: 20
+                    height: 20
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 4
+
+                        color: root.controller && root.controller.skipAiTracks
+                            ? AppTheme.accent
+                            : AppTheme.panelSecondary
+
+                        border.width: 1
+                        border.color: AppTheme.border
+
+                        Text {
+                            anchors.centerIn: parent
+
+                            text: root.controller && root.controller.skipAiTracks
+                                ? "✓"
+                                : ""
+                            color: AppTheme.accentOn
+                            font.pixelSize: 11
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (root.controller) {
+                                root.controller.skipAiTracks =
+                                    !root.controller.skipAiTracks
+                            }
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 1
+                color: AppTheme.borderSubtle
+            }
+
             Text {
                 width: parent.width
                 text: "Обновления"

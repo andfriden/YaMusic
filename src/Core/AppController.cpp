@@ -85,13 +85,16 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
   // фильтр моделей пересобирает все списки сразу.
   QSettings settings;
   m_hideAiTracks = settings.value(QStringLiteral("content/hideAiTracks"), false).toBool();
+  m_autoDislikeAiTracks =
+      settings.value(QStringLiteral("content/autoDislikeAi"), false).toBool();
+  m_skipAiTracks = settings.value(QStringLiteral("content/skipAi"), false).toBool();
 
   TrackListModelBase::setTrackFilter([this](const Track &track) {
-    if (!m_hideAiTracks || track.artists.isEmpty()) {
+    if (!m_hideAiTracks) {
       return true;
     }
 
-    return !m_aiService->isAiArtist(track.artists.first().id);
+    return !isAiTrack(track);
   });
 
   m_statsController = new StatsController(this);
@@ -126,6 +129,9 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
     TrackListModelBase::refreshTrackFilters();
     emit aiChanged();
   });
+
+  // База ИИ-артистов: поднимаем дисковый кэш и обновляем из сети при запуске.
+  m_aiService->refresh();
   connect(m_censorService, &CensorService::listChanged, this, [this]() {
     ++m_censorRevision;
     emit censorChanged();
@@ -397,6 +403,9 @@ void AppController::connectPlayback() {
           [this]() {
             emit currentTrackChanged();
 
+            // Автодизлайк/пропуск ИИ-треков (если включены в настройках).
+            handleAiTrackPolicy();
+
             const Track track = m_playbackController->currentTrack();
 
             if (track.id.isEmpty()) {
@@ -653,6 +662,75 @@ void AppController::setHideAiTracks(bool enabled) {
   TrackListModelBase::refreshTrackFilters();
 
   emit hideAiTracksChanged();
+}
+
+bool AppController::autoDislikeAiTracks() const {
+  return m_autoDislikeAiTracks;
+}
+
+void AppController::setAutoDislikeAiTracks(bool enabled) {
+  if (m_autoDislikeAiTracks == enabled) return;
+
+  m_autoDislikeAiTracks = enabled;
+
+  QSettings settings;
+  settings.setValue(QStringLiteral("content/autoDislikeAi"), enabled);
+
+  emit autoDislikeAiTracksChanged();
+}
+
+bool AppController::skipAiTracks() const {
+  return m_skipAiTracks;
+}
+
+void AppController::setSkipAiTracks(bool enabled) {
+  if (m_skipAiTracks == enabled) return;
+
+  m_skipAiTracks = enabled;
+  m_aiSkipStreak = 0;
+
+  QSettings settings;
+  settings.setValue(QStringLiteral("content/skipAi"), enabled);
+
+  emit skipAiTracksChanged();
+}
+
+bool AppController::isAiTrack(const Track &track) const {
+  for (const Artist &artist : track.artists) {
+    if (!artist.id.trimmed().isEmpty() && m_aiService->isAiArtist(artist.id)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool AppController::currentTrackIsAi() const {
+  return isAiTrack(m_playbackController->currentTrack());
+}
+
+void AppController::handleAiTrackPolicy() {
+  if (!m_autoDislikeAiTracks && !m_skipAiTracks) return;
+
+  const Track track = m_playbackController->currentTrack();
+  if (track.id.isEmpty()) return;
+
+  if (!isAiTrack(track)) {
+    m_aiSkipStreak = 0;
+    return;
+  }
+
+  if (m_autoDislikeAiTracks && !m_accountUid.isEmpty() &&
+      !m_likesService->isDisliked(track.id)) {
+    toggleDislike(track.id, true);
+  }
+
+  // Пропускаем не больше 30 треков подряд: защита от зацикливания,
+  // если вся очередь состоит из ИИ-треков.
+  if (m_skipAiTracks && m_aiSkipStreak < 30) {
+    ++m_aiSkipStreak;
+    QMetaObject::invokeMethod(this, [this]() { next(); }, Qt::QueuedConnection);
+  }
 }
 
 bool AppController::isTrackUncensored(const QString &trackId) const {

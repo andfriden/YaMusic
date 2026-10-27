@@ -48,6 +48,18 @@ Window {
     readonly property string currentTrackId:
         root.hasController ? String(root.controller.currentTrackId || "") : ""
 
+    readonly property bool currentTrackAi: {
+        if (!root.hasController) {
+            return false
+        }
+
+        // Пересчитываем при смене трека и после загрузки базы Slopless.
+        root.controller.currentTrackId
+        root.controller.aiRevision
+
+        return root.controller.currentTrackIsAi()
+    }
+
     readonly property bool currentTrackLiked:
         root.hasController && root.controller.currentTrackLiked
 
@@ -290,6 +302,12 @@ Window {
                 controller: root.controller
                 pixelSize: 12
                 baseColor: AppTheme.macchiatoSubtext1
+            }
+
+            Badge {
+                visible: root.currentTrackAi
+                text: "AI"
+                badgeColor: AppTheme.warning
             }
 
             Row {
