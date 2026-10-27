@@ -52,6 +52,9 @@ QVariant ArtistModel::data(const QModelIndex &index, int role) const {
   case DurationMsRole:
     return track.durationMs;
 
+  case ArtistsRole:
+    return artistsToVariantList(track.artists);
+
   default:
     return {};
   }
@@ -60,7 +63,8 @@ QVariant ArtistModel::data(const QModelIndex &index, int role) const {
 QHash<int, QByteArray> ArtistModel::roleNames() const {
   return {{IdRole, "trackId"},        {TitleRole, "title"},          {ArtistRole, "artist"},
           {ArtistIdRole, "artistId"}, {AlbumRole, "album"},          {AlbumIdRole, "albumId"},
-          {CoverUriRole, "coverUri"}, {DurationMsRole, "durationMs"}};
+          {CoverUriRole, "coverUri"}, {DurationMsRole, "durationMs"},
+          {ArtistsRole, "artists"}};
 }
 
 void ArtistModel::setArtist(const ArtistDetails &artist) {

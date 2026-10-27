@@ -279,43 +279,17 @@ Window {
                 }
             }
 
-            Item {
+            ArtistLinks {
                 width: parent.width
-                height: artistText.height
 
-                Text {
-                    id: artistText
+                clip: true
 
-                    width: parent.width
-
-                    text: root.hasTrack ? root.controller.currentTrackArtist : ""
-                    color: artistMouseArea.containsMouse && artistMouseArea.enabled
-                        ? AppTheme.accent
-                        : AppTheme.macchiatoSubtext1
-                    font.pixelSize: 12
-                    elide: Text.ElideRight
-                    maximumLineCount: 1
-                }
-
-                MouseArea {
-                    id: artistMouseArea
-
-                    anchors.fill: parent
-
-                    hoverEnabled: true
-                    enabled: root.hasTrack && root.controller &&
-                        String(root.controller.currentTrackArtistId || "").length > 0
-
-                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-
-                    onClicked: {
-                        if (!root.controller) {
-                            return
-                        }
-
-                        root.controller.loadArtist(root.controller.currentTrackArtistId)
-                    }
-                }
+                artists: root.hasTrack && root.controller
+                    ? root.controller.currentTrackArtists
+                    : []
+                controller: root.controller
+                pixelSize: 12
+                baseColor: AppTheme.macchiatoSubtext1
             }
 
             Row {

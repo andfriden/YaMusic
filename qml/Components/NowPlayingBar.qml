@@ -243,33 +243,17 @@ Rectangle {
                     }
                 }
 
-                Label {
+                ArtistLinks {
                     Layout.fillWidth: true
 
-                    text: root.hasTrack ? root.controller.currentTrackArtist : ""
+                    clip: true
 
-                    color: AppTheme.textSecondary
-                    font.pixelSize: 12
-
-                    elide: Text.ElideRight
-                    maximumLineCount: 1
-
-                    MouseArea {
-                        anchors.fill: parent
-
-                        enabled: root.hasTrack &&
-                            String(root.controller.currentTrackArtistId || "").length > 0
-
-                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-
-                        onClicked: {
-                            if (!root.controller) {
-                                return
-                            }
-
-                            root.controller.loadArtist(root.controller.currentTrackArtistId)
-                        }
-                    }
+                    artists: root.hasTrack && root.controller
+                        ? root.controller.currentTrackArtists
+                        : []
+                    controller: root.controller
+                    pixelSize: 12
+                    baseColor: AppTheme.textSecondary
                 }
 
                 Label {

@@ -78,6 +78,7 @@ Item {
                     title: model.title
                     artist: model.artist
                     artistId: model.artistId
+                    artists: model.artists
                     album: model.album
                     albumId: model.albumId
                     coverUri: model.coverUri

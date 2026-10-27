@@ -19,7 +19,9 @@ class MyWaveModel final : public TrackListModelBase {
         AlbumRole,
         AlbumIdRole,
         CoverUriRole,
-        DurationMsRole
+        DurationMsRole,
+        // Все исполнители трека: список карт {"id", "name"} для ссылок в строке.
+        ArtistsRole
       };
 
     explicit MyWaveModel(QObject *parent = nullptr);

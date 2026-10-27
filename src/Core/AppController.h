@@ -130,6 +130,9 @@ class AppController : public QObject {
   Q_PROPERTY(QString currentTrackTitle READ currentTrackTitle NOTIFY currentTrackChanged)
   Q_PROPERTY(QString currentTrackArtist READ currentTrackArtist NOTIFY currentTrackChanged)
   Q_PROPERTY(QString currentTrackArtistId READ currentTrackArtistId NOTIFY currentTrackChanged)
+  // Все исполнители текущего трека: [{"id": ..., "name": ...}].
+  // Нужен плееру, чтобы каждый артист был отдельной ссылкой на свою страницу.
+  Q_PROPERTY(QVariantList currentTrackArtists READ currentTrackArtists NOTIFY currentTrackChanged)
   Q_PROPERTY(QString currentTrackAlbumTitle READ currentTrackAlbumTitle NOTIFY currentTrackChanged)
   Q_PROPERTY(QString currentTrackAlbumId READ currentTrackAlbumId NOTIFY currentTrackChanged)
   Q_PROPERTY(QString currentTrackCoverUri READ currentTrackCoverUri NOTIFY currentTrackChanged)
@@ -343,6 +346,7 @@ public:
   QString currentTrackTitle() const;
   QString currentTrackArtist() const;
   QString currentTrackArtistId() const;
+  QVariantList currentTrackArtists() const;
   QString currentTrackAlbumTitle() const;
   QString currentTrackAlbumId() const;
   QString currentTrackCoverUri() const;

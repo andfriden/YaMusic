@@ -996,6 +996,10 @@ QString AppController::currentTrackArtistId() const {
              : track.artists.first().id;
 }
 
+QVariantList AppController::currentTrackArtists() const {
+  return artistsToVariantList(m_playbackController->currentTrack().artists);
+}
+
 QString AppController::currentTrackAlbumTitle() const {
   const Track track =
       m_playbackController->currentTrack();

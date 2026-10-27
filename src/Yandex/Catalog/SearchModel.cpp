@@ -29,6 +29,8 @@ QVariant SearchModel::data(const QModelIndex &index, int role) const {
     return track.coverUri;
   case DurationMsRole:
     return track.durationMs;
+  case ArtistsRole:
+    return artistsToVariantList(track.artists);
   default:
     return {};
   }
@@ -37,7 +39,8 @@ QVariant SearchModel::data(const QModelIndex &index, int role) const {
 QHash<int, QByteArray> SearchModel::roleNames() const {
   return {{IdRole, "trackId"},        {TitleRole, "title"},          {ArtistRole, "artist"},
           {ArtistIdRole, "artistId"}, {AlbumRole, "album"},          {AlbumIdRole, "albumId"},
-          {CoverUriRole, "coverUri"}, {DurationMsRole, "durationMs"}};
+          {CoverUriRole, "coverUri"}, {DurationMsRole, "durationMs"},
+          {ArtistsRole, "artists"}};
 }
 
 void SearchModel::setResults(const SearchResults &results) {

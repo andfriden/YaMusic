@@ -8,6 +8,11 @@ Item {
     property string entityId: ""
     property string entityType: ""
     property var controller
+    property color baseColor: AppTheme.textSecondary
+
+    // Шрифт ссылки: чтобы список артистов в плеере наследовал размер
+    // конкретной поверхности (нижняя панель, мини-плеер, развёрнутый плеер).
+    property alias font: linkText.font
 
     width: linkText.implicitWidth
     height: linkText.implicitHeight
@@ -23,7 +28,7 @@ Item {
 
         text: root.text
 
-        color: mouseArea.containsMouse ? AppTheme.accent : AppTheme.textSecondary
+        color: mouseArea.containsMouse && root.linkEnabled ? AppTheme.accent : root.baseColor
         font.underline: mouseArea.containsMouse
 
         MouseArea {

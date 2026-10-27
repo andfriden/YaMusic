@@ -25,6 +25,8 @@ QVariant PlaylistModel::data(const QModelIndex &index, int role) const {
     return track.durationMs;
   case LikedRole:
     return track.liked;
+  case ArtistsRole:
+    return artistsToVariantList(track.artists);
   }
   return {};
 }
@@ -32,7 +34,8 @@ QVariant PlaylistModel::data(const QModelIndex &index, int role) const {
 QHash<int, QByteArray> PlaylistModel::roleNames() const {
   return {{IdRole, "trackId"},        {TitleRole, "title"},           {ArtistRole, "artist"},
           {ArtistIdRole, "artistId"}, {AlbumRole, "album"},           {AlbumIdRole, "albumId"},
-          {CoverUriRole, "coverUri"}, {DurationMsRole, "durationMs"}, {LikedRole, "liked"}};
+          {CoverUriRole, "coverUri"}, {DurationMsRole, "durationMs"}, {LikedRole, "liked"},
+          {ArtistsRole, "artists"}};
 }
 
 // TODO(#180): подгружать плейлист целиком и показывать прогресс загрузки

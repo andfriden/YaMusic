@@ -375,6 +375,7 @@ Item {
                         title: model.title
                         artist: model.artist
                         artistId: model.artistId
+                        artists: model.artists
                         albumId: model.albumId
                         coverUri: model.coverUri
                         durationMs: model.durationMs

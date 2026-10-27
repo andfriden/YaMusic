@@ -11,6 +11,9 @@ Item {
     property string title: ""
     property string artist: ""
     property string artistId: ""
+    // Все исполнители трека: [{"id", "name"}]. Если модель не отдала
+    // подробный список, ссылки строятся из одного artist/artistId.
+    property var artists: []
     property string album: ""
     property string albumId: ""
     property string coverUri: ""
@@ -76,6 +79,24 @@ Item {
 
     readonly property bool hasController:
         root.controller !== null && root.controller !== undefined
+
+    // Артисты для ссылок: подробный список из модели, иначе один
+    // исполнитель из artist/artistId, иначе подпись-заглушка.
+    readonly property var linkArtists: {
+        if (root.artists && root.artists.length > 0) {
+            return root.artists
+        }
+        if (root.artist.length > 0) {
+            return [{
+                id: root.artistId,
+                name: root.artist
+            }]
+        }
+        return [{
+            id: "",
+            name: qsTr("Неизвестный исполнитель")
+        }]
+    }
 
     // Дизлайк не лежит в моделях (у него нет отдельного раздела), поэтому
     // спрашиваем состояние у контроллера и пересчитываем привязку по
@@ -253,42 +274,19 @@ Item {
             Item {
                 id: artistArea
 
-                width: Math.min(artistLabel.implicitWidth, trackInfo.width)
-                height: artistLabel.height
+                width: Math.min(artistLinks.implicitWidth, trackInfo.width)
+                height: artistLinks.implicitHeight
 
-                Label {
-                    id: artistLabel
+                ArtistLinks {
+                    id: artistLinks
 
                     width: parent.width
+                    clip: true
 
-                    text: root.artist.length > 0
-                        ? root.artist
-                        : qsTr("Неизвестный исполнитель")
-
-                    color: artistMouseArea.containsMouse
-                        ? AppTheme.accent
-                        : AppTheme.textSecondary
-
-                    font.pixelSize: 12
-                    elide: Text.ElideRight
-                    maximumLineCount: 1
-                }
-
-                MouseArea {
-                    id: artistMouseArea
-
-                    anchors.fill: parent
-
-                    hoverEnabled: true
-                    enabled: root.artistId.length > 0 && root.hasController
-                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                    z: 10
-
-                    onClicked: {
-                        if (root.hasController && root.artistId.length > 0) {
-                            root.controller.loadArtist(root.artistId)
-                        }
-                    }
+                    artists: root.linkArtists
+                    controller: root.controller
+                    pixelSize: 12
+                    baseColor: AppTheme.textSecondary
                 }
             }
 

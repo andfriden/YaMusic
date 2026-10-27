@@ -398,6 +398,7 @@ set(
         "${YAMUSIC_QML_ROOT}/Components/StatusBar.qml"
         "${YAMUSIC_QML_ROOT}/Components/NowPlayingBar.qml"
         "${YAMUSIC_QML_ROOT}/Components/EntityLink.qml"
+        "${YAMUSIC_QML_ROOT}/Components/ArtistLinks.qml"
         "${YAMUSIC_QML_ROOT}/Components/ExpandedNowPlaying.qml"
         "${YAMUSIC_QML_ROOT}/Components/LyricsView.qml"
         "${YAMUSIC_QML_ROOT}/Components/TrackRow.qml"

@@ -342,18 +342,18 @@ Item {
                     }
                 }
 
-                EntityLink {
+                ArtistLinks {
                     anchors.horizontalCenter: parent.horizontalCenter
 
-                    text: root.hasTrack
-                        ? String(root.controller.currentTrackArtist || "")
-                        : ""
+                    width: Math.min(implicitWidth, trackInfo.width)
+                    clip: true
 
-                    entityId: root.hasTrack
-                        ? String(root.controller.currentTrackArtistId || "")
-                        : ""
-                    entityType: "artist"
+                    artists: root.hasTrack && root.controller
+                        ? root.controller.currentTrackArtists
+                        : []
                     controller: root.controller
+                    pixelSize: Qt.application.font.pixelSize
+                    baseColor: AppTheme.textSecondary
                 }
 
                 EntityLink {

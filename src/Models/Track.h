@@ -2,6 +2,8 @@
 
 #include <QList>
 #include <QString>
+#include <QVariantList>
+#include <QVariantMap>
 
 struct Artist {
   QString id;
@@ -35,6 +37,26 @@ struct Track {
   // Книгах — запрос за стримом по такому треку вернёт 403 no-rights.
   bool available = true;
 };
+
+// Все исполнители трека в виде списка карт {"id", "name"} для QML.
+// Пустые имена пропускаются, порядок сохраняется.
+inline QVariantList artistsToVariantList(const QList<Artist> &artists) {
+  QVariantList result;
+  result.reserve(artists.size());
+
+  for (const Artist &artist : artists) {
+    if (artist.name.trimmed().isEmpty()) {
+      continue;
+    }
+
+    QVariantMap item;
+    item.insert(QStringLiteral("id"), artist.id);
+    item.insert(QStringLiteral("name"), artist.name);
+    result.append(item);
+  }
+
+  return result;
+}
 
 // Одна строка синхронизированного текста.
 struct LyricLine {

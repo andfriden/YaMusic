@@ -225,6 +225,7 @@ Item {
                         title: model.title
                         artist: model.artist
                         artistId: model.artistId
+                        artists: model.artists
                         coverUri: model.coverUri
                         durationMs: model.durationMs
                         showAlbum: false

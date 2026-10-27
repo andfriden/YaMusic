@@ -24,7 +24,9 @@ public:
     DurationMsRole,
     LikedRole,
     // Права на воспроизведение (у глав книг и части подкастов — false).
-    AvailableRole
+    AvailableRole,
+    // Все исполнители трека: список карт {"id", "name"} для ссылок в строке.
+    ArtistsRole
   };
   Q_ENUM(Roles)
 

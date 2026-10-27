@@ -59,6 +59,9 @@ QVariant MyWaveModel::data(
   case DurationMsRole:
     return track.durationMs;
 
+  case ArtistsRole:
+    return artistsToVariantList(track.artists);
+
   default:
     return {};
   }
@@ -73,7 +76,8 @@ QHash<int, QByteArray> MyWaveModel::roleNames() const {
       {AlbumRole, "album"},
       {AlbumIdRole, "albumId"},
       {CoverUriRole, "coverUri"},
-      {DurationMsRole, "durationMs"}
+      {DurationMsRole, "durationMs"},
+      {ArtistsRole, "artists"}
   };
 }
 

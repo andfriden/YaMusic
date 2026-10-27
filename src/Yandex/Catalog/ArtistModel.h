@@ -18,7 +18,9 @@ public:
     AlbumRole,
     AlbumIdRole,
     CoverUriRole,
-    DurationMsRole
+    DurationMsRole,
+    // Все исполнители трека: список карт {"id", "name"} для ссылок в строке.
+    ArtistsRole
   };
 
   explicit ArtistModel(QObject *parent = nullptr);

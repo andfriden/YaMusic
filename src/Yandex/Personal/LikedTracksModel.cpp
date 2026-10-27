@@ -25,6 +25,8 @@ QVariant LikedTracksModel::data(const QModelIndex &index, int role) const {
     return track.durationMs;
   case LikedRole:
     return track.liked;
+  case ArtistsRole:
+    return artistsToVariantList(track.artists);
   }
   return {};
 }
@@ -32,7 +34,8 @@ QVariant LikedTracksModel::data(const QModelIndex &index, int role) const {
 QHash<int, QByteArray> LikedTracksModel::roleNames() const {
   return {{TrackIdRole, "trackId"},   {TitleRole, "title"},           {ArtistRole, "artist"},
           {ArtistIdRole, "artistId"}, {AlbumRole, "album"},           {AlbumIdRole, "albumId"},
-          {CoverUriRole, "coverUri"}, {DurationMsRole, "durationMs"}, {LikedRole, "liked"}};
+          {CoverUriRole, "coverUri"}, {DurationMsRole, "durationMs"}, {LikedRole, "liked"},
+          {ArtistsRole, "artists"}};
 }
 
 void LikedTracksModel::setTracks(const QList<Track> &tracks) {

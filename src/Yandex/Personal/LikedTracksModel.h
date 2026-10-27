@@ -19,7 +19,9 @@ public:
     AlbumIdRole,
     CoverUriRole,
     DurationMsRole,
-    LikedRole
+    LikedRole,
+    // Все исполнители трека: список карт {"id", "name"} для ссылок в строке.
+    ArtistsRole
   };
 
   Q_ENUM(Roles)
