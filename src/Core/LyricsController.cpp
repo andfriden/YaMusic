@@ -45,7 +45,7 @@ void LyricsController::loadLyrics() {
     artist = track.artists.first().name;
   }
   // Сначала подписанный LRC Яндекса, при неудаче — публичная база LRCLIB.
-  m_trackService->loadSyncLyrics(id, track.title, artist);
+  m_trackService->loadSyncLyrics(id, track.title, artist, track.durationMs);
 }
 
 QString LyricsController::lyricsText() const {

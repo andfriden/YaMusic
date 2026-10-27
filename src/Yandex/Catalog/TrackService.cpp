@@ -967,6 +967,84 @@ void TrackService::requestYandexLrc(
           });
 }
 
+namespace {
+
+// Нормализация для сопоставления: нижний регистр, только буквы/цифры,
+// содержимое скобок отбрасывается (как в LRCLIB-клиентах).
+QString lrcLibNorm(const QString &value) {
+  QString out;
+  out.reserve(value.size());
+
+  int skip = 0;
+
+  for (const QChar ch : value) {
+    if (ch == QLatin1Char('(') || ch == QLatin1Char('[')) {
+      ++skip;
+    } else if (ch == QLatin1Char(')') || ch == QLatin1Char(']')) {
+      if (skip > 0) --skip;
+    } else if (skip > 0) {
+      continue;
+    } else if (ch.isLetterOrNumber()) {
+      out.append(ch.toLower());
+    }
+  }
+
+  if (out.isEmpty()) {
+    return value.trimmed().toLower();
+  }
+
+  return out;
+}
+
+// Скоринг кандидата LRCLIB: название, исполнитель, длительность, наличие
+// таймингов. Значения title/artist ожидаются уже нормализованными.
+int lrcLibScore(const QString &wantTitle, const QString &wantArtist,
+                int wantDurationSec, const QString &gotTitle,
+                const QString &gotArtist, double gotDuration, bool synced) {
+  int points = 0;
+
+  if (!wantTitle.isEmpty() && !gotTitle.isEmpty()) {
+    if (gotTitle == wantTitle) {
+      points += 4;
+    } else if (gotTitle.contains(wantTitle) || wantTitle.contains(gotTitle)) {
+      points += 2;
+    } else {
+      points -= 3;
+    }
+  }
+
+  if (!wantArtist.isEmpty() && !gotArtist.isEmpty()) {
+    if (gotArtist == wantArtist) {
+      points += 3;
+    } else if (gotArtist.contains(wantArtist) || wantArtist.contains(gotArtist)) {
+      points += 2;
+    } else {
+      points -= 2;
+    }
+  }
+
+  if (wantDurationSec > 0 && gotDuration > 0.0) {
+    const double diff =
+        qAbs(static_cast<double>(wantDurationSec) - gotDuration);
+
+    if (diff <= 3.0) {
+      points += 3;
+    } else if (diff <= 8.0) {
+      points += 1;
+    } else if (diff > 25.0) {
+      points -= 3;
+    }
+  }
+
+  if (synced) {
+    points += 1;
+  }
+
+  return points;
+}
+
+} // namespace
+
 void TrackService::requestLrcLib(
     const QString &title, const QString &artist, int durationSec,
     const std::function<void(const QString &lrcText)> &onOk,
@@ -984,18 +1062,24 @@ void TrackService::requestLrcLib(
   QNetworkReply *reply = m_publicNetwork->get(request);
 
   connect(reply, &QNetworkReply::finished, this,
-          [this, reply, onOk, onFail]() {
+          [this, reply, title, artist, durationSec, onOk, onFail]() {
             const QByteArray data = reply->readAll();
             const bool ok = (reply->error() == QNetworkReply::NoError);
             reply->deleteLater();
+
+            // Точного совпадения нет — пробуем поиск со скорингом.
+            const auto fallback = [this, title, artist, durationSec, onOk, onFail]() {
+              requestLrcLibSearch(title, artist, durationSec, onOk, onFail);
+            };
+
             if (!ok || data.isEmpty()) {
-              if (onFail) onFail();
+              fallback();
               return;
             }
             QJsonParseError parseError;
             const QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
             if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
-              if (onFail) onFail();
+              fallback();
               return;
             }
             const QJsonObject obj = doc.object();
@@ -1003,10 +1087,84 @@ void TrackService::requestLrcLib(
             const QString plain = obj.value("plainLyrics").toString().trimmed();
             const QString text = !synced.isEmpty() ? synced : plain;
             if (text.isEmpty()) {
-              if (onFail) onFail();
+              fallback();
               return;
             }
             if (onOk) onOk(text);
+          });
+}
+
+void TrackService::requestLrcLibSearch(
+    const QString &title, const QString &artist, int durationSec,
+    const std::function<void(const QString &lrcText)> &onOk,
+    const std::function<void()> &onFail) {
+  QUrl url(QStringLiteral("https://lrclib.net/api/search"));
+  QUrlQuery query;
+  if (!title.isEmpty()) query.addQueryItem("track_name", title);
+  if (!artist.isEmpty()) query.addQueryItem("artist_name", artist);
+  url.setQuery(query);
+
+  QNetworkRequest request(url);
+  request.setRawHeader("Lrclib-Client", "YaMusic/1.0 (Qt)");
+  request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
+  QNetworkReply *reply = m_publicNetwork->get(request);
+
+  connect(reply, &QNetworkReply::finished, this,
+          [this, reply, title, artist, durationSec, onOk, onFail]() {
+            const QByteArray data = reply->readAll();
+            const bool ok = (reply->error() == QNetworkReply::NoError);
+            reply->deleteLater();
+            if (!ok || data.isEmpty()) {
+              if (onFail) onFail();
+              return;
+            }
+
+            QJsonParseError parseError;
+            const QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
+            if (parseError.error != QJsonParseError::NoError || !doc.isArray()) {
+              if (onFail) onFail();
+              return;
+            }
+
+            const QString wantTitle = lrcLibNorm(title);
+            const QString wantArtist = lrcLibNorm(artist);
+
+            int bestScore = 0;
+            QString bestText;
+
+            for (const QJsonValue &value : doc.array()) {
+              if (!value.isObject())
+                continue;
+
+              const QJsonObject item = value.toObject();
+
+              const QString synced =
+                  item.value("syncedLyrics").toString().trimmed();
+              const QString plain =
+                  item.value("plainLyrics").toString().trimmed();
+              const QString text = !synced.isEmpty() ? synced : plain;
+              if (text.isEmpty())
+                continue;
+
+              const int score = lrcLibScore(
+                  wantTitle, wantArtist, durationSec,
+                  lrcLibNorm(item.value("trackName").toString()),
+                  lrcLibNorm(item.value("artistName").toString()),
+                  item.value("duration").toDouble(0.0), !synced.isEmpty());
+
+              if (score < 3 || score <= bestScore)
+                continue;
+
+              bestScore = score;
+              bestText = text;
+            }
+
+            if (bestText.isEmpty()) {
+              if (onFail) onFail();
+              return;
+            }
+
+            if (onOk) onOk(bestText);
           });
 }
 
@@ -1015,12 +1173,15 @@ void TrackService::emitSupplement(const TrackSupplementary &supplement) {
 }
 
 void TrackService::loadSyncLyrics(const QString &trackId, const QString &title,
-                                  const QString &artist) {
+                                  const QString &artist, qint64 durationMs) {
   const QString id = trackId.trimmed();
   if (id.isEmpty()) {
     emit errorOccurred("Track ID is empty");
     return;
   }
+
+  const int durationSec =
+      durationMs > 0 ? static_cast<int>((durationMs + 500) / 1000) : 0;
 
   auto makeSupplement = [this, id](const QString &lrcText) {
     TrackSupplementary supplement;
@@ -1035,9 +1196,9 @@ void TrackService::loadSyncLyrics(const QString &trackId, const QString &title,
   requestYandexLrc(
       id,
       makeSupplement,
-      [this, id, title, artist, makeSupplement]() {
+      [this, id, title, artist, durationSec, makeSupplement]() {
         // Яндекса нет — пробуем публичную базу LRCLIB.
-        requestLrcLib(title, artist, 0, makeSupplement, [this, id]() {
+        requestLrcLib(title, artist, durationSec, makeSupplement, [this, id]() {
           emit errorOccurred("Текст для трека не найден");
         });
       });

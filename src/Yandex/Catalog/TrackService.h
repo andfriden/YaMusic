@@ -48,10 +48,10 @@ public:
 
   // Загружает синхронизированный текст (LRC) трека. Порядок источников:
   //  1) подписанный запрос /tracks/{id}/lyrics?format=LRC (Яндекс);
-  //  2) публичная база LRCLIB по названию/исполнителю.
+  //  2) точный запрос LRCLIB /api/get, при промахе — /api/search со скорингом.
   // Результат отдаётся сигналом supplementReceived (с таймингами в lines).
   void loadSyncLyrics(const QString &trackId, const QString &title,
-                      const QString &artist);
+                      const QString &artist, qint64 durationMs = 0);
 
   void loadSimilarTracks(const QString &trackId);
 
@@ -119,6 +119,11 @@ private:
   void requestLrcLib(const QString &title, const QString &artist, int durationSec,
                      const std::function<void(const QString &lrcText)> &onOk,
                      const std::function<void()> &onFail);
+
+  // Запасной поиск LRCLIB /api/search со скорингом кандидатов.
+  void requestLrcLibSearch(const QString &title, const QString &artist, int durationSec,
+                           const std::function<void(const QString &lrcText)> &onOk,
+                           const std::function<void()> &onFail);
 
   static QString lyricsSign(qint64 ts, const QString &trackId, const QString &format);
 
