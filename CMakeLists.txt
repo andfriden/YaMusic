@@ -775,7 +775,15 @@ endif()
 # the installation tree so the user does not need Qt installed.
 # =============================================================
 
-if(UNIX AND NOT APPLE)
+# OFF — для пакетов, где Qt даёт окружение сборки (NixOS: префикс установки
+# в read-only /nix/store, плагины и QML-импорты приходят из wrapQtAppsHook).
+option(
+        BUILD_WITH_QT_DEPLOYMENT
+        "Копировать Qt в каталог установки (библиотеки, плагины, QML)"
+        ON
+)
+
+if(UNIX AND NOT APPLE AND BUILD_WITH_QT_DEPLOYMENT)
   # Linux: свой deploy-скрипт вместо qt_generate_deploy_qml_app_script.
   # Пропускаем установку переводов. В CI (Qt 6.9.0) опций
   # EXCLUDE_PLUGIN_TYPES/EXCLUDE_PLUGINS нет, а qt6ct-плагин туда не входит,
@@ -819,7 +827,7 @@ if(UNIX AND NOT APPLE)
           SCRIPT
           "${YAMUSIC_DEPLOY_SCRIPT}"
   )
-else()
+elseif(BUILD_WITH_QT_DEPLOYMENT)
   # Windows / macOS: штатный скрипт (сам выбирает windeployqt/macdeployqt
   # с правильными путями и расширением исполняемого файла).
   qt_generate_deploy_qml_app_script(
