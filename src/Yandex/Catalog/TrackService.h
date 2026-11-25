@@ -38,14 +38,6 @@ public:
   // например, для сохранения файла с тегами и артворком.
   void loadDownloadUrl(const QString &trackId);
 
-  // Загружает дополнительную информацию о треке
-  // (текст песни) через /tracks/{id}/supplement.
-  void loadSupplementary(const QString &trackId);
-
-  // Загружает синхронизированный текст через
-  // /tracks/{id}/lyrics (LRC по downloadUrl).
-  void loadTrackLyrics(const QString &trackId);
-
   // Загружает текст трека. Порядок источников:
   //  1) подписанный запрос /tracks/{id}/lyrics?format=LRC (Яндекс);
   //  2) точный запрос LRCLIB /api/get, при промахе — /api/search со скорингом;
