@@ -2,6 +2,7 @@
 
 #include "../Auth/YandexAuth.h"
 #include "../../Core/AudioQualityController.h"
+#include "GeniusLyrics.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
 
@@ -22,6 +23,26 @@
 namespace {
 constexpr auto DownloadInfoSalt = "XGRlBW9FXlekgbPrRHuSiA";
 constexpr auto FileInfoSecret = "kzqU4XhfCaY6B6JTHODeq5";
+
+// Genius закрыт Cloudflare: без браузерных заголовков приходит
+// 403 challenge вместо JSON и страницы.
+constexpr auto GeniusUserAgent =
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
+void setGeniusHeaders(QNetworkRequest &request, const QByteArray &accept,
+                      const QByteArray &fetchDest, const QByteArray &fetchMode,
+                      const QByteArray &fetchSite) {
+  request.setRawHeader("User-Agent", GeniusUserAgent);
+  request.setRawHeader("Accept", accept);
+  request.setRawHeader("Accept-Language", "ru-RU,ru;q=0.9,en;q=0.8");
+  request.setRawHeader("Sec-Fetch-Dest", fetchDest);
+  request.setRawHeader("Sec-Fetch-Mode", fetchMode);
+  request.setRawHeader("Sec-Fetch-Site", fetchSite);
+  request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
+  request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                       QNetworkRequest::NoLessSafeRedirectPolicy);
+}
 } // namespace
 
 // TODO(YM-2244): вынести общую проверку trackId (trim + непустой) в YandexServiceBase.
@@ -727,8 +748,7 @@ void TrackService::parseLrc(
 
     if (!match.hasMatch()) {
       if (!line.startsWith('[')) {
-        if (!plainLines.isEmpty())
-          plainLines.append(line);
+        plainLines.append(line);
       }
 
       continue;
@@ -1168,6 +1188,126 @@ void TrackService::requestLrcLibSearch(
           });
 }
 
+void TrackService::requestGenius(
+    const QString &title, const QString &artist,
+    const std::function<void(const QString &plainText)> &onOk,
+    const std::function<void()> &onFail) {
+  if (title.trimmed().isEmpty()) {
+    if (onFail) onFail();
+    return;
+  }
+
+  QUrl url(QStringLiteral("https://genius.com/api/search/multi"));
+  QUrlQuery query;
+  query.addQueryItem("per_page", "5");
+  query.addQueryItem("q", (title + ' ' + artist).trimmed());
+  url.setQuery(query);
+
+  QNetworkRequest request(url);
+  setGeniusHeaders(request, "application/json, text/plain, */*", "empty", "cors",
+                   "same-origin");
+  request.setRawHeader("x-requested-with", "XMLHttpRequest");
+  request.setRawHeader("Referer", "https://genius.com/");
+  QNetworkReply *reply = m_publicNetwork->get(request);
+
+  connect(reply, &QNetworkReply::finished, this,
+          [this, reply, title, artist, onOk, onFail]() {
+            const QByteArray data = reply->readAll();
+            const bool ok = (reply->error() == QNetworkReply::NoError);
+            reply->deleteLater();
+            if (!ok || data.isEmpty()) {
+              if (onFail) onFail();
+              return;
+            }
+
+            QJsonParseError parseError;
+            const QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
+            if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+              if (onFail) onFail();
+              return;
+            }
+
+            const QString wantTitle = lrcLibNorm(title);
+            const QString wantArtist = lrcLibNorm(artist);
+
+            int bestScore = 0;
+            QString bestUrl;
+
+            for (const QJsonValue &sectionValue :
+                 doc.object().value("response").toObject().value("sections").toArray()) {
+              const QJsonObject section = sectionValue.toObject();
+              if (section.value("type").toString() != QLatin1String("song"))
+                continue;
+
+              for (const QJsonValue &hitValue : section.value("hits").toArray()) {
+                const QJsonObject result =
+                    hitValue.toObject().value("result").toObject();
+                const QString songUrl = result.value("url").toString();
+                if (songUrl.isEmpty())
+                  continue;
+
+                const QString hitTitle =
+                    lrcLibNorm(result.value("title").toString());
+                const QString hitArtist = lrcLibNorm(
+                    result.value("primary_artist").toObject().value("name").toString());
+
+                int score = 0;
+                if (!wantTitle.isEmpty() && hitTitle == wantTitle) {
+                  score += 3;
+                } else if (!wantTitle.isEmpty() &&
+                           (hitTitle.contains(wantTitle) || wantTitle.contains(hitTitle))) {
+                  score += 1;
+                }
+                if (!wantArtist.isEmpty() &&
+                    (hitArtist == wantArtist || hitArtist.contains(wantArtist) ||
+                     wantArtist.contains(hitArtist))) {
+                  score += 2;
+                }
+
+                if (score > bestScore) {
+                  bestScore = score;
+                  bestUrl = songUrl;
+                }
+              }
+            }
+
+            if (bestScore < 2 || bestUrl.isEmpty()) {
+              if (onFail) onFail();
+              return;
+            }
+
+            requestGeniusPage(bestUrl, onOk, onFail);
+          });
+}
+
+void TrackService::requestGeniusPage(
+    const QString &pageUrl,
+    const std::function<void(const QString &plainText)> &onOk,
+    const std::function<void()> &onFail) {
+  QNetworkRequest request((QUrl(pageUrl)));
+  setGeniusHeaders(request, "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                   "document", "navigate", "none");
+  request.setRawHeader("Upgrade-Insecure-Requests", "1");
+  QNetworkReply *reply = m_publicNetwork->get(request);
+
+  connect(reply, &QNetworkReply::finished, this, [reply, onOk, onFail]() {
+    const QByteArray data = reply->readAll();
+    const bool ok = (reply->error() == QNetworkReply::NoError);
+    reply->deleteLater();
+    if (!ok || data.isEmpty()) {
+      if (onFail) onFail();
+      return;
+    }
+
+    const QString text = geniusLyricsFromHtml(QString::fromUtf8(data));
+    if (text.isEmpty()) {
+      if (onFail) onFail();
+      return;
+    }
+    if (onOk) onOk(text);
+  });
+}
+
 void TrackService::emitSupplement(const TrackSupplementary &supplement) {
   emit supplementReceived(supplement);
 }
@@ -1198,8 +1338,12 @@ void TrackService::loadSyncLyrics(const QString &trackId, const QString &title,
       makeSupplement,
       [this, id, title, artist, durationSec, makeSupplement]() {
         // Яндекса нет — пробуем публичную базу LRCLIB.
-        requestLrcLib(title, artist, durationSec, makeSupplement, [this, id]() {
-          emit errorOccurred("Текст для трека не найден");
+        requestLrcLib(title, artist, durationSec, makeSupplement, [this, id, title, artist,
+                                                                  makeSupplement]() {
+          // Последний источник — Genius, только plain text без таймингов.
+          requestGenius(title, artist, makeSupplement, [this, id]() {
+            emit errorOccurred("Текст для трека не найден");
+          });
         });
       });
 }

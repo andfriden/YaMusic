@@ -46,9 +46,10 @@ public:
   // /tracks/{id}/lyrics (LRC по downloadUrl).
   void loadTrackLyrics(const QString &trackId);
 
-  // Загружает синхронизированный текст (LRC) трека. Порядок источников:
+  // Загружает текст трека. Порядок источников:
   //  1) подписанный запрос /tracks/{id}/lyrics?format=LRC (Яндекс);
-  //  2) точный запрос LRCLIB /api/get, при промахе — /api/search со скорингом.
+  //  2) точный запрос LRCLIB /api/get, при промахе — /api/search со скорингом;
+  //  3) Genius (только plain text, без таймингов).
   // Результат отдаётся сигналом supplementReceived (с таймингами в lines).
   void loadSyncLyrics(const QString &trackId, const QString &title,
                       const QString &artist, qint64 durationMs = 0);
@@ -124,6 +125,16 @@ private:
   void requestLrcLibSearch(const QString &title, const QString &artist, int durationSec,
                            const std::function<void(const QString &lrcText)> &onOk,
                            const std::function<void()> &onFail);
+
+  // Текст без таймингов со страницы Genius: поиск без токена
+  // (genius.com/api/search/multi), затем разбор HTML.
+  void requestGenius(const QString &title, const QString &artist,
+                     const std::function<void(const QString &plainText)> &onOk,
+                     const std::function<void()> &onFail);
+
+  void requestGeniusPage(const QString &pageUrl,
+                         const std::function<void(const QString &plainText)> &onOk,
+                         const std::function<void()> &onFail);
 
   static QString lyricsSign(qint64 ts, const QString &trackId, const QString &format);
 

@@ -217,6 +217,7 @@ set(
         src/Yandex/Catalog/ArtistService.cpp
         src/Yandex/Catalog/CoverImageProvider.cpp
         src/Yandex/Catalog/CensorService.cpp
+        src/Yandex/Catalog/GeniusLyrics.cpp
         src/Yandex/Catalog/GenreModel.cpp
         src/Yandex/Catalog/GenreService.cpp
         src/Yandex/Catalog/SearchModel.cpp
@@ -933,4 +934,29 @@ target_link_libraries(
 add_test(
         NAME crash_report
         COMMAND tst_crash_report
+)
+
+qt_add_executable(
+        tst_genius_lyrics
+        tests/tst_genius_lyrics.cpp
+        src/Yandex/Catalog/GeniusLyrics.cpp
+)
+
+set_target_properties(
+        tst_genius_lyrics
+        PROPERTIES
+        MACOSX_BUNDLE FALSE
+        WIN32_EXECUTABLE FALSE
+)
+
+target_link_libraries(
+        tst_genius_lyrics
+        PRIVATE
+        Qt6::Core
+        Qt6::Test
+)
+
+add_test(
+        NAME genius_lyrics
+        COMMAND tst_genius_lyrics
 )
