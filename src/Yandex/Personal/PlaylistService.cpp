@@ -113,7 +113,7 @@ Playlist parseSimilarPlaylist(const QJsonObject &object) {
 PlaylistService::PlaylistService(YandexAuth *auth, QObject *parent)
     : YandexServiceBase(auth, parent) {}
 
-void PlaylistService::loadPlaylist(const QString &uid, int kind) {
+void PlaylistService::loadPlaylist(const QString &uid, int kind, bool useCache) {
   if (!ensureAuthenticated()) {
     emit errorOccurred("Токен Яндекс Музыки не установлен");
     return;
@@ -135,7 +135,7 @@ void PlaylistService::loadPlaylist(const QString &uid, int kind) {
   const QString cacheKey = trimmedUid + ":" + QString::number(kind);
   Playlist cached;
 
-  if (m_playlistCache.get(cacheKey, cached)) {
+  if (useCache && m_playlistCache.get(cacheKey, cached)) {
     emit playlistReceived(cached);
     return;
   }
@@ -148,7 +148,7 @@ void PlaylistService::loadPlaylist(const QString &uid, int kind) {
     return;
   }
 
-  connect(reply, &QNetworkReply::finished, this, [this, reply, cacheKey]() {
+  connect(reply, &QNetworkReply::finished, this, [this, reply, cacheKey, useCache]() {
     const QByteArray data = reply->readAll();
 
     if (reply->error() != QNetworkReply::NoError) {
@@ -169,7 +169,61 @@ void PlaylistService::loadPlaylist(const QString &uid, int kind) {
       loadSimilarPlaylists(playlist.uuid);
     }
 
-    m_playlistCache.put(cacheKey, playlist);
+    if (useCache) {
+      m_playlistCache.put(cacheKey, playlist);
+    }
+
+    emit playlistReceived(playlist);
+    reply->deleteLater();
+  });
+}
+
+void PlaylistService::loadPlaylistByUuid(const QString &uuid) {
+  if (!ensureAuthenticated()) {
+    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    return;
+  }
+
+  const QString trimmedUuid = uuid.trimmed();
+
+  if (trimmedUuid.isEmpty()) {
+    emit errorOccurred("UUID плейлиста не указан");
+    return;
+  }
+
+  const auto path = QStringLiteral("/playlist/%1").arg(trimmedUuid);
+  QNetworkReply *reply = m_yandexClient->get(path);
+
+  if (reply == nullptr) {
+    emit errorOccurred("Не удалось загрузить плейлист");
+    return;
+  }
+
+  connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+    const QByteArray data = reply->readAll();
+
+    if (reply->error() != QNetworkReply::NoError) {
+      emit errorOccurred(reply->errorString());
+      reply->deleteLater();
+      return;
+    }
+
+    Playlist playlist;
+
+    if (!parsePlaylistResponse(data, playlist)) {
+      emit errorOccurred("Некорректный ответ плейлиста");
+      reply->deleteLater();
+      return;
+    }
+
+    if (!playlist.uuid.isEmpty()) {
+      loadSimilarPlaylists(playlist.uuid);
+    }
+
+    if (!playlist.uid.isEmpty() && playlist.kind > 0) {
+      m_playlistCache.put(cacheKeyFor(playlist.uid, playlist.kind), playlist);
+    }
+
     emit playlistReceived(playlist);
     reply->deleteLater();
   });

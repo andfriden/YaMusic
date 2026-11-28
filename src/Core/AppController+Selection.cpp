@@ -1,4 +1,5 @@
 #include "AppController.h"
+#include "../Yandex/Personal/PlaylistLink.h"
 
 void AppController::selectSearchResult(int index) {
   m_searchController->selectResult(index);
@@ -39,6 +40,28 @@ void AppController::selectPersonalPlaylist(const QString &uid, int kind) {
 
   m_libraryController->setSimilarPlaylistsFallback(
       m_personalController->recommendationPlaylistsData(playlistUid, kind));
+}
+
+bool AppController::openPlaylistUrl(const QString &link) {
+  const PlaylistLink parsed = PlaylistLink::parse(link);
+
+  if (parsed.type == PlaylistLink::Type::Invalid) {
+    emit statusChanged("Не удалось разобрать ссылку на плейлист");
+    return false;
+  }
+
+  m_personalController->deactivateMyWave();
+  emit playlistPageRequested();
+
+  if (parsed.type == PlaylistLink::Type::Uuid) {
+    m_libraryController->loadPlaylistByUuid(parsed.uuid);
+    return true;
+  }
+
+  // Кэш не используем: ключ такой загрузки — логин, а изменения
+  // плейлиста инвалидируют запись по числовому uid.
+  m_libraryController->loadPlaylist(parsed.login, parsed.kind, false);
+  return true;
 }
 
 void AppController::selectPlaylistTrack(int index) {

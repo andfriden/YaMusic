@@ -226,6 +226,9 @@ public:
                                       int revision = 1);
   Q_INVOKABLE void selectMyWaveTrack(int index);
   Q_INVOKABLE void selectPersonalPlaylist(const QString &uid, int kind);
+
+  // Открывает плейлист по ссылке Яндекс Музыки. false — ссылка не разобрана.
+  Q_INVOKABLE bool openPlaylistUrl(const QString &link);
   Q_INVOKABLE void selectPlaylistTrack(int index);
   Q_INVOKABLE void selectRecentListening(int index);
   Q_INVOKABLE void selectAlbumTrack(int index);

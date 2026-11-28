@@ -101,7 +101,10 @@ public:
 
   void selectLikedArtist(int index);
 
-  void loadPlaylist(const QString &uid, int kind);
+  void loadPlaylist(const QString &uid, int kind, bool useCache = true);
+
+  // Плейлист по uuid из ссылки /playlists/<uuid>.
+  void loadPlaylistByUuid(const QString &uuid);
 
   void selectPlaylistTrack(int index);
 

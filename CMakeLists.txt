@@ -246,6 +246,7 @@ set(
         src/Yandex/Personal/PersonalLanding.cpp
         src/Yandex/Personal/PersonalPlaylistsModel.cpp
         src/Yandex/Personal/PlaylistModel.cpp
+        src/Yandex/Personal/PlaylistLink.cpp
         src/Yandex/Personal/PlaylistService.cpp
         src/Yandex/Personal/RecentListeningModel.cpp
         src/Yandex/Personal/RecentListeningService.cpp
@@ -429,6 +430,7 @@ set(
         "${YAMUSIC_QML_ROOT}/Components/PlayerTip.qml"
         "${YAMUSIC_QML_ROOT}/Components/PlaylistCard.qml"
         "${YAMUSIC_QML_ROOT}/Components/PlaylistPicker.qml"
+        "${YAMUSIC_QML_ROOT}/Components/OpenPlaylistDialog.qml"
         "${YAMUSIC_QML_ROOT}/Components/UpdateDialog.qml"
         "${YAMUSIC_QML_ROOT}/Components/CrashReportsDialog.qml"
         "${YAMUSIC_QML_ROOT}/Components/MiniPlayer.qml"
@@ -933,6 +935,31 @@ target_link_libraries(
 add_test(
         NAME wave_settings
         COMMAND tst_wave_settings
+)
+
+qt_add_executable(
+        tst_playlist_link
+        tests/tst_playlist_link.cpp
+        src/Yandex/Personal/PlaylistLink.cpp
+)
+
+set_target_properties(
+        tst_playlist_link
+        PROPERTIES
+        MACOSX_BUNDLE FALSE
+        WIN32_EXECUTABLE FALSE
+)
+
+target_link_libraries(
+        tst_playlist_link
+        PRIVATE
+        Qt6::Core
+        Qt6::Test
+)
+
+add_test(
+        NAME playlist_link
+        COMMAND tst_playlist_link
 )
 
 qt_add_executable(

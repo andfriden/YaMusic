@@ -62,7 +62,8 @@ Item {
                     spacing: 12
 
                     Label {
-                        width: parent.width - createButton.width - parent.spacing
+                        width: parent.width - createButton.width - openLinkButton.width
+                            - parent.spacing * 2
 
                         text: "Мои плейлисты"
                         color: AppTheme.textPrimary
@@ -70,6 +71,39 @@ Item {
                         font.bold: true
 
                         anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    Rectangle {
+                        id: openLinkButton
+
+                        width: openLinkLabel.implicitWidth + 20
+                        height: 30
+
+                        radius: 7
+                        color: openLinkMouse.containsMouse ? AppTheme.panelHover : AppTheme.panel
+
+                        border.width: 1
+                        border.color: AppTheme.borderSubtle
+
+                        Label {
+                            id: openLinkLabel
+
+                            anchors.centerIn: parent
+
+                            text: "Открыть по ссылке"
+                            color: AppTheme.textPrimary
+                            font.pixelSize: 12
+                        }
+
+                        MouseArea {
+                            id: openLinkMouse
+
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+
+                            onClicked: openPlaylistDialog.open()
+                        }
                     }
 
                     Rectangle {
@@ -678,6 +712,12 @@ Item {
                 height: 20
             }
         }
+    }
+
+    OpenPlaylistDialog {
+        id: openPlaylistDialog
+
+        controller: root.controller
     }
 
     Component.onCompleted: {

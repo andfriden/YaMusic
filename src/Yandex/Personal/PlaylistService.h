@@ -15,7 +15,9 @@ class PlaylistService : public YandexServiceBase {
 public:
   explicit PlaylistService(YandexAuth *auth, QObject *parent = nullptr);
 
-  void loadPlaylist(const QString &uid, int kind);
+  void loadPlaylist(const QString &uid, int kind, bool useCache = true);
+  // Плейлист по uuid из ссылки вида /playlists/<uuid>.
+  void loadPlaylistByUuid(const QString &uuid);
   void loadSimilarPlaylists(const QString &uuid);
   void loadPlaylists(const QList<QPair<QString, int>> &playlists);
   void loadUserPlaylists(const QString &uid);

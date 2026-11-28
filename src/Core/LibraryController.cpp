@@ -323,7 +323,7 @@ void LibraryController::selectLikedArtist(int index) {
   emit artistPageRequested(artist.id);
 }
 
-void LibraryController::loadPlaylist(const QString &uid, int kind) {
+void LibraryController::loadPlaylist(const QString &uid, int kind, bool useCache) {
   const QString playlistUid = uid.trimmed();
 
   if (playlistUid.isEmpty() || kind <= 0) {
@@ -340,7 +340,27 @@ void LibraryController::loadPlaylist(const QString &uid, int kind) {
   m_currentPlaylistCoverUri.clear();
   m_currentPlaylistTrackCount = 0;
   emit currentPlaylistChanged();
-  m_playlistService->loadPlaylist(playlistUid, kind);
+  m_playlistService->loadPlaylist(playlistUid, kind, useCache);
+}
+
+void LibraryController::loadPlaylistByUuid(const QString &uuid) {
+  const QString playlistUuid = uuid.trimmed();
+
+  if (playlistUuid.isEmpty()) {
+    emit statusChanged("Некорректная ссылка на плейлист");
+    return;
+  }
+
+  m_loadingPlaylist = true;
+  emit loadingPlaylistChanged();
+  m_playlistModel->clear();
+  m_similarPlaylists.clear();
+  emit similarPlaylistsChanged();
+  m_currentPlaylistTitle.clear();
+  m_currentPlaylistCoverUri.clear();
+  m_currentPlaylistTrackCount = 0;
+  emit currentPlaylistChanged();
+  m_playlistService->loadPlaylistByUuid(playlistUuid);
 }
 
 void LibraryController::selectPlaylistTrack(int index) {
