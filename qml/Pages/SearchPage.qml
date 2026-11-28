@@ -129,7 +129,7 @@ Item {
         Label {
             Layout.fillWidth: true
             visible: root.correction.length > 0
-            text: "Показаны результаты для «" + root.correction + "»"
+            text: qsTr("Показаны результаты для «") + root.correction + "»"
             color: AppTheme.textSecondary
             font.pixelSize: 12
             elide: Text.ElideRight
@@ -143,7 +143,7 @@ Item {
             Label {
                 Layout.fillWidth: true
                 visible: root.history.length > 0
-                text: "Недавние запросы"
+                text: qsTr("Недавние запросы")
                 color: AppTheme.textPrimary
                 font.pixelSize: 18
                 font.weight: Font.DemiBold
@@ -217,7 +217,7 @@ Item {
                         id: clearHistoryLabel
 
                         anchors.centerIn: parent
-                        text: "Очистить историю"
+                        text: qsTr("Очистить историю")
                         color: AppTheme.textSecondary
                         font.pixelSize: 12
                     }
@@ -241,7 +241,7 @@ Item {
             Label {
                 Layout.fillWidth: true
                 visible: root.history.length === 0
-                text: "Введите запрос — результаты появятся по мере ввода"
+                text: qsTr("Введите запрос — результаты появятся по мере ввода")
                 color: AppTheme.textMuted
                 font.pixelSize: 13
             }

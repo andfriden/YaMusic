@@ -62,7 +62,7 @@ Popup {
         Label {
             width: parent.width
 
-            text: "Открыть плейлист по ссылке"
+            text: qsTr("Открыть плейлист по ссылке")
             color: AppTheme.textPrimary
             font.pixelSize: 18
             font.bold: true
@@ -71,7 +71,7 @@ Popup {
         Label {
             width: parent.width
 
-            text: "Подойдёт ссылка на свой или чужой плейлист: music.yandex.ru/users/<логин>/playlists/<номер> или music.yandex.ru/playlists/<uuid>."
+            text: qsTr("Подойдёт ссылка на свой или чужой плейлист: music.yandex.ru/users/<логин>/playlists/<номер> или music.yandex.ru/playlists/<uuid>.")
             color: AppTheme.textSecondary
             font.pixelSize: 12
             wrapMode: Text.Wrap
@@ -82,7 +82,7 @@ Popup {
 
             width: parent.width
 
-            placeholderText: "https://music.yandex.ru/users/…/playlists/…"
+            placeholderText: qsTr("https://music.yandex.ru/users/…/playlists/…")
 
             selectByMouse: true
 
@@ -118,7 +118,7 @@ Popup {
 
                     anchors.centerIn: parent
 
-                    text: "Открыть"
+                    text: qsTr("Открыть")
                     color: AppTheme.accentOn
                     font.pixelSize: 12
                     font.bold: true
@@ -150,7 +150,7 @@ Popup {
 
                     anchors.centerIn: parent
 
-                    text: "Отмена"
+                    text: qsTr("Отмена")
                     color: AppTheme.textPrimary
                     font.pixelSize: 12
                 }

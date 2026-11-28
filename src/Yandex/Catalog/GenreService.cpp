@@ -1,4 +1,5 @@
 #include "GenreService.h"
+#include <QCoreApplication>
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
@@ -50,14 +51,14 @@ GenreService::GenreService(YandexAuth *auth, QObject *parent) : YandexServiceBas
 // TODO(YM-2248): сузить возвращаемые поля жанра — сейчас качается почти весь объект
 void GenreService::loadGenres() {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   QNetworkReply *reply = m_yandexClient->get("/genres");
 
   if (reply == nullptr) {
-    emit errorOccurred("Не удалось загрузить жанры");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось загрузить жанры"));
     return;
   }
 
@@ -74,7 +75,7 @@ void GenreService::loadGenres() {
     const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
 
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-      emit errorOccurred("Некорректный JSON жанров");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный JSON жанров"));
       reply->deleteLater();
       return;
     }
@@ -82,7 +83,7 @@ void GenreService::loadGenres() {
     const QJsonValue resultValue = document.object().value("result");
 
     if (!resultValue.isArray()) {
-      emit errorOccurred("В ответе отсутствует список жанров");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "В ответе отсутствует список жанров"));
       reply->deleteLater();
       return;
     }
@@ -95,14 +96,14 @@ void GenreService::loadGenres() {
 
 void GenreService::loadTagPlaylistIds(const QString &tagId) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString trimmedTagId = tagId.trimmed();
 
   if (trimmedTagId.isEmpty()) {
-    emit errorOccurred("Идентификатор поджанра не указан");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Идентификатор поджанра не указан"));
     return;
   }
 
@@ -110,7 +111,7 @@ void GenreService::loadTagPlaylistIds(const QString &tagId) {
   QNetworkReply *reply = m_yandexClient->get(path);
 
   if (reply == nullptr) {
-    emit errorOccurred("Не удалось загрузить плейлисты поджанра");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось загрузить плейлисты поджанра"));
     return;
   }
 
@@ -127,7 +128,7 @@ void GenreService::loadTagPlaylistIds(const QString &tagId) {
     const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
 
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-      emit errorOccurred("Некорректный ответ плейлистов поджанра");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный ответ плейлистов поджанра"));
       reply->deleteLater();
       return;
     }

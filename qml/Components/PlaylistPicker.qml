@@ -31,7 +31,7 @@ Popup {
         spacing: 12
 
         Label {
-            text: "Добавить в плейлист"
+            text: qsTr("Добавить в плейлист")
             color: AppTheme.textPrimary
             font.pixelSize: 18
             font.bold: true
@@ -147,7 +147,7 @@ Popup {
             Label {
                 anchors.centerIn: parent
 
-                text: "Нет плейлистов"
+                text: qsTr("Нет плейлистов")
                 color: AppTheme.textSecondary
                 font.pixelSize: 13
 

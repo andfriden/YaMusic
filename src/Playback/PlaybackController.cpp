@@ -1,4 +1,5 @@
 #include "PlaybackController.h"
+#include <QCoreApplication>
 
 #include "../Core/AudioQualityController.h"
 #include "../MediaControls/MediaControlsFactory.h"
@@ -251,7 +252,7 @@ int PlaybackController::currentBitrate() const {
 void PlaybackController::playTrack(const Track &track) {
   if (track.id.isEmpty()) {
     setState(Error);
-    emit playbackError("Некорректный трек");
+    emit playbackError(QCoreApplication::translate("YaMusic", "Некорректный трек"));
     return;
   }
 
@@ -290,7 +291,7 @@ void PlaybackController::playTrack(const Track &track) {
 
   if (m_trackService == nullptr) {
     setState(Error);
-    emit playbackError("TrackService недоступен");
+    emit playbackError(QCoreApplication::translate("YaMusic", "TrackService недоступен"));
     return;
   }
 
@@ -334,7 +335,7 @@ void PlaybackController::playFromSource(
     const QString &sourceType) {
   if (index < 0 || index >= tracks.size()) {
     setState(Error);
-    emit playbackError("Некорректный индекс трека");
+    emit playbackError(QCoreApplication::translate("YaMusic", "Некорректный индекс трека"));
     return;
   }
 
@@ -342,7 +343,7 @@ void PlaybackController::playFromSource(
 
   if (track.id.isEmpty()) {
     setState(Error);
-    emit playbackError("Некорректный трек");
+    emit playbackError(QCoreApplication::translate("YaMusic", "Некорректный трек"));
     return;
   }
 
@@ -365,7 +366,7 @@ void PlaybackController::playQueue() {
 
   if (track.id.isEmpty()) {
     setState(Error);
-    emit playbackError("Очередь пуста");
+    emit playbackError(QCoreApplication::translate("YaMusic", "Очередь пуста"));
     return;
   }
 
@@ -488,14 +489,14 @@ void PlaybackController::handleStreamUrl(
 
   if (url.trimmed().isEmpty()) {
     setState(Error);
-    emit playbackError("Stream URL пуст");
+    emit playbackError(QCoreApplication::translate("YaMusic", "Stream URL пуст"));
     return;
   }
 
   if (m_playerService == nullptr) {
     setState(Error);
     emit playbackError(
-        "PlayerService недоступен");
+        QCoreApplication::translate("YaMusic", "PlayerService недоступен"));
     return;
   }
 

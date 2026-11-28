@@ -1,6 +1,8 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QSettings>
+#include <QTranslator>
 
 #include "src/Core/AppController.h"
 #include "src/Core/AuthController.h"
@@ -24,6 +26,17 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain("yandex.ru");
     QCoreApplication::setApplicationName("YaMusic");
     QCoreApplication::setApplicationVersion(QStringLiteral(YAMUSIC_VERSION));
+
+    // Язык интерфейса выбирается в настройках и применяется при запуске:
+    // строки QML и C++ переводятся каталогом из ресурсов.
+    QTranslator translator;
+    const QString uiLanguage =
+        QSettings().value(QStringLiteral("ui/language"), QStringLiteral("ru")).toString();
+
+    if (uiLanguage != QStringLiteral("ru") &&
+        translator.load(QStringLiteral(":/i18n/yamusic_%1.qm").arg(uiLanguage))) {
+        app.installTranslator(&translator);
+    }
 
     // Перехват падений ставится до первого окна: тогда в отчёт попадут и
     // сообщения журнала от запуска, а сам отчёт доживёт до следующего старта.

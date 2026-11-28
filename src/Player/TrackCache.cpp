@@ -1,4 +1,5 @@
 #include "TrackCache.h"
+#include <QCoreApplication>
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
@@ -108,7 +109,7 @@ bool TrackCache::finishWrite(const QString &writePath, const QString &identity, 
   if (!info.exists() || info.size() <= 0) {
     QFile::remove(writePath);
 
-    if (error != nullptr) *error = QStringLiteral("Скачанный файл пуст");
+    if (error != nullptr) *error = QCoreApplication::translate("YaMusic", "Скачанный файл пуст");
     return false;
   }
 
@@ -120,7 +121,7 @@ bool TrackCache::finishWrite(const QString &writePath, const QString &identity, 
   if (!QFile::rename(writePath, target)) {
     QFile::remove(writePath);
 
-    if (error != nullptr) *error = QStringLiteral("Не удалось переименовать скачанный файл");
+    if (error != nullptr) *error = QCoreApplication::translate("YaMusic", "Не удалось переименовать скачанный файл");
     return false;
   }
 

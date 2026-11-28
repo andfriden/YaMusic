@@ -49,7 +49,7 @@ Item {
             Label {
                 width: parent.width
 
-                text: "Спорт"
+                text: qsTr("Спорт")
                 color: AppTheme.textPrimary
                 font.pixelSize: 32
                 font.bold: true
@@ -73,7 +73,7 @@ Item {
         Label {
             width: parent.width
 
-            text: "Плейлисты для спорта"
+            text: qsTr("Плейлисты для спорта")
             color: AppTheme.textPrimary
             font.pixelSize: 24
             font.bold: true
@@ -128,7 +128,7 @@ Item {
 
             width: parent.width
 
-            text: "Плейлисты не найдены"
+            text: qsTr("Плейлисты не найдены")
             color: AppTheme.textSecondary
             font.pixelSize: 16
 
@@ -140,7 +140,7 @@ Item {
 
             width: parent.width
 
-            text: "Загрузка плейлистов..."
+            text: qsTr("Загрузка плейлистов...")
             color: AppTheme.textSecondary
             font.pixelSize: 16
 

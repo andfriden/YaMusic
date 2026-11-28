@@ -1,4 +1,5 @@
 #include "YnisonClient.h"
+#include <QCoreApplication>
 
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -344,7 +345,7 @@ QJsonObject YnisonClient::buildDevice() const {
   return QJsonObject{
       {"info", QJsonObject{
           {"device_id", m_deviceId},
-          {"title", "Яндекс Музыка"},
+          {"title", QCoreApplication::translate("YaMusic", "Яндекс Музыка")},
           {"type", "ANDROID"},
           {"app_name", "ru.yandex.music"},
           {"app_version", "2026.08.3"},

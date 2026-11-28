@@ -1,10 +1,11 @@
 #include "AppController.h"
+#include <QCoreApplication>
 
 void AppController::loadArtist(const QString &id) {
   const QString artistId = id.trimmed();
 
   if (artistId.isEmpty()) {
-    emit statusChanged("Некорректный исполнитель");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный исполнитель"));
     return;
   }
 
@@ -16,7 +17,7 @@ void AppController::loadAlbum(const QString &id) {
   const QString albumId = id.trimmed();
 
   if (albumId.isEmpty()) {
-    emit statusChanged("Некорректный альбом");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный альбом"));
     return;
   }
 
@@ -29,7 +30,7 @@ void AppController::playAlbum(const QString &id) {
   const QString albumId = id.trimmed();
 
   if (albumId.isEmpty()) {
-    emit statusChanged("Некорректный альбом");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный альбом"));
     return;
   }
 

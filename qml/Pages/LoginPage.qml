@@ -15,7 +15,7 @@ Item {
         Label {
             Layout.alignment: Qt.AlignHCenter
 
-            text: "Вход в YaMusic"
+            text: qsTr("Вход в YaMusic")
             font.pixelSize: 28
             font.bold: true
             color: AppTheme.textPrimary
@@ -24,7 +24,7 @@ Item {
         Label {
             Layout.fillWidth: true
 
-            text: "Войдите через Яндекс и скопируйте адрес страницы после авторизации."
+            text: qsTr("Войдите через Яндекс и скопируйте адрес страницы после авторизации.")
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
             color: AppTheme.textSecondary
@@ -33,7 +33,7 @@ Item {
         Button {
             Layout.alignment: Qt.AlignHCenter
 
-            text: "Войти через Яндекс"
+            text: qsTr("Войти через Яндекс")
 
             onClicked: {
                 Qt.openUrlExternally(
@@ -47,7 +47,7 @@ Item {
         Label {
             Layout.fillWidth: true
 
-            text: "После входа скопируйте всю строку из адресной строки браузера и вставьте её сюда."
+            text: qsTr("После входа скопируйте всю строку из адресной строки браузера и вставьте её сюда.")
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
             color: AppTheme.textSecondary
@@ -58,7 +58,7 @@ Item {
 
             Layout.fillWidth: true
 
-            placeholderText: "Вставьте токен или URL целиком"
+            placeholderText: qsTr("Вставьте токен или URL целиком")
 
             onTextChanged: {
                 errorLabel.text = ""
@@ -68,7 +68,7 @@ Item {
         Button {
             Layout.alignment: Qt.AlignHCenter
 
-            text: "Продолжить"
+            text: qsTr("Продолжить")
             enabled: tokenField.text.trim().length > 0
 
             onClicked: {

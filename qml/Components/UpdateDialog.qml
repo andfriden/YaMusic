@@ -54,7 +54,7 @@ Popup {
         Label {
             Layout.fillWidth: true
 
-            text: "Обновление YaMusic"
+            text: qsTr("Обновление YaMusic")
             color: AppTheme.textPrimary
             font.pixelSize: 18
             font.bold: true
@@ -148,7 +148,7 @@ Popup {
             spacing: 8
 
             Button {
-                text: "Скачать и установить"
+                text: qsTr("Скачать и установить")
                 visible: root.hasUpdates && root.updates.canInstall &&
                     !root.updates.installing && !root.updates.readyToRestart
 
@@ -160,7 +160,7 @@ Popup {
             }
 
             Button {
-                text: "Перезапустить"
+                text: qsTr("Перезапустить")
                 visible: root.hasUpdates && root.updates.readyToRestart
 
                 onClicked: {
@@ -171,7 +171,7 @@ Popup {
             }
 
             Button {
-                text: "Страница релиза"
+                text: qsTr("Страница релиза")
 
                 onClicked: {
                     if (root.hasUpdates) {
@@ -183,7 +183,7 @@ Popup {
             Item { Layout.fillWidth: true }
 
             Button {
-                text: "Пропустить версию"
+                text: qsTr("Пропустить версию")
                 visible: root.hasUpdates && !root.updates.installing
 
                 onClicked: {
@@ -196,7 +196,7 @@ Popup {
             }
 
             Button {
-                text: "Позже"
+                text: qsTr("Позже")
                 visible: root.hasUpdates && !root.updates.installing &&
                     !root.updates.readyToRestart
 

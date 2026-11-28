@@ -20,7 +20,7 @@ Window {
     flags: Qt.Window | Qt.WindowSystemMenuHint | Qt.WindowTitleHint |
         Qt.WindowCloseButtonHint
 
-    title: "YaMusic — плеер"
+    title: qsTr("YaMusic — плеер")
     color: AppTheme.background
     visible: false
 

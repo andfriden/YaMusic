@@ -36,6 +36,7 @@ find_package(
         Gui
         Network
         Multimedia
+        LinguistTools
 )
 
 if(UNIX AND NOT APPLE)
@@ -352,6 +353,14 @@ target_compile_definitions(
         appYaMusic
         PRIVATE
         YAMUSIC_VERSION="${PROJECT_VERSION}"
+)
+
+# Переводы интерфейса: исходные строки в коде русские, английский каталог
+# собирается из i18n/yamusic_en.ts и встраивается как :/i18n/yamusic_en.qm.
+qt_add_translations(
+        appYaMusic
+        TS_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/i18n/yamusic_en.ts"
 )
 
 # =============================================================

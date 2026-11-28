@@ -1,4 +1,5 @@
 #include "TrackService.h"
+#include <QCoreApplication>
 
 #include "../Auth/YandexAuth.h"
 #include "../../Core/AudioQualityController.h"
@@ -118,7 +119,7 @@ void TrackService::requestDownloadInfo(
         &onResolved) {
   if (!ensureAuthenticated()) {
     emit errorOccurred(
-        "Токен Яндекс Музыки не установлен");
+        QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
@@ -534,7 +535,7 @@ void TrackService::loadSimilarTracks(
     const QString &trackId) {
   if (!ensureAuthenticated()) {
     emit errorOccurred(
-        "Токен Яндекс Музыки не установлен");
+        QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
@@ -1048,7 +1049,7 @@ void TrackService::loadSyncLyrics(const QString &trackId, const QString &title,
                                                                   makeSupplement]() {
           // Последний источник — Genius, только plain text без таймингов.
           requestGenius(title, artist, makeSupplement, [this, id]() {
-            emit errorOccurred("Текст для трека не найден");
+            emit errorOccurred(QCoreApplication::translate("YaMusic", "Текст для трека не найден"));
           });
         });
       });

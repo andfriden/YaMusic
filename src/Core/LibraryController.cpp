@@ -1,4 +1,5 @@
 #include "LibraryController.h"
+#include <QCoreApplication>
 #include "../Queue/QueueService.h"
 #include "../Yandex/Personal/LikedAlbumsModel.h"
 #include "../Yandex/Personal/LikedArtistsModel.h"
@@ -82,12 +83,12 @@ LibraryController::LibraryController(PlaylistService *playlistService, ArtistSer
               emit loadingLibraryPlaylistsChanged();
             }
 
-            emit statusChanged(QString("Ошибка плейлистов: %1").arg(message));
+            emit statusChanged(QString(QCoreApplication::translate("YaMusic", "Ошибка плейлистов: %1")).arg(message));
           });
 
   connect(m_playlistService, &PlaylistService::playlistCreated, this,
           [this](const QString &title) {
-            emit statusChanged(QString("Плейлист «%1» создан").arg(title));
+            emit statusChanged(QString(QCoreApplication::translate("YaMusic", "Плейлист «%1» создан")).arg(title));
 
             if (!m_userId.isEmpty()) {
               loadUserPlaylists(m_userId);
@@ -96,7 +97,7 @@ LibraryController::LibraryController(PlaylistService *playlistService, ArtistSer
 
   connect(m_playlistService, &PlaylistService::playlistDeleted, this, [this](int) {
     m_playlistModel->clear();
-    emit statusChanged("Плейлист удалён");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Плейлист удалён"));
 
     if (!m_userId.isEmpty()) {
       loadUserPlaylists(m_userId);
@@ -107,11 +108,11 @@ LibraryController::LibraryController(PlaylistService *playlistService, ArtistSer
           [this](const QString &newTitle) {
             m_currentPlaylistTitle = newTitle;
             emit currentPlaylistChanged();
-            emit statusChanged(QString("Плейлист переименован в «%1»").arg(newTitle));
+            emit statusChanged(QString(QCoreApplication::translate("YaMusic", "Плейлист переименован в «%1»")).arg(newTitle));
           });
 
   connect(m_playlistService, &PlaylistService::tracksAdded, this, [this](int kind, int count) {
-    emit statusChanged(QString("Добавлено треков: %1").arg(count));
+    emit statusChanged(QString(QCoreApplication::translate("YaMusic", "Добавлено треков: %1")).arg(count));
 
     // Обновляем список пользовательских плейлистов,
     // чтобы счётчики треков в пикере были актуальными.
@@ -128,7 +129,7 @@ LibraryController::LibraryController(PlaylistService *playlistService, ArtistSer
 
   connect(m_playlistService, &PlaylistService::tracksRemoved, this, [this](int kind, int count) {
     emit playlistTracksChanged();
-    emit statusChanged(QString("Удалено треков: %1").arg(count));
+    emit statusChanged(QString(QCoreApplication::translate("YaMusic", "Удалено треков: %1")).arg(count));
 
     // Обновляем список пользовательских плейлистов,
     // чтобы счётчики треков были актуальными.
@@ -154,7 +155,7 @@ LibraryController::LibraryController(PlaylistService *playlistService, ArtistSer
   connect(m_likesService, &LikesService::errorOccurred, this, [this](const QString &message) {
     m_loadingLikedTracks = false;
     emit loadingLikedTracksChanged();
-    emit statusChanged(QString("Ошибка лайков: %1").arg(message));
+    emit statusChanged(QString(QCoreApplication::translate("YaMusic", "Ошибка лайков: %1")).arg(message));
   });
 
   connect(m_likesService, &LikesService::albumsReceived, this,
@@ -201,7 +202,7 @@ LibraryController::LibraryController(PlaylistService *playlistService, ArtistSer
   connect(m_artistService, &ArtistService::errorOccurred, this, [this](const QString &message) {
     m_loadingArtist = false;
     emit loadingArtistChanged();
-    emit statusChanged(QString("Ошибка загрузки исполнителя: %1").arg(message));
+    emit statusChanged(QString(QCoreApplication::translate("YaMusic", "Ошибка загрузки исполнителя: %1")).arg(message));
   });
 }
 
@@ -209,7 +210,7 @@ void LibraryController::loadUserPlaylists(const QString &uid) {
   const QString userUid = uid.trimmed();
 
   if (userUid.isEmpty()) {
-    emit statusChanged("UID пользователя не указан");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "UID пользователя не указан"));
     return;
   }
 
@@ -223,7 +224,7 @@ void LibraryController::selectLibraryPlaylist(int index) {
   const PersonalPlaylist playlist = m_libraryPlaylistsModel->playlistAt(index);
 
   if (playlist.uid.isEmpty() || playlist.kind <= 0) {
-    emit statusChanged("Некорректный плейлист");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный плейлист"));
     return;
   }
 
@@ -242,7 +243,7 @@ bool LibraryController::isLoadingLibraryPlaylists() const {
   void LibraryController::METHOD(const QString &uid) {                             \
     const QString userUid = uid.trimmed();                                         \
     if (userUid.isEmpty()) {                                                       \
-      emit statusChanged("UID пользователя не указан");                            \
+      emit statusChanged(QCoreApplication::translate("YaMusic", "UID пользователя не указан"));                            \
       return;                                                                      \
     }                                                                              \
     FLAG = true;                                                                   \
@@ -257,18 +258,18 @@ void LibraryController::selectLikedTrack(int index) {
   const QList<Track> tracks = m_likedTracksModel->tracks();
 
   if (index < 0 || index >= tracks.size()) {
-    emit statusChanged("Некорректный индекс трека");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный индекс трека"));
     return;
   }
 
   const Track track = tracks.at(index);
 
   if (track.id.isEmpty()) {
-    emit statusChanged("Некорректный лайкнутый трек");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный лайкнутый трек"));
     return;
   }
 
-  m_playbackController->playFromSource(tracks, index, "Понравившиеся треки", "likes");
+  m_playbackController->playFromSource(tracks, index, QCoreApplication::translate("YaMusic", "Понравившиеся треки"), "likes");
 }
 
 LikedTracksModel *LibraryController::likedTracksModel() const {
@@ -293,7 +294,7 @@ void LibraryController::selectLikedAlbum(int index) {
   const Album album = m_likedAlbumsModel->albumAt(index);
 
   if (album.id.isEmpty()) {
-    emit statusChanged("Некорректный альбом");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный альбом"));
     return;
   }
 
@@ -316,7 +317,7 @@ void LibraryController::selectLikedArtist(int index) {
   const Artist artist = m_likedArtistsModel->artistAt(index);
 
   if (artist.id.isEmpty()) {
-    emit statusChanged("Некорректный исполнитель");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный исполнитель"));
     return;
   }
 
@@ -327,7 +328,7 @@ void LibraryController::loadPlaylist(const QString &uid, int kind, bool useCache
   const QString playlistUid = uid.trimmed();
 
   if (playlistUid.isEmpty() || kind <= 0) {
-    emit statusChanged("Некорректный плейлист");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный плейлист"));
     return;
   }
 
@@ -347,7 +348,7 @@ void LibraryController::loadPlaylistByUuid(const QString &uuid) {
   const QString playlistUuid = uuid.trimmed();
 
   if (playlistUuid.isEmpty()) {
-    emit statusChanged("Некорректная ссылка на плейлист");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректная ссылка на плейлист"));
     return;
   }
 
@@ -367,14 +368,14 @@ void LibraryController::selectPlaylistTrack(int index) {
   const QList<Track> tracks = m_playlistModel->tracks();
 
   if (index < 0 || index >= tracks.size()) {
-    emit statusChanged("Некорректный индекс трека");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный индекс трека"));
     return;
   }
 
   const Track track = tracks.at(index);
 
   if (track.id.isEmpty()) {
-    emit statusChanged("Некорректный трек плейлиста");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный трек плейлиста"));
     return;
   }
 
@@ -418,7 +419,7 @@ void LibraryController::loadArtist(const QString &id) {
   const QString artistId = id.trimmed();
 
   if (artistId.isEmpty()) {
-    emit statusChanged("ID исполнителя не указан");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "ID исполнителя не указан"));
     return;
   }
 
@@ -437,14 +438,14 @@ void LibraryController::selectArtistTrack(int index) {
   const QList<Track> tracks = m_artistModel->tracks();
 
   if (index < 0 || index >= tracks.size()) {
-    emit statusChanged("Некорректный индекс трека исполнителя");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный индекс трека исполнителя"));
     return;
   }
 
   const Track track = tracks.at(index);
 
   if (track.id.isEmpty()) {
-    emit statusChanged("Некорректный трек исполнителя");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный трек исполнителя"));
     return;
   }
 
@@ -497,7 +498,7 @@ void LibraryController::setUserId(const QString &uid) {
 
 void LibraryController::createPlaylist(const QString &title) {
   if (m_userId.isEmpty()) {
-    emit statusChanged("Не удалось создать плейлист");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Не удалось создать плейлист"));
     return;
   }
 
@@ -506,14 +507,14 @@ void LibraryController::createPlaylist(const QString &title) {
 
 void LibraryController::deleteCurrentPlaylist() {
   if (m_userId.isEmpty()) {
-    emit statusChanged("Не удалось удалить плейлист");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Не удалось удалить плейлист"));
     return;
   }
 
   const int kind = m_playlistModel->kind();
 
   if (kind <= 0) {
-    emit statusChanged("Плейлист не загружен");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Плейлист не загружен"));
     return;
   }
 
@@ -522,14 +523,14 @@ void LibraryController::deleteCurrentPlaylist() {
 
 void LibraryController::renameCurrentPlaylist(const QString &newTitle) {
   if (m_userId.isEmpty()) {
-    emit statusChanged("Не удалось переименовать плейлист");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Не удалось переименовать плейлист"));
     return;
   }
 
   const int kind = m_playlistModel->kind();
 
   if (kind <= 0) {
-    emit statusChanged("Плейлист не загружен");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Плейлист не загружен"));
     return;
   }
 
@@ -540,7 +541,7 @@ void LibraryController::deletePlaylist(const QString &uid, int kind) {
   const QString userId = uid.trimmed();
 
   if (userId.isEmpty() || kind <= 0) {
-    emit statusChanged("Некорректный плейлист");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный плейлист"));
     return;
   }
 
@@ -551,7 +552,7 @@ void LibraryController::renamePlaylist(const QString &uid, int kind, const QStri
   const QString userId = uid.trimmed();
 
   if (userId.isEmpty() || kind <= 0) {
-    emit statusChanged("Некорректный плейлист");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный плейлист"));
     return;
   }
 
@@ -560,7 +561,7 @@ void LibraryController::renamePlaylist(const QString &uid, int kind, const QStri
 
 void LibraryController::removeTrackFromPlaylist(int index) {
   if (m_userId.isEmpty()) {
-    emit statusChanged("Не удалось удалить трек");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Не удалось удалить трек"));
     return;
   }
 
@@ -591,7 +592,7 @@ void LibraryController::removeTrackFromPlaylist(int index) {
 void LibraryController::addTrackToPlaylist(int kind, const QString &trackId, const QString &albumId,
                                            int revision) {
   if (m_userId.isEmpty()) {
-    emit statusChanged("Не удалось добавить трек");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Не удалось добавить трек"));
     return;
   }
 

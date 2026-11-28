@@ -1,8 +1,9 @@
 #include "AppController.h"
+#include <QCoreApplication>
 
 void AppController::loadLibrary() {
   if (m_accountUid.isEmpty()) {
-    emit statusChanged("Пользователь ещё не загружен");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Пользователь ещё не загружен"));
     return;
   }
 
@@ -26,7 +27,7 @@ bool AppController::isLoadingLibraryPlaylists() const {
 
 void AppController::loadLikedTracks() {
   if (m_accountUid.isEmpty()) {
-    emit statusChanged("Пользователь ещё не загружен");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Пользователь ещё не загружен"));
     return;
   }
 
@@ -47,7 +48,7 @@ bool AppController::isLoadingLikedTracks() const {
 
 void AppController::loadLikedAlbums() {
   if (m_accountUid.isEmpty()) {
-    emit statusChanged("Пользователь ещё не загружен");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Пользователь ещё не загружен"));
     return;
   }
 
@@ -68,7 +69,7 @@ bool AppController::isLoadingLikedAlbums() const {
 
 void AppController::loadLikedArtists() {
   if (m_accountUid.isEmpty()) {
-    emit statusChanged("Пользователь ещё не загружен");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Пользователь ещё не загружен"));
     return;
   }
 

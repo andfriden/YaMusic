@@ -135,19 +135,19 @@ QString backtraceText() {
 QString signalName(int signal) {
   switch (signal) {
   case SIGSEGV:
-    return QStringLiteral("SIGSEGV (ошибка сегментации)");
+    return QCoreApplication::translate("YaMusic", "SIGSEGV (ошибка сегментации)");
   case SIGABRT:
-    return QStringLiteral("SIGABRT (аварийное завершение)");
+    return QCoreApplication::translate("YaMusic", "SIGABRT (аварийное завершение)");
 #ifndef Q_OS_WIN
   case SIGBUS:
-    return QStringLiteral("SIGBUS (ошибка доступа к памяти)");
+    return QCoreApplication::translate("YaMusic", "SIGBUS (ошибка доступа к памяти)");
 #endif
   case SIGILL:
-    return QStringLiteral("SIGILL (недопустимая инструкция)");
+    return QCoreApplication::translate("YaMusic", "SIGILL (недопустимая инструкция)");
   case SIGFPE:
-    return QStringLiteral("SIGFPE (ошибка вычислений)");
+    return QCoreApplication::translate("YaMusic", "SIGFPE (ошибка вычислений)");
   default:
-    return QStringLiteral("сигнал %1").arg(signal);
+    return QCoreApplication::translate("YaMusic", "сигнал %1").arg(signal);
   }
 }
 
@@ -213,7 +213,7 @@ void signalHandler(int signal) {
 }
 
 void terminateHandler() {
-  QString reason = QStringLiteral("terminate (необработанное исключение)");
+  QString reason = QCoreApplication::translate("YaMusic", "terminate (необработанное исключение)");
 
   // Что именно выбросили, видно только из текущего исключения: после
   // terminate восстановить его уже нельзя.
@@ -223,7 +223,7 @@ void terminateHandler() {
     } catch (const std::exception &error) {
       reason = QStringLiteral("terminate: %1").arg(QString::fromUtf8(error.what()));
     } catch (...) {
-      reason = QStringLiteral("terminate: неизвестное исключение");
+      reason = QCoreApplication::translate("YaMusic", "terminate: неизвестное исключение");
     }
   }
 
@@ -242,7 +242,7 @@ Header makeHeader(const QString &reason) {
   header.version = g_version;
   header.platform = QStringLiteral("%1 (%2)")
                         .arg(QSysInfo::prettyProductName(), QSysInfo::currentCpuArchitecture());
-  header.environment = QStringLiteral("Qt %1 · процесс %2 · каталог %3")
+  header.environment = QCoreApplication::translate("YaMusic", "Qt %1 · процесс %2 · каталог %3")
                            .arg(QString::fromLatin1(qVersion()))
                            .arg(QCoreApplication::applicationPid())
                            .arg(QDir::currentPath());
@@ -267,15 +267,15 @@ Header parseHeader(const QString &text) {
       return trimmed.startsWith(prefix) ? trimmed.mid(prefix.size()).trimmed() : QString();
     };
 
-    if (const QString reason = valueOf(QStringLiteral("Причина:")); !reason.isEmpty())
+    if (const QString reason = valueOf(QCoreApplication::translate("YaMusic", "Причина:")); !reason.isEmpty())
       header.reason = reason;
-    else if (const QString stamp = valueOf(QStringLiteral("Время:")); !stamp.isEmpty())
+    else if (const QString stamp = valueOf(QCoreApplication::translate("YaMusic", "Время:")); !stamp.isEmpty())
       header.timestamp = stamp;
-    else if (const QString version = valueOf(QStringLiteral("Версия:")); !version.isEmpty())
+    else if (const QString version = valueOf(QCoreApplication::translate("YaMusic", "Версия:")); !version.isEmpty())
       header.version = version;
-    else if (const QString platform = valueOf(QStringLiteral("Платформа:")); !platform.isEmpty())
+    else if (const QString platform = valueOf(QCoreApplication::translate("YaMusic", "Платформа:")); !platform.isEmpty())
       header.platform = platform;
-    else if (const QString environment = valueOf(QStringLiteral("Окружение:"));
+    else if (const QString environment = valueOf(QCoreApplication::translate("YaMusic", "Окружение:"));
              !environment.isEmpty())
       header.environment = environment;
   }
@@ -286,27 +286,27 @@ Header parseHeader(const QString &text) {
 QString composeReport(const Header &header, const QStringList &logTail, const QString &backtrace) {
   QStringList lines;
 
-  lines.append(QStringLiteral("Отчёт о падении YaMusic"));
+  lines.append(QCoreApplication::translate("YaMusic", "Отчёт о падении YaMusic"));
   lines.append(QString());
-  lines.append(QStringLiteral("Причина: %1").arg(header.reason));
-  lines.append(QStringLiteral("Время: %1").arg(header.timestamp));
-  lines.append(QStringLiteral("Версия: %1").arg(header.version));
-  lines.append(QStringLiteral("Платформа: %1").arg(header.platform));
+  lines.append(QCoreApplication::translate("YaMusic", "Причина: %1").arg(header.reason));
+  lines.append(QCoreApplication::translate("YaMusic", "Время: %1").arg(header.timestamp));
+  lines.append(QCoreApplication::translate("YaMusic", "Версия: %1").arg(header.version));
+  lines.append(QCoreApplication::translate("YaMusic", "Платформа: %1").arg(header.platform));
 
   if (!header.environment.isEmpty())
-    lines.append(QStringLiteral("Окружение: %1").arg(header.environment));
+    lines.append(QCoreApplication::translate("YaMusic", "Окружение: %1").arg(header.environment));
 
   lines.append(QString());
-  lines.append(QStringLiteral("--- Последние сообщения журнала ---"));
+  lines.append(QCoreApplication::translate("YaMusic", "--- Последние сообщения журнала ---"));
 
   if (logTail.isEmpty())
-    lines.append(QStringLiteral("(журнал пуст)"));
+    lines.append(QCoreApplication::translate("YaMusic", "(журнал пуст)"));
   else
     lines.append(logTail.join(QLatin1Char('\n')));
 
   lines.append(QString());
-  lines.append(QStringLiteral("--- Стек вызовов ---"));
-  lines.append(backtrace.isEmpty() ? QStringLiteral("(стек недоступен)") : backtrace);
+  lines.append(QCoreApplication::translate("YaMusic", "--- Стек вызовов ---"));
+  lines.append(backtrace.isEmpty() ? QCoreApplication::translate("YaMusic", "(стек недоступен)") : backtrace);
   lines.append(QString());
 
   return lines.join(QLatin1Char('\n'));
@@ -359,7 +359,7 @@ void install(const QString &version) {
   // На Windows сигналы POSIX-модели не ловят нарушение доступа: падение
   // приходит необработанным исключением, и стек снимается здесь.
   SetUnhandledExceptionFilter([](EXCEPTION_POINTERS *) -> LONG {
-    persistReport(QStringLiteral("необработанное исключение"), {});
+    persistReport(QCoreApplication::translate("YaMusic", "необработанное исключение"), {});
 
     return EXCEPTION_EXECUTE_HANDLER;
   });

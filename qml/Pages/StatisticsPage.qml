@@ -53,7 +53,7 @@ Item {
                 Label {
                     width: parent.width - resetButton.width - parent.spacing
 
-                    text: "Статистика прослушивания"
+                    text: qsTr("Статистика прослушивания")
                     color: AppTheme.textPrimary
                     font.pixelSize: 28
                     font.bold: true
@@ -80,7 +80,7 @@ Item {
 
                         anchors.centerIn: parent
 
-                        text: "Сбросить"
+                        text: qsTr("Сбросить")
                         color: resetMouse.containsMouse ? AppTheme.error : AppTheme.textSecondary
                         font.pixelSize: 12
                     }
@@ -135,7 +135,7 @@ Item {
 
                             Label {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: "Прослушиваний"
+                                text: qsTr("Прослушиваний")
                                 color: AppTheme.textSecondary
                                 font.pixelSize: 11
                                 horizontalAlignment: Text.AlignHCenter
@@ -162,7 +162,7 @@ Item {
 
                             Label {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: "Времени в музыке"
+                                text: qsTr("Времени в музыке")
                                 color: AppTheme.textSecondary
                                 font.pixelSize: 11
                                 horizontalAlignment: Text.AlignHCenter
@@ -189,7 +189,7 @@ Item {
 
                             Label {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: "Треков"
+                                text: qsTr("Треков")
                                 color: AppTheme.textSecondary
                                 font.pixelSize: 11
                                 horizontalAlignment: Text.AlignHCenter
@@ -216,7 +216,7 @@ Item {
 
                             Label {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: "Исполнителей"
+                                text: qsTr("Исполнителей")
                                 color: AppTheme.textSecondary
                                 font.pixelSize: 11
                                 horizontalAlignment: Text.AlignHCenter
@@ -237,7 +237,7 @@ Item {
                     spacing: 8
 
                     Label {
-                        text: "Минуты по дням"
+                        text: qsTr("Минуты по дням")
                         color: AppTheme.textPrimary
                         font.pixelSize: 20
                         font.bold: true
@@ -556,7 +556,7 @@ Item {
                     Label {
                         anchors.centerIn: parent
 
-                        text: "Нет данных за этот период"
+                        text: qsTr("Нет данных за этот период")
                         color: AppTheme.textSecondary
                         font.pixelSize: 13
 
@@ -576,7 +576,7 @@ Item {
                     Label {
                         width: parent.width
 
-                        text: "Топ треков"
+                        text: qsTr("Топ треков")
                         color: AppTheme.textPrimary
                         font.pixelSize: 20
                         font.bold: true
@@ -734,7 +734,7 @@ Item {
                     Label {
                         anchors.centerIn: parent
 
-                        text: "Нет данных — послушайте несколько треков"
+                        text: qsTr("Нет данных — послушайте несколько треков")
                         color: AppTheme.textSecondary
                         font.pixelSize: 13
 
@@ -751,7 +751,7 @@ Item {
                     Label {
                         width: parent.width
 
-                        text: "Топ исполнителей"
+                        text: qsTr("Топ исполнителей")
                         color: AppTheme.textPrimary
                         font.pixelSize: 20
                         font.bold: true
@@ -894,7 +894,7 @@ Item {
                     Label {
                         anchors.centerIn: parent
 
-                        text: "Нет данных — послушайте несколько треков"
+                        text: qsTr("Нет данных — послушайте несколько треков")
                         color: AppTheme.textSecondary
                         font.pixelSize: 13
 

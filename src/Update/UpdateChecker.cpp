@@ -89,7 +89,7 @@ void UpdateChecker::check() {
   if (m_checking) return;
 
   if (m_currentVersion.trimmed().isEmpty()) {
-    emit checkFailed(QStringLiteral("Версия приложения не задана"));
+    emit checkFailed(QCoreApplication::translate("YaMusic", "Версия приложения не задана"));
     return;
   }
 
@@ -127,7 +127,7 @@ void UpdateChecker::handleReply(QNetworkReply *reply) {
 
   if (parseError.error != QJsonParseError::NoError || !document.isArray()) {
     emit checkingChanged();
-    emit checkFailed(QStringLiteral("Не удалось разобрать ответ GitHub"));
+    emit checkFailed(QCoreApplication::translate("YaMusic", "Не удалось разобрать ответ GitHub"));
     return;
   }
 

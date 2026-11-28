@@ -190,7 +190,7 @@ Item {
                 Label {
                     width: parent.width
 
-                    text: "Радиостанция"
+                    text: qsTr("Радиостанция")
                     color: AppTheme.textPrimary
                     font.pixelSize: 22
                     font.bold: true
@@ -243,7 +243,7 @@ Item {
         Label {
             width: parent.width
 
-            text: "Плейлисты"
+            text: qsTr("Плейлисты")
             color: AppTheme.textPrimary
             font.pixelSize: 24
             font.bold: true
@@ -300,7 +300,7 @@ Item {
 
             width: parent.width
 
-            text: "Плейлисты не найдены"
+            text: qsTr("Плейлисты не найдены")
             color: AppTheme.textSecondary
             font.pixelSize: 16
 
@@ -312,7 +312,7 @@ Item {
 
             width: parent.width
 
-            text: "Загрузка плейлистов..."
+            text: qsTr("Загрузка плейлистов...")
             color: AppTheme.textSecondary
             font.pixelSize: 16
 

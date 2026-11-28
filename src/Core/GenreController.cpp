@@ -201,7 +201,7 @@ void GenreController::loadGenres() {
 
   m_loading = true;
   emit loadingChanged();
-  emit statusChanged("Загрузка жанров...");
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Загрузка жанров..."));
   m_genreService->loadGenres();
 }
 
@@ -209,7 +209,7 @@ void GenreController::loadGenre(const QString &genreId) {
   const QString trimmedGenreId = genreId.trimmed();
 
   if (trimmedGenreId.isEmpty()) {
-    emit errorOccurred("Идентификатор жанра не указан");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Идентификатор жанра не указан"));
     return;
   }
 
@@ -229,7 +229,7 @@ void GenreController::loadGenre(const QString &genreId) {
   m_genrePlaylists.clear();
   emit genreLoadingChanged();
   emit genreContentChanged();
-  emit statusChanged("Загрузка плейлистов...");
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Загрузка плейлистов..."));
   const QList<QPair<QString, int>> csvPlaylists = loadPlaylistIdsFromCsv(trimmedGenreId);
 
   if (!csvPlaylists.isEmpty()) {
@@ -247,7 +247,7 @@ void GenreController::loadTagPlaylists(const QString &tagId) {
   const QString trimmedTagId = tagId.trimmed();
 
   if (trimmedTagId.isEmpty()) {
-    emit errorOccurred("Идентификатор поджанра не указан");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Идентификатор поджанра не указан"));
     return;
   }
 
@@ -266,7 +266,7 @@ void GenreController::loadTagPlaylists(const QString &tagId) {
   m_genrePlaylists.clear();
   emit genreLoadingChanged();
   emit genreContentChanged();
-  emit statusChanged("Загрузка плейлистов...");
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Загрузка плейлистов..."));
   m_genreService->loadTagPlaylistIds(trimmedTagId);
 }
 
@@ -347,7 +347,7 @@ void GenreController::startApiFallback() {
   m_genrePlaylistQueuePosition = 0;
   m_waitingForPlaylists = false;
   m_waitingForTagPlaylistIds = true;
-  emit statusChanged("Получение плейлистов жанра...");
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Получение плейлистов жанра..."));
 
   // ID жанров каталога совпадают с tag ID, поэтому грузим плейлисты по ним.
 
@@ -393,7 +393,7 @@ void GenreController::loadGenreStation(const QString &genreId) {
   m_stationLoading = true;
   emit stationLoadingChanged();
   m_stationModel->clear();
-  emit statusChanged("Загрузка радиостанции...");
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Загрузка радиостанции..."));
   m_stationService->loadStationTracks("genre", id);
 }
 
@@ -422,7 +422,7 @@ void GenreController::selectStationTrack(int index) {
 
   emit stationTrackSelected(index);
 
-  m_playbackController->playFromSource(tracks, index, QStringLiteral("Радио: %1").arg(m_stationGenreId),
+  m_playbackController->playFromSource(tracks, index, QCoreApplication::translate("YaMusic", "Радио: %1").arg(m_stationGenreId),
                                      "station");
 }
 

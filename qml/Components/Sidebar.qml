@@ -43,7 +43,7 @@ Item {
                 anchors.leftMargin: 20
                 anchors.verticalCenter: parent.verticalCenter
 
-                text: "YaMusic"
+                text: qsTr("YaMusic")
                 color: AppTheme.textPrimary
                 font.pixelSize: 20
                 font.weight: Font.Bold
@@ -53,18 +53,18 @@ Item {
         // ---- Навигация ----
         Repeater {
             model: [
-                { title: "Главная", section: "home", glyph: "note" },
-                { title: "Поиск", section: "search", glyph: "search" },
-                { title: "Моя волна", section: "wave", glyph: "wave" },
-                { title: "Новые релизы", section: "releases", glyph: "chart" },
-                { title: "Жанры", section: "genres", glyph: "genre" },
-                { title: "Станции", section: "stations", glyph: "station" },
-                { title: "Подкасты", section: "podcasts", glyph: "podcast" },
-                { title: "Плейлисты", section: "playlists", glyph: "playlist" },
-                { title: "Спорт", section: "sport", glyph: "sport" },
-                { title: "Мне нравится", section: "liked", glyph: "heartFilled" },
-                { title: "Статистика", section: "stats", glyph: "stats" },
-                { title: "Настройки", section: "settings", glyph: "settings" }
+                { title: qsTr("Главная"), section: "home", glyph: "note" },
+                { title: qsTr("Поиск"), section: "search", glyph: "search" },
+                { title: qsTr("Моя волна"), section: "wave", glyph: "wave" },
+                { title: qsTr("Новые релизы"), section: "releases", glyph: "chart" },
+                { title: qsTr("Жанры"), section: "genres", glyph: "genre" },
+                { title: qsTr("Станции"), section: "stations", glyph: "station" },
+                { title: qsTr("Подкасты"), section: "podcasts", glyph: "podcast" },
+                { title: qsTr("Плейлисты"), section: "playlists", glyph: "playlist" },
+                { title: qsTr("Спорт"), section: "sport", glyph: "sport" },
+                { title: qsTr("Мне нравится"), section: "liked", glyph: "heartFilled" },
+                { title: qsTr("Статистика"), section: "stats", glyph: "stats" },
+                { title: qsTr("Настройки"), section: "settings", glyph: "settings" }
             ]
 
             delegate: Item {

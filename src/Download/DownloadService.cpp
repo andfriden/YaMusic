@@ -1,4 +1,5 @@
 #include "DownloadService.h"
+#include <QCoreApplication>
 
 #include "TagWriter.h"
 
@@ -179,7 +180,7 @@ void DownloadService::onDownloadUrl(
     const QString &url,
     const QString &codec) {
   if (url.trimmed().isEmpty()) {
-    emit statusChanged("Не удалось получить ссылку на скачивание");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Не удалось получить ссылку на скачивание"));
     return;
   }
 
@@ -236,7 +237,7 @@ void DownloadService::downloadAudio(
         if (reply->error() !=
             QNetworkReply::NoError) {
           finishWithError(
-              "Ошибка скачивания: " + reply->errorString());
+              QCoreApplication::translate("YaMusic", "Ошибка скачивания: ") + reply->errorString());
           reply->deleteLater();
           return;
         }
@@ -245,7 +246,7 @@ void DownloadService::downloadAudio(
             reply->readAll();
 
         if (data.isEmpty()) {
-          finishWithError("Получен пустой аудиофайл");
+          finishWithError(QCoreApplication::translate("YaMusic", "Получен пустой аудиофайл"));
           reply->deleteLater();
           return;
         }
@@ -345,7 +346,7 @@ void DownloadService::writeTags(
       extensionForCodec(m_pendingCodec));
 
   if (!tmpFile.open()) {
-    finishWithError("Не удалось создать временный файл");
+    finishWithError(QCoreApplication::translate("YaMusic", "Не удалось создать временный файл"));
     return;
   }
 
@@ -378,7 +379,7 @@ void DownloadService::writeTags(
 
   if (!ok) {
     QFile::remove(tmpPath);
-    finishWithError("Не удалось записать метаданные");
+    finishWithError(QCoreApplication::translate("YaMusic", "Не удалось записать метаданные"));
     return;
   }
 
@@ -387,7 +388,7 @@ void DownloadService::writeTags(
 
   if (!QFile::rename(tmpPath, destPath)) {
     QFile::remove(tmpPath);
-    finishWithError("Не удалось сохранить файл");
+    finishWithError(QCoreApplication::translate("YaMusic", "Не удалось сохранить файл"));
     return;
   }
 
@@ -397,7 +398,7 @@ void DownloadService::writeTags(
   setState(Done);
 
   emit statusChanged(
-      QStringLiteral("Трек сохранён: %1").arg(destPath));
+      QCoreApplication::translate("YaMusic", "Трек сохранён: %1").arg(destPath));
 }
 
 QString DownloadService::buildDestinationPath(

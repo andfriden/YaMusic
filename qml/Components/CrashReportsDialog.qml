@@ -63,7 +63,7 @@ Popup {
         Label {
             Layout.fillWidth: true
 
-            text: "Отчёты о падениях"
+            text: qsTr("Отчёты о падениях")
             color: AppTheme.textPrimary
             font.pixelSize: 18
             font.bold: true
@@ -166,7 +166,7 @@ Popup {
 
                 visible: root.titles.length === 0
 
-                text: "Отчётов нет — приложение ещё не падало"
+                text: qsTr("Отчётов нет — приложение ещё не падало")
                 color: AppTheme.textMuted
                 font.pixelSize: 13
                 wrapMode: Text.WordWrap
@@ -216,7 +216,7 @@ Popup {
             spacing: 8
 
             Button {
-                text: "Скопировать"
+                text: qsTr("Скопировать")
 
                 enabled: root.titles.length > 0
 
@@ -228,7 +228,7 @@ Popup {
             }
 
             Button {
-                text: "Отправить в трекер"
+                text: qsTr("Отправить в трекер")
                 enabled: root.titles.length > 0
 
                 onClicked: {
@@ -239,7 +239,7 @@ Popup {
             }
 
             Button {
-                text: "Открыть папку"
+                text: qsTr("Открыть папку")
 
                 onClicked: {
                     if (root.available) {
@@ -251,7 +251,7 @@ Popup {
             Item { Layout.fillWidth: true }
 
             Button {
-                text: "Удалить"
+                text: qsTr("Удалить")
                 enabled: root.titles.length > 0
 
                 onClicked: {
@@ -262,7 +262,7 @@ Popup {
             }
 
             Button {
-                text: "Очистить всё"
+                text: qsTr("Очистить всё")
                 enabled: root.titles.length > 0
 
                 onClicked: {
@@ -273,7 +273,7 @@ Popup {
             }
 
             Button {
-                text: "Закрыть"
+                text: qsTr("Закрыть")
 
                 onClicked: root.close()
             }

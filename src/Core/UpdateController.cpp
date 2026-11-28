@@ -44,7 +44,7 @@ UpdateController::UpdateController(QObject *parent)
           &UpdateController::handleCheckFailed);
   connect(m_installer, &Update::UpdateInstaller::finished, this, [this](const QString &version) {
     m_readyToRestart = true;
-    setStatus(QStringLiteral("Версия %1 установится после выхода из приложения").arg(version));
+    setStatus(QCoreApplication::translate("YaMusic", "Версия %1 установится после выхода из приложения").arg(version));
     emit stateChanged();
   });
 }
@@ -127,13 +127,13 @@ void UpdateController::checkForUpdates() {
   if (m_checker->isChecking()) return;
 
   m_manualCheck = true;
-  setStatus(QStringLiteral("Проверка обновлений..."));
+  setStatus(QCoreApplication::translate("YaMusic", "Проверка обновлений..."));
   m_checker->check();
 }
 
 void UpdateController::downloadAndInstall() {
   if (!m_release.isValid()) {
-    setStatus(QStringLiteral("Сначала нужно проверить обновления"));
+    setStatus(QCoreApplication::translate("YaMusic", "Сначала нужно проверить обновления"));
     return;
   }
 
@@ -147,7 +147,7 @@ void UpdateController::downloadAndInstall() {
 
   if (asset.name.isEmpty()) {
     setStatus(
-        QStringLiteral("В релизе нет сборки для этого компьютера — открываю страницу релиза"));
+        QCoreApplication::translate("YaMusic", "В релизе нет сборки для этого компьютера — открываю страницу релиза"));
     openReleasePage();
     return;
   }
@@ -159,7 +159,7 @@ void UpdateController::downloadAndInstall() {
 
 void UpdateController::openReleasePage() {
   if (!m_release.pageUrl.isValid()) {
-    setStatus(QStringLiteral("Страница релиза недоступна"));
+    setStatus(QCoreApplication::translate("YaMusic", "Страница релиза недоступна"));
     return;
   }
 
@@ -171,7 +171,7 @@ void UpdateController::skipVersion() {
 
   persistSkippedVersion(m_release.version);
   m_updateAvailable = false;
-  setStatus(QStringLiteral("Версия %1 больше не предлагается").arg(m_release.version));
+  setStatus(QCoreApplication::translate("YaMusic", "Версия %1 больше не предлагается").arg(m_release.version));
   emit stateChanged();
 }
 
@@ -194,9 +194,9 @@ void UpdateController::handleUpdateAvailable(const Update::ReleaseInfo &release)
   m_updateAvailable = !skipped;
 
   if (skipped) {
-    setStatus(QStringLiteral("Есть версия %1, но она пропущена").arg(release.version));
+    setStatus(QCoreApplication::translate("YaMusic", "Есть версия %1, но она пропущена").arg(release.version));
   } else {
-    setStatus(QStringLiteral("Доступна версия %1").arg(release.version));
+    setStatus(QCoreApplication::translate("YaMusic", "Доступна версия %1").arg(release.version));
   }
 
   emit stateChanged();
@@ -207,7 +207,7 @@ void UpdateController::handleUpToDate() {
   m_updateAvailable = false;
 
   if (m_manualCheck) {
-    setStatus(QStringLiteral("Установлена последняя версия (%1)").arg(m_checker->currentVersion()));
+    setStatus(QCoreApplication::translate("YaMusic", "Установлена последняя версия (%1)").arg(m_checker->currentVersion()));
   } else {
     setStatus({});
   }
@@ -219,7 +219,7 @@ void UpdateController::handleCheckFailed(const QString &message) {
   // Тихая проверка не должна показывать ошибку: о неудаче узнаём молча,
   // следующая проверка пройдёт при запуске.
   if (m_manualCheck) {
-    setStatus(QStringLiteral("Не удалось проверить обновления: %1").arg(message));
+    setStatus(QCoreApplication::translate("YaMusic", "Не удалось проверить обновления: %1").arg(message));
   } else {
     setStatus({});
   }

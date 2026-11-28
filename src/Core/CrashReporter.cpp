@@ -1,4 +1,5 @@
 #include "CrashReporter.h"
+#include <QCoreApplication>
 
 #include "../Crash/CrashHandler.h"
 
@@ -76,7 +77,7 @@ QStringList CrashReporter::reportTitles() const {
     const QString when = QFileInfo(path).lastModified().toString(QStringLiteral("dd.MM HH:mm"));
 
     titles.append(QStringLiteral("%1 · %2 · %3")
-                      .arg(when, header.reason.isEmpty() ? QStringLiteral("отчёт") : header.reason,
+                      .arg(when, header.reason.isEmpty() ? QCoreApplication::translate("YaMusic", "отчёт") : header.reason,
                            header.version));
   }
 
@@ -119,7 +120,7 @@ QString CrashReporter::startupSummary() const {
 
   const Crash::Header header = Crash::parseHeader(Crash::readReport(unseen.first()));
 
-  return QStringLiteral("Прошлый запуск завершился падением: %1, %2")
+  return QCoreApplication::translate("YaMusic", "Прошлый запуск завершился падением: %1, %2")
       .arg(header.reason, header.timestamp);
 }
 
@@ -135,12 +136,12 @@ void CrashReporter::copySelected() {
   const QString text = selectedText();
 
   if (text.isEmpty()) {
-    setStatus(QStringLiteral("Отчёт не читается"));
+    setStatus(QCoreApplication::translate("YaMusic", "Отчёт не читается"));
     return;
   }
 
   QGuiApplication::clipboard()->setText(text);
-  setStatus(QStringLiteral("Отчёт скопирован в буфер обмена"));
+  setStatus(QCoreApplication::translate("YaMusic", "Отчёт скопирован в буфер обмена"));
 }
 
 void CrashReporter::openReportsFolder() {
@@ -149,14 +150,14 @@ void CrashReporter::openReportsFolder() {
   QDir().mkpath(path);
 
   if (!QDesktopServices::openUrl(QUrl::fromLocalFile(path)))
-    setStatus(QStringLiteral("Не удалось открыть папку: %1").arg(path));
+    setStatus(QCoreApplication::translate("YaMusic", "Не удалось открыть папку: %1").arg(path));
 }
 
 void CrashReporter::sendSelectedToTracker() {
   const QString text = selectedText();
 
   if (text.isEmpty()) {
-    setStatus(QStringLiteral("Отчёт не читается"));
+    setStatus(QCoreApplication::translate("YaMusic", "Отчёт не читается"));
     return;
   }
 
@@ -166,11 +167,11 @@ void CrashReporter::sendSelectedToTracker() {
 
   if (!QDesktopServices::openUrl(
           QUrl(CrashReporterDetail::issueUrl(issueTitle(), issueBody())))) {
-    setStatus(QStringLiteral("Не удалось открыть трекер проекта"));
+    setStatus(QCoreApplication::translate("YaMusic", "Не удалось открыть трекер проекта"));
     return;
   }
 
-  setStatus(QStringLiteral("Полный отчёт скопирован — вставьте его в описание issue"));
+  setStatus(QCoreApplication::translate("YaMusic", "Полный отчёт скопирован — вставьте его в описание issue"));
 }
 
 void CrashReporter::removeSelected() {
@@ -178,12 +179,12 @@ void CrashReporter::removeSelected() {
     return;
 
   if (!QFile::remove(m_reports.at(m_selectedIndex))) {
-    setStatus(QStringLiteral("Не удалось удалить отчёт"));
+    setStatus(QCoreApplication::translate("YaMusic", "Не удалось удалить отчёт"));
     return;
   }
 
   refresh();
-  setStatus(QStringLiteral("Отчёт удалён"));
+  setStatus(QCoreApplication::translate("YaMusic", "Отчёт удалён"));
 }
 
 void CrashReporter::clearReports() {
@@ -197,7 +198,7 @@ void CrashReporter::clearReports() {
   m_selectedIndex = -1;
 
   refresh();
-  setStatus(QStringLiteral("Удалено отчётов: %1").arg(removed));
+  setStatus(QCoreApplication::translate("YaMusic", "Удалено отчётов: %1").arg(removed));
 }
 
 void CrashReporter::acknowledgeReports() {
@@ -244,8 +245,8 @@ void CrashReporter::markSeen() {
 QString CrashReporter::issueTitle() const {
   const Crash::Header header = Crash::parseHeader(selectedText());
 
-  return QStringLiteral("Падение: %1 (версия %2)")
-      .arg(header.reason.isEmpty() ? QStringLiteral("неизвестная причина") : header.reason,
+  return QCoreApplication::translate("YaMusic", "Падение: %1 (версия %2)")
+      .arg(header.reason.isEmpty() ? QCoreApplication::translate("YaMusic", "неизвестная причина") : header.reason,
            header.version);
 }
 
@@ -255,6 +256,6 @@ QString CrashReporter::issueBody() const {
   if (text.size() <= CrashReporterDetail::kMaxUrlBodyChars)
     return text;
 
-  return QStringLiteral("%1\n\n(отчёт обрезан — полный текст в буфере обмена)")
+  return QCoreApplication::translate("YaMusic", "%1\n\n(отчёт обрезан — полный текст в буфере обмена)")
       .arg(text.left(CrashReporterDetail::kMaxUrlBodyChars));
 }

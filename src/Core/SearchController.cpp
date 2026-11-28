@@ -1,4 +1,5 @@
 #include "SearchController.h"
+#include <QCoreApplication>
 #include "../Playback/PlaybackController.h"
 #include "../Queue/QueueService.h"
 #include "../Yandex/Catalog/SearchService.h"
@@ -26,7 +27,7 @@ SearchController::SearchController(SearchService *searchService,
 
     m_searching = true;
     emit searchingChanged();
-    emit statusChanged("Поиск...");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Поиск..."));
   });
 
   connect(
@@ -49,7 +50,7 @@ SearchController::SearchController(SearchService *searchService,
                 best.compare(m_currentQuery, Qt::CaseInsensitive) != 0) {
               m_correction = best;
               emit correctionChanged();
-              emit statusChanged(QStringLiteral("Показаны результаты для «%1»").arg(best));
+              emit statusChanged(QCoreApplication::translate("YaMusic", "Показаны результаты для «%1»").arg(best));
               runSearch(best, false, false);
               return;
             }
@@ -83,7 +84,7 @@ SearchController::SearchController(SearchService *searchService,
           emit canLoadMoreSearchChanged();
         }
 
-        emit statusChanged(QStringLiteral("Найдено результатов: %1").arg(results.total));
+        emit statusChanged(QCoreApplication::translate("YaMusic", "Найдено результатов: %1").arg(results.total));
       });
 
   connect(m_searchService, &SearchService::suggestionsReceived, this,
@@ -102,7 +103,7 @@ SearchController::SearchController(SearchService *searchService,
                 m_bestSuggestion.compare(m_currentQuery, Qt::CaseInsensitive) != 0) {
               m_correction = m_bestSuggestion;
               emit correctionChanged();
-              emit statusChanged(QStringLiteral("Показаны результаты для «%1»").arg(m_correction));
+              emit statusChanged(QCoreApplication::translate("YaMusic", "Показаны результаты для «%1»").arg(m_correction));
               runSearch(m_correction, false, false);
             }
           });
@@ -170,7 +171,7 @@ void SearchController::search(const QString &query) {
       emit searchingChanged();
     }
 
-    emit statusChanged("Введите запрос");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Введите запрос"));
     return;
   }
 
@@ -286,7 +287,7 @@ void SearchController::selectResult(int index) {
   const Track track = m_model->trackAt(index);
 
   if (track.id.isEmpty()) {
-    emit statusChanged("Некорректный результат поиска");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный результат поиска"));
     return;
   }
 
@@ -301,11 +302,11 @@ void SearchController::selectResult(int index) {
   }
 
   if (tracks.isEmpty()) {
-    emit statusChanged("Поиск не содержит треков");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Поиск не содержит треков"));
     return;
   }
 
-  m_playbackController->playFromSource(tracks, index, "Поиск", "search");
+  m_playbackController->playFromSource(tracks, index, QCoreApplication::translate("YaMusic", "Поиск"), "search");
 }
 
 void SearchController::selectArtistResult(int index) {

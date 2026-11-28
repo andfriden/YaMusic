@@ -1,4 +1,5 @@
 #include "SearchService.h"
+#include <QCoreApplication>
 #include "../Auth/YandexAuth.h"
 #include "../YandexClient.h"
 
@@ -17,13 +18,13 @@ SearchService::SearchService(YandexAuth *auth, QObject *parent) : YandexServiceB
 
 void SearchService::search(const QString &query, int page) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString trimmedQuery = query.trimmed();
   if (trimmedQuery.isEmpty()) {
-    emit errorOccurred("Поисковый запрос пуст");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Поисковый запрос пуст"));
     return;
   }
 

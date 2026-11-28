@@ -1,4 +1,5 @@
 #include "../Playback/PlaybackController.h"
+#include <QCoreApplication>
 #include "../Player/PlayerService.h"
 #include "../Queue/QueueService.h"
 #include "../Yandex/Personal/YandexPersonal.h"
@@ -48,7 +49,7 @@ void PersonalController::loadMyWave() {
   queue->clear();
   queue->clearSource();
 
-  emit statusChanged("Загрузка моей волны...");
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Загрузка моей волны..."));
   m_yandexPersonal->loadMyWave();
 }
 
@@ -60,14 +61,14 @@ void PersonalController::loadMoreMyWave() {
   const Track lastTrack = m_myWaveModel->lastTrack();
 
   if (lastTrack.id.isEmpty()) {
-    emit statusChanged("Нет трека для продолжения My Wave");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Нет трека для продолжения My Wave"));
     return;
   }
 
   m_loadingMoreMyWave = true;
   emit loadingMoreMyWaveChanged();
   m_waitingForMoreMyWave = true;
-  emit statusChanged("Загрузка следующей части моей волны...");
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Загрузка следующей части моей волны..."));
   m_yandexPersonal->loadMoreMyWave(lastTrack.id);
 }
 
@@ -82,8 +83,8 @@ void PersonalController::handleMyWaveReceived(const QList<Track> &tracks, const 
     emit loadingMyWaveChanged();
     emit loadingMoreMyWaveChanged();
 
-    emit statusChanged(wasLoadingMore ? "Моя волна вернула пустую следующую партию"
-                                      : "Моя волна вернула пустую партию");
+    emit statusChanged(wasLoadingMore ? QCoreApplication::translate("YaMusic", "Моя волна вернула пустую следующую партию")
+                                      : QCoreApplication::translate("YaMusic", "Моя волна вернула пустую партию"));
     return;
   }
 
@@ -120,12 +121,12 @@ void PersonalController::handleMyWaveReceived(const QList<Track> &tracks, const 
     m_myWaveModel->setTracks(tracks);
     queue->clear();
     queue->addTracks(tracks);
-    queue->setSource("Моя волна", "myWave");
+    queue->setSource(QCoreApplication::translate("YaMusic", "Моя волна"), "myWave");
 
-    emit statusChanged(QStringLiteral("Моя волна: %1 треков").arg(m_myWaveModel->count()));
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Моя волна: %1 треков").arg(m_myWaveModel->count()));
 
     if (!queue->setCurrentIndex(0)) {
-      emit statusChanged("Не удалось заменить очередь моей волны");
+      emit statusChanged(QCoreApplication::translate("YaMusic", "Не удалось заменить очередь моей волны"));
       return;
     }
 
@@ -148,11 +149,11 @@ void PersonalController::handleMyWaveReceived(const QList<Track> &tracks, const 
     QueueService *queue = m_playbackController->queueService();
     queue->clear();
     queue->addTracks(tracks);
-    queue->setSource("Моя волна", "myWave");
+    queue->setSource(QCoreApplication::translate("YaMusic", "Моя волна"), "myWave");
 
     m_myWaveQueueActive = true;
     m_waitingForMoreMyWave = false;
-    emit statusChanged(QStringLiteral("Моя волна: %1 треков").arg(m_myWaveModel->count()));
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Моя волна: %1 треков").arg(m_myWaveModel->count()));
     return;
   }
 
@@ -174,7 +175,7 @@ void PersonalController::handleMyWaveReceived(const QList<Track> &tracks, const 
   m_myWaveModel->appendTracks(batch);
   appendMyWaveTracksToQueue(batch);
   const int appended = m_myWaveModel->count() - oldCount;
-  emit statusChanged(QStringLiteral("Моя волна: %1 треков").arg(m_myWaveModel->count()));
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Моя волна: %1 треков").arg(m_myWaveModel->count()));
 
   if (!m_waitingForMoreMyWave) {
     return;
@@ -183,7 +184,7 @@ void PersonalController::handleMyWaveReceived(const QList<Track> &tracks, const 
   m_waitingForMoreMyWave = false;
 
   QueueService *queue = m_playbackController->queueService();
-  queue->setSource("Моя волна", "myWave");
+  queue->setSource(QCoreApplication::translate("YaMusic", "Моя волна"), "myWave");
 
   if (!queue->hasNext()) {
     return;
@@ -206,7 +207,7 @@ void PersonalController::selectMyWaveTrack(int index) {
   const Track track = m_myWaveModel->trackAt(index);
 
   if (track.id.isEmpty()) {
-    emit statusChanged("Некорректный трек моей волны");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный трек моей волны"));
     return;
   }
 
@@ -222,7 +223,7 @@ void PersonalController::selectMyWaveTrack(int index) {
 
   markMyWaveTrackPlayed(track.id);
   emit myWaveTrackSelected(track);
-  emit statusChanged(QStringLiteral("Выбран трек: %1").arg(track.title));
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Выбран трек: %1").arg(track.title));
   m_playbackController->playTrack(track);
 }
 
@@ -232,21 +233,21 @@ void PersonalController::startMyWaveQueue(int index) {
   const QList<Track> tracks = m_myWaveModel->tracks();
 
   if (tracks.isEmpty()) {
-    emit statusChanged("Моя волна пока пуста");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Моя волна пока пуста"));
     return;
   }
 
   if (index < 0 || index >= tracks.size()) {
-    emit statusChanged("Некорректный индекс трека My Wave");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный индекс трека My Wave"));
     return;
   }
 
   queue->clear();
   queue->addTracks(tracks);
-  queue->setSource("Моя волна", "myWave");
+  queue->setSource(QCoreApplication::translate("YaMusic", "Моя волна"), "myWave");
 
   if (!queue->setCurrentIndex(index)) {
-    emit statusChanged("Не удалось выбрать трек My Wave");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Не удалось выбрать трек My Wave"));
     return;
   }
 
@@ -278,7 +279,7 @@ void PersonalController::appendMyWaveTracksToQueue(const QList<Track> &tracks) {
     queue->addTrack(track);
   }
 
-  queue->setSource("Моя волна", "myWave");
+  queue->setSource(QCoreApplication::translate("YaMusic", "Моя волна"), "myWave");
 }
 
 void PersonalController::handleMyWavePlaybackFinished() {
@@ -383,7 +384,7 @@ void PersonalController::replaceMyWaveQueue(const QString &fromTrackId) {
 
   m_replaceMyWaveQueue = true;
   m_waitingForMoreMyWave = true;
-  emit statusChanged("Моя волна: обновление очереди...");
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Моя волна: обновление очереди..."));
   m_yandexPersonal->loadMoreMyWave(id);
 }
 

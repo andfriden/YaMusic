@@ -1,4 +1,5 @@
 #include "ArtistController.h"
+#include <QCoreApplication>
 #include "../Playback/PlaybackController.h"
 #include "../Queue/QueueService.h"
 #include "../Yandex/Catalog/AlbumService.h"
@@ -60,13 +61,13 @@ ArtistController::ArtistController(ArtistService *artistService, AlbumService *a
 
             emit loadingChanged();
             emit artistChanged();
-            emit statusChanged(QStringLiteral("Исполнитель загружен: %1").arg(artist.name));
+            emit statusChanged(QCoreApplication::translate("YaMusic", "Исполнитель загружен: %1").arg(artist.name));
           });
 
   connect(m_artistService, &ArtistService::errorOccurred, this, [this](const QString &message) {
     m_loading = false;
     emit loadingChanged();
-    emit statusChanged(QStringLiteral("Ошибка загрузки исполнителя: %1").arg(message));
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Ошибка загрузки исполнителя: %1").arg(message));
   });
 
   connect(m_artistService, &ArtistService::artistAlbumsReceived, this,
@@ -140,7 +141,7 @@ void ArtistController::loadArtist(const QString &id) {
   const QString artistId = id.trimmed();
 
   if (artistId.isEmpty()) {
-    emit statusChanged("ID исполнителя не указан");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "ID исполнителя не указан"));
     return;
   }
 
@@ -163,7 +164,7 @@ void ArtistController::loadArtist(const QString &id) {
   m_similarArtistsModel->clear();
   emit artistChanged();
   emit albumFilterChanged();
-  emit statusChanged(QStringLiteral("Загрузка исполнителя: %1").arg(artistId));
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Загрузка исполнителя: %1").arg(artistId));
   m_artistService->loadArtist(artistId);
   m_artistService->loadArtistAlbums(artistId);
 }
@@ -172,7 +173,7 @@ void ArtistController::selectTrack(int index) {
   const Track track = m_artistModel->trackAt(index);
 
   if (track.id.isEmpty()) {
-    emit statusChanged("Некорректный трек исполнителя");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный трек исполнителя"));
     return;
   }
 
@@ -184,7 +185,7 @@ void ArtistController::selectSimilarArtist(int index) {
   const Artist artist = m_similarArtistsModel->artistAt(index);
 
   if (artist.id.isEmpty()) {
-    emit statusChanged("Некорректный похожий исполнитель");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный похожий исполнитель"));
     return;
   }
 
@@ -200,7 +201,7 @@ void ArtistController::continueFromAlbumRadio(const QString &artistId, const QSt
   const QString id = artistId.trimmed();
 
   if (id.isEmpty()) {
-    emit statusChanged("Нет исполнителя для продолжения альбома");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Нет исполнителя для продолжения альбома"));
     return;
   }
 
@@ -228,7 +229,7 @@ void ArtistController::continueFromAlbumRadio(const QString &artistId, const QSt
 
 void ArtistController::startArtistRadio() {
   if (m_artistId.isEmpty()) {
-    emit statusChanged("Нет исполнителя для радио");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Нет исполнителя для радио"));
     return;
   }
 
@@ -268,7 +269,7 @@ void ArtistController::beginRadioArtist(const QString &artistId, const QString &
   m_pendingAlbumIds.clear();
   m_radioVisitedArtists.insert(id);
   emit radioLoadingChanged();
-  emit statusChanged(QStringLiteral("Радио исполнителя: %1").arg(artistName));
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Радио исполнителя: %1").arg(artistName));
 
   // Для похожих исполнителей цепочки берём их список похожих, чтобы продолжать по ним.
   m_artistService->loadSimilarArtists(id);
@@ -345,7 +346,7 @@ void ArtistController::tryAdvanceRadio() {
       return;
     }
     m_playbackController->playTrack(first);
-    emit statusChanged(QStringLiteral("Радио исполнителя: %1").arg(m_radioCurrentArtistName));
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Радио исполнителя: %1").arg(m_radioCurrentArtistName));
     return;
   }
 
@@ -453,7 +454,7 @@ void ArtistController::endRadioArtist() {
   m_radioWaitingForSimilar = false;
   m_pendingAlbumIds.clear();
   emit radioLoadingChanged();
-  emit statusChanged("Радио исполнителя завершено");
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Радио исполнителя завершено"));
 }
 
 bool ArtistController::radioLoading() const {

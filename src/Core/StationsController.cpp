@@ -1,4 +1,5 @@
 #include "StationsController.h"
+#include <QCoreApplication>
 #include "../Playback/PlaybackController.h"
 #include "../Player/PlayerService.h"
 #include "../Queue/QueueService.h"
@@ -92,25 +93,25 @@ bool StationsController::isStationSource() const {
 
 QString StationsController::labelForType(const QString &type) {
   const QString t = type.trimmed();
-  if (t == "user") return "Мои станции";
-  if (t == "genre") return "Жанры";
-  if (t == "editorial") return "Подборки";
-  if (t == "personal") return "Персональное";
-  if (t == "mood") return "Настроение";
-  if (t == "mix-by-mood") return "Миксы по настроению";
-  if (t == "activity") return "Активность";
-  if (t == "mix-by-activity") return "Миксы по активности";
-  if (t == "epoch") return "Эпохи";
-  if (t == "decade") return "Десятилетия";
-  if (t == "language") return "Язык";
-  if (t == "local-language") return "Языки";
-  if (t == "tempo") return "Темп";
-  if (t == "mix-by-tempo") return "Миксы по темпу";
-  if (t == "mix-by-genre") return "Миксы по жанрам";
-  if (t == "mix-by-micro-genre") return "Миксы по микрожанрам";
-  if (t == "micro-genre") return "Микрожанры";
-  if (t == "author") return "Авторы";
-  if (t == "diversity") return "Разнообразие";
+  if (t == "user") return QCoreApplication::translate("YaMusic", "Мои станции");
+  if (t == "genre") return QCoreApplication::translate("YaMusic", "Жанры");
+  if (t == "editorial") return QCoreApplication::translate("YaMusic", "Подборки");
+  if (t == "personal") return QCoreApplication::translate("YaMusic", "Персональное");
+  if (t == "mood") return QCoreApplication::translate("YaMusic", "Настроение");
+  if (t == "mix-by-mood") return QCoreApplication::translate("YaMusic", "Миксы по настроению");
+  if (t == "activity") return QCoreApplication::translate("YaMusic", "Активность");
+  if (t == "mix-by-activity") return QCoreApplication::translate("YaMusic", "Миксы по активности");
+  if (t == "epoch") return QCoreApplication::translate("YaMusic", "Эпохи");
+  if (t == "decade") return QCoreApplication::translate("YaMusic", "Десятилетия");
+  if (t == "language") return QCoreApplication::translate("YaMusic", "Язык");
+  if (t == "local-language") return QCoreApplication::translate("YaMusic", "Языки");
+  if (t == "tempo") return QCoreApplication::translate("YaMusic", "Темп");
+  if (t == "mix-by-tempo") return QCoreApplication::translate("YaMusic", "Миксы по темпу");
+  if (t == "mix-by-genre") return QCoreApplication::translate("YaMusic", "Миксы по жанрам");
+  if (t == "mix-by-micro-genre") return QCoreApplication::translate("YaMusic", "Миксы по микрожанрам");
+  if (t == "micro-genre") return QCoreApplication::translate("YaMusic", "Микрожанры");
+  if (t == "author") return QCoreApplication::translate("YaMusic", "Авторы");
+  if (t == "diversity") return QCoreApplication::translate("YaMusic", "Разнообразие");
   return t;
 }
 
@@ -183,7 +184,7 @@ void StationsController::rebuildGroups(const QList<Station> &stations) {
 
   m_groups = groups;
   emit groupsChanged();
-  emit statusChanged(QStringLiteral("Станции: %1").arg(stations.size()));
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Станции: %1").arg(stations.size()));
 }
 
 void StationsController::loadStations() {
@@ -193,7 +194,7 @@ void StationsController::loadStations() {
 
   m_loading = true;
   emit loadingChanged();
-  emit statusChanged("Загрузка станций...");
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Загрузка станций..."));
   m_stationService->loadStations();
 }
 
@@ -212,7 +213,7 @@ void StationsController::selectStation(const QString &type, const QString &tag,
   m_trackWave = false;
   m_trackWaveSeedId.clear();
   emit stationLoadingChanged();
-  emit statusChanged(QStringLiteral("Запуск станции: %1").arg(title));
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Запуск станции: %1").arg(title));
   m_stationService->startStationSession(stationType, stationTag);
 }
 
@@ -220,7 +221,7 @@ void StationsController::startTrackWave(const QString &trackId, const QString &t
   const QString id = trackId.trimmed();
 
   if (id.isEmpty()) {
-    emit statusChanged("Некорректный трек для волны");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный трек для волны"));
     return;
   }
 
@@ -230,16 +231,16 @@ void StationsController::startTrackWave(const QString &trackId, const QString &t
   m_trackWaveSeedId = id;
   m_stationTitle = title.trimmed();
   emit stationLoadingChanged();
-  emit statusChanged(QStringLiteral("Запуск волны по треку: %1").arg(m_stationTitle));
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Запуск волны по треку: %1").arg(m_stationTitle));
   m_stationService->startTrackWaveSession(id);
 }
 
 QString StationsController::sourceLabel() const {
   if (m_trackWave) {
-    return QStringLiteral("Волна по «%1»").arg(m_stationTitle);
+    return QCoreApplication::translate("YaMusic", "Волна по «%1»").arg(m_stationTitle);
   }
 
-  return QStringLiteral("Станция: %1").arg(m_stationTitle);
+  return QCoreApplication::translate("YaMusic", "Станция: %1").arg(m_stationTitle);
 }
 
 void StationsController::appendTrackBatch(const QList<Track> &tracks) {
@@ -293,8 +294,8 @@ void StationsController::tryAdvanceStation() {
     }
     m_playbackController->playTrack(first);
     emit statusChanged(m_trackWave
-                           ? QStringLiteral("Играет волна по «%1»").arg(m_stationTitle)
-                           : QStringLiteral("Играет станция: %1").arg(m_stationTitle));
+                           ? QCoreApplication::translate("YaMusic", "Играет волна по «%1»").arg(m_stationTitle)
+                           : QCoreApplication::translate("YaMusic", "Играет станция: %1").arg(m_stationTitle));
     return;
   }
 
@@ -328,14 +329,14 @@ void StationsController::handleStationPlaylistExhausted() {
 
   if (m_queueTokens.isEmpty()) {
     m_stationActive = false;
-    emit statusChanged("Станция не дала треков");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Станция не дала треков"));
     return;
   }
 
   m_stationNeedsResume = true;
   m_stationLoading = true;
   emit stationLoadingChanged();
-  emit statusChanged("Загрузка следующих треков станции...");
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Загрузка следующих треков станции..."));
   m_stationService->loadMoreStationSession(m_queueTokens);
 }
 
@@ -395,7 +396,7 @@ void StationsController::selectStationTrack(int index) {
   const QList<Track> tracks = m_tracksModel->tracks();
 
   if (index < 0 || index >= tracks.size()) {
-    emit statusChanged("Некорректный индекс трека станции");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный индекс трека станции"));
     return;
   }
 
@@ -409,7 +410,7 @@ void StationsController::selectStationTrack(int index) {
   // трек в существующей очереди станции, не сбрасывая её —
   // тогда «далее» идёт по трекам станции, а не мимо.
   if (!queue->setCurrentIndex(index)) {
-    emit statusChanged("Не удалось выбрать трек станции");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Не удалось выбрать трек станции"));
     return;
   }
 
@@ -418,7 +419,7 @@ void StationsController::selectStationTrack(int index) {
   m_stationTrackStarted = false;
   m_stationNeedsResume = false;
 
-  emit statusChanged(m_trackWave ? QStringLiteral("Выбран трек волны: %1").arg(track.title)
-                                 : QStringLiteral("Выбран трек станции: %1").arg(track.title));
+  emit statusChanged(m_trackWave ? QCoreApplication::translate("YaMusic", "Выбран трек волны: %1").arg(track.title)
+                                 : QCoreApplication::translate("YaMusic", "Выбран трек станции: %1").arg(track.title));
   m_playbackController->playTrack(track);
 }

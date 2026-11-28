@@ -1,4 +1,5 @@
 #include "YandexPersonal.h"
+#include <QCoreApplication>
 #include "../../Core/WaveSettingsController.h"
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
@@ -22,7 +23,7 @@ void YandexPersonal::loadMyWave() {
 void YandexPersonal::loadMoreMyWave(const QString &queueTrackId) {
   const QString trackId = queueTrackId.trimmed();
   if (trackId.isEmpty()) {
-    emit errorOccurred("Идентификатор последнего трека для продолжения Wave не задан");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Идентификатор последнего трека для продолжения Wave не задан"));
     return;
   }
 
@@ -32,7 +33,7 @@ void YandexPersonal::loadMoreMyWave(const QString &queueTrackId) {
 void YandexPersonal::sendMyWaveFeedback(const QString &event, const QString &trackId,
                                          const QString &batchId, qint64 totalPlayedSeconds) {
   if (!m_auth->isAuthenticated()) {
-    emit feedbackError("Токен Яндекс Музыки не установлен");
+    emit feedbackError(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
@@ -41,16 +42,16 @@ void YandexPersonal::sendMyWaveFeedback(const QString &event, const QString &tra
   const QString batch = batchId.trimmed();
   if (type.isEmpty()) return;
   if (id.isEmpty()) {
-    emit feedbackError("Для feedback не указан trackId");
+    emit feedbackError(QCoreApplication::translate("YaMusic", "Для feedback не указан trackId"));
     return;
   }
   if (batch.isEmpty()) {
-    emit feedbackError("Для feedback не указан batchId");
+    emit feedbackError(QCoreApplication::translate("YaMusic", "Для feedback не указан batchId"));
     return;
   }
   if (type != "trackStarted" && type != "trackFinished" && type != "skip" && type != "dislike"
       && type != "undislike") {
-    emit feedbackError("Неподдерживаемый тип feedback");
+    emit feedbackError(QCoreApplication::translate("YaMusic", "Неподдерживаемый тип feedback"));
     return;
   }
 
@@ -71,7 +72,7 @@ void YandexPersonal::sendMyWaveFeedback(const QString &event, const QString &tra
   QNetworkReply *reply = m_yandexClient->post(path, body);
 
   if (reply == nullptr) {
-    emit feedbackError("Не удалось создать запрос feedback");
+    emit feedbackError(QCoreApplication::translate("YaMusic", "Не удалось создать запрос feedback"));
     return;
   }
 
@@ -98,7 +99,7 @@ void YandexPersonal::loadMyWaveInternal(const QString &queueTrackId) {
   if (m_loading) return;
 
   if (!m_auth->isAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
@@ -158,7 +159,7 @@ void YandexPersonal::requestMyWaveTracks(const QString &queueTrackId) {
 
   if (reply == nullptr) {
     m_loading = false;
-    emit errorOccurred("Не удалось создать запрос My Wave");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось создать запрос My Wave"));
     return;
   }
 
@@ -174,15 +175,15 @@ void YandexPersonal::requestMyWaveTracks(const QString &queueTrackId) {
     QJsonParseError parseError;
     const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
     if (parseError.error != QJsonParseError::NoError || !document.isObject())
-      return fail("Некорректный ответ My Wave");
+      return fail(QCoreApplication::translate("YaMusic", "Некорректный ответ My Wave"));
     const QJsonObject result = unwrapResult(document);
-    if (result.isEmpty()) return fail("Ответ My Wave пуст");
+    if (result.isEmpty()) return fail(QCoreApplication::translate("YaMusic", "Ответ My Wave пуст"));
     const QString batchId = result.value("batchId").toString().trimmed();
     const QJsonArray sequence = result.value("sequence").toArray();
     if (sequence.isEmpty()) {
       const QString message = queueTrackId.isEmpty()
-                                  ? "Яндекс Музыка не вернула первую партию My Wave"
-                                  : "Яндекс Музыка не вернула следующую партию My Wave";
+                                  ? QCoreApplication::translate("YaMusic", "Яндекс Музыка не вернула первую партию My Wave")
+                                  : QCoreApplication::translate("YaMusic", "Яндекс Музыка не вернула следующую партию My Wave");
       return fail(message);
     }
 
@@ -198,7 +199,7 @@ void YandexPersonal::requestMyWaveTracks(const QString &queueTrackId) {
       if (!track.id.isEmpty()) tracks.append(track);
     }
 
-    if (tracks.isEmpty()) return fail("В ответе My Wave нет корректных треков");
+    if (tracks.isEmpty()) return fail(QCoreApplication::translate("YaMusic", "В ответе My Wave нет корректных треков"));
     emit myWaveReceived(tracks, batchId);
     reply->deleteLater();
   });

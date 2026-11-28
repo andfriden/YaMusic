@@ -141,7 +141,7 @@ Item {
             spacing: 10
 
             ActionButton {
-                text: "Моя волна"
+                text: qsTr("Моя волна")
                 glyph: "play"
                 emphasized: true
 
@@ -149,28 +149,28 @@ Item {
             }
 
             ActionButton {
-                text: "Новые релизы"
+                text: qsTr("Новые релизы")
                 glyph: "chart"
 
                 onClicked: root.releasesRequested()
             }
 
             ActionButton {
-                text: "Новые плейлисты"
+                text: qsTr("Новые плейлисты")
                 glyph: "playlist"
 
                 onClicked: root.playlistsRequested()
             }
 
             ActionButton {
-                text: "Мне нравится"
+                text: qsTr("Мне нравится")
                 glyph: "heartFilled"
 
                 onClicked: root.likedRequested()
             }
 
             ActionButton {
-                text: "Поиск"
+                text: qsTr("Поиск")
                 glyph: "search"
 
                 onClicked: root.searchRequested()
@@ -181,7 +181,7 @@ Item {
         SectionCardGrid {
             width: content.width
             visible: root.picks.length > 0
-            title: "Новое для тебя"
+            title: qsTr("Новое для тебя")
             model: root.picks
             cardWidth: root.cardWidth
             cardSpacing: root.cardSpacing
@@ -200,7 +200,7 @@ Item {
         SectionCardGrid {
             width: content.width
             visible: root.waves.length > 0
-            title: "Волны по настроению"
+            title: qsTr("Волны по настроению")
             model: root.waves
             cardWidth: root.cardWidth
             cardSpacing: root.cardSpacing

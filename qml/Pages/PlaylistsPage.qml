@@ -31,7 +31,7 @@ Item {
         Label {
             width: parent.width
 
-            text: "Плейлисты"
+            text: qsTr("Плейлисты")
             color: AppTheme.textPrimary
             font.pixelSize: 28
             font.bold: true

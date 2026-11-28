@@ -1,4 +1,5 @@
 #include "RecentListeningService.h"
+#include <QCoreApplication>
 
 #include "../Parsers.h"
 #include "../YandexClient.h"
@@ -26,13 +27,13 @@ void RecentListeningService::load(int trackCount, int contextCount) {
 
   if (m_userId.isEmpty()) {
     emit errorOccurred(
-        QStringLiteral("Пользователь не авторизован"));
+        QCoreApplication::translate("YaMusic", "Пользователь не авторизован"));
     return;
   }
 
     if (!ensureAuthenticated()) {
         emit errorOccurred(
-            QStringLiteral("Пользователь не авторизован"));
+            QCoreApplication::translate("YaMusic", "Пользователь не авторизован"));
         return;
     }
   trackCount = qMax(1, trackCount);
@@ -50,8 +51,7 @@ void RecentListeningService::load(int trackCount, int contextCount) {
     m_loading = false;
     emit loadingChanged(false);
     emit errorOccurred(
-        QStringLiteral(
-            "Не удалось выполнить запрос истории прослушивания"));
+        QCoreApplication::translate("YaMusic", "Не удалось выполнить запрос истории прослушивания"));
     return;
   }
 
@@ -68,8 +68,7 @@ void RecentListeningService::load(int trackCount, int contextCount) {
               m_loading = false;
               emit loadingChanged(false);
               emit errorOccurred(
-                  QStringLiteral(
-                      "Ошибка истории прослушивания: %1")
+                  QCoreApplication::translate("YaMusic", "Ошибка истории прослушивания: %1")
                       .arg(errorString));
               return;
             }

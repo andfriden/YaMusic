@@ -51,7 +51,7 @@ Item {
         Label {
             width: parent.width
 
-            text: "Жанры"
+            text: qsTr("Жанры")
             color: AppTheme.textPrimary
             font.pixelSize: 28
             font.bold: true

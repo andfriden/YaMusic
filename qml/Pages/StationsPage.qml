@@ -44,7 +44,7 @@ Item {
         Label {
             width: parent.width
 
-            text: "Станции"
+            text: qsTr("Станции")
             color: AppTheme.textPrimary
             font.pixelSize: 28
             font.bold: true

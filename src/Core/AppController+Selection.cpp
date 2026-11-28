@@ -1,4 +1,5 @@
 #include "AppController.h"
+#include <QCoreApplication>
 #include "../Yandex/Personal/PlaylistLink.h"
 
 void AppController::selectSearchResult(int index) {
@@ -25,7 +26,7 @@ void AppController::selectPersonalPlaylist(const QString &uid, int kind) {
   const QString playlistUid = uid.trimmed();
 
   if (playlistUid.isEmpty() || kind <= 0) {
-    emit statusChanged("Некорректный плейлист");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный плейлист"));
     return;
   }
 
@@ -46,7 +47,7 @@ bool AppController::openPlaylistUrl(const QString &link) {
   const PlaylistLink parsed = PlaylistLink::parse(link);
 
   if (parsed.type == PlaylistLink::Type::Invalid) {
-    emit statusChanged("Не удалось разобрать ссылку на плейлист");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Не удалось разобрать ссылку на плейлист"));
     return false;
   }
 
@@ -93,7 +94,7 @@ void AppController::selectSimilarTrack(int index) {
   const Track track = m_similarTracksModel->trackAt(index);
 
   if (track.id.isEmpty()) {
-    emit statusChanged("Некорректный трек");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный трек"));
     return;
   }
 
@@ -103,7 +104,7 @@ void AppController::selectSimilarTrack(int index) {
     return;
   }
 
-  m_playbackController->playFromSource(tracks, index, "Похожие треки", "similar");
+  m_playbackController->playFromSource(tracks, index, QCoreApplication::translate("YaMusic", "Похожие треки"), "similar");
 }
 
 void AppController::loadMoreGenreStation() {

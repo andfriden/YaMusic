@@ -82,25 +82,25 @@ QString UpdateInstaller::unsupportedReason() const {
   const QString bundle = bundlePath();
 
   if (!bundle.endsWith(QStringLiteral(".app"))) {
-    return QStringLiteral("Приложение запущено не из установленного бандла .app");
+    return QCoreApplication::translate("YaMusic", "Приложение запущено не из установленного бандла .app");
   }
 
   if (bundle.contains(QStringLiteral("/build")) ||
       bundle.contains(QStringLiteral("/cmake-build")) || bundle.startsWith(QDir::tempPath())) {
-    return QStringLiteral("Приложение запущено из каталога сборки — обновление вручную");
+    return QCoreApplication::translate("YaMusic", "Приложение запущено из каталога сборки — обновление вручную");
   }
 
   if (!QFileInfo(bundle).isDir()) {
-    return QStringLiteral("Бандл приложения не найден");
+    return QCoreApplication::translate("YaMusic", "Бандл приложения не найден");
   }
 
   if (!QFileInfo(QFileInfo(bundle).absolutePath()).isWritable()) {
-    return QStringLiteral("Нет прав на запись рядом с приложением");
+    return QCoreApplication::translate("YaMusic", "Нет прав на запись рядом с приложением");
   }
 
   return {};
 #else
-  return QStringLiteral("Автоматическая установка обновлений поддерживается только на macOS");
+  return QCoreApplication::translate("YaMusic", "Автоматическая установка обновлений поддерживается только на macOS");
 #endif
 }
 
@@ -113,7 +113,7 @@ void UpdateInstaller::start(const ReleaseAsset &asset, const QString &version) {
   m_progress = 0.0;
 
   if (!asset.url.isValid() || asset.name.isEmpty()) {
-    fail(QStringLiteral("В релизе нет файла для этой системы"));
+    fail(QCoreApplication::translate("YaMusic", "В релизе нет файла для этой системы"));
     return;
   }
 
@@ -125,7 +125,7 @@ void UpdateInstaller::start(const ReleaseAsset &asset, const QString &version) {
   QString tempPath = updateTempPath();
 
   if (!QDir().mkpath(tempPath)) {
-    fail(QStringLiteral("Не удалось создать временный каталог обновления"));
+    fail(QCoreApplication::translate("YaMusic", "Не удалось создать временный каталог обновления"));
     return;
   }
 
@@ -148,7 +148,7 @@ void UpdateInstaller::startDownload() {
   setStage(Downloading);
   m_progress = 0.0;
   emit progressChanged();
-  setStatus(QStringLiteral("Скачивание обновления..."));
+  setStatus(QCoreApplication::translate("YaMusic", "Скачивание обновления..."));
 
   QNetworkRequest request(m_asset.url);
   request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("YaMusic/%1").arg(m_version));
@@ -164,7 +164,7 @@ void UpdateInstaller::startDownload() {
   if (!file->open(QIODevice::WriteOnly)) {
     reply->abort();
     reply->deleteLater();
-    fail(QStringLiteral("Не удалось открыть файл для скачивания"));
+    fail(QCoreApplication::translate("YaMusic", "Не удалось открыть файл для скачивания"));
     return;
   }
 
@@ -197,7 +197,7 @@ void UpdateInstaller::startDownload() {
 
     if (file->size() <= 0) {
       QFile::remove(m_downloadPath);
-      fail(QStringLiteral("Скачанный файл пуст"));
+      fail(QCoreApplication::translate("YaMusic", "Скачанный файл пуст"));
       return;
     }
 
@@ -210,7 +210,7 @@ void UpdateInstaller::startDownload() {
 void UpdateInstaller::prepareReplacement() {
 #if defined(Q_OS_MACOS) || defined(Q_OS_MAC)
   setStage(Unpacking);
-  setStatus(QStringLiteral("Подготовка новой версии..."));
+  setStatus(QCoreApplication::translate("YaMusic", "Подготовка новой версии..."));
 
   const QString tempPath = QFileInfo(m_downloadPath).absolutePath();
   m_mountPath = tempPath + QStringLiteral("/mnt");
@@ -221,20 +221,20 @@ void UpdateInstaller::prepareReplacement() {
     process.start(program, arguments);
 
     if (!process.waitForStarted(10000)) {
-      if (error != nullptr) *error = QStringLiteral("Не удалось запустить %1").arg(program);
+      if (error != nullptr) *error = QCoreApplication::translate("YaMusic", "Не удалось запустить %1").arg(program);
       return false;
     }
 
     if (!process.waitForFinished(120000)) {
       process.kill();
-      if (error != nullptr) *error = QStringLiteral("%1 не ответил вовремя").arg(program);
+      if (error != nullptr) *error = QCoreApplication::translate("YaMusic", "%1 не ответил вовремя").arg(program);
       return false;
     }
 
     if (process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0) {
       if (error != nullptr) {
         QString message = QString::fromUtf8(process.readAllStandardError()).trimmed();
-        if (message.isEmpty()) message = QStringLiteral("%1 завершился с ошибкой").arg(program);
+        if (message.isEmpty()) message = QCoreApplication::translate("YaMusic", "%1 завершился с ошибкой").arg(program);
         *error = message;
       }
 
@@ -266,7 +266,7 @@ void UpdateInstaller::prepareReplacement() {
   if (mountedApp.isEmpty()) {
     runTool(QStringLiteral("/usr/bin/hdiutil"),
             {QStringLiteral("detach"), m_mountPath, QStringLiteral("-quiet")}, nullptr);
-    fail(QStringLiteral("В образе не найден бандл приложения"));
+    fail(QCoreApplication::translate("YaMusic", "В образе не найден бандл приложения"));
     return;
   }
 
@@ -290,7 +290,7 @@ void UpdateInstaller::prepareReplacement() {
   QFile script(m_scriptPath);
 
   if (!script.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-    fail(QStringLiteral("Не удалось записать скрипт обновления"));
+    fail(QCoreApplication::translate("YaMusic", "Не удалось записать скрипт обновления"));
     return;
   }
 
@@ -299,7 +299,7 @@ void UpdateInstaller::prepareReplacement() {
 
   QTextStream stream(&script);
   stream << "#!/bin/sh\n"
-         << "# Ждёт выхода приложения, подменяет бандл и запускает новую версию.\n"
+         << QCoreApplication::translate("YaMusic", "# Ждёт выхода приложения, подменяет бандл и запускает новую версию.\n")
          << "pid=" << pid << "\n"
          << "while kill -0 \"$pid\" 2>/dev/null; do sleep 0.5; done\n"
          << "sleep 1\n"
@@ -320,17 +320,17 @@ void UpdateInstaller::prepareReplacement() {
 
   if (!QFile::setPermissions(m_scriptPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner |
                                                QFileDevice::ExeOwner)) {
-    fail(QStringLiteral("Не удалось сделать скрипт обновления исполняемым"));
+    fail(QCoreApplication::translate("YaMusic", "Не удалось сделать скрипт обновления исполняемым"));
     return;
   }
 
   if (!QProcess::startDetached(QStringLiteral("/bin/sh"), {m_scriptPath})) {
-    fail(QStringLiteral("Не удалось запустить скрипт обновления"));
+    fail(QCoreApplication::translate("YaMusic", "Не удалось запустить скрипт обновления"));
     return;
   }
 
   setStage(Ready);
-  setStatus(QStringLiteral("Обновление до %1 установится после выхода").arg(m_version));
+  setStatus(QCoreApplication::translate("YaMusic", "Обновление до %1 установится после выхода").arg(m_version));
   emit finished(m_version);
 #else
   fail(unsupportedReason());

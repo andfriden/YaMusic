@@ -1,4 +1,5 @@
 #include "AppController.h"
+#include <QCoreApplication>
 #include <QStringList>
 #include "../Models/PersonalPlaylist.h"
 #include "../Player/PlayerService.h"
@@ -227,7 +228,7 @@ void AppController::connectAccount() {
             m_personalController->loadRecommendations();
 
             emit statusChanged(
-                QStringLiteral("Выполнен вход: %1 (uid: %2)")
+                QCoreApplication::translate("YaMusic", "Выполнен вход: %1 (uid: %2)")
                     .arg(account.displayName)
                     .arg(account.uid));
           });
@@ -336,7 +337,7 @@ void AppController::connectAlbum() {
     m_playAlbumAfterLoad = false;
 
     if (m_albumController->albumModel()->count() <= 0) {
-      emit statusChanged("В альбоме нет треков");
+      emit statusChanged(QCoreApplication::translate("YaMusic", "В альбоме нет треков"));
       return;
     }
 
@@ -435,8 +436,8 @@ void AppController::connectPlayback() {
 
             const QString message =
                 artistName.isEmpty()
-                    ? QStringLiteral("Выбран трек: %1").arg(track.title)
-                    : QStringLiteral("Выбран трек: %1 — %2")
+                    ? QCoreApplication::translate("YaMusic", "Выбран трек: %1").arg(track.title)
+                    : QCoreApplication::translate("YaMusic", "Выбран трек: %1 — %2")
                           .arg(track.title)
                           .arg(artistName);
 
@@ -497,7 +498,7 @@ void AppController::connectPlayback() {
                 }
 
                 selectPersonalPlaylist(uid, kind);
-                emit statusChanged("Похожий плейлист");
+                emit statusChanged(QCoreApplication::translate("YaMusic", "Похожий плейлист"));
                 return;
               }
 
@@ -519,7 +520,7 @@ void AppController::connectPlayback() {
               loadArtist(first.id);
 
               emit statusChanged(
-                  QStringLiteral("Похожий исполнитель: %1")
+                  QCoreApplication::translate("YaMusic", "Похожий исполнитель: %1")
                       .arg(first.name));
 
             } else if (sourceType == "album") {
@@ -532,7 +533,7 @@ void AppController::connectPlayback() {
               const QString artistName = m_albumController->currentArtistName();
               const QStringList playedTrackIds = m_albumController->currentAlbumTrackIds();
               m_artistController->continueFromAlbumRadio(artistId, artistName, playedTrackIds);
-              emit statusChanged("Продолжение по альбомам исполнителя");
+              emit statusChanged(QCoreApplication::translate("YaMusic", "Продолжение по альбомам исполнителя"));
             }
           });
 }
@@ -542,7 +543,7 @@ void AppController::connectPlayer() {
     emit playingChanged();
 
     if (m_playerService->isPlaying()) {
-      emit statusChanged("Воспроизведение");
+      emit statusChanged(QCoreApplication::translate("YaMusic", "Воспроизведение"));
     }
   });
 
@@ -566,32 +567,32 @@ void AppController::connectPlayer() {
 
   connect(m_playerService, &PlayerService::playbackPaused, this,
           [this]() {
-            emit statusChanged("Пауза");
+            emit statusChanged(QCoreApplication::translate("YaMusic", "Пауза"));
           });
 
   connect(m_playerService, &PlayerService::playbackStopped, this,
           [this]() {
-            emit statusChanged("Остановлено");
+            emit statusChanged(QCoreApplication::translate("YaMusic", "Остановлено"));
           });
 
   connect(m_playerService, &PlayerService::errorOccurred, this,
           [this](const QString &message) {
             emit statusChanged(
-                QStringLiteral("Ошибка воспроизведения: %1")
+                QCoreApplication::translate("YaMusic", "Ошибка воспроизведения: %1")
                     .arg(message));
           });
 }
 
 void AppController::toggleLike(const QString &trackId, bool liked) {
   if (m_accountUid.isEmpty()) {
-    emit statusChanged("Пользователь не авторизован");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Пользователь не авторизован"));
     return;
   }
 
   const QString id = trackId.trimmed();
 
   if (id.isEmpty()) {
-    emit statusChanged("ID трека не указан");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "ID трека не указан"));
     return;
   }
 
@@ -611,14 +612,14 @@ void AppController::toggleLike(const QString &trackId, bool liked) {
 
 void AppController::toggleDislike(const QString &trackId, bool disliked) {
   if (m_accountUid.isEmpty()) {
-    emit statusChanged("Пользователь не авторизован");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Пользователь не авторизован"));
     return;
   }
 
   const QString id = trackId.trimmed();
 
   if (id.isEmpty()) {
-    emit statusChanged("ID трека не указан");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "ID трека не указан"));
     return;
   }
 
@@ -1017,6 +1018,21 @@ QString AppController::currentArtistName() const {
   return m_artistController->artistName();
 }
 
+QString AppController::uiLanguage() const {
+  return QSettings().value(QStringLiteral("ui/language"), QStringLiteral("ru")).toString();
+}
+
+void AppController::setUiLanguage(const QString &language) {
+  const QString value =
+      language == QStringLiteral("en") ? QStringLiteral("en") : QStringLiteral("ru");
+
+  if (uiLanguage() == value) return;
+
+  QSettings().setValue(QStringLiteral("ui/language"), value);
+  emit uiLanguageChanged();
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Язык применится после перезапуска приложения"));
+}
+
 QString AppController::accountName() const {
   return m_accountName;
 }
@@ -1120,7 +1136,7 @@ void AppController::copyTrack(const QString &title,
   QGuiApplication::clipboard()->setText(text);
 
   emit statusChanged(
-      QStringLiteral("Скопировано: %1").arg(text));
+      QCoreApplication::translate("YaMusic", "Скопировано: %1").arg(text));
 }
 
 QString AppController::currentTrackCoverUri() const {
@@ -1132,7 +1148,7 @@ void AppController::downloadCurrentTrack() {
       m_playbackController->currentTrack();
 
   if (track.id.isEmpty()) {
-    emit statusChanged("Нет трека для скачивания");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Нет трека для скачивания"));
     return;
   }
 
@@ -1145,7 +1161,7 @@ void AppController::downloadTrack(const QString &trackId, const QString &title,
   const QString id = trackId.trimmed();
 
   if (id.isEmpty()) {
-    emit statusChanged("Нет трека для скачивания");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Нет трека для скачивания"));
     return;
   }
 

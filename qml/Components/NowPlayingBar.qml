@@ -211,7 +211,7 @@ Rectangle {
 
                     text: root.hasTrack
                         ? root.controller.currentTrackTitle
-                        : "Нет воспроизводимого трека"
+                        : qsTr("Нет воспроизводимого трека")
 
                     color: titleMouseArea.containsMouse && titleMouseArea.enabled
                         ? AppTheme.accent
@@ -286,13 +286,13 @@ Rectangle {
 
                     Badge {
                         visible: root.currentTrackAi
-                        text: "AI"
+                        text: qsTr("AI")
                         badgeColor: AppTheme.warning
                     }
 
                     Badge {
                         visible: root.currentTrackUncensored
-                        text: "Без цензуры"
+                        text: qsTr("Без цензуры")
                         badgeColor: AppTheme.info
                     }
                 }

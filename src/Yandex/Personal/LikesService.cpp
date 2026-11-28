@@ -1,4 +1,5 @@
 #include "LikesService.h"
+#include <QCoreApplication>
 #include "../Auth/YandexAuth.h"
 #include "../YandexClient.h"
 #include <QJsonArray>
@@ -52,18 +53,18 @@ LikesService::LikesService(YandexAuth *auth, QObject *parent) : YandexServiceBas
 
 void LikesService::loadLikedTracks(const QString &uid) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred(QStringLiteral("Токен Яндекс Музыки не установлен"));
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   if (uid.trimmed().isEmpty()) {
-    emit errorOccurred(QStringLiteral("UID пользователя не указан"));
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "UID пользователя не указан"));
     return;
   }
 
   if (m_loadingTracks) return;
   if (!m_yandexClient->hasToken()) {
-    emit errorOccurred(QStringLiteral("Токен Яндекс Музыки не установлен"));
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
@@ -97,7 +98,7 @@ void LikesService::loadLikedTracks(const QString &uid) {
       reply->deleteLater();
       m_loadingTracks = false;
       emit loadingChanged(false);
-      emit errorOccurred(QStringLiteral("Не удалось разобрать список понравившихся треков"));
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось разобрать список понравившихся треков"));
       return;
     }
 
@@ -105,7 +106,7 @@ void LikesService::loadLikedTracks(const QString &uid) {
       reply->deleteLater();
       m_loadingTracks = false;
       emit loadingChanged(false);
-      emit errorOccurred(QStringLiteral("Некорректный ответ списка понравившихся треков"));
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный ответ списка понравившихся треков"));
       return;
     }
 
@@ -135,14 +136,14 @@ void LikesService::loadLikedTracks(const QString &uid) {
 
 void LikesService::loadLikedAlbums(const QString &uid) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred(QStringLiteral("Токен Яндекс Музыки не установлен"));
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString userId = uid.trimmed();
 
   if (userId.isEmpty()) {
-    emit errorOccurred(QStringLiteral("UID пользователя не указан"));
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "UID пользователя не указан"));
     return;
   }
 
@@ -174,7 +175,7 @@ void LikesService::loadLikedAlbums(const QString &uid) {
 
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
       reply->deleteLater();
-      emit errorOccurred("Некорректный ответ альбомов");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный ответ альбомов"));
       return;
     }
 
@@ -217,14 +218,14 @@ void LikesService::loadLikedAlbums(const QString &uid) {
 
 void LikesService::loadLikedArtists(const QString &uid) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred(QStringLiteral("Токен Яндекс Музыки не установлен"));
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString userId = uid.trimmed();
 
   if (userId.isEmpty()) {
-    emit errorOccurred(QStringLiteral("UID пользователя не указан"));
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "UID пользователя не указан"));
     return;
   }
 
@@ -256,7 +257,7 @@ void LikesService::loadLikedArtists(const QString &uid) {
 
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
       reply->deleteLater();
-      emit errorOccurred("Некорректный ответ исполнителей");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный ответ исполнителей"));
       return;
     }
 
@@ -415,7 +416,7 @@ bool LikesService::isDisliked(const QString &trackId) const {
 
 void LikesService::changeLike(const QString &uid, const QString &trackId, bool liked) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred(QStringLiteral("Токен Яндекс Музыки не установлен"));
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
@@ -423,17 +424,17 @@ void LikesService::changeLike(const QString &uid, const QString &trackId, bool l
   const QString id = trackId.trimmed();
 
   if (userId.isEmpty()) {
-    emit errorOccurred(QStringLiteral("UID пользователя не указан"));
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "UID пользователя не указан"));
     return;
   }
 
   if (id.isEmpty()) {
-    emit errorOccurred(QStringLiteral("ID трека не указан"));
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "ID трека не указан"));
     return;
   }
 
   if (!m_yandexClient->hasToken()) {
-    emit errorOccurred(QStringLiteral("Токен Яндекс Музыки не установлен"));
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
@@ -471,7 +472,7 @@ void LikesService::changeLike(const QString &uid, const QString &trackId, bool l
 
 void LikesService::changeDislike(const QString &uid, const QString &trackId, bool disliked) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred(QStringLiteral("Токен Яндекс Музыки не установлен"));
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
@@ -479,17 +480,17 @@ void LikesService::changeDislike(const QString &uid, const QString &trackId, boo
   const QString id = trackId.trimmed();
 
   if (userId.isEmpty()) {
-    emit errorOccurred(QStringLiteral("UID пользователя не указан"));
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "UID пользователя не указан"));
     return;
   }
 
   if (id.isEmpty()) {
-    emit errorOccurred(QStringLiteral("ID трека не указан"));
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "ID трека не указан"));
     return;
   }
 
   if (!m_yandexClient->hasToken()) {
-    emit errorOccurred(QStringLiteral("Токен Яндекс Музыки не установлен"));
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 

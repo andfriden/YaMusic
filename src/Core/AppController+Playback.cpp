@@ -1,4 +1,5 @@
 #include "../Player/PlayerService.h"
+#include <QCoreApplication>
 #include "../Queue/QueueService.h"
 #include "AppController.h"
 
@@ -31,13 +32,13 @@ void AppController::next() {
       return;
     }
 
-    emit statusChanged("Следующего трека нет");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Следующего трека нет"));
   }
 }
 
 void AppController::previous() {
   if (!m_playbackController->previous()) {
-    emit statusChanged("Предыдущего трека нет");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Предыдущего трека нет"));
   }
 }
 

@@ -1,4 +1,5 @@
 #include "AuthController.h"
+#include <QCoreApplication>
 #include "../Yandex/Account/AccountService.h"
 #include "../Yandex/Auth/YandexAuth.h"
 
@@ -56,12 +57,12 @@ void AuthController::loginWithToken(const QString &token) {
   const QString extractedToken = extractToken(token);
 
   if (extractedToken.isEmpty()) {
-    emit errorOccurred("Не удалось найти OAuth-токен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось найти OAuth-токен"));
     return;
   }
 
   if (!m_auth->setToken(extractedToken)) {
-    emit errorOccurred("Не удалось сохранить токен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось сохранить токен"));
     return;
   }
 
@@ -70,7 +71,7 @@ void AuthController::loginWithToken(const QString &token) {
 
 void AuthController::logout() {
   if (!m_auth->clearToken()) {
-    emit errorOccurred("Не удалось удалить токен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось удалить токен"));
     return;
   }
 

@@ -1,4 +1,5 @@
 #include "PersonalLanding.h"
+#include <QCoreApplication>
 
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
@@ -29,7 +30,7 @@ PersonalLanding::PersonalLanding(YandexAuth *auth, QObject *parent)
 
 void PersonalLanding::load() {
   if (!m_auth->isAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
@@ -52,7 +53,7 @@ void PersonalLanding::load() {
     const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
 
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-      emit errorOccurred("Ошибка JSON landing3");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Ошибка JSON landing3"));
       reply->deleteLater();
       return;
     }
@@ -219,7 +220,7 @@ Podcast PersonalLanding::parsePodcast(const QJsonObject &object) const {
 }
 void PersonalLanding::loadWheel() {
   if (!m_auth->isAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
@@ -228,7 +229,7 @@ void PersonalLanding::loadWheel() {
       m_yandexClient->post(QStringLiteral("/wheel/new"), QJsonObject());
 
   if (reply == nullptr) {
-    emit errorOccurred("Не удалось создать запрос Колеса");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось создать запрос Колеса"));
     return;
   }
 
@@ -243,7 +244,7 @@ void PersonalLanding::loadWheel() {
     QJsonParseError parseError;
     const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-      emit errorOccurred("Ошибка JSON /wheel/new");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Ошибка JSON /wheel/new"));
       reply->deleteLater();
       return;
     }
@@ -269,7 +270,7 @@ void PersonalLanding::loadWheel() {
         const QJsonObject wave = data.value("wave").toObject();
         const QJsonObject agent = data.value("agent").toObject();
         title = wave.value("name").toString();
-        if (title.isEmpty()) title = QStringLiteral("Волна");
+        if (title.isEmpty()) title = QCoreApplication::translate("YaMusic", "Волна");
         const QJsonObject agentCover = agent.value("cover").toObject();
         // URI обложки лежит прямо в agent.cover.uri (без префикса http).
         coverUri = agentCover.value("uri").toString();

@@ -1,4 +1,5 @@
 #include "PlaylistService.h"
+#include <QCoreApplication>
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
@@ -115,19 +116,19 @@ PlaylistService::PlaylistService(YandexAuth *auth, QObject *parent)
 
 void PlaylistService::loadPlaylist(const QString &uid, int kind, bool useCache) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString trimmedUid = uid.trimmed();
 
   if (trimmedUid.isEmpty()) {
-    emit errorOccurred("UID плейлиста не указан");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "UID плейлиста не указан"));
     return;
   }
 
   if (kind <= 0) {
-    emit errorOccurred("Идентификатор плейлиста некорректен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Идентификатор плейлиста некорректен"));
     return;
   }
 
@@ -144,7 +145,7 @@ void PlaylistService::loadPlaylist(const QString &uid, int kind, bool useCache) 
   QNetworkReply *reply = m_yandexClient->get(path);
 
   if (reply == nullptr) {
-    emit errorOccurred("Не удалось загрузить плейлист");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось загрузить плейлист"));
     return;
   }
 
@@ -160,7 +161,7 @@ void PlaylistService::loadPlaylist(const QString &uid, int kind, bool useCache) 
     Playlist playlist;
 
     if (!parsePlaylistResponse(data, playlist)) {
-      emit errorOccurred("Некорректный ответ плейлиста");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный ответ плейлиста"));
       reply->deleteLater();
       return;
     }
@@ -180,14 +181,14 @@ void PlaylistService::loadPlaylist(const QString &uid, int kind, bool useCache) 
 
 void PlaylistService::loadPlaylistByUuid(const QString &uuid) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString trimmedUuid = uuid.trimmed();
 
   if (trimmedUuid.isEmpty()) {
-    emit errorOccurred("UUID плейлиста не указан");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "UUID плейлиста не указан"));
     return;
   }
 
@@ -195,7 +196,7 @@ void PlaylistService::loadPlaylistByUuid(const QString &uuid) {
   QNetworkReply *reply = m_yandexClient->get(path);
 
   if (reply == nullptr) {
-    emit errorOccurred("Не удалось загрузить плейлист");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось загрузить плейлист"));
     return;
   }
 
@@ -211,7 +212,7 @@ void PlaylistService::loadPlaylistByUuid(const QString &uuid) {
     Playlist playlist;
 
     if (!parsePlaylistResponse(data, playlist)) {
-      emit errorOccurred("Некорректный ответ плейлиста");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный ответ плейлиста"));
       reply->deleteLater();
       return;
     }
@@ -237,7 +238,7 @@ void PlaylistService::loadPlaylists(const QList<QPair<QString, int>> &playlists)
   m_playlistBatchError = false;
 
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
@@ -316,14 +317,14 @@ void PlaylistService::finishPlaylistBatch() {
 
 void PlaylistService::loadUserPlaylists(const QString &uid) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString trimmedUid = uid.trimmed();
 
   if (trimmedUid.isEmpty()) {
-    emit errorOccurred("UID пользователя не указан");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "UID пользователя не указан"));
     return;
   }
 
@@ -331,7 +332,7 @@ void PlaylistService::loadUserPlaylists(const QString &uid) {
   QNetworkReply *reply = m_yandexClient->get(path);
 
   if (reply == nullptr) {
-    emit errorOccurred("Не удалось загрузить плейлисты пользователя");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось загрузить плейлисты пользователя"));
     return;
   }
 
@@ -348,7 +349,7 @@ void PlaylistService::loadUserPlaylists(const QString &uid) {
     const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
 
     if (parseError.error != QJsonParseError::NoError) {
-      emit errorOccurred("Некорректный ответ плейлистов пользователя");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный ответ плейлистов пользователя"));
       reply->deleteLater();
       return;
     }
@@ -366,7 +367,7 @@ void PlaylistService::loadUserPlaylists(const QString &uid) {
     }
 
     if (playlistArray.isEmpty() && !document.isArray()) {
-      emit errorOccurred("Некорректная структура плейлистов пользователя");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректная структура плейлистов пользователя"));
       reply->deleteLater();
       return;
     }
@@ -387,7 +388,7 @@ void PlaylistService::loadUserPlaylists(const QString &uid) {
 
 void PlaylistService::loadSimilarPlaylists(const QString &uuid) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
@@ -448,7 +449,7 @@ void PlaylistService::loadSimilarPlaylists(const QString &uuid) {
 
 void PlaylistService::createPlaylist(const QString &uid, const QString &title) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
@@ -456,12 +457,12 @@ void PlaylistService::createPlaylist(const QString &uid, const QString &title) {
   const QString playlistTitle = title.trimmed();
 
   if (userId.isEmpty()) {
-    emit errorOccurred("UID не указан");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "UID не указан"));
     return;
   }
 
   if (playlistTitle.isEmpty()) {
-    emit errorOccurred("Название плейлиста не указано");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Название плейлиста не указано"));
     return;
   }
 
@@ -472,7 +473,7 @@ void PlaylistService::createPlaylist(const QString &uid, const QString &title) {
   QNetworkReply *reply = m_yandexClient->postForm(path, formBody);
 
   if (reply == nullptr) {
-    emit errorOccurred("Не удалось создать плейлист");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось создать плейлист"));
     return;
   }
 
@@ -490,14 +491,14 @@ void PlaylistService::createPlaylist(const QString &uid, const QString &title) {
 
 void PlaylistService::deletePlaylist(const QString &uid, int kind) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString userId = uid.trimmed();
 
   if (userId.isEmpty() || kind <= 0) {
-    emit errorOccurred("Некорректный плейлист");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный плейлист"));
     return;
   }
 
@@ -505,7 +506,7 @@ void PlaylistService::deletePlaylist(const QString &uid, int kind) {
   QNetworkReply *reply = m_yandexClient->postForm(path, {});
 
   if (reply == nullptr) {
-    emit errorOccurred("Не удалось удалить плейлист");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось удалить плейлист"));
     return;
   }
 
@@ -528,7 +529,7 @@ QString PlaylistService::cacheKeyFor(const QString &uid, int kind) const {
 
 void PlaylistService::renamePlaylist(const QString &uid, int kind, const QString &newTitle) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
@@ -536,12 +537,12 @@ void PlaylistService::renamePlaylist(const QString &uid, int kind, const QString
   const QString title = newTitle.trimmed();
 
   if (userId.isEmpty() || kind <= 0) {
-    emit errorOccurred("Некорректный плейлист");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный плейлист"));
     return;
   }
 
   if (title.isEmpty()) {
-    emit errorOccurred("Новое название не указано");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Новое название не указано"));
     return;
   }
 
@@ -551,7 +552,7 @@ void PlaylistService::renamePlaylist(const QString &uid, int kind, const QString
   QNetworkReply *reply = m_yandexClient->postForm(path, body);
 
   if (reply == nullptr) {
-    emit errorOccurred("Не удалось переименовать плейлист");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось переименовать плейлист"));
     return;
   }
 
@@ -571,14 +572,14 @@ void PlaylistService::renamePlaylist(const QString &uid, int kind, const QString
 void PlaylistService::addTracksToPlaylist(const QString &uid, int kind, const QStringList &trackIds,
                                            const QStringList &albumIds, int revision) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString userId = uid.trimmed();
 
   if (userId.isEmpty() || kind <= 0) {
-    emit errorOccurred("Некорректный плейлист");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный плейлист"));
     return;
   }
 
@@ -612,7 +613,7 @@ void PlaylistService::addTracksToPlaylist(const QString &uid, int kind, const QS
   QNetworkReply *reply = m_yandexClient->postForm(path, formBody);
 
   if (reply == nullptr) {
-    emit errorOccurred("Не удалось добавить треки");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось добавить треки"));
     return;
   }
 
@@ -640,19 +641,19 @@ void PlaylistService::addTracksToPlaylist(const QString &uid, int kind, const QS
 void PlaylistService::removeTrackFromPlaylist(const QString &uid, int kind, int trackIndex,
                                                int revision) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString userId = uid.trimmed();
 
   if (userId.isEmpty() || kind <= 0) {
-    emit errorOccurred("Некорректный плейлист");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный плейлист"));
     return;
   }
 
   if (trackIndex < 0) {
-    emit errorOccurred("Некорректный индекс трека");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный индекс трека"));
     return;
   }
 
@@ -673,7 +674,7 @@ void PlaylistService::removeTrackFromPlaylist(const QString &uid, int kind, int 
   QNetworkReply *reply = m_yandexClient->postForm(path, formBody);
 
   if (reply == nullptr) {
-    emit errorOccurred("Не удалось удалить трек");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось удалить трек"));
     return;
   }
 
@@ -682,7 +683,7 @@ void PlaylistService::removeTrackFromPlaylist(const QString &uid, int kind, int 
 
     if (reply->error() != QNetworkReply::NoError) {
       emit errorOccurred(
-          QStringLiteral("Удаление трека: %1 (HTTP %2) %3")
+          QCoreApplication::translate("YaMusic", "Удаление трека: %1 (HTTP %2) %3")
               .arg(reply->errorString())
               .arg(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt())
               .arg(QString::fromUtf8(data).left(300)));

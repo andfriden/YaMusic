@@ -196,7 +196,7 @@ Item {
             Dialog {
                 id: deleteConfirmDialog
 
-                title: "Удалить плейлист?"
+                title: qsTr("Удалить плейлист?")
                 standardButtons: Dialog.Yes | Dialog.No
 
                 anchors.centerIn: parent
@@ -214,7 +214,7 @@ Item {
 
                 property string newName: ""
 
-                title: "Новое название"
+                title: qsTr("Новое название")
                 standardButtons: Dialog.Ok | Dialog.Cancel
 
                 anchors.centerIn: parent

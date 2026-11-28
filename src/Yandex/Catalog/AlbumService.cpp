@@ -1,4 +1,5 @@
 #include "AlbumService.h"
+#include <QCoreApplication>
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
@@ -12,14 +13,14 @@ AlbumService::AlbumService(YandexAuth *auth, QObject *parent) : YandexServiceBas
 // TODO(#141): добавить инвалидацию L1-кэша по таймеру
 void AlbumService::loadAlbum(const QString &id) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString albumId = id.trimmed();
 
   if (albumId.isEmpty()) {
-    emit errorOccurred("ID альбома не указан");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "ID альбома не указан"));
     return;
   }
 
@@ -46,7 +47,7 @@ void AlbumService::loadAlbum(const QString &id) {
     const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
 
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-      emit errorOccurred("Некорректный ответ альбома");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный ответ альбома"));
       reply->deleteLater();
       return;
     }
@@ -55,7 +56,7 @@ void AlbumService::loadAlbum(const QString &id) {
     const QJsonObject albumObject = unwrapResult(document);
 
     if (albumObject.isEmpty()) {
-      emit errorOccurred("Ответ альбома пуст");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Ответ альбома пуст"));
       reply->deleteLater();
       return;
     }

@@ -378,13 +378,13 @@ Item {
 
                     Badge {
                         visible: root.currentTrackAi
-                        text: "AI"
+                        text: qsTr("AI")
                         badgeColor: AppTheme.warning
                     }
 
                     Badge {
                         visible: root.currentTrackUncensored
-                        text: "Без цензуры"
+                        text: qsTr("Без цензуры")
                         badgeColor: AppTheme.info
                     }
                 }
@@ -883,7 +883,7 @@ Item {
 
                         anchors.centerIn: parent
 
-                        text: "Далее"
+                        text: qsTr("Далее")
                         color: !root.showingSimilar ? root.playerAccent : AppTheme.textSecondary
                         font.pixelSize: 14
                         font.weight: Font.DemiBold
@@ -914,7 +914,7 @@ Item {
 
                         anchors.centerIn: parent
 
-                        text: "Похожие"
+                        text: qsTr("Похожие")
                         color: root.showingSimilar ? root.playerAccent : AppTheme.textSecondary
                         font.pixelSize: 14
                         font.weight: Font.DemiBold

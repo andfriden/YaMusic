@@ -77,6 +77,12 @@ Item {
     readonly property bool gaplessEnabled:
         root.playbackSettings !== null ? root.playbackSettings.gaplessEnabled : true
 
+    readonly property string uiLanguage:
+        root.controller !== null && root.controller !== undefined &&
+        root.controller.uiLanguage !== undefined
+            ? root.controller.uiLanguage
+            : "ru"
+
     readonly property var waveSettings:
         root.controller !== null && root.controller !== undefined &&
         root.controller.waveSettingsController !== undefined
@@ -143,7 +149,7 @@ Item {
 
             Text {
                 width: parent.width
-                text: "Настройки"
+                text: qsTr("Настройки")
                 color: AppTheme.textPrimary
                 font.pixelSize: 24
                 font.bold: true
@@ -161,7 +167,7 @@ Item {
                 spacing: 8
 
                 Text {
-                    text: "Тёмная тема"
+                    text: qsTr("Тёмная тема")
                     color: AppTheme.textPrimary
                     font.pixelSize: 13
 
@@ -211,9 +217,76 @@ Item {
                 color: AppTheme.borderSubtle
             }
 
+            Row {
+                width: parent.width
+                height: 26
+                spacing: 8
+
+                Text {
+                    width: parent.width - 140
+                    height: parent.height
+
+                    text: qsTr("Язык интерфейса")
+                    color: AppTheme.textPrimary
+                    font.pixelSize: 13
+
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                Rectangle {
+                    width: 132
+                    height: 24
+                    radius: 6
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    color: interfaceLanguageArea.containsMouse ? AppTheme.panelActive : AppTheme.panelSecondary
+
+                    border.width: 1
+                    border.color: AppTheme.borderSubtle
+
+                    Text {
+                        anchors.centerIn: parent
+
+                        text: root.uiLanguage === "en" ? "English" : qsTr("Русский")
+                        color: AppTheme.textPrimary
+                        font.pixelSize: 12
+                    }
+
+                    MouseArea {
+                        id: interfaceLanguageArea
+
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (root.controller) {
+                                root.controller.uiLanguage = root.uiLanguage === "en" ? "ru" : "en"
+                            }
+                        }
+                    }
+                }
+            }
+
             Text {
                 width: parent.width
-                text: "Качество аудио"
+
+                text: qsTr("Применится после перезапуска приложения")
+                color: AppTheme.textMuted
+                font.pixelSize: 10
+                wrapMode: Text.Wrap
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 1
+                color: AppTheme.borderSubtle
+            }
+
+            Text {
+                width: parent.width
+                text: qsTr("Качество аудио")
                 color: AppTheme.textSecondary
                 font.pixelSize: 11
                 font.bold: true
@@ -224,9 +297,9 @@ Item {
 
             Repeater {
                 model: [
-                    { key: "low", title: "Низкое" },
-                    { key: "normal", title: "Среднее" },
-                    { key: "high", title: "Высокое" },
+                    { key: "low", title: qsTr("Низкое") },
+                    { key: "normal", title: qsTr("Среднее") },
+                    { key: "high", title: qsTr("Высокое") },
                     { key: "lossless", title: "Lossless" }
                 ]
 
@@ -313,7 +386,7 @@ Item {
                     width: parent.width - 28
                     height: parent.height
 
-                    text: "Треки без цензуры"
+                    text: qsTr("Треки без цензуры")
                     color: AppTheme.textPrimary
                     font.pixelSize: 12
 
@@ -384,7 +457,7 @@ Item {
                     width: parent.width - 28
                     height: parent.height
 
-                    text: "Скрывать AI-треки"
+                    text: qsTr("Скрывать AI-треки")
                     color: AppTheme.textPrimary
                     font.pixelSize: 12
 
@@ -449,7 +522,7 @@ Item {
                     width: parent.width - 28
                     height: parent.height
 
-                    text: "Автодизлайк AI-треков"
+                    text: qsTr("Автодизлайк AI-треков")
                     color: AppTheme.textPrimary
                     font.pixelSize: 12
 
@@ -515,7 +588,7 @@ Item {
                     width: parent.width - 28
                     height: parent.height
 
-                    text: "Пропускать AI-треки"
+                    text: qsTr("Пропускать AI-треки")
                     color: AppTheme.textPrimary
                     font.pixelSize: 12
 
@@ -574,7 +647,7 @@ Item {
 
             Text {
                 width: parent.width
-                text: "Обновления"
+                text: qsTr("Обновления")
                 color: AppTheme.textSecondary
                 font.pixelSize: 11
                 font.bold: true
@@ -592,7 +665,7 @@ Item {
                     width: parent.width - 28
                     height: parent.height
 
-                    text: "Проверять при запуске"
+                    text: qsTr("Проверять при запуске")
                     color: AppTheme.textPrimary
                     font.pixelSize: 12
 
@@ -653,7 +726,7 @@ Item {
 
                     text: root.updateBadge.length > 0
                         ? root.updateBadge
-                        : "Проверить обновления"
+                        : qsTr("Проверить обновления")
                     color: updateArea.containsMouse ? AppTheme.accent : AppTheme.textPrimary
                     font.pixelSize: 13
                     font.weight: Font.Medium
@@ -685,7 +758,7 @@ Item {
 
             Text {
                 width: parent.width
-                text: "Перекрёстное затухание"
+                text: qsTr("Перекрёстное затухание")
                 color: AppTheme.textSecondary
                 font.pixelSize: 11
                 font.bold: true
@@ -704,8 +777,8 @@ Item {
                     height: parent.height
 
                     text: root.crossfadeSeconds > 0
-                        ? root.crossfadeSeconds + " с"
-                        : "Выключено"
+                        ? root.crossfadeSeconds + qsTr(" с")
+                        : qsTr("Выключено")
                     color: AppTheme.textPrimary
                     font.pixelSize: 12
 
@@ -736,7 +809,7 @@ Item {
             Text {
                 width: parent.width
 
-                text: "Следующий трек заводится до конца текущего: поток запрашивается заранее, играет с диска или из сети"
+                text: qsTr("Следующий трек заводится до конца текущего: поток запрашивается заранее, играет с диска или из сети")
                 color: AppTheme.textMuted
                 font.pixelSize: 10
                 wrapMode: Text.Wrap
@@ -752,7 +825,7 @@ Item {
                     width: parent.width - 28
                     height: parent.height
 
-                    text: "Бесшовный переход"
+                    text: qsTr("Бесшовный переход")
                     color: AppTheme.textPrimary
                     font.pixelSize: 12
 
@@ -801,7 +874,7 @@ Item {
             Text {
                 width: parent.width
 
-                text: "Когда затухание выключено, следующий трек готовится заранее и стартует без паузы на загрузку"
+                text: qsTr("Когда затухание выключено, следующий трек готовится заранее и стартует без паузы на загрузку")
                 color: AppTheme.textMuted
                 font.pixelSize: 10
                 wrapMode: Text.Wrap
@@ -816,7 +889,7 @@ Item {
 
             Text {
                 width: parent.width
-                text: "Моя волна"
+                text: qsTr("Моя волна")
                 color: AppTheme.textSecondary
                 font.pixelSize: 11
                 font.bold: true
@@ -834,7 +907,7 @@ Item {
                     width: parent.width - 140
                     height: parent.height
 
-                    text: "Язык"
+                    text: qsTr("Язык")
                     color: AppTheme.textPrimary
                     font.pixelSize: 12
 
@@ -893,7 +966,7 @@ Item {
                     width: parent.width - 140
                     height: parent.height
 
-                    text: "Характер"
+                    text: qsTr("Характер")
                     color: AppTheme.textPrimary
                     font.pixelSize: 12
 
@@ -952,7 +1025,7 @@ Item {
                     width: parent.width - 140
                     height: parent.height
 
-                    text: "Настроение"
+                    text: qsTr("Настроение")
                     color: AppTheme.textPrimary
                     font.pixelSize: 12
 
@@ -1005,7 +1078,7 @@ Item {
             Text {
                 width: parent.width
 
-                text: "Настройки применятся при следующем запуске «Моей волны»"
+                text: qsTr("Настройки применятся при следующем запуске «Моей волны»")
                 color: AppTheme.textMuted
                 font.pixelSize: 10
                 wrapMode: Text.Wrap
@@ -1026,7 +1099,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
 
-                    text: "Перезапустить «Мою волну» с новыми настройками"
+                    text: qsTr("Перезапустить «Мою волну» с новыми настройками")
                     color: restartWaveArea.containsMouse ? AppTheme.accent : AppTheme.textPrimary
                     font.pixelSize: 12
                     font.weight: Font.Medium
@@ -1055,7 +1128,7 @@ Item {
 
             Text {
                 width: parent.width
-                text: "Предзагрузка"
+                text: qsTr("Предзагрузка")
                 color: AppTheme.textSecondary
                 font.pixelSize: 11
                 font.bold: true
@@ -1073,7 +1146,7 @@ Item {
                     width: parent.width - 28
                     height: parent.height
 
-                    text: "Скачивать треки заранее"
+                    text: qsTr("Скачивать треки заранее")
                     color: AppTheme.textPrimary
                     font.pixelSize: 12
 
@@ -1150,7 +1223,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
 
-                    text: "Очистить кэш"
+                    text: qsTr("Очистить кэш")
                     color: clearCacheArea.containsMouse ? AppTheme.accent : AppTheme.textPrimary
                     font.pixelSize: 12
                 }
@@ -1220,7 +1293,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
 
-                    text: "Выйти из аккаунта"
+                    text: qsTr("Выйти из аккаунта")
                     color: logoutArea.containsMouse ? AppTheme.error : AppTheme.textPrimary
                     font.pixelSize: 13
                     font.weight: Font.Medium

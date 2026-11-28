@@ -1,4 +1,5 @@
 #include "WaveSettingsController.h"
+#include <QCoreApplication>
 
 #include <QSettings>
 #include <QVariantMap>
@@ -42,29 +43,29 @@ QVariantMap option(const QString &value, const QString &name) {
 
 QVariantList languageOptions() {
   return {
-      option(QStringLiteral("russian"), QStringLiteral("Русский")),
-      option(QStringLiteral("not-russian"), QStringLiteral("Иностранный")),
-      option(QStringLiteral("any"), QStringLiteral("Любой")),
-      option(QStringLiteral("without-words"), QStringLiteral("Без слов")),
+      option(QStringLiteral("russian"), QCoreApplication::translate("YaMusic", "Русский")),
+      option(QStringLiteral("not-russian"), QCoreApplication::translate("YaMusic", "Иностранный")),
+      option(QStringLiteral("any"), QCoreApplication::translate("YaMusic", "Любой")),
+      option(QStringLiteral("without-words"), QCoreApplication::translate("YaMusic", "Без слов")),
   };
 }
 
 QVariantList diversityOptions() {
   return {
-      option(QStringLiteral("favorite"), QStringLiteral("Любимое")),
-      option(QStringLiteral("discover"), QStringLiteral("Незнакомое")),
-      option(QStringLiteral("popular"), QStringLiteral("Популярное")),
-      option(QStringLiteral("default"), QStringLiteral("Любое")),
+      option(QStringLiteral("favorite"), QCoreApplication::translate("YaMusic", "Любимое")),
+      option(QStringLiteral("discover"), QCoreApplication::translate("YaMusic", "Незнакомое")),
+      option(QStringLiteral("popular"), QCoreApplication::translate("YaMusic", "Популярное")),
+      option(QStringLiteral("default"), QCoreApplication::translate("YaMusic", "Любое")),
   };
 }
 
 QVariantList moodEnergyOptions() {
   return {
-      option(QStringLiteral("active"), QStringLiteral("Бодрое")),
-      option(QStringLiteral("fun"), QStringLiteral("Весёлое")),
-      option(QStringLiteral("calm"), QStringLiteral("Спокойное")),
-      option(QStringLiteral("sad"), QStringLiteral("Грустное")),
-      option(QStringLiteral("all"), QStringLiteral("Любое")),
+      option(QStringLiteral("active"), QCoreApplication::translate("YaMusic", "Бодрое")),
+      option(QStringLiteral("fun"), QCoreApplication::translate("YaMusic", "Весёлое")),
+      option(QStringLiteral("calm"), QCoreApplication::translate("YaMusic", "Спокойное")),
+      option(QStringLiteral("sad"), QCoreApplication::translate("YaMusic", "Грустное")),
+      option(QStringLiteral("all"), QCoreApplication::translate("YaMusic", "Любое")),
   };
 }
 

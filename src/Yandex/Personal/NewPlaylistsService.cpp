@@ -1,4 +1,5 @@
 #include "NewPlaylistsService.h"
+#include <QCoreApplication>
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
@@ -19,7 +20,7 @@ NewPlaylistsService::NewPlaylistsService(YandexAuth *auth, PlaylistService *play
 
 void NewPlaylistsService::load() {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
@@ -27,7 +28,7 @@ void NewPlaylistsService::load() {
   QNetworkReply *reply = m_yandexClient->get(path);
 
   if (reply == nullptr) {
-    emit errorOccurred("Не удалось выполнить запрос новых плейлистов");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Не удалось выполнить запрос новых плейлистов"));
     return;
   }
 
@@ -45,7 +46,7 @@ void NewPlaylistsService::load() {
     const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
 
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-      emit errorOccurred("Некорректный ответ /landing3/new-playlists");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный ответ /landing3/new-playlists"));
       reply->deleteLater();
       return;
     }
@@ -53,7 +54,7 @@ void NewPlaylistsService::load() {
     const QJsonObject result = unwrapResult(document);
 
     if (result.isEmpty()) {
-      emit errorOccurred("Ответ /landing3/new-playlists не содержит result");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Ответ /landing3/new-playlists не содержит result"));
       reply->deleteLater();
       return;
     }

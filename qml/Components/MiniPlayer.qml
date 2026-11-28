@@ -260,7 +260,7 @@ Window {
 
                     width: parent.width
 
-                    text: root.hasTrack ? root.controller.currentTrackTitle : "Нет трека"
+                    text: root.hasTrack ? root.controller.currentTrackTitle : qsTr("Нет трека")
                     color: titleMouseArea.containsMouse && titleMouseArea.enabled
                         ? AppTheme.accent
                         : AppTheme.macchiatoText
@@ -306,7 +306,7 @@ Window {
 
             Badge {
                 visible: root.currentTrackAi
-                text: "AI"
+                text: qsTr("AI")
                 badgeColor: AppTheme.warning
             }
 

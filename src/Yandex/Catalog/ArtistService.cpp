@@ -1,4 +1,5 @@
 #include "ArtistService.h"
+#include <QCoreApplication>
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
@@ -84,14 +85,14 @@ ArtistService::ArtistService(YandexAuth *auth, QObject *parent) : YandexServiceB
 // TODO(YM-2246): вынести общую логику разбора ответа (parseError + unwrapResult) в общие хелперы
 void ArtistService::loadArtistAlbums(const QString &id) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString artistId = id.trimmed();
 
   if (artistId.isEmpty()) {
-    emit errorOccurred("ID исполнителя не указан");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "ID исполнителя не указан"));
     return;
   }
 
@@ -127,7 +128,7 @@ void ArtistService::loadArtistAlbums(const QString &id) {
 
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
       reply->deleteLater();
-      emit errorOccurred("Некорректный ответ альбомов исполнителя");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный ответ альбомов исполнителя"));
       return;
     }
 
@@ -150,14 +151,14 @@ void ArtistService::loadArtistAlbums(const QString &id) {
 
 void ArtistService::loadSimilarArtists(const QString &id) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString artistId = id.trimmed();
 
   if (artistId.isEmpty()) {
-    emit errorOccurred("ID исполнителя не указан");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "ID исполнителя не указан"));
     return;
   }
 
@@ -177,7 +178,7 @@ void ArtistService::loadSimilarArtists(const QString &id) {
 
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
       reply->deleteLater();
-      emit errorOccurred("Некорректный ответ похожих исполнителей");
+      emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный ответ похожих исполнителей"));
       return;
     }
 
@@ -205,14 +206,14 @@ void ArtistService::loadSimilarArtists(const QString &id) {
 
 void ArtistService::loadArtist(const QString &id) {
   if (!ensureAuthenticated()) {
-    emit errorOccurred("Токен Яндекс Музыки не установлен");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "Токен Яндекс Музыки не установлен"));
     return;
   }
 
   const QString artistId = id.trimmed();
 
   if (artistId.isEmpty()) {
-    emit errorOccurred("ID исполнителя не указан");
+    emit errorOccurred(QCoreApplication::translate("YaMusic", "ID исполнителя не указан"));
     return;
   }
 
@@ -369,7 +370,7 @@ void ArtistService::loadArtist(const QString &id) {
             const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
 
             if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-              emit errorOccurred("Некорректный ответ исполнителя");
+              emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный ответ исполнителя"));
               infoReply->deleteLater();
               return;
             }
@@ -385,7 +386,7 @@ void ArtistService::loadArtist(const QString &id) {
             }
 
             if (artistObject.isEmpty()) {
-              emit errorOccurred("Ответ исполнителя пуст");
+              emit errorOccurred(QCoreApplication::translate("YaMusic", "Ответ исполнителя пуст"));
               infoReply->deleteLater();
               return;
             }
@@ -443,7 +444,7 @@ void ArtistService::loadArtist(const QString &id) {
                         const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
 
                         if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-                          emit errorOccurred("Некорректный ответ треков исполнителя");
+                          emit errorOccurred(QCoreApplication::translate("YaMusic", "Некорректный ответ треков исполнителя"));
                           tracksReply->deleteLater();
                           return;
                         }

@@ -47,7 +47,7 @@ Item {
             Label {
                 width: parent.width
 
-                text: "Медиатека"
+                text: qsTr("Медиатека")
                 color: AppTheme.textPrimary
                 font.pixelSize: 28
                 font.bold: true
@@ -65,7 +65,7 @@ Item {
                         width: parent.width - createButton.width - openLinkButton.width
                             - parent.spacing * 2
 
-                        text: "Мои плейлисты"
+                        text: qsTr("Мои плейлисты")
                         color: AppTheme.textPrimary
                         font.pixelSize: 20
                         font.bold: true
@@ -90,7 +90,7 @@ Item {
 
                             anchors.centerIn: parent
 
-                            text: "Открыть по ссылке"
+                            text: qsTr("Открыть по ссылке")
                             color: AppTheme.textPrimary
                             font.pixelSize: 12
                         }
@@ -148,7 +148,7 @@ Item {
                 Label {
                     width: parent.width
 
-                    text: "Загрузка плейлистов..."
+                    text: qsTr("Загрузка плейлистов...")
                     color: AppTheme.textSecondary
                     font.pixelSize: 13
 
@@ -291,7 +291,7 @@ Item {
                     Label {
                         anchors.centerIn: parent
 
-                        text: "Плейлистов нет"
+                        text: qsTr("Плейлистов нет")
                         color: AppTheme.textSecondary
                         font.pixelSize: 13
 
@@ -312,7 +312,7 @@ Item {
                 Label {
                     width: parent.width
 
-                    text: "Мне нравится"
+                    text: qsTr("Мне нравится")
                     color: AppTheme.textPrimary
                     font.pixelSize: 20
                     font.bold: true
@@ -321,7 +321,7 @@ Item {
                 Label {
                     width: parent.width
 
-                    text: "Загрузка понравившихся треков..."
+                    text: qsTr("Загрузка понравившихся треков...")
                     color: AppTheme.textSecondary
                     font.pixelSize: 13
 
@@ -413,7 +413,7 @@ Item {
                 Label {
                     width: parent.width
 
-                    text: "Сохранённые альбомы"
+                    text: qsTr("Сохранённые альбомы")
                     color: AppTheme.textPrimary
                     font.pixelSize: 20
                     font.bold: true
@@ -556,7 +556,7 @@ Item {
                     Label {
                         anchors.centerIn: parent
 
-                        text: "Нет сохранённых альбомов"
+                        text: qsTr("Нет сохранённых альбомов")
                         color: AppTheme.textSecondary
                         font.pixelSize: 13
 
@@ -574,7 +574,7 @@ Item {
                 Label {
                     width: parent.width
 
-                    text: "Любимые исполнители"
+                    text: qsTr("Любимые исполнители")
                     color: AppTheme.textPrimary
                     font.pixelSize: 20
                     font.bold: true
@@ -696,7 +696,7 @@ Item {
                     Label {
                         anchors.centerIn: parent
 
-                        text: "Нет любимых исполнителей"
+                        text: qsTr("Нет любимых исполнителей")
                         color: AppTheme.textSecondary
                         font.pixelSize: 13
 

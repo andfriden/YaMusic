@@ -39,7 +39,7 @@ Item {
         Label {
             width: parent.width
 
-            text: "Подкасты"
+            text: qsTr("Подкасты")
             color: AppTheme.textPrimary
             font.pixelSize: 28
             font.bold: true
@@ -51,7 +51,7 @@ Item {
 
             visible: root.podcasts.length === 0
 
-            text: "Подкасты пока не загрузились"
+            text: qsTr("Подкасты пока не загрузились")
             color: AppTheme.textSecondary
             font.pixelSize: 16
             horizontalAlignment: Text.AlignHCenter

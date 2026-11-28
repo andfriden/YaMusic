@@ -216,7 +216,7 @@ Item {
                             anchors.verticalCenter: parent.verticalCenter
 
                             visible: root.artistIsAi
-                            text: "AI"
+                            text: qsTr("AI")
                             badgeColor: AppTheme.warning
                         }
 

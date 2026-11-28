@@ -1,4 +1,5 @@
 #include "AlbumController.h"
+#include <QCoreApplication>
 #include "../Playback/PlaybackController.h"
 #include "../Yandex/Catalog/AlbumService.h"
 #include "../Yandex/Catalog/ArtistService.h"
@@ -134,7 +135,7 @@ void AlbumController::playAlbum() {
 }
 
 QString AlbumController::unavailableMessage() const {
-  return QStringLiteral("Прослушивание доступно только в Яндекс Книгах");
+  return QCoreApplication::translate("YaMusic", "Прослушивание доступно только в Яндекс Книгах");
 }
 
 AlbumModel *AlbumController::albumModel() const {

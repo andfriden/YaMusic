@@ -1,4 +1,5 @@
 #include "PersonalController.h"
+#include <QCoreApplication>
 #include "../Yandex/Personal/YandexPersonal.h"
 
 PersonalController::PersonalController(YandexPersonal *yandexPersonal,
@@ -33,7 +34,7 @@ PersonalController::PersonalController(YandexPersonal *yandexPersonal,
 
             PersonalLandingSection section;
             section.id = "new-playlists";
-            section.title = "Новые плейлисты";
+            section.title = QCoreApplication::translate("YaMusic", "Новые плейлисты");
             section.type = "new-playlists";
 
             for (const Playlist &playlist : playlists) {
@@ -83,7 +84,7 @@ PersonalController::PersonalController(YandexPersonal *yandexPersonal,
             m_personalPlaylistsModel->setSections(m_recommendationSections);
 
             emit statusChanged(
-                QStringLiteral("Новых плейлистов загружено: %1").arg(section.playlists.size()));
+                QCoreApplication::translate("YaMusic", "Новых плейлистов загружено: %1").arg(section.playlists.size()));
           });
 }
 

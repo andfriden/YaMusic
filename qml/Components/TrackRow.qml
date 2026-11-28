@@ -354,13 +354,13 @@ Item {
 
             Badge {
                 visible: root.showAiBadge
-                text: "AI"
+                text: qsTr("AI")
                 badgeColor: root.aiBadgeColor
             }
 
             Badge {
                 visible: root.showUncensoredBadge
-                text: "Без цензуры"
+                text: qsTr("Без цензуры")
                 badgeColor: root.uncensoredBadgeColor
             }
         }

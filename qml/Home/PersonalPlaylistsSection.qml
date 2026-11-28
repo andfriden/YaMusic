@@ -314,7 +314,7 @@ Item {
                                 width: 220
 
                                 MenuItem {
-                                    text: "Слушать"
+                                    text: qsTr("Слушать")
 
                                     onClicked: {
                                         const kind = Number(playlistCard.modelData.kind || 0)
@@ -327,7 +327,7 @@ Item {
                                 }
 
                                 MenuItem {
-                                    text: "Открыть"
+                                    text: qsTr("Открыть")
 
                                     onClicked: {
                                         const kind = Number(playlistCard.modelData.kind || 0)
@@ -340,7 +340,7 @@ Item {
                                 }
 
                                 MenuItem {
-                                    text: "Переименовать"
+                                    text: qsTr("Переименовать")
 
                                     onClicked: {
                                         playlistCard.renameDialog.newName = String(playlistCard.modelData.title || "")
@@ -349,7 +349,7 @@ Item {
                                 }
 
                                 MenuItem {
-                                    text: "Удалить"
+                                    text: qsTr("Удалить")
 
                                     onClicked: {
                                         playlistCard.deleteDialog.open()
@@ -362,7 +362,7 @@ Item {
 
                                 property string newName: ""
 
-                                title: "Новое название"
+                                title: qsTr("Новое название")
                                 standardButtons: Dialog.Ok | Dialog.Cancel
                                 width: 320
 
@@ -393,7 +393,7 @@ Item {
                             Dialog {
                                 id: deleteDialog
 
-                                title: "Удалить плейлист?"
+                                title: qsTr("Удалить плейлист?")
                                 standardButtons: Dialog.Yes | Dialog.No
                                 width: 320
 

@@ -1,4 +1,5 @@
 #include "PersonalController.h"
+#include <QCoreApplication>
 
 void PersonalController::connectRecommendations() {
   connect(m_personalLanding, &PersonalLanding::loaded, this,
@@ -21,7 +22,7 @@ void PersonalController::connectRecommendations() {
 
             emit recommendationsLoaded();
             emit statusChanged(
-                QStringLiteral("Загружено блоков рекомендаций: %1").arg(sections.size()));
+                QCoreApplication::translate("YaMusic", "Загружено блоков рекомендаций: %1").arg(sections.size()));
           });
 
   connect(m_personalLanding, &PersonalLanding::podcastsReceived, this,
@@ -31,7 +32,7 @@ void PersonalController::connectRecommendations() {
 
             if (!podcasts.isEmpty()) {
               emit statusChanged(
-                  QStringLiteral("Подкастов загружено: %1").arg(podcasts.size()));
+                  QCoreApplication::translate("YaMusic", "Подкастов загружено: %1").arg(podcasts.size()));
             }
           });
 
@@ -41,7 +42,7 @@ void PersonalController::connectRecommendations() {
             emit wheelItemsChanged();
             if (!items.isEmpty()) {
               emit statusChanged(
-                  QStringLiteral("Колесо: элементов %1").arg(items.size()));
+                  QCoreApplication::translate("YaMusic", "Колесо: элементов %1").arg(items.size()));
             }
           });
 
@@ -55,7 +56,7 @@ m_loadingRecommendations = false;
 
   m_personalPlaylistsModel->clear();
 
-    emit statusChanged(QStringLiteral("Ошибка загрузки рекомендаций: %1").arg(message));
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Ошибка загрузки рекомендаций: %1").arg(message));
   });
 }
 
@@ -73,7 +74,7 @@ void PersonalController::loadRecommendations() {
 
   m_personalPlaylistsModel->clear();
 
-  emit statusChanged("Загрузка рекомендаций...");
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Загрузка рекомендаций..."));
   m_personalLanding->load();
   m_newPlaylistsService->load();
 }
@@ -82,7 +83,7 @@ void PersonalController::selectPersonalPlaylist(const QString &uid, int kind) {
   const QString playlistUid = uid.trimmed();
 
   if (playlistUid.isEmpty() || kind <= 0) {
-    emit statusChanged("Некорректный плейлист");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Некорректный плейлист"));
     return;
   }
 
@@ -111,7 +112,7 @@ void PersonalController::selectPersonalPlaylist(const QString &uid, int kind) {
   }
 
   if (selectedPlaylist.uid.isEmpty()) {
-    emit statusChanged("Плейлист не найден");
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Плейлист не найден"));
     return;
   }
 
@@ -122,7 +123,7 @@ void PersonalController::selectPersonalPlaylist(const QString &uid, int kind) {
 void PersonalController::loadWheel() {
   m_wheelItems.clear();
   emit wheelItemsChanged();
-  emit statusChanged("Загрузка Колеса...");
+  emit statusChanged(QCoreApplication::translate("YaMusic", "Загрузка Колеса..."));
   m_personalLanding->loadWheel();
 }
 

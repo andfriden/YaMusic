@@ -160,6 +160,9 @@ class AppController : public QObject {
   Q_PROPERTY(bool skipAiTracks READ skipAiTracks WRITE setSkipAiTracks NOTIFY
                  skipAiTracksChanged)
 
+  // Язык интерфейса: ru или en. Применяется при следующем запуске.
+  Q_PROPERTY(QString uiLanguage READ uiLanguage WRITE setUiLanguage NOTIFY uiLanguageChanged)
+
   Q_PROPERTY(qint64 position READ position NOTIFY positionChanged)
   Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
   Q_PROPERTY(PlaybackController::PlaybackState playbackState READ playbackState NOTIFY
@@ -360,6 +363,9 @@ public:
 
   QString accountName() const;
 
+  QString uiLanguage() const;
+  void setUiLanguage(const QString &language);
+
   QString currentTrackId() const;
   QString currentTrackTitle() const;
   QString currentTrackArtist() const;
@@ -413,6 +419,7 @@ signals:
   void aiChanged();
   void censorChanged();
   void hideAiTracksChanged();
+  void uiLanguageChanged();
   void autoDislikeAiTracksChanged();
   void skipAiTracksChanged();
 

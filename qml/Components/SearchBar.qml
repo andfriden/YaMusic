@@ -83,7 +83,7 @@ Item {
         leftPadding: 42
         rightPadding: 42
 
-        placeholderText: "Поиск музыки"
+        placeholderText: qsTr("Поиск музыки")
 
         color: AppTheme.textPrimary
         placeholderTextColor: AppTheme.textMuted

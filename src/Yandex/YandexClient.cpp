@@ -1,4 +1,5 @@
 #include "YandexClient.h"
+#include <QCoreApplication>
 
 #include "AccountParser.h"
 #include "Catalog/SearchParser.h"
@@ -138,7 +139,7 @@ void YandexClient::getAccountStatus() {
                 QJsonParseError::NoError ||
             !document.isObject()) {
           emit requestError(
-              "Некорректный ответ от Яндекс Музыки");
+              QCoreApplication::translate("YaMusic", "Некорректный ответ от Яндекс Музыки"));
 
           reply->deleteLater();
           return;
@@ -226,7 +227,7 @@ void YandexClient::search(
                 QJsonParseError::NoError ||
             !document.isObject()) {
           emit requestError(
-              "Некорректный ответ поиска");
+              QCoreApplication::translate("YaMusic", "Некорректный ответ поиска"));
 
           reply->deleteLater();
           return;
@@ -459,7 +460,7 @@ void YandexClient::getTracks(
                 QJsonParseError::NoError ||
             !document.isObject()) {
           emit requestError(
-              "Некорректный ответ списка треков");
+              QCoreApplication::translate("YaMusic", "Некорректный ответ списка треков"));
 
           reply->deleteLater();
           return;
