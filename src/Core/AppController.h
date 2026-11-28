@@ -500,6 +500,7 @@ private:
   YnisonReporter *m_ynisonReporter = nullptr;
 
   QString m_accountUid;
+  QString m_uiLanguage = QStringLiteral("ru");
   QString m_accountName;
   bool m_playAlbumAfterLoad = false;
   int m_dislikesRevision = 0;

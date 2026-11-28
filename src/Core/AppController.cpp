@@ -1019,15 +1019,16 @@ QString AppController::currentArtistName() const {
 }
 
 QString AppController::uiLanguage() const {
-  return QSettings().value(QStringLiteral("ui/language"), QStringLiteral("ru")).toString();
+  return m_uiLanguage;
 }
 
 void AppController::setUiLanguage(const QString &language) {
   const QString value =
       language == QStringLiteral("en") ? QStringLiteral("en") : QStringLiteral("ru");
 
-  if (uiLanguage() == value) return;
+  if (m_uiLanguage == value) return;
 
+  m_uiLanguage = value;
   QSettings().setValue(QStringLiteral("ui/language"), value);
   emit uiLanguageChanged();
   emit statusChanged(QCoreApplication::translate("YaMusic", "Язык применится после перезапуска приложения"));

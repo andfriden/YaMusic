@@ -1,4 +1,5 @@
 #include "AppController.h"
+#include "../Yandex/Auth/YandexAuth.h"
 #include <QCoreApplication>
 #include "../Yandex/Personal/PlaylistLink.h"
 
@@ -44,6 +45,11 @@ void AppController::selectPersonalPlaylist(const QString &uid, int kind) {
 }
 
 bool AppController::openPlaylistUrl(const QString &link) {
+  if (m_auth == nullptr || !m_auth->isAuthenticated()) {
+    emit statusChanged(QCoreApplication::translate("YaMusic", "Пользователь не авторизован"));
+    return false;
+  }
+
   const PlaylistLink parsed = PlaylistLink::parse(link);
 
   if (parsed.type == PlaylistLink::Type::Invalid) {

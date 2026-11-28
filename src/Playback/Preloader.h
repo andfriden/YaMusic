@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Models/Track.h"
+#include <QHash>
 #include <QList>
 #include <QObject>
 #include <QPointer>
@@ -78,6 +79,10 @@ private:
   QString m_writePath;
 
   QSet<QString> m_failedTrackIds;
+
+  // Готовые пути из кэша: pathFor() сканирует каталог, а поллинг
+  // перехода спрашивает их несколько раз в секунду.
+  mutable QHash<QString, QString> m_pathCache;
 
   bool m_enabled = true;
   int m_aheadCount = 3;

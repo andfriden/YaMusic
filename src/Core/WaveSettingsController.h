@@ -46,7 +46,10 @@ public:
   // настройки не трогает: пока пользователь ничего не выбрал, волна
   // работает с тем, что уже сохранено в аккаунте.
   bool pendingApply() const;
-  void markApplied();
+  int revision() const;
+  // appliedRevision — ревизия, которая реально ушла на сервер: если
+  // пользователь успел изменить настройки, ожидание сохраняется.
+  void markApplied(int appliedRevision);
 
 signals:
   void settingsChanged();
@@ -59,4 +62,5 @@ private:
   QString m_diversity;
   QString m_moodEnergy;
   bool m_pendingApply = false;
+  int m_revision = 0;
 };

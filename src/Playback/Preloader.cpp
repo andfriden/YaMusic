@@ -1,4 +1,6 @@
 #include "Preloader.h"
+
+#include <QFile>
 #include "../Player/TrackCache.h"
 #include "../Yandex/Catalog/TrackService.h"
 #include <QFile>
@@ -106,7 +108,24 @@ void Preloader::setUpcoming(const QList<Track> &tracks) {
 QString Preloader::cachedPath(const Track &track) const {
   if (track.id.isEmpty()) return {};
 
-  return m_cache->pathFor(TrackCache::identityFor(track.id));
+  const QString identity = TrackCache::identityFor(track.id);
+  const auto cached = m_pathCache.constFind(identity);
+
+  // pathFor() сканирует каталог кэша; поллинг перехода спрашивает путь
+  // несколько раз в секунду, поэтому готовый путь запоминаем до вытеснения.
+  if (cached != m_pathCache.constEnd() && QFile::exists(cached.value())) {
+    return cached.value();
+  }
+
+  const QString path = m_cache->pathFor(identity);
+
+  if (path.isEmpty()) {
+    m_pathCache.remove(identity);
+  } else {
+    m_pathCache.insert(identity, path);
+  }
+
+  return path;
 }
 
 int Preloader::windowCount() const {

@@ -91,6 +91,9 @@ void PlaylistLinkTest::rejectsInvalid() {
       QStringLiteral("https://music.yandex.ru/users/and.friden/playlists/abc"),
       QStringLiteral("https://music.yandex.ru/users/and.friden/playlists/0"),
       QStringLiteral("https://music.yandex.ru/playlists/not-a-uuid"),
+      QStringLiteral("https://music.yandex.ru/users/bad%20login/playlists/1"),
+      QStringLiteral("https://music.yandex.ru/users/../playlists/1"),
+      QStringLiteral("https://music.yandex.ru/users/and.friden!/playlists/1"),
       QStringLiteral("https://music.yandex.ru/playlists/"),
   };
 

@@ -18,6 +18,7 @@ private slots:
   void storesSelectionBetweenInstances();
   void toJsonCarriesSelection();
   void markAppliedClearsPending();
+  void staleRevisionKeepsPending();
 
 private:
   QTemporaryDir m_dir;
@@ -100,13 +101,25 @@ void TestWaveSettings::markAppliedClearsPending() {
   controller.setLanguage(QStringLiteral("without-words"));
   QVERIFY(controller.pendingApply());
 
-  controller.markApplied();
+  controller.markApplied(controller.revision());
   QVERIFY(!controller.pendingApply());
 
   WaveSettingsController restored;
   QVERIFY(!restored.pendingApply());
 
   controller.setLanguage(QStringLiteral("any"));
+  QVERIFY(controller.pendingApply());
+}
+
+void TestWaveSettings::staleRevisionKeepsPending() {
+  WaveSettingsController controller;
+  controller.setLanguage(QStringLiteral("russian"));
+  const int appliedRevision = controller.revision();
+
+  controller.setDiversity(QStringLiteral("favorite"));
+  controller.markApplied(appliedRevision);
+
+  // Пока запрос летел, выбор изменился: новая настройка ещё не отправлена.
   QVERIFY(controller.pendingApply());
 }
 

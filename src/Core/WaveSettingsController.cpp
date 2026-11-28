@@ -137,7 +137,14 @@ bool WaveSettingsController::pendingApply() const {
   return m_pendingApply;
 }
 
-void WaveSettingsController::markApplied() {
+int WaveSettingsController::revision() const {
+  return m_revision;
+}
+
+void WaveSettingsController::markApplied(int appliedRevision) {
+  // Пока запрос летел, выбор могли поменять — тогда он ещё не отправлен.
+  if (appliedRevision != m_revision) return;
+
   m_pendingApply = false;
 
   QSettings settings;
@@ -153,6 +160,7 @@ bool WaveSettingsController::setOption(QString &field, const QString &value,
   }
 
   field = trimmed;
+  ++m_revision;
 
   QSettings settings;
   settings.setValue(key, trimmed);

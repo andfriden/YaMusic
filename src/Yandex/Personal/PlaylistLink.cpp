@@ -21,6 +21,11 @@ bool isYandexHost(const QString &host) {
   return false;
 }
 
+bool looksLikeLogin(const QString &value) {
+  static const QRegularExpression kLogin(QStringLiteral("^(?=.*[A-Za-z0-9])[A-Za-z0-9._-]{1,64}$"));
+  return kLogin.match(value).hasMatch();
+}
+
 bool looksLikeUuid(const QString &value) {
   static const QRegularExpression kUuid(
       QStringLiteral("^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
@@ -61,8 +66,13 @@ PlaylistLink PlaylistLink::parse(const QString &text) {
 
       if (!ok || kind <= 0) return link;
 
+      const QString login = segments.at(i + 1);
+
+      // Логин уходит в путь запроса: пускаем только допустимые символы.
+      if (!looksLikeLogin(login)) return link;
+
       link.type = Type::UserPlaylist;
-      link.login = segments.at(i + 1);
+      link.login = login;
       link.kind = kind;
       return link;
     }

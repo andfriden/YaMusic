@@ -122,6 +122,7 @@ void YandexPersonal::applyWaveSettings() {
   }
 
   m_yandexClient->setToken(m_auth->token());
+  const int appliedRevision = m_waveSettings->revision();
   QNetworkReply *reply = m_yandexClient->post(
       QStringLiteral("/rotor/station/user:onyourwave/settings3"), m_waveSettings->toJson());
 
@@ -130,12 +131,12 @@ void YandexPersonal::applyWaveSettings() {
     return;
   }
 
-  connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+  connect(reply, &QNetworkReply::finished, this, [this, reply, appliedRevision]() {
     const bool applied = reply->error() == QNetworkReply::NoError;
     reply->deleteLater();
 
     if (applied && m_waveSettings != nullptr) {
-      m_waveSettings->markApplied();
+      m_waveSettings->markApplied(appliedRevision);
     }
 
     // Волна должна запуститься даже если настройки применить не удалось:
