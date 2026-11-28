@@ -963,6 +963,30 @@ add_test(
 )
 
 qt_add_executable(
+        tst_gapless_policy
+        tests/tst_gapless_policy.cpp
+)
+
+set_target_properties(
+        tst_gapless_policy
+        PROPERTIES
+        MACOSX_BUNDLE FALSE
+        WIN32_EXECUTABLE FALSE
+)
+
+target_link_libraries(
+        tst_gapless_policy
+        PRIVATE
+        Qt6::Core
+        Qt6::Test
+)
+
+add_test(
+        NAME gapless_policy
+        COMMAND tst_gapless_policy
+)
+
+qt_add_executable(
         tst_crash_report
         tests/tst_crash_report.cpp
         src/Crash/CrashHandler.cpp

@@ -34,6 +34,17 @@ public:
 
   bool isCrossfading() const;
 
+  // Бесшовный переход: следующий трек готовится на свободном голосе
+  // заранее, а в конце текущего стартует без паузы на загрузку.
+  bool gaplessEnabled() const;
+  void setGaplessEnabled(bool enabled);
+
+  bool prepareNextUrl(const QString &url);
+  bool prepareNextDevice(QIODevice *device);
+  bool hasPreparedNext() const;
+  bool playPreparedNext();
+  void clearPreparedNext();
+
 public slots:
   void play();
   void playUrl(const QString &url);
@@ -73,6 +84,8 @@ signals:
 
 private:
   void applyVolume();
+  bool prepareNextSource(const QString &url, QIODevice *device);
+  void discardPrepared();
   void startFade();
   void finishFade();
   void cancelFade();
@@ -98,6 +111,13 @@ private:
   bool m_fadeFromSecond = false;
   qint64 m_fadeElapsedMs = 0;
   int m_crossfadeMs = 0;
+  bool m_gaplessEnabled = true;
+
+  // Подготовленный следующий трек на молчащем голосе.
+  bool m_prepared = false;
+  bool m_preparedSecond = false;
+  QString m_preparedUrl;
+  QPointer<QIODevice> m_preparedDevice;
 
   float m_volume = 1.0f;
   bool m_muted = false;

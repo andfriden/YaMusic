@@ -2,6 +2,7 @@
 
 #include "../Core/AudioQualityController.h"
 #include "../MediaControls/MediaControlsFactory.h"
+#include "../Player/GaplessPolicy.h"
 #include "../Player/PlayerService.h"
 #include "../Player/StreamProxy.h"
 #include "../Player/TrackCache.h"
@@ -263,6 +264,8 @@ void PlaybackController::playTrack(const Track &track) {
 
   resetReportState();
 
+  cancelPreparedNext();
+
   const QList<Track> queueTracks =
       m_queueService->tracks();
 
@@ -388,6 +391,8 @@ void PlaybackController::resume() {
 }
 
 void PlaybackController::stop() {
+  cancelPreparedNext();
+
   maybeReportPlayback();
   abortStreamProxy();
   m_playerService->stop();
@@ -631,7 +636,14 @@ void PlaybackController::checkCrossfade() {
 
   const int fadeMs = m_playerService->crossfadeMs();
 
-  if (fadeMs <= 0) return;
+  if (fadeMs <= 0) {
+    checkGaplessNext();
+    return;
+  }
+
+  // Затухание включили — заготовка на свободном голосе больше не нужна.
+  cancelPreparedNext();
+
   // Повтор одного трека перехода не предполагает.
   if (m_queueService->repeatMode() == QueueService::RepeatOne) return;
   if (!m_queueService->hasNext()) return;
@@ -675,6 +687,60 @@ void PlaybackController::checkCrossfade() {
   if (m_incomingProxy == nullptr || !m_incomingProxy->isPrimed()) return;
 
   beginStreamedCrossfade(nextTrack, m_incomingProxy);
+}
+
+void PlaybackController::checkGaplessNext() {
+  if (!m_playerService->gaplessEnabled()) {
+    cancelPreparedNext();
+    return;
+  }
+
+  if (m_queueService->repeatMode() == QueueService::RepeatOne) {
+    cancelPreparedNext();
+    return;
+  }
+
+  if (!m_queueService->hasNext()) {
+    cancelPreparedNext();
+    return;
+  }
+
+  const Track nextTrack = m_queueService->trackAt(m_queueService->currentIndex() + 1);
+
+  if (nextTrack.id.isEmpty() || !nextTrack.available || wouldReplaceForCensor(nextTrack)) {
+    cancelPreparedNext();
+    return;
+  }
+
+  if (m_preparedTrackId == nextTrack.id && m_playerService->hasPreparedNext()) return;
+
+  // Готовить имеет смысл только трек, который уже лежит в кэше: стрим
+  // поднимается своим путём и заранее неизвестен.
+  const QString nextPath = m_preloader != nullptr ? m_preloader->cachedPath(nextTrack) : QString();
+
+  if (nextPath.isEmpty()) {
+    cancelPreparedNext();
+    return;
+  }
+
+  if (!Playback::isGaplessPrepareDue(m_playerService->position(),
+                                     m_playerService->duration())) {
+    return;
+  }
+
+  cancelPreparedNext();
+
+  if (m_playerService->prepareNextUrl(QUrl::fromLocalFile(nextPath).toString())) {
+    m_preparedTrackId = nextTrack.id;
+  }
+}
+
+void PlaybackController::cancelPreparedNext() {
+  m_preparedTrackId.clear();
+
+  if (m_playerService != nullptr) {
+    m_playerService->clearPreparedNext();
+  }
 }
 
 QString PlaybackController::currentQuality() const {
@@ -809,6 +875,28 @@ bool PlaybackController::playQueueCurrentTrack() {
 }
 
 void PlaybackController::handlePlaybackFinished() {
+  // Следующий трек уже открыт на свободном голосе: запускаем его сразу,
+  // без паузы на загрузку источника.
+  if (m_queueService->repeatMode() != QueueService::RepeatOne &&
+      m_queueService->hasNext() && !m_preparedTrackId.isEmpty() &&
+      m_playerService->hasPreparedNext()) {
+    const Track nextTrack = m_queueService->trackAt(m_queueService->currentIndex() + 1);
+
+    if (nextTrack.id == m_preparedTrackId) {
+      switchToTrack(nextTrack);
+      m_preparedTrackId.clear();
+
+      // Уходящий трек доиграл: его поток больше не нужен.
+      retireProxy(m_streamProxy);
+
+      m_playerService->playPreparedNext();
+      updatePreloadWindow();
+      return;
+    }
+
+    cancelPreparedNext();
+  }
+
   // Поток следующего трека успел догрузиться, пока доигрывал текущий:
   // доводим переход им — без нового запроса к сети и без паузы.
   if (m_queueService->repeatMode() != QueueService::RepeatOne &&

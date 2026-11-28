@@ -116,6 +116,12 @@ private:
   // переход: заводим следующий трек до того, как текущий доиграет. Трек из
   // кэша играет с диска, нескачанный — потоком из сети.
   void checkCrossfade();
+
+  // Бесшовный переход при выключенном затухании: готовим следующий трек
+  // на свободном голосе и запускаем его в конце текущего.
+  void checkGaplessNext();
+  void cancelPreparedNext();
+
   void beginCrossfade(const Track &nextTrack, const QString &path);
   void beginStreamedCrossfade(const Track &nextTrack, StreamProxy *proxy);
 
@@ -195,6 +201,9 @@ private:
   // Проверка «пора переходить» и признак идущего перехода.
   QTimer m_crossfadeTimer;
   bool m_crossfading = false;
+
+  // Трек, подготовленный на свободном голосе для бесшовного перехода.
+  QString m_preparedTrackId;
   QString m_pendingCoverUri;
 
   // Буферизованные сетевые потоки (обход TLS-проблем FFmpeg на macOS).

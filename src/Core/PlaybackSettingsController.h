@@ -15,6 +15,11 @@ class PlaybackSettingsController : public QObject {
   Q_PROPERTY(int crossfadeSeconds READ crossfadeSeconds WRITE setCrossfadeSeconds NOTIFY
                  crossfadeSecondsChanged)
 
+  // Бесшовный переход: следующий трек готовится заранее и стартует без
+  // паузы. Работает только когда перекрёстное затухание выключено.
+  Q_PROPERTY(bool gaplessEnabled READ gaplessEnabled WRITE setGaplessEnabled NOTIFY
+                 gaplessEnabledChanged)
+
 public:
   explicit PlaybackSettingsController(PlayerService *playerService, QObject *parent = nullptr);
 
@@ -22,8 +27,12 @@ public:
 
   void setCrossfadeSeconds(int seconds);
 
+  bool gaplessEnabled() const;
+  void setGaplessEnabled(bool enabled);
+
 signals:
   void crossfadeSecondsChanged();
+  void gaplessEnabledChanged();
 
 private:
   // Границы выбора: больше 12 секунд — это уже не переход между треками.
@@ -31,4 +40,5 @@ private:
 
   PlayerService *m_playerService = nullptr;
   int m_crossfadeSeconds = 6;
+  bool m_gaplessEnabled = true;
 };

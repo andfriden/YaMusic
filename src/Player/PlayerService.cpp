@@ -142,6 +142,124 @@ bool PlayerService::isCrossfading() const {
   return m_fading;
 }
 
+bool PlayerService::gaplessEnabled() const {
+  return m_gaplessEnabled;
+}
+
+void PlayerService::setGaplessEnabled(bool enabled) {
+  if (m_gaplessEnabled == enabled) return;
+
+  m_gaplessEnabled = enabled;
+
+  if (!enabled) discardPrepared();
+}
+
+bool PlayerService::prepareNextUrl(const QString &url) {
+  return prepareNextSource(url, nullptr);
+}
+
+bool PlayerService::prepareNextDevice(QIODevice *device) {
+  return prepareNextSource({}, device);
+}
+
+bool PlayerService::hasPreparedNext() const {
+  return m_prepared;
+}
+
+bool PlayerService::prepareNextSource(const QString &url, QIODevice *device) {
+  if (!m_gaplessEnabled || (url.isEmpty() && device == nullptr)) return false;
+  if (m_fading) return false;
+  if (m_prepared) return true;
+
+  const bool targetSecond = !m_secondVoiceActive;
+  QMediaPlayer &incoming = targetSecond ? m_secondPlayer : m_player;
+  QAudioOutput &output = targetSecond ? m_secondOutput : m_audioOutput;
+
+  output.setMuted(false);
+  output.setVolume(0.0f);
+  incoming.stop();
+
+  if (device != nullptr) {
+    incoming.setSourceDevice(device);
+
+    if (targetSecond)
+      m_secondSourceDevice = device;
+    else
+      m_sourceDevice = device;
+
+    m_preparedUrl.clear();
+    m_preparedDevice = device;
+  } else {
+    incoming.setSource(QUrl(url));
+
+    if (targetSecond)
+      m_secondSourceDevice.clear();
+    else
+      m_sourceDevice.clear();
+
+    m_preparedUrl = url;
+    m_preparedDevice.clear();
+  }
+
+  m_prepared = true;
+  m_preparedSecond = targetSecond;
+  return true;
+}
+
+bool PlayerService::playPreparedNext() {
+  if (!m_prepared) return false;
+
+  const bool previousSecond = m_secondVoiceActive;
+  const bool preparedSecond = m_preparedSecond;
+
+  if (previousSecond == preparedSecond) {
+    discardPrepared();
+    return false;
+  }
+
+  m_prepared = false;
+  m_secondVoiceActive = preparedSecond;
+
+  stopVoice(previousSecond, true);
+
+  m_currentUrl = m_preparedUrl;
+  m_preparedUrl.clear();
+  m_preparedDevice.clear();
+
+  activeOutput().setMuted(false);
+  applyVolume();
+  activePlayer().play();
+
+  emit currentUrlChanged();
+  return true;
+}
+
+void PlayerService::clearPreparedNext() {
+  discardPrepared();
+}
+
+void PlayerService::discardPrepared() {
+  if (!m_prepared) return;
+
+  const bool preparedSecond = m_preparedSecond;
+
+  m_prepared = false;
+  m_preparedUrl.clear();
+  m_preparedDevice.clear();
+
+  if (preparedSecond == m_secondVoiceActive) return;
+
+  QMediaPlayer &player = preparedSecond ? m_secondPlayer : m_player;
+  player.stop();
+  player.setSourceDevice(nullptr);
+  player.setSource(QUrl());
+
+  if (preparedSecond)
+    m_secondSourceDevice.clear();
+  else
+    m_sourceDevice.clear();
+}
+
 void PlayerService::setCrossfadeMs(int milliseconds) {
   m_crossfadeMs = qBound(0, milliseconds, 30000);
 
@@ -156,6 +274,7 @@ void PlayerService::play() {
 void PlayerService::playUrl(const QString &url) {
   if (url.isEmpty()) return;
 
+  discardPrepared();
   cancelFade();
   playOnActiveVoice(url, nullptr);
 }
@@ -163,12 +282,15 @@ void PlayerService::playUrl(const QString &url) {
 void PlayerService::playDevice(QIODevice *device) {
   if (!device) return;
 
+  discardPrepared();
   cancelFade();
   playOnActiveVoice({}, device);
 }
 
 void PlayerService::playUrlFading(const QString &url) {
   if (url.isEmpty()) return;
+
+  discardPrepared();
 
   // Без настроенного кроссфадинга или когда ничего не играет перехода нет:
   // трек просто сменяется, как раньше.
@@ -205,6 +327,8 @@ void PlayerService::playUrlFading(const QString &url) {
 
 void PlayerService::playDeviceFading(QIODevice *device) {
   if (!device) return;
+
+  discardPrepared();
 
   if (m_crossfadeMs <= 0 || !isPlaying()) {
     playDevice(device);
@@ -284,6 +408,8 @@ void PlayerService::resume() {
 }
 
 void PlayerService::stop() {
+  discardPrepared();
+
   m_fadeTimer.stop();
   m_fading = false;
   m_fadeElapsedMs = 0;

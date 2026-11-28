@@ -74,6 +74,9 @@ Item {
     readonly property int crossfadeSeconds:
         root.playbackSettings !== null ? root.playbackSettings.crossfadeSeconds : 0
 
+    readonly property bool gaplessEnabled:
+        root.playbackSettings !== null ? root.playbackSettings.gaplessEnabled : true
+
     readonly property var waveSettings:
         root.controller !== null && root.controller !== undefined &&
         root.controller.waveSettingsController !== undefined
@@ -734,6 +737,71 @@ Item {
                 width: parent.width
 
                 text: "Следующий трек заводится до конца текущего: поток запрашивается заранее, играет с диска или из сети"
+                color: AppTheme.textMuted
+                font.pixelSize: 10
+                wrapMode: Text.Wrap
+                maximumLineCount: 2
+            }
+
+            Row {
+                width: parent.width
+                height: 24
+                spacing: 8
+
+                Text {
+                    width: parent.width - 28
+                    height: parent.height
+
+                    text: "Бесшовный переход"
+                    color: AppTheme.textPrimary
+                    font.pixelSize: 12
+
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                Item {
+                    width: 20
+                    height: 20
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 4
+
+                        color: root.gaplessEnabled ? AppTheme.accent : AppTheme.panelSecondary
+
+                        border.width: 1
+                        border.color: AppTheme.border
+
+                        Text {
+                            anchors.centerIn: parent
+
+                            text: root.gaplessEnabled ? "✓" : ""
+                            color: AppTheme.accentOn
+                            font.pixelSize: 11
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (root.playbackSettings) {
+                                root.playbackSettings.gaplessEnabled = !root.gaplessEnabled
+                            }
+                        }
+                    }
+                }
+            }
+
+            Text {
+                width: parent.width
+
+                text: "Когда затухание выключено, следующий трек готовится заранее и стартует без паузы на загрузку"
                 color: AppTheme.textMuted
                 font.pixelSize: 10
                 wrapMode: Text.Wrap
