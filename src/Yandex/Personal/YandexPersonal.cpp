@@ -1,4 +1,5 @@
 #include "YandexPersonal.h"
+#include "../../Core/WaveSettingsController.h"
 #include "../Auth/YandexAuth.h"
 #include "../Parsers.h"
 #include "../YandexClient.h"
@@ -89,6 +90,10 @@ void YandexPersonal::sendMyWaveFeedback(const QString &event, const QString &tra
   });
 }
 
+void YandexPersonal::setWaveSettings(WaveSettingsController *settings) {
+  m_waveSettings = settings;
+}
+
 void YandexPersonal::loadMyWaveInternal(const QString &queueTrackId) {
   if (m_loading) return;
 
@@ -97,6 +102,48 @@ void YandexPersonal::loadMyWaveInternal(const QString &queueTrackId) {
     return;
   }
 
+  m_loading = true;
+
+  // Настройки станции отправляются только перед новой волной: продолжение
+  // играет ту же подборку, и лишний запрос ему не нужен.
+  if (queueTrackId.isEmpty() && m_waveSettings != nullptr && m_waveSettings->pendingApply()) {
+    applyWaveSettings();
+    return;
+  }
+
+  requestMyWaveTracks(queueTrackId);
+}
+
+void YandexPersonal::applyWaveSettings() {
+  if (m_waveSettings == nullptr) {
+    requestMyWaveTracks({});
+    return;
+  }
+
+  m_yandexClient->setToken(m_auth->token());
+  QNetworkReply *reply = m_yandexClient->post(
+      QStringLiteral("/rotor/station/user:onyourwave/settings3"), m_waveSettings->toJson());
+
+  if (reply == nullptr) {
+    requestMyWaveTracks({});
+    return;
+  }
+
+  connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+    const bool applied = reply->error() == QNetworkReply::NoError;
+    reply->deleteLater();
+
+    if (applied && m_waveSettings != nullptr) {
+      m_waveSettings->markApplied();
+    }
+
+    // Волна должна запуститься даже если настройки применить не удалось:
+    // станция продолжит работать с прежними значениями.
+    requestMyWaveTracks({});
+  });
+}
+
+void YandexPersonal::requestMyWaveTracks(const QString &queueTrackId) {
   m_loading = true;
   m_yandexClient->setToken(m_auth->token());
   QUrlQuery query;

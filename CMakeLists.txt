@@ -164,6 +164,7 @@ set(
         src/Core/AuthController.cpp
         src/Core/ThemeController.cpp
         src/Core/PlaybackSettingsController.cpp
+        src/Core/WaveSettingsController.cpp
         src/Core/PreloadController.cpp
         src/Core/UpdateController.cpp
         src/Core/StatsController.cpp
@@ -907,6 +908,31 @@ target_link_libraries(
 add_test(
         NAME crossfade
         COMMAND tst_crossfade
+)
+
+qt_add_executable(
+        tst_wave_settings
+        tests/tst_wave_settings.cpp
+        src/Core/WaveSettingsController.cpp
+)
+
+set_target_properties(
+        tst_wave_settings
+        PROPERTIES
+        MACOSX_BUNDLE FALSE
+        WIN32_EXECUTABLE FALSE
+)
+
+target_link_libraries(
+        tst_wave_settings
+        PRIVATE
+        Qt6::Core
+        Qt6::Test
+)
+
+add_test(
+        NAME wave_settings
+        COMMAND tst_wave_settings
 )
 
 qt_add_executable(

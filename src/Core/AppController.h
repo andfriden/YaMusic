@@ -26,6 +26,7 @@
 #include "StatsController.h"
 #include "ThemeController.h"
 #include "UpdateController.h"
+#include "WaveSettingsController.h"
 #include <QObject>
 #include <QString>
 #include <QVariantList>
@@ -99,6 +100,7 @@ class AppController : public QObject {
   Q_PROPERTY(PreloadController *preloadController READ preloadController CONSTANT)
   Q_PROPERTY(PlaybackSettingsController *playbackSettingsController READ playbackSettingsController
                  CONSTANT)
+  Q_PROPERTY(WaveSettingsController *waveSettingsController READ waveSettingsController CONSTANT)
   Q_PROPERTY(AudioQualityController *audioQualityController READ audioQualityController CONSTANT)
   Q_PROPERTY(StatsController *statsController READ statsController CONSTANT)
 
@@ -297,6 +299,7 @@ public:
   CrashReporter *crashReporter() const;
   PreloadController *preloadController() const;
   PlaybackSettingsController *playbackSettingsController() const;
+  WaveSettingsController *waveSettingsController() const;
   AudioQualityController *audioQualityController() const;
   StatsController *statsController() const;
 
@@ -479,6 +482,7 @@ private:
   CrashReporter *m_crashReporter = nullptr;
   PreloadController *m_preloadController = nullptr;
   PlaybackSettingsController *m_playbackSettingsController = nullptr;
+  WaveSettingsController *m_waveSettingsController = nullptr;
   DownloadService *m_downloadService = nullptr;
   StatsController *m_statsController = nullptr;
 

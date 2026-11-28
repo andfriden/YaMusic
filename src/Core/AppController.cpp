@@ -76,10 +76,13 @@ AppController::AppController(YandexAuth *auth, AccountService *accountService, Q
       m_preloadController(new PreloadController(m_playbackController->trackCache(),
                                                 m_playbackController->preloader(), this)),
       m_playbackSettingsController(new PlaybackSettingsController(m_playerService, this)),
+      m_waveSettingsController(new WaveSettingsController(this)),
       m_ynisonClient(new YnisonClient(this)),
       m_ynisonReporter(new YnisonReporter(m_ynisonClient, m_playerService, m_queueService, this)) {
   Q_ASSERT(m_auth != nullptr);
   Q_ASSERT(m_accountService != nullptr);
+
+  m_yandexPersonal->setWaveSettings(m_waveSettingsController);
 
   // Скрытие AI-треков: настройка хранится между запусками, а общий
   // фильтр моделей пересобирает все списки сразу.
@@ -913,6 +916,10 @@ PreloadController *AppController::preloadController() const {
 
 PlaybackSettingsController *AppController::playbackSettingsController() const {
   return m_playbackSettingsController;
+}
+
+WaveSettingsController *AppController::waveSettingsController() const {
+  return m_waveSettingsController;
 }
 
 AccentController *AppController::accentController() const {

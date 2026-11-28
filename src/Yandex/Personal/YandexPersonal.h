@@ -8,6 +8,7 @@
 
 class YandexAuth;
 class YandexClient;
+class WaveSettingsController;
 
 class YandexPersonal : public QObject {
   Q_OBJECT
@@ -19,6 +20,10 @@ public:
   void sendMyWaveFeedback(const QString &event, const QString &trackId, const QString &batchId,
                           qint64 totalPlayedSeconds = 0);
 
+  // Настройки «Моей волны»: перед новой волной отправляются на сервер.
+  // Указатель не переходит во владение.
+  void setWaveSettings(WaveSettingsController *settings);
+
 signals:
   void myWaveReceived(const QList<Track> &tracks, const QString &batchId);
   void feedbackSent(const QString &event);
@@ -27,9 +32,12 @@ signals:
 
 private:
   void loadMyWaveInternal(const QString &queueTrackId);
+  void requestMyWaveTracks(const QString &queueTrackId);
+  void applyWaveSettings();
   Track parseTrack(const QJsonObject &object) const;
 
   YandexAuth *m_auth = nullptr;
   YandexClient *m_yandexClient = nullptr;
+  WaveSettingsController *m_waveSettings = nullptr;
   bool m_loading = false;
 };

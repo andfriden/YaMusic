@@ -74,6 +74,46 @@ Item {
     readonly property int crossfadeSeconds:
         root.playbackSettings !== null ? root.playbackSettings.crossfadeSeconds : 0
 
+    readonly property var waveSettings:
+        root.controller !== null && root.controller !== undefined &&
+        root.controller.waveSettingsController !== undefined
+            ? root.controller.waveSettingsController
+            : null
+
+    readonly property bool waveIsPlaying:
+        root.controller !== null && root.controller !== undefined &&
+        root.controller.playbackSourceType === "myWave"
+
+    // Подпись текущего значения и следующее значение при клике по плашке:
+    // списки вариантов приходят из контроллера.
+    function waveOptionLabel(options, value) {
+        if (!options) {
+            return ""
+        }
+
+        for (let i = 0; i < options.length; ++i) {
+            if (options[i].value === value) {
+                return options[i].name
+            }
+        }
+
+        return ""
+    }
+
+    function nextWaveOption(options, value) {
+        if (!options || options.length === 0) {
+            return value
+        }
+
+        for (let i = 0; i < options.length; ++i) {
+            if (options[i].value === value) {
+                return options[(i + 1) % options.length].value
+            }
+        }
+
+        return options[0].value
+    }
+
     Flickable {
         id: pageFlickable
 
@@ -698,6 +738,245 @@ Item {
                 font.pixelSize: 10
                 wrapMode: Text.Wrap
                 maximumLineCount: 2
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 1
+                color: AppTheme.borderSubtle
+            }
+
+            Text {
+                width: parent.width
+                text: "Моя волна"
+                color: AppTheme.textSecondary
+                font.pixelSize: 11
+                font.bold: true
+
+                horizontalAlignment: Text.AlignHCenter
+                anchors.topMargin: 6
+            }
+
+            Row {
+                width: parent.width
+                height: 26
+                spacing: 8
+
+                Text {
+                    width: parent.width - 140
+                    height: parent.height
+
+                    text: "Язык"
+                    color: AppTheme.textPrimary
+                    font.pixelSize: 12
+
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                Rectangle {
+                    width: 132
+                    height: 24
+                    radius: 6
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    color: languageArea.containsMouse ? AppTheme.panelActive : AppTheme.panelSecondary
+
+                    border.width: 1
+                    border.color: AppTheme.borderSubtle
+
+                    Text {
+                        anchors.centerIn: parent
+
+                        text: root.waveSettings
+                            ? root.waveOptionLabel(root.waveSettings.languageOptions,
+                                                   root.waveSettings.language)
+                            : ""
+                        color: AppTheme.textPrimary
+                        font.pixelSize: 12
+                    }
+
+                    MouseArea {
+                        id: languageArea
+
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (!root.waveSettings) {
+                                return
+                            }
+
+                            root.waveSettings.language =
+                                root.nextWaveOption(root.waveSettings.languageOptions,
+                                                    root.waveSettings.language)
+                        }
+                    }
+                }
+            }
+
+            Row {
+                width: parent.width
+                height: 26
+                spacing: 8
+
+                Text {
+                    width: parent.width - 140
+                    height: parent.height
+
+                    text: "Характер"
+                    color: AppTheme.textPrimary
+                    font.pixelSize: 12
+
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                Rectangle {
+                    width: 132
+                    height: 24
+                    radius: 6
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    color: diversityArea.containsMouse ? AppTheme.panelActive : AppTheme.panelSecondary
+
+                    border.width: 1
+                    border.color: AppTheme.borderSubtle
+
+                    Text {
+                        anchors.centerIn: parent
+
+                        text: root.waveSettings
+                            ? root.waveOptionLabel(root.waveSettings.diversityOptions,
+                                                   root.waveSettings.diversity)
+                            : ""
+                        color: AppTheme.textPrimary
+                        font.pixelSize: 12
+                    }
+
+                    MouseArea {
+                        id: diversityArea
+
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (!root.waveSettings) {
+                                return
+                            }
+
+                            root.waveSettings.diversity =
+                                root.nextWaveOption(root.waveSettings.diversityOptions,
+                                                    root.waveSettings.diversity)
+                        }
+                    }
+                }
+            }
+
+            Row {
+                width: parent.width
+                height: 26
+                spacing: 8
+
+                Text {
+                    width: parent.width - 140
+                    height: parent.height
+
+                    text: "Настроение"
+                    color: AppTheme.textPrimary
+                    font.pixelSize: 12
+
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                Rectangle {
+                    width: 132
+                    height: 24
+                    radius: 6
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    color: moodEnergyArea.containsMouse ? AppTheme.panelActive : AppTheme.panelSecondary
+
+                    border.width: 1
+                    border.color: AppTheme.borderSubtle
+
+                    Text {
+                        anchors.centerIn: parent
+
+                        text: root.waveSettings
+                            ? root.waveOptionLabel(root.waveSettings.moodEnergyOptions,
+                                                   root.waveSettings.moodEnergy)
+                            : ""
+                        color: AppTheme.textPrimary
+                        font.pixelSize: 12
+                    }
+
+                    MouseArea {
+                        id: moodEnergyArea
+
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            if (!root.waveSettings) {
+                                return
+                            }
+
+                            root.waveSettings.moodEnergy =
+                                root.nextWaveOption(root.waveSettings.moodEnergyOptions,
+                                                    root.waveSettings.moodEnergy)
+                        }
+                    }
+                }
+            }
+
+            Text {
+                width: parent.width
+
+                text: "Настройки применятся при следующем запуске «Моей волны»"
+                color: AppTheme.textMuted
+                font.pixelSize: 10
+                wrapMode: Text.Wrap
+                maximumLineCount: 2
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 30
+                radius: 8
+                visible: root.waveIsPlaying
+
+                color: restartWaveArea.containsMouse ? AppTheme.panelActive : AppTheme.panelSecondary
+
+                border.width: 1
+                border.color: AppTheme.borderSubtle
+
+                Text {
+                    anchors.centerIn: parent
+
+                    text: "Перезапустить «Мою волну» с новыми настройками"
+                    color: restartWaveArea.containsMouse ? AppTheme.accent : AppTheme.textPrimary
+                    font.pixelSize: 12
+                    font.weight: Font.Medium
+                }
+
+                MouseArea {
+                    id: restartWaveArea
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+
+                    onClicked: {
+                        if (root.controller) {
+                            root.controller.loadMyWave()
+                        }
+                    }
+                }
             }
 
             Rectangle {
